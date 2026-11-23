@@ -735,3 +735,11 @@ button.hs.zone:hover,button.hs.zone:focus-visible{background:transparent;border:
 .sndr{display:flex;align-items:center;gap:8px;font:600 12px var(--mono);color:var(--mute);min-width:0}
 .sndr span{min-width:96px}
 .sndr input{width:140px;max-width:40vw;accent-color:#c8761c}
+/* Панель налагодження (?debug) */
+#dbg{position:fixed;z-index:3600;left:max(8px,env(safe-area-inset-left,0px));bottom:calc(8px + env(safe-area-inset-bottom,0px));max-width:min(360px,calc(100vw - 16px));background:#0b1418;color:#e3ebe6;border:2px solid #f0b84a;font:12px/1.35 var(--mono);padding:6px 8px;box-shadow:0 4px 12px rgba(0,0,0,.5)}
+#dbg summary{cursor:pointer;color:#f0b84a;font-weight:600}
+#dbg .dbgb{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+#dbg button{font:11px var(--mono);padding:3px 6px;background:#22394a;color:#e3ebe6;border:1px solid #4a7486;cursor:pointer}
+#dbg textarea{width:100%;box-sizing:border-box;font:10px var(--mono);background:#16252e;color:#e3ebe6;border:1px solid #4a7486;margin-top:4px}
+#dbg .dbgl{margin:6px 0 0;color:#b3c5c4}
+#dbg details:not([open]){width:auto}
