@@ -627,7 +627,7 @@ function flotTake(k,mul=1){let m='';const M=v=>Math.round(v*mul);
   else if(k==='survivor'){if(mul>1){add('coin',20);add('prov',5)}if((s.pop||0)<2*(s.b.house||0)){s.pop=(s.pop||0)+1;m=`На уламку щогли — живий моряк! Він відігрівся біля вогнища й лишився жити біля маяка.${mul>1?` На радощах віддав тобі ${R('coin',20)} і ${R('prov',5)}.`:''}`}else{add('coin',15);m=`На уламку щогли — живий моряк. Ти відігрів його й нагодував. Для нього немає хати, тож він пішов до селища, лишивши ${R('coin',15)}.`;if(s.r.prov>=3)s.r.prov-=3}}
   if(mul>1&&m)m+=' Спритно впорався!';say(m,'find')}
 function shoreTick(){const now=Date.now();if(!s.floors.gallery)return;
-  if(s.flot&&now>s.flot.until){s.flot=null;s.flotT=now+(120+Math.random()*120)*1000;say('Хвилі забрали те, що лежало на березі.','world')}
+  if(s.flot&&now>s.flot.until&&!MG){const k=s.flot.k;s.flot=null;s.flotT=now+(120+Math.random()*120)*1000;if(mgHelp('flot')){say('Варта прибою витягла те, що винесли хвилі.','find');flotTake(k,k==='bottle'?1:mgAutoRes('flot'))}else say('Хвилі забрали те, що лежало на березі.','world')}
   if(!s.flot){if(!s.flotT)s.flotT=now+(90+Math.random()*90)*1000;else if(now>=s.flotT){const ks=['crate','crate','barrel','barrel','cargo','bottle',...(s.f.people?['survivor']:[])];s.flot={k:ks[rnd(ks.length)],until:now+180000};say('Прибій щось викинув на берег.','world');dirty=1}}
   for(const e of (s.exp||[]).slice())if(now>=e.until){s.exp=s.exp.filter(x=>x!==e);const X=EXP[e.id],g=X.res(),bad=fuL('gallery')<3&&Math.random()<0.1;
     for(const k in g){g[k]=Math.round(g[k]*(bad?0.3:1));if(!g[k])delete g[k];else add(k,g[k])}let it='';if(!bad&&X.item&&Math.random()<0.35){const x=X.item[rnd(X.item.length)];giveI(x);it=`, а ще ${I(IT[x].n)}`}

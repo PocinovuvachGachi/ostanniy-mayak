@@ -37,7 +37,7 @@ document.addEventListener('pointerup',()=>clearTimeout(lpT));
 document.addEventListener('click',e=>{if(popB&&!e.target.closest('.bpop')&&!e.target.closest('[data-a="bpop"]')){popB='';dirty=1;if(!e.target.closest('[data-a]'))render()}},true);
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&popB){popB='';render()}});
 if(typeof addEventListener==='function')addEventListener('resize',()=>{if(popB)placePop()});
-document.addEventListener('toggle',e=>{const d=e.target;if(d&&d.classList&&d.classList.contains('ledg'))s.ldOpen=d.open?1:0},true);
+document.addEventListener('toggle',e=>{const d=e.target;if(d&&d.classList&&d.classList.contains('ledg'))s.ldOpen=d.open?1:0;if(d&&d.classList&&d.classList.contains('sett'))ftOpen=d.open?1:0},true);
 document.addEventListener('click',e=>{if(lpF){lpF=0;e.preventDefault();e.stopImmediatePropagation();setTimeout(hideTip,2500)}},true);
 document.addEventListener('click',e=>{const el=e.target.closest('[data-a]');if(!el||el.disabled||el.getAttribute('aria-disabled')==='true')return;
   if(el.dataset.cd&&onCd(el.dataset.cd)&&(el.classList.contains('ob')||el.classList.contains('hs'))){nope(el);return}

@@ -99,7 +99,10 @@ function rPeople(){const cap=2*(s.b.house||0),pop=s.pop||0,ms=Object.keys(MST).f
   h+=`<p class="m">${VH(()=>s.r.prov<1&&people()?'<b class="foe">Комора порожня: люди голодні й працюють гірше.</b> ':'')}${pop<cap?(s.r.prov>=5?`Наступний поселенець прийде за ${V(()=>s.popT?Math.max(0,Math.ceil((s.popT-Date.now())/1000)):60)} с.`:'Поселенці не прийдуть, поки в коморі немає 5 провізії.'):'Щоб прийшли нові поселенці, збудуй ще хату.'} Вільні поселенці збирають плавник.</p>`;
   if(ms.length)h+=`<div class="cards">${ms.map(m=>`<div class="card pcard">${pimg(faceURL(m),48,48,'',MST[m].n)}<div><b class="npc">${MST[m].n}</b><span class="role">${MST[m].role}</span><span class="m">${MST[m].d}</span></div></div>`).join('')}</div>`;
   return h+`</section>`}
-function rHome(){let h=`<div class="scw"><div class="scn yd" data-scn="yd" style="--d:-${((Date.now()/1000)%30).toFixed(2)}s;--d2:-${((Date.now()/1000)%180).toFixed(2)}s"><span data-sk="bg" data-sig="bg" class="scbg">${VH(yardBgImg)}</span>${homeHS()}</div></div><div>`;
+const scnD=()=>`--d:-${((Date.now()/1000)%30).toFixed(2)}s;--d2:-${((Date.now()/1000)%180).toFixed(2)}s`;
+function homeScene(){return`<div class="scn yd" data-scn="yd" style="${scnD()}"><span data-sk="bg" data-sig="bg" class="scbg">${VH(yardBgImg)}</span>${homeHS()}</div>`}
+function shoreScene(){return`<div class="scn sh" data-scn="sh" style="${scnD()}"><span data-sk="bg" data-sig="bg" class="scbg">${VH(shoreImg)}</span>${shoreHS()}</div>`}
+function rHome(){let h=`<div>`;
   h+=`<section><div class="big">${V(()=>fmt(s.r.ember))}</div><p class="m">жару, ${V(()=>{const v=rates().ember;return(v>=0?'+':'')+fr(v)})} за секунду</p><p>${homeText()}</p>`;
   let al='';if(!s.b.hearth)al+=btn('Подмухати на жарину','blow','',{cd:'blow',cs:2});
   if(!s.f.looked&&s.f.lk)al+=btn('Роззирнутися','look','',{cls:'main'});
@@ -124,7 +127,7 @@ function rHome(){let h=`<div class="scw"><div class="scn yd" data-scn="yd" style
   return h+`</div>`}
 function shoreImg(){const sig=[Math.min(12,Math.ceil(s.r.wood/12)),s.seen.scrap?Math.min(6,Math.ceil(s.r.scrap/10)):0,s.seen.fish&&s.r.fish>=1?Math.min(5,Math.ceil(s.r.fish/8)):0,Math.min(3,s.b.pot||0)].join('');
   return pimgA('s3:'+sig,()=>shoreBg3({wood:s.r.wood,scrapSeen:s.seen.scrap,scrap:s.r.scrap,fishSeen:s.seen.fish,fish:s.r.fish,pot:s.b.pot}),864,360,'scene','Берег',21,WATER3)}
-function rShore(){let h=`<section><h2>Берег під маяком</h2><div class="scw"><div class="scn sh" data-scn="sh" style="--d:-${((Date.now()/1000)%30).toFixed(2)}s;--d2:-${((Date.now()/1000)%180).toFixed(2)}s"><span data-sk="bg" data-sig="bg" class="scbg">${VH(shoreImg)}</span>${shoreHS()}</div></div><p>Мокрий пісок, водорості й плавник, викинутий прибоєм. Туман ховає обрій.</p>`;
+function rShore(){let h=`<section><h2>Берег під маяком</h2><p>Мокрий пісок, водорості й плавник, викинутий прибоєм. Туман ховає обрій.</p>`;
   let al=`<div class="act">${btn('Збирати плавник','gather','',{cd:'gather',cs:1})}</div>`;
   if(s.f.wreck)al+=`<div class="act">${btn('Розбирати уламки човна','scrapw','',{cd:'scrapw',cs:2})}</div>`;
   if(s.f.rod)al+=`<div class="act">${btn('Рибалити','fishing','',{cd:'fishing',cs:3})}</div>`;
@@ -507,15 +510,16 @@ function render(){B={};bn=0;
   try{if(!texInit){texInit=1;const rs=document.documentElement.style;for(const k of['stone','sand','plank','board']){const u=pxURL('tx:'+k,()=>texBuf(k));if(u)rs.setProperty('--tx-'+k,`url(${u})`)}}
     if(!texInit2){texInit2=1;const rs=document.documentElement.style;for(const k of['wood','drift','stone']){const u=pxURL('fr:'+k,()=>frameBuf(k));if(u)rs.setProperty('--fr-'+k,`url(${u})`)}}
     const th=s.cb?'':s.tab==='home'?'th-home':s.tab==='shore'?'th-shore':'';document.body.classList.toggle('th-home',th==='th-home');document.body.classList.toggle('th-shore',th==='th-shore')}catch(e){}
-  hideTip();const mn=$('main');const vw0=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:''),same0=vw0===lastView&&!s.cb,xs=same0?xSnap(mn):null,as0=same0?aSnap(mn):null;const oldScn=same0&&mn.querySelector?mn.querySelector('.scn[data-scn]'):null;let tlx=null;try{const q=same0&&mn.querySelector('.chr-tl');if(q)tlx=q.scrollLeft>=q.scrollWidth-q.clientWidth-4?-1:q.scrollLeft}catch(e){}mn.innerHTML=h;if(oldScn)keepScene(mn,oldScn);if(tlx!==null){try{const q=mn.querySelector('.chr-tl');if(q)q.scrollLeft=tlx<0?q.scrollWidth:tlx}catch(e){}}glossify(mn);rDlg();if(xs)xFade(mn,xs,1);if(as0)aMark(mn,as0);
-  const view=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:'');const prevView=lastView;if(view!==lastView&&mn.classList&&!RM()){mn.classList.remove('tin');void mn.offsetWidth;mn.classList.add('tin')}lastView=view;
+  hideTip();const mn=$('main');const vw0=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:''),same0=vw0===lastView&&!s.cb,xs=same0?xSnap(mn):null,as0=same0?aSnap(mn):null;let tlx=null;try{const q=same0&&mn.querySelector('.chr-tl');if(q)tlx=q.scrollLeft>=q.scrollWidth-q.clientWidth-4?-1:q.scrollLeft}catch(e){}patchStage(s.cb?'':s.tab==='home'?homeScene():s.tab==='shore'?shoreScene():'');mn.innerHTML=h;if(tlx!==null){try{const q=mn.querySelector('.chr-tl');if(q)q.scrollLeft=tlx<0?q.scrollWidth:tlx}catch(e){}}glossify(mn);rDlg();if(xs)xFade(mn,xs,1);if(as0)aMark(mn,as0);
+  const view=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:'');const prevView=lastView;if(view!==lastView&&mn.classList&&!RM()){for(const e of[mn,$('stage')]){if(!e||!e.classList)continue;e.classList.remove('tin');void e.offsetWidth;e.classList.add('tin')}}lastView=view;
   placePop();
   if(hlT){const tg=hlT;hlT=null;try{const el=document.getElementById(tg);if(el){el.scrollIntoView({block:'center',behavior:RM()?'auto':'smooth'});el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash')}}catch(e){}}
   if(!s.cb&&s.tab==='chron'&&view!==prevView){try{const tl=mn.querySelector('.chr-tl');if(tl)tl.scrollLeft=tl.scrollWidth}catch(e){}}
   if(view==='cb'&&prevView!=='cb'&&s.cb&&!RM()){const ci=$('cbin');if(ci&&ci.classList){const fo=s.cb.u.filter(u=>!isObj(u)).map(u=>EN[u.t].n);ci.innerHTML=`<div><b>${s.cb.title||'Бій'}</b><span>${[...new Set(fo)].join(' · ')}</span></div>`;ci.classList.remove('go');void ci.offsetWidth;ci.classList.add('go')}}
   if(s.cb&&s.cb.fx&&s.cb.fx.length){const f=s.cb.fx;s.cb.fx=[];s.cb.fxt=0;try{playFx(f)}catch(e){}}
-  $('foot').innerHTML=resetAsk?`Стерти весь прогрес і почати з самого початку? ${btn('Так, стерти','resetYes')}${btn('Скасувати','resetNo')}`:`Гра зберігається автоматично. ${btn(s.quickMG?'Міні-ігри: швидко':'Міні-ігри: увімкнені','qmg','',{cls:'toggle'})} ${btn('Почати спочатку','reset')}`;
+  $('foot').innerHTML=resetAsk?`Стерти весь прогрес і почати з самого початку? ${btn('Так, стерти','resetYes')}${btn('Скасувати','resetNo')}`:`<details class="sett"${ftOpen?' open':''}><summary>Налаштування</summary><div class="setb">${btn(s.quickMG?'Доступність: без міні-ігор — так':'Доступність: без міні-ігор — ні','qmg','',{cls:'toggle'})}${Object.keys(MGH).filter(t=>(s.mgUn||{})[t]&&mgCan(t)).map(t=>btn(`${{fish:'Велика риба',flot:'Знахідки в прибої',forge:'Кування'}[t]}: ${(s.mgHab||{})[t]?'звично':'власноруч'}`,'mghab',t,{cls:'toggle'})).join('')}${btn('Почати спочатку','reset')}</div></details><span class="m">Гра зберігається автоматично.</span>`;
   dirty=0;refresh()}
+let ftOpen=0;
 function refresh(){
   document.querySelectorAll('[data-ok]').forEach(el=>{const f=B[el.dataset.ok];if(f){const d=!f();if(el.disabled!==d)el.disabled=d}});
   document.querySelectorAll('[data-v]').forEach(el=>{const f=B[el.dataset.v];if(f){const t=String(f());if(el.textContent!==t)el.textContent=t}});

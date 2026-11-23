@@ -28,7 +28,7 @@ function act(a,i){
     if(s.c.gather===6){say('Між водоростями блищить пляшка, заткнута воском. Усередині записка. Відкрито: Журнал.','story');page(1)}
     if(s.c.gather===60)odd('gull','У плавнику застрягла вирізана з дерева чайка.')}break;
   case 'scrapw':if(F.wreck&&!onCd('scrapw')){setCd('scrapw',2);add('scrap',1+(s.rs.metal?1:0)+(s.h.ft.thrifty?1:0))}break;
-  case 'fishing':if(F.rod&&!onCd('fishing')){setCd('fishing',3);if(s.c.fish>=6&&F.crab1&&mgOk()&&Math.random()<1/8){s.c.fish++;mgFish();break}add('fish',wolf());s.c.fish++;
+  case 'fishing':if(F.rod&&!onCd('fishing')){setCd('fishing',3);if(s.c.fish>=6&&F.crab1&&(mgOk()||mgHabit('fish')||s.quickMG)&&Math.random()<1/8){s.c.fish++;mgRun('fish',mgFish,fishEnd);break}add('fish',wolf());s.c.fish++;
     if(!F.crab1&&!F.crabWarn&&s.c.fish>=5){F.crabWarn=1;crabWarn()}}break;
   case 'bld':{const b=i==='hearth'?HEARTH:BD.find(x=>x.id===i);if(b.max&&(s.b[i]||0)>=b.max)break;const c=bCost(b);if(afford(c)){pay(c);s.b[i]=(s.b[i]||0)+1;upT[i]=Date.now();if(typeof setTimeout==="function")setTimeout(()=>{dirty=1},1700);
     say(i==='hearth'&&s.b[i]===1?'Ти складаєш вогнище з плавника й кладеш у нього жарину. Полум’я оживає, а приплив тепер сам приносить трохи плавника до порогу.':`${b.n}: рівень ${s.b[i]}.`,'world')}break}
@@ -54,7 +54,7 @@ function act(a,i){
   case 'packRem':s.pack=s.pack.filter(x=>x!==i);for(const sl of['weapon','ranged'])if(s.eq[sl]===i)s.eq[sl]='';break;
   case 'beltAdd':if(has(i)&&IT[i].use&&!s.belt.includes(i)&&s.belt.length<beltSlots())s.belt.push(i);break;
   case 'beltRem':s.belt=s.belt.filter(x=>x!==i);break;
-  case 'wup':{const tier=wF(i),cst=wfCost(tier),rel=REL[i]&&REL[i][tier];if(!cst||!WF[i]||!s.b.forge||!has(i)||wmLv(i)<WFM[tier]||!rel||!has(rel)||!afford(cst))break;const old=wN(i);pay(cst);s.inv[rel]--;s.wf=s.wf||{};s.wf[i]=tier+1;if(mgOk())setTimeout(()=>mgForge(i),60);
+  case 'wup':{const tier=wF(i),cst=wfCost(tier),rel=REL[i]&&REL[i][tier];if(!cst||!WF[i]||!s.b.forge||!has(i)||wmLv(i)<WFM[tier]||!rel||!has(rel)||!afford(cst))break;const old=wN(i);pay(cst);s.inv[rel]--;s.wf=s.wf||{};s.wf[i]=tier+1;mgRun('forge',()=>setTimeout(()=>mgForge(i),60),(r,sk)=>forgeEnd(i,r,sk));
     say(`Кузня: ${I(old)} тепер ${I(wN(i))}.`,'find');dlg({k:'find',title:`Удосконалено: ${wN(i)}`,img:{t:'wico',id:i},body:`<p>${tier&&s.mst.kindrat?`${P('Кіндрат')} гартує сталь, і ${old.toLowerCase()} стає зовсім іншою зброєю.`:`Кузня гуде до ночі. ${IT[rel].n} лягає на своє місце, і ${old.toLowerCase()} виходить з горна новою зброєю.`}</p>`,gains:['+2 урону',`Нова особливість: ${WF[i][tier].tr}`,'Старі особливості й прийоми майстерності лишаються']});break}
   case 'wk+':if(BD.find(b=>b.id===i)&&WKB.includes(i)&&freeW()>0&&((s.wk||{})[i]||0)<(s.b[i]||0)){s.wk=s.wk||{};s.wk[i]=(s.wk[i]||0)+1}break;
   case 'wk-':if((s.wk||{})[i]>0)s.wk[i]--;break;
@@ -98,7 +98,9 @@ function act(a,i){
   case 'flu':{const tr=fuL(i),U2=(FLU[i]||[])[tr];if(!U2||!floorBuilt(i)||!U2.req()||!afford(U2.c))break;pay(U2.c);s.fu=s.fu||{};s.fu[i]=tr+1;dlg({k:'world',title:`Покращено: ${U2.n}`,img:{t:'yard'},body:`<p>${FLN[i]} стає кращою, ніж була за Остапа.</p>`,gains:[U2.d]});break}
   case 'beam':{const n=+i;if(!s.f.won||n===(s.beam||0)||n<0||n>5||s.r.oil<3)break;s.r.oil-=3;s.beam=n;break}
   case 'flot':{const f=s.flot;if(!f)break;s.flot=null;s.flotT=Date.now()+(150+Math.random()*120)*1000;flotTake(f.k,+i>1?+i:1);break}
-  case 'flotmg':{const f=s.flot;if(!f)break;if(f.k==='bottle'||!mgOk()){act('flot');break}f.until=Math.max(f.until,Date.now()+90000);mgFlot(f.k);break}
+  case 'flotmg':{const f=s.flot;if(!f)break;if(f.k==='bottle'){act('flot');break}mgRun('flot',()=>{f.until=Math.max(f.until,Date.now()+90000);mgFlot(f.k)},r=>act('flot',r>1?String(r):'1'));break}
+  case 'mghab':{s.mgHab=s.mgHab||{};s.mgHab[i]=s.mgHab[i]?0:1;break}
+  case 'sett':break;
   case 'qmg':s.quickMG=s.quickMG?0:1;break;
   case 'exp':{const X=EXP[i];if(!X||!s.f.boat||freeW()<X.crew||!afford(X.c)||(s.exp||[]).some(e=>e.id===i))break;pay(X.c);s.exp=s.exp||[];s.exp.push({id:i,until:Date.now()+X.t*1000,crew:X.crew});say(`${X.n}: команда відпливає від пристані.`,'world');break}
   case 'trade':{const sh=s.ship,o=sh&&sh.offers[+i];if(!o||sh.done.includes(+i)||!afford(o.give))break;pay(o.give);const sm=1+0.05*st('speech');for(const k in o.get)add(k,Math.round(o.get[k]*sm));trust('sails',2);sh.done.push(+i);say(`Обмін: віддано ${costTxt(o.give)}, отримано ${costTxt(o.get)}.`,'find');break}

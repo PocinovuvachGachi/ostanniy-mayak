@@ -76,9 +76,16 @@ function shoreHS(){const W=SW,H=SH,S=(x,y,w,h)=>PCT(x,y,w,h,W,H);let h=fogs(8,22
   const zcore=`class="hs zone${pul?' nw':''}" data-a="gather" data-i="" data-k="gather" data-cd="gather" data-cs="1" aria-label="Збирати плавник" ${TA('<b>Прибій</b><br>Хвилі підкочують плавник. Підбери, що винесло.')}><span class="dlw" style="left:${(rx/zw*100).toFixed(2)}%;top:${(ry/zh*100).toFixed(2)}%;width:${((lw+2)/zw*100).toFixed(2)}%;height:${((lh+2)/zh*100).toFixed(2)}%"><img class="obo" src="${lo}" alt=""><img class="obi" src="${lu}" alt="" style="left:${(100/(lw+2)).toFixed(2)}%;top:${(100/(lh+2)).toFixed(2)}%;width:${(lw/(lw+2)*100).toFixed(2)}%;height:${(lh/(lh+2)*100).toFixed(2)}%"><span class="gl" style="left:${(100/(lw+2)).toFixed(2)}%;top:${(100/(lh+2)).toFixed(2)}%;width:${(lw/(lw+2)*100).toFixed(2)}%;height:${(lh/(lh+2)*100).toFixed(2)}%;-webkit-mask-image:url(${lu});mask-image:url(${lu})"></span></span><span class="hsl">Збирати плавник</span>`;
   h+=`<button type="button" data-sk="gather" data-sig="${hsh(zcore)}" style="${S(zx,zy,zw,zh)};z-index:${10+zy+zh};--p:${pOf('gather').toFixed(3)}" ${zcore}</button>`;
   return h}
-function keepScene(mn,old){try{const nw=mn.querySelector('.scn[data-scn]');if(!nw||nw.dataset.scn!==old.dataset.scn)return;const om={};for(const c of[...old.children])if(c.dataset&&c.dataset.sk)om[c.dataset.sk]=c;
-  const out=[];for(const c of[...nw.children]){const k=c.dataset&&c.dataset.sk,o=k&&om[k];if(o&&o.dataset.sig===c.dataset.sig){if(k==='bg'){const nh=c.querySelector('[data-h]'),oh=o.querySelector('[data-h]');if(nh&&oh)oh.dataset.h=nh.dataset.h}out.push(o)}else out.push(c)}
-  old.replaceChildren(...out);nw.replaceWith(old)}catch(e){}}
+/* Сцена живе поза #main і латається на місці: незмінені вузли не від'єднуються, тож їхні анімації не перезапускаються. */
+function patchStage(html){const st=$('stage');if(!st)return;if(!st.querySelector){st.innerHTML=html?`<div class="scw">${html}</div>`:'';return}
+  if(!html){if(st.firstChild)st.innerHTML='';return}
+  try{const tp=document.createElement('template');tp.innerHTML=html;const nw=tp.content.firstElementChild,old=st.querySelector('.scn[data-scn]');
+    if(!old||old.dataset.scn!==nw.dataset.scn){st.innerHTML=`<div class="scw">${html}</div>`;return}
+    const om={};for(const c of[...old.children])if(c.dataset&&c.dataset.sk)om[c.dataset.sk]=c;const used=new Set();
+    for(const c of[...nw.children]){const k=c.dataset&&c.dataset.sk,o=k&&om[k];
+      if(o&&o.dataset.sig===c.dataset.sig){if(k==='bg'){const nh=c.querySelector('[data-h]'),oh=o.querySelector('[data-h]');if(nh&&oh)oh.dataset.h=nh.dataset.h}used.add(o)}
+      else if(o){o.replaceWith(c);used.add(c)}else{old.appendChild(c);used.add(c)}}
+    for(const c of[...old.children])if(!used.has(c))c.remove()}catch(e){st.innerHTML=`<div class="scw">${html}</div>`}}
 function hsPop(el,e,r0){try{const out=[];for(const k in s.r){const d=(s.r[k]||0)-(r0[k]||0);if(d>0.001)out.push([k,d])}if(!out.length)return;
   const box=el.getBoundingClientRect(),x=box.left+box.width/2+scrollX,y=box.top+scrollY-4;
   out.slice(0,2).forEach(([k,d],ix)=>{const p=document.createElement('div');p.className='fpop';p.style.left=x+'px';p.style.top=(y-ix*18)+'px';p.innerHTML=`${pimg(icoURL(k),16,16,'')}+${fmt(d)}`;document.body.appendChild(p);setTimeout(()=>p.remove(),1150)})}catch(err){}}
