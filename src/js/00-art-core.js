@@ -498,3 +498,6 @@ function texBuf(k){const S=32,b=pbuf(S,S);
 function flameStrip(){const b=pbuf(21,9);for(let k=0;k<3;k++){const R=rng(90+k);for(let y=0;y<9;y++){const w=Math.max(1,Math.min(7,Math.round(1+y*0.8+(R()-.5)*1.4))),sh=y<5?Math.round((R()-.5)*1.6):0,x0=k*7+3-Math.floor(w/2)+sh;
   for(let x=0;x<w;x++){const edge=x===0||x===w-1;pset(b,x0+x,y,y<2?'j':edge?'f':y>5&&x>0&&x<w-1?'h':'g')}}}return b}
 function logBuf(){const b=pbuf(10,4);prect(b,1,0,8,4,'d');prect(b,1,0,8,1,'e');prect(b,1,3,8,1,'c');prect(b,0,1,1,2,'a');prect(b,9,1,1,2,'a');pset(b,9,1,'b');pset(b,4,1,'c');pset(b,6,2,'c');return b}
+/* Дзвіночок сповіщень, 12×12 */
+function bellBuf(){const b=pbuf(12,12),R=['....00......','...0gh0.....','..0ghhg0....','..0ggge0....','.0gggfe0....','.0ggffe0....','.0gfffe0....','0gfffeee0...','00000000000.','....0dd0....','.....00.....','............'];
+  R.forEach((r,y)=>{for(let x=0;x<r.length;x++)pset(b,x+1,y,r[x])});return b}

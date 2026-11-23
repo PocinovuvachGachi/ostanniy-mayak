@@ -337,9 +337,12 @@ const thrOn=()=>!!(s.floors.gallery&&s.tabs.hero&&s.f.siege1);
 function thrDrop(enc,story){const E0=ENC[enc];if(!E0)return 0;let v=0;const lc=lastCb&&lastCb.enc===enc?lastCb.u:null;
   E0.e.forEach(([t],ix)=>{const T=EN[t];if(!T||T.obj||T.ally||T.struct)return;const u=lc&&lc[ix];v+=Math.max(2,Math.round(T.hp/5))*(T.boss?2:1)*(u&&u.el?1.5:1)});
   v*=(E0.mult||1)*(story?2:1);return Math.min(60,Math.round(v))}
+function thrMul(){const br=defL('brazier')&&s.on.brazier!==false&&s.r.oil>0?1-0.2*defL('brazier'):1;return(fac('silent')>=50?0.85:1)*br*(s.f.won?0.8:1)*((s.b.hearth||0)>=5?0.9:1)*(s.h.lvl<6?1:1.5)}
+function mlaAdd(v){if(!thrOn()||s.cb||s.raid)return;const k=v*(s.h.lvl<6?1:1.5);s.threat=Math.min(100,(s.threat||0)+v*thrMul());if(defL('brazier')&&s.on.brazier!==false)s.r.oil=Math.max(0,s.r.oil-0.8*k*defL('brazier'))}
+const away=()=>Date.now()-(s.lastAct||0)>120000||(typeof document!=='undefined'&&!!document.hidden);
 function thrRate(){if(!thrOn())return 0;const base=(s.h.lvl<6?100/1980:100/1320)*(fac('silent')>=50?0.85:1);const br=defL('brazier')&&s.on.brazier!==false&&s.r.oil>0?1-0.2*defL('brazier'):1;return base*br*(s.f.won?0.8:1)*((s.b.hearth||0)>=5?0.9:1)}
 const raidGap=()=>(s.h.lvl<6?480+Math.random()*300:300+Math.random()*200)*1000;
-function raidCheck(){
+function raidCheck(){if(away())return;
   if(!s.f.siege1){if(!s.f.mlaNote||s.cb||s.raid)return;if(!s.f.mlaW&&(s.play||0)>=s.f.mlaT-45){s.f.mlaW=1;say('З оглядової видно: сива смуга туману сунеться від моря до берега.','fight')}
     if((s.play||0)<s.f.mlaT||(s.dlg||[]).length)return;s.raid=1;
     dlg({k:'fight',title:'Перша облога',img:{t:'spr',id:'wraith'},body:`<p>Мла підповзає до самих стін. У ній щось ворушиться й шарудить, і воно йде не до тебе, а до припасів і будівель.</p><p class="hand">Остап писав: тримай припаси під замком і не дай їй загасити вогонь.</p>`,btns:[['Боронити маяк','raidGo']]});return}

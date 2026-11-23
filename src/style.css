@@ -721,3 +721,11 @@ button.hs.zone:hover,button.hs.zone:focus-visible{background:transparent;border:
 .mgneedle{will-change:left}
 .mghab{background:#3d5a34;color:#efe3c8}
 @media (prefers-reduced-motion:reduce){.mgwv,.mgten.hot{animation:none}}
+/* Дзвіночок відкладених подій */
+#bell{position:fixed;z-index:3500;top:calc(10px + env(safe-area-inset-top,0px));right:max(10px,env(safe-area-inset-right,0px))}
+#bell:empty{display:none}
+.bellb{display:flex;align-items:center;gap:6px;padding:6px 10px;background:#1d140d;color:#fff0b0;border:3px solid #0b1418;box-shadow:0 0 0 2px #c8761c,0 4px 0 rgba(0,0,0,.35);font:600 14px var(--mono);cursor:pointer;animation:bellin .5s ease-out}
+.bellb img{width:24px;height:24px;image-rendering:pixelated;animation:bellsw 2.4s ease-in-out infinite;transform-origin:50% 10%}
+@keyframes bellsw{0%,70%,100%{transform:rotate(0)}76%{transform:rotate(14deg)}84%{transform:rotate(-12deg)}92%{transform:rotate(6deg)}}
+@keyframes bellin{from{transform:translateY(-12px);opacity:0}}
+@media (prefers-reduced-motion:reduce){.bellb,.bellb img{animation:none}}

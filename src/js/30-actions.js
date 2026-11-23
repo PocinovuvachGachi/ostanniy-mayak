@@ -1,7 +1,9 @@
 /* ============ ACTIONS ============ */
-function act(a,i){
+function act0(a,i){
   if(a.indexOf('c_')===0){cAct(a,i);return}
   if(a==='dlgok'){(s.dlg||[]).shift();dirty=1;return}
+  if(a==='bellOpen'){s.bellHold=0;dirty=1;return}
+  if(a==='bellDefer'){s.bellHold=1;dirty=1;return}
   if(a==='bpop'){popB=popB===i?'':(i||'');dirty=1;return}
   if(a==='hsgo'||a==='hsbd'){hlT=(a==='hsbd'?'bd-':'sec-')+i;dirty=1;return}
   if(a==='novgo'){(s.dlg||[]).shift();if(!s.cb&&s.tabs.hero){s.tab='hero';s.ht=i}dirty=1;return}
@@ -117,3 +119,8 @@ function dismVal(id){const rc=RC.find(r=>r.out===id);let c={};if(rc){for(const k
 function canDism(id){const it=IT[id];if(!it||!it.slot||!has(id))return false;const eqd=(s.eq[it.slot]===id||packHas(id))?1:0;return s.inv[id]>eqd}
 function rcVisible(rc){if(rc.req&&!rc.req())return false;if(rc.tool)return rc.id==='rod'?!s.f.rod:rc.id==='pack1'?!(s.f.pack>=1):rc.id==='pack2'?s.f.pack===1:rc.id==='belt1'?!s.f.belt:false;if(!rc.multi&&has(rc.out))return false;if(rc.id==='sling'&&!s.tabs.hero)return false;return true}
 
+
+/* Мла збирається на метушню: її додають лише дії гравця. Поки біля маяка тихо — вона дрімає. */
+const MLA_A={gather:0.08,scrapw:0.15,fishing:0.2,blow:0.05,bld:1.5,floor:2,craft:1,wup:1.5,schooner:2,exp:0.8};
+let paidN=0;
+function act(a,i){s.lastAct=Date.now();const w=MLA_A[a];if(!w){act0(a,i);return}const cd0=s.cd[a],p0=paidN;act0(a,i);if(s.cd[a]!==cd0||paidN!==p0)mlaAdd(w)}

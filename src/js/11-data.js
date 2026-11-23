@@ -347,7 +347,7 @@ const PG={
   2:'«Чайка» розбилася на наших скелях. Капітан клявся, що бачив світло маяка. Але того вечора наш маяк мовчав. Хтось запалив фальшивий вогонь на Острові Хибних Вогнів.',
   3:'Я розколов лінзу на три частини. Одну ховаю тут, у скелях. Дві інші візьму з собою. Якщо мене схоплять, Мовчуни не отримають лінзу цілою.',
   4:'Мовчуни схопили мене. Один уламок забрав громила, другий — сам Гнат Сірий. Мене везуть на Острів Хибних Вогнів. Пароль їхньої варти — «Сіра чайка». Хто б ти не був — запали маяк.',
-  m:'Якщо ти читаєш це на оглядовій, глянь надвечір на північ. Бачиш сиву смугу над водою? Це Мла. Не туман, хоч і схожа. Вона живе: повзе проти вітру, ковтає світло й пам’ять. Ті, кого вона забрала, ходять у ній утопленими. Вогонь маяка її відганяє, тому вона й приходить його гасити. Поки маяк мовчав, Мла сміливішала. Тепер, коли в ньому знову жевріє вогонь, вона прийде перевірити, чи є кому його берегти. Тримай припаси під замком. І не дай їй загасити вогонь. — О.',
+  m:'Якщо ти читаєш це на оглядовій, глянь надвечір на північ. Бачиш сиву смугу над водою? Це Мла. Не туман, хоч і схожа. Вона живе: повзе проти вітру, ковтає світло й пам’ять. Ті, кого вона забрала, ходять у ній утопленими. Вогонь маяка її відганяє, тому вона й приходить його гасити. Поки маяк мовчав, Мла сміливішала. Тепер, коли в ньому знову жевріє вогонь, вона прийде перевірити, чи є кому його берегти. Вона йде на шум: що більше метушні біля маяка, то швидше збирається. Коли все стихає, Мла дрімає. Тримай припаси під замком. І не дай їй загасити вогонь. — О.',
   5:'Ганно, якщо я не повернуся: щоб запалити великий вогонь, потрібен вічний гніт зі склепу під дзвіницею на рифі. Склеп відчиняють дзвони. Дзвони — як море.',
 };
 
@@ -626,7 +626,7 @@ function flotTake(k,mul=1){let m='';const M=v=>Math.round(v*mul);
   else if(k==='bottle'){const n=NOTES[rnd(NOTES.length)];const g=s.floors.study?{lore:15+rnd(15),coin:5}:{coin:15};for(const x in g)add(x,g[x]);dlg({k:'find',title:'Пляшка з запискою',img:{t:'scene',id:'shore'},body:`<div class="note">${n}</div>`,gains:[costTxt(g)]});return}
   else if(k==='survivor'){if(mul>1){add('coin',20);add('prov',5)}if((s.pop||0)<2*(s.b.house||0)){s.pop=(s.pop||0)+1;m=`На уламку щогли — живий моряк! Він відігрівся біля вогнища й лишився жити біля маяка.${mul>1?` На радощах віддав тобі ${R('coin',20)} і ${R('prov',5)}.`:''}`}else{add('coin',15);m=`На уламку щогли — живий моряк. Ти відігрів його й нагодував. Для нього немає хати, тож він пішов до селища, лишивши ${R('coin',15)}.`;if(s.r.prov>=3)s.r.prov-=3}}
   if(mul>1&&m)m+=' Спритно впорався!';say(m,'find')}
-function shoreTick(){const now=Date.now();if(!s.floors.gallery)return;
+function shoreTick(){const now=Date.now();if(!s.floors.gallery)return;if(s.flot&&away()&&!mgHelp('flot'))s.flot.until=Math.max(s.flot.until,now+30000);
   if(s.flot&&now>s.flot.until&&!MG){const k=s.flot.k;s.flot=null;s.flotT=now+(120+Math.random()*120)*1000;if(mgHelp('flot')){say('Варта прибою витягла те, що винесли хвилі.','find');flotTake(k,k==='bottle'?1:mgAutoRes('flot'))}else say('Хвилі забрали те, що лежало на березі.','world')}
   if(!s.flot){if(!s.flotT)s.flotT=now+(90+Math.random()*90)*1000;else if(now>=s.flotT){const ks=['crate','crate','barrel','barrel','cargo','bottle',...(s.f.people?['survivor']:[])];s.flot={k:ks[rnd(ks.length)],until:now+180000};say('Прибій щось викинув на берег.','world');dirty=1}}
   for(const e of (s.exp||[]).slice())if(now>=e.until){s.exp=s.exp.filter(x=>x!==e);const X=EXP[e.id],g=X.res(),bad=fuL('gallery')<3&&Math.random()<0.1;
@@ -634,7 +634,7 @@ function shoreTick(){const now=Date.now();if(!s.floors.gallery)return;
     say(`${X.n}: команда повернулася${bad?' після шторму, майже з порожніми руками':''}. ${costTxt(g)}${it}.`,'find');dirty=1}
   if(s.f.boat&&(s.f.people||s.f.won)){if(s.ship&&now>s.ship.until){s.ship=null;s.shipT=now+(240+Math.random()*180)*1000*(fuL('gallery')>=2?0.6:1);dirty=1}
     if(!s.ship){if(!s.shipT)s.shipT=now+(150+Math.random()*120)*1000*(fuL('gallery')>=2?0.6:1)*(s.f.coveDone?0.7:1);else if(now>=s.shipT){const ok=OFFERS.filter(o=>[...Object.keys(o.give),...Object.keys(o.get)].every(k=>s.seen[k]));const of=[];while(of.length<(fac('sails')>=20?4:3)&&ok.length)of.push(ok.splice(rnd(ok.length),1)[0]);s.ship={until:now+150000,offers:of,done:[]};say('До пристані зайшов торговий когг. Він постоїть недовго.','world');dirty=1}}}}
-function beamTick(){if(!s.f.won)return;const now=Date.now();
+function beamTick(){if(!s.f.won)return;const now=Date.now();if(s.lost&&away())s.lost.until=Math.max(s.lost.until,now+30000);
   if(!s.lost){if(!s.lostT)s.lostT=now+60000;else if(now>=s.lostT){const sec=rnd(6),tele=fuL('gallery')>=1,nb=(sec+(Math.random()<.5?1:5))%6;
       const hint=tele?`з напрямку «${SECT[sec]}»`:`десь на «${SECT[Math.min(sec,nb)]}» чи на «${SECT[Math.max(sec,nb)]}»`;s.lost={sec,until:now+75000,hint};say(`У тумані гуде корабельний ріжок ${hint}. Поверни промінь маяка у вкладці «Маяк».`,'world');dirty=1}}
   else if((s.beam||0)===s.lost.sec||(fuL('lantern')>=2&&[1,5].includes(((s.beam||0)-s.lost.sec+6)%6))){const g={coin:25+rnd(20)};const ex=[{iron:3+rnd(4)},{oil:8},{prov:4},{tar:3}][rnd(4)];Object.assign(g,ex);if(fac('sails')>=50)for(const k in g)g[k]*=2;for(const k in g)add(k,g[k]);s.saved=(s.saved||0)+1;trust('sails',5,'урятований корабель');
@@ -649,7 +649,7 @@ const FAC={
   sails:{n:'Мореплавці',face:'marta',d:'Капітани й купці, що ходять повз шхери. Їм потрібне світло й чесна торгівля.',known:()=>!!(s.met.marta||(s.saved||0)>0||(s.sig||0)>0),
     perks:[[20,'Торгові кораблі привозять на одну пропозицію більше'],[50,'Урятовані кораблі віддячують удвічі щедріше'],[80,'Сигнальне вогнище дешевше на 30%']]},
   silent:{n:'Мовчуни',face:'gnat',d:'Колишня ватага Гната. Хтось досі грабує, а хтось хоче жити інакше.',known:()=>!!(s.met.gnat||s.seenE.scout),
-    perks:[[-40,'Поки вони ворожі, Мовчуни приходять разом із Млою'],[20,'Таємний контакт на складі продає бомби й дим'],[50,'Їхні розвідники попереджають: Мла росте на 15% повільніше'],[80,'У набігах на твоєму боці б’ється Мовчун']]},
+    perks:[[-40,'Поки вони ворожі, Мовчуни приходять разом із Млою'],[20,'Таємний контакт на складі продає бомби й дим'],[50,'Їхні розвідники попереджають: Мла збирається на 15% повільніше'],[80,'У набігах на твоєму боці б’ється Мовчун']]},
 };
 const RANKS=[[-100,'Ворожі'],[-40,'Насторожені'],[0,'Нейтральні'],[20,'Приязні'],[50,'Друзі'],[80,'Свої']];
 const fac=f=>((s.fac||{})[f]===undefined?(f==='silent'?-50:0):s.fac[f]);

@@ -15,9 +15,9 @@ function giveI(id,n=1){s.inv[id]=(s.inv[id]||0)+n;s.seenI=s.seenI||{};s.seenI[id
   else if(it.slot&&!s.eq[it.slot])s.eq[it.slot]=id;
   if(it.use&&!s.belt.includes(id)&&s.belt.length<beltSlots())s.belt.push(id);dirty=1}
 function afford(c={},it={}){return Object.keys(c).every(k=>s.r[k]>=c[k])&&Object.keys(it).every(k=>(s.inv[k]||0)>=it[k])}
-function pay(c={},it={}){for(const k in c)s.r[k]-=c[k];for(const k in it)s.inv[k]-=it[k]}
+function pay(c={},it={}){paidN++;for(const k in c)s.r[k]-=c[k];for(const k in it)s.inv[k]-=it[k]}
 function costTxt(c={},it={}){const ik=Object.keys(it),kn=ik.filter(k=>KN(k));return[...Object.keys(c).map(k=>R(k,fmt(c[k]))),...kn.map(k=>(it[k]>1?it[k]+' × ':'')+IT[k].n.toLowerCase()),...(kn.length<ik.length?['ще дещо, чого ти поки не знаєш']:[])].join(', ')}
-function dlg(o){s.dlg=s.dlg||[];if(s.dlg.length>14)return;s.dlg.push(o);dirty=1}
+function dlg(o){s.dlg=s.dlg||[];if(s.dlg.length>14)return;if(o.k==='fight')s.dlg.unshift(o);else{s.dlg.push(o);try{if(away())s.bellHold=1}catch(e){}}dirty=1}
 function unlock(t){if(!s.tabs[t]){s.tabs[t]=1;s.newTab[t]=1;dirty=1;if(t==='hero'){if(s.h.xpb){const b=s.h.xpb;s.h.xpb=0;xp(b)}}const nm=(TABS.find(x=>x[0]===t)||[0,''])[1];if(t!=='shore')dlg({k:'world',title:`Відкрито: ${nm}`,body:`<p>${TABV[t]||TABINFO[t]||''}${TABV[t]&&TABINFO[t]?ih(TABINFO[t]):''}</p>`,gains:[`Відкрилася вкладка «${nm}».`]})}}
 function page(n){if(!s.pages.includes(n)){s.pages.push(n);if(n===1)s.met.ostap=1;dlg({k:'story',title:n==='m'?'Записка Остапа без номера':`Записка Остапа, аркуш ${n}`,body:`<div class="note">${PG[n].replace(/ — О\.$/,'')}<span class="sig">— О.</span></div>`,gains:['Записку збережено в журналі.']});unlock('journal');dirty=1}}
 function book(id){if(!s.books.includes(id)){s.books.push(id);dirty=1}}
@@ -95,7 +95,6 @@ function flow(dt,dry){const L=s.b,d={};for(const k of RES)d[k]=0;const av=k=>s.r
   return d}
 function rates(){const d=flow(1,true);d.xp=(s.b.dummy||0)*0.08;return d}
 function produce(dt){s.play=(s.play||0)+dt;flow(dt);const L=s.b;
-  if(thrOn()&&!s.cb&&!s.raid){s.threat=Math.min(100,(s.threat||0)+thrRate()*dt);if(defL('brazier')&&s.on.brazier!==false)s.r.oil=Math.max(0,s.r.oil-0.04*defL('brazier')*dt)}
   if(L.dummy)xp(L.dummy*0.08*dt);
   if(!s.cb)s.h.hp=Math.min(maxHP(),s.h.hp+(0.3+0.1*(L.hearth||0))*dt);
 }
