@@ -729,3 +729,9 @@ button.hs.zone:hover,button.hs.zone:focus-visible{background:transparent;border:
 @keyframes bellsw{0%,70%,100%{transform:rotate(0)}76%{transform:rotate(14deg)}84%{transform:rotate(-12deg)}92%{transform:rotate(6deg)}}
 @keyframes bellin{from{transform:translateY(-12px);opacity:0}}
 @media (prefers-reduced-motion:reduce){.bellb,.bellb img{animation:none}}
+/* Звук */
+#snd{margin-top:8px;font-size:.9rem;color:var(--mute)}
+.sndb{align-items:center}
+.sndr{display:flex;align-items:center;gap:8px;font:600 12px var(--mono);color:var(--mute);min-width:0}
+.sndr span{min-width:96px}
+.sndr input{width:140px;max-width:40vw;accent-color:#c8761c}

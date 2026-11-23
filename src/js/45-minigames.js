@@ -38,7 +38,7 @@ function mgStart(o){const el=document.createElement('div');el.id='mg';el.classNa
   try{f.focus({preventScroll:true})}catch(e){}if(o.init)o.init();
   let msg0=1;const loop=n=>{if(!MG||MG.done)return;const dt=Math.min(.05,(n-MG.last)/1000);MG.last=n;const tt=(n-MG.t0)/1000-MGGR;
     if(tt>=0){if(msg0){msg0=0;if(MG.msg.textContent==='Приготуйся…')mgMsg('')}o.tick&&o.tick(dt,tt)}requestAnimationFrame(loop)};requestAnimationFrame(loop)}
-function mgMsg(x,cls){if(MG){MG.msg.textContent=x;MG.msg.className='mgmsg'+(cls?' '+cls:'')}}
+function mgMsg(x,cls){if(MG){MG.msg.textContent=x;MG.msg.className='mgmsg'+(cls?' '+cls:'');if(x)sfx(cls==='ok'?'hit':x==='Риба шарпається!'?'splash':'miss')}}
 function mgEnd(res,skip){if(!MG||MG.done)return;MG.done=1;const o=MG.o,el=MG.el;el.classList.add('mgout');if(res>0&&!skip&&o.type)mgWin(o.type);
   setTimeout(()=>{if(el.parentNode)el.parentNode.removeChild(el);MG=null;o.end(res,skip);dirty=1;render();save()},skip?150:900)}
 document.addEventListener('keydown',e=>{if(!MG||MG.done)return;if(e.key==='Escape'){mgEnd(0,1);e.preventDefault();return}if((e.key===' '||e.key==='Enter')&&!e.repeat){if(e.target&&e.target.tagName==='BUTTON')return;e.preventDefault();if((performance.now()-MG.t0)/1000>=MGGR)MG.o.down&&MG.o.down(e)}},true);
@@ -98,6 +98,6 @@ function mgForge(id){let strikes=0,good=0,heat=0;const per=1.7;
     init(){MG.st.textContent='ударів: 0/3'},
     down(){if(strikes>=3)return;strikes++;const ok=heat>0.82-0.02*Math.max(0,(s.h.a.str||2)-2);if(ok)good++;mgMsg(ok?'Дзвінкий удар!':'Метал ще холодний.',ok?'ok':'');MG.st.textContent=`ударів: ${strikes}/3`;MG.f.classList.remove('hit');void MG.f.offsetWidth;MG.f.classList.add('hit');if(strikes>=3)mgEnd(good>=3?1:0)},
     end:(res,skip)=>forgeEnd(id,res,skip)})}
-function nope(el){try{el.classList.remove('nope');void el.offsetWidth;el.classList.add('nope');const k=el.dataset.cd,tx={fishing:'Ще не клює',gather:'Хвиля ще далеко',scrapw:'Руки ще не відпочили',blow:'Жарина ще жевріє'}[k]||'Зачекай';
+function nope(el){sfx('nope');try{el.classList.remove('nope');void el.offsetWidth;el.classList.add('nope');const k=el.dataset.cd,tx={fishing:'Ще не клює',gather:'Хвиля ще далеко',scrapw:'Руки ще не відпочили',blow:'Жарина ще жевріє'}[k]||'Зачекай';
   const b=el.getBoundingClientRect(),p=document.createElement('div');p.className='fpop ny';p.style.left=(b.left+b.width/2+scrollX)+'px';p.style.top=(b.top+scrollY-4)+'px';p.textContent=tx;document.body.appendChild(p);setTimeout(()=>p.remove(),1100)}catch(e){}}
 

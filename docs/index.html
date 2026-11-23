@@ -743,6 +743,12 @@ button.hs.zone:hover,button.hs.zone:focus-visible{background:transparent;border:
 @keyframes bellsw{0%,70%,100%{transform:rotate(0)}76%{transform:rotate(14deg)}84%{transform:rotate(-12deg)}92%{transform:rotate(6deg)}}
 @keyframes bellin{from{transform:translateY(-12px);opacity:0}}
 @media (prefers-reduced-motion:reduce){.bellb,.bellb img{animation:none}}
+/* Звук */
+#snd{margin-top:8px;font-size:.9rem;color:var(--mute)}
+.sndb{align-items:center}
+.sndr{display:flex;align-items:center;gap:8px;font:600 12px var(--mono);color:var(--mute);min-width:0}
+.sndr span{min-width:96px}
+.sndr input{width:140px;max-width:40vw;accent-color:#c8761c}
 </style>
 </head>
 <body>
@@ -755,6 +761,7 @@ button.hs.zone:hover,button.hs.zone:focus-visible{background:transparent;border:
   <div id="stage"></div>
   <main id="main"></main>
   <div id="foot"></div>
+  <div id="snd"></div>
 </div>
 <div id="toast"></div>
 <div id="dlg"></div>
@@ -3252,7 +3259,8 @@ function rcVisible(rc){if(rc.req&&!rc.req())return false;if(rc.tool)return rc.id
 /* Мла збирається на метушню: її додають лише дії гравця. Поки біля маяка тихо — вона дрімає. */
 const MLA_A={gather:0.08,scrapw:0.15,fishing:0.2,blow:0.05,bld:1.5,floor:2,craft:1,wup:1.5,schooner:2,exp:0.8};
 let paidN=0;
-function act(a,i){s.lastAct=Date.now();const w=MLA_A[a];if(!w){act0(a,i);return}const cd0=s.cd[a],p0=paidN;act0(a,i);if(s.cd[a]!==cd0||paidN!==p0)mlaAdd(w)}
+function act(a,i){s.lastAct=Date.now();const w=MLA_A[a],fx=SFXA[a];if(!w&&!fx){act0(a,i);return}const cd0=s.cd[a],p0=paidN,ap0=s.cb?s.cb.ap:null;act0(a,i);
+  if(s.cd[a]!==cd0||paidN!==p0||(s.cb&&ap0!==null&&s.cb.ap!==ap0)){if(w)mlaAdd(w);if(fx)sfx(fx)}}
 /* ============ RENDER ============ */
 function tabKeys(t){const k=[];
   if(t==='home'){for(const b of BD)if(b.show())k.push('b:'+b.id);if(s.f.people)k.push('people')}
@@ -3299,7 +3307,7 @@ function W(fn){return `<i data-w="${D(fn)}" style="width:${fn()}%"></i>`}
 function chk(k,v){return `<span class="chk ${st(k)>=v?'ok':'no'}" title="Потрібно ${SN[k]} ${v}, у тебе ${st(k)}">${SN[k]} ${v}</span>`}
 const art=t=>`<pre class="art" aria-hidden="true">${esc(t).replace(/~+/g,m=>`<span class="sea">${m}</span>`)}</pre>`;
 
-let bellK='';function rBell(){const el=$('bell');if(!el)return;const n=s.bellHold&&!s.cb?(s.dlg||[]).length:0,k=String(n);if(k===bellK)return;bellK=k;
+let bellK='';function rBell(){const el=$('bell');if(!el)return;const n=s.bellHold&&!s.cb?(s.dlg||[]).length:0,k=String(n);if(k===bellK)return;if(n&&!+bellK)sfx('bell');bellK=k;
   el.innerHTML=n?`<button type="button" class="bellb" data-a="bellOpen" data-i="" aria-label="Події, що чекають на тебе: ${n}" ${TA('<b>Поки тебе не було</b><br>Тут чекають події й листи. Натисни, щоб переглянути.')}>${pimg(pxURL('bell',bellBuf),24,24,'')}<b>${n}</b></button>`:''}
 function rTop(){rBell();const el=$('top');if(!el)return;const items=[];
   if(s.cb){items.push(['cb','foe','','бій'],['hp','','',`здоров’я <b>${Math.max(0,Math.ceil(s.h.hp))}/${maxHP()}</b>`],['ap','','',`очки дії <b>${s.cb.ap}</b>`])}
@@ -3791,7 +3799,7 @@ function dlgImg(m){if(!m)return'';if(m.t==='scene')return sceneImg(m.id);if(m.t=
 let lastDlg='';
 const ROM=n=>['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'][n-1]||n;
 function rDlg(){const q=s.dlg||[];if(!q.length)s.bellHold=0;const d=s.bellHold&&q[0]&&q[0].k!=='fight'?null:q[0],el=$('dlg');if(!d){if(lastDlg){lastDlg='';const bg=!RM()&&el.querySelector&&el.querySelector('.dlgbg');if(bg){bg.classList.add('fo');setTimeout(()=>{if(!lastDlg)el.innerHTML=''},230)}else el.innerHTML=''}return}
-  const key=d.title+'|'+String(d.body||'').length+'|'+(d.btns||[]).length+'|'+(s.dlg.length>1);if(key===lastDlg){try{const q=el.querySelector('.dlgq');if(q)q.textContent=s.dlg.length>1?`Ще подій у черзі: ${s.dlg.length-1}`:''}catch(e){}return}const fi=!lastDlg&&!RM();lastDlg=key;
+  const key=d.title+'|'+String(d.body||'').length+'|'+(d.btns||[]).length+'|'+(s.dlg.length>1);if(key===lastDlg){try{const q=el.querySelector('.dlgq');if(q)q.textContent=s.dlg.length>1?`Ще подій у черзі: ${s.dlg.length-1}`:''}catch(e){}return}const fi=!lastDlg&&!RM();lastDlg=key;sfx(d.chap||d.k==='lvl'?'chime':d.k==='fight'?'horn':'page');
   if(d.chap){el.innerHTML=`<div class="dlgbg chapbg${fi?' fi':''}"><div class="dlgbox chap" role="dialog" aria-modal="true" aria-labelledby="dlgt"><div class="chapno">Розділ ${ROM(d.no)} завершено</div><h2 id="dlgt">${d.sub}</h2><div class="orn" aria-hidden="true">✦ ✦ ✦</div>${dlgImg(d.img)}<div class="dlgbody">${d.body||''}</div><div class="act"><button type="button" class="main" data-a="dlgok" data-i="">Гортати далі</button>${s.dlg.length>1?'<button type="button" class="toggle" data-a="bellDefer" data-i="">Відкласти решту</button>':''}</div><p class="more dlgq">${s.dlg.length>1?`Ще подій у черзі: ${s.dlg.length-1}`:''}</p></div></div>`;
     glossify(el);try{const b=el.querySelector&&el.querySelector('button');if(b)b.focus()}catch(e){}return}
   el.innerHTML=`<div class="dlgbg${fi?' fi':''}"><div class="dlgbox k-${d.k||'info'}" role="dialog" aria-modal="true" aria-labelledby="dlgt">${dlgImg(d.img)}<div class="dlgin"><span class="tag t-${d.k||'info'}">${TAGN[d.k||'info']}</span><h2 id="dlgt">${d.title}</h2><div class="dlgbody">${d.body||''}</div>${d.gains&&d.gains.length?`<ul class="gains">${d.gains.map(g=>`<li>${g}</li>`).join('')}</ul>`:''}<div class="act">${(d.btns||[['Зрозуміло','dlgok']]).map(b=>`<button type="button" class="main" data-a="${b[1]}" data-i="${b[2]||''}">${b[0]}</button>`).join('')}${s.dlg.length>1&&!d.btns&&d.k!=='fight'?'<button type="button" class="toggle" data-a="bellDefer" data-i="">Відкласти решту</button>':''}</div><p class="m dlgq">${s.dlg.length>1?`Ще подій у черзі: ${s.dlg.length-1}`:''}</p></div></div></div>`;
@@ -3983,7 +3991,7 @@ function mgStart(o){const el=document.createElement('div');el.id='mg';el.classNa
   try{f.focus({preventScroll:true})}catch(e){}if(o.init)o.init();
   let msg0=1;const loop=n=>{if(!MG||MG.done)return;const dt=Math.min(.05,(n-MG.last)/1000);MG.last=n;const tt=(n-MG.t0)/1000-MGGR;
     if(tt>=0){if(msg0){msg0=0;if(MG.msg.textContent==='Приготуйся…')mgMsg('')}o.tick&&o.tick(dt,tt)}requestAnimationFrame(loop)};requestAnimationFrame(loop)}
-function mgMsg(x,cls){if(MG){MG.msg.textContent=x;MG.msg.className='mgmsg'+(cls?' '+cls:'')}}
+function mgMsg(x,cls){if(MG){MG.msg.textContent=x;MG.msg.className='mgmsg'+(cls?' '+cls:'');if(x)sfx(cls==='ok'?'hit':x==='Риба шарпається!'?'splash':'miss')}}
 function mgEnd(res,skip){if(!MG||MG.done)return;MG.done=1;const o=MG.o,el=MG.el;el.classList.add('mgout');if(res>0&&!skip&&o.type)mgWin(o.type);
   setTimeout(()=>{if(el.parentNode)el.parentNode.removeChild(el);MG=null;o.end(res,skip);dirty=1;render();save()},skip?150:900)}
 document.addEventListener('keydown',e=>{if(!MG||MG.done)return;if(e.key==='Escape'){mgEnd(0,1);e.preventDefault();return}if((e.key===' '||e.key==='Enter')&&!e.repeat){if(e.target&&e.target.tagName==='BUTTON')return;e.preventDefault();if((performance.now()-MG.t0)/1000>=MGGR)MG.o.down&&MG.o.down(e)}},true);
@@ -4043,7 +4051,7 @@ function mgForge(id){let strikes=0,good=0,heat=0;const per=1.7;
     init(){MG.st.textContent='ударів: 0/3'},
     down(){if(strikes>=3)return;strikes++;const ok=heat>0.82-0.02*Math.max(0,(s.h.a.str||2)-2);if(ok)good++;mgMsg(ok?'Дзвінкий удар!':'Метал ще холодний.',ok?'ok':'');MG.st.textContent=`ударів: ${strikes}/3`;MG.f.classList.remove('hit');void MG.f.offsetWidth;MG.f.classList.add('hit');if(strikes>=3)mgEnd(good>=3?1:0)},
     end:(res,skip)=>forgeEnd(id,res,skip)})}
-function nope(el){try{el.classList.remove('nope');void el.offsetWidth;el.classList.add('nope');const k=el.dataset.cd,tx={fishing:'Ще не клює',gather:'Хвиля ще далеко',scrapw:'Руки ще не відпочили',blow:'Жарина ще жевріє'}[k]||'Зачекай';
+function nope(el){sfx('nope');try{el.classList.remove('nope');void el.offsetWidth;el.classList.add('nope');const k=el.dataset.cd,tx={fishing:'Ще не клює',gather:'Хвиля ще далеко',scrapw:'Руки ще не відпочили',blow:'Жарина ще жевріє'}[k]||'Зачекай';
   const b=el.getBoundingClientRect(),p=document.createElement('div');p.className='fpop ny';p.style.left=(b.left+b.width/2+scrollX)+'px';p.style.top=(b.top+scrollY-4)+'px';p.textContent=tx;document.body.appendChild(p);setTimeout(()=>p.remove(),1100)}catch(e){}}
 
 /* ============ v16: NOVELTY QUEUE ============ */
@@ -4109,6 +4117,71 @@ function rChron(){const M=s.mom||[],E=s.eraT||[0],now=s.play||0,ei=E.length-1;
   h+=`<section><h2>Розділи</h2><ol class="chr-chs">${st0.map(ix=>{const c=CH[ix],m=M.find(x=>x.k==='chap'&&x.cid===c.id),dn=s.chs.includes(c.id);return`<li class="e${m?m.e||0:ei}"><span class="no">${ROM(ix+1)}</span><span><b>${c.n}</b>${c.side?' <span class="m">· побічний</span>':''}</span><span class="when">${dn?(m?`${m.ap?'≈ ':''}день ${dayOf(m.t)}, ${dateShort(m.t)}`:'завершено'):'триває'}</span></li>`}).join('')}</ol>${s.chs.length<CH.length?'<p class="m">Що буде далі, ще не записано.</p>':''}</section>`;
   return h}
 
+/* ============ ЗВУК: ембієнт, тиха музика, звуки дій ============
+   Усе синтезується WebAudio на льоту, без файлів. Стартує з першого дотику (так вимагають браузери). */
+const AU={ctx:null,m:null,g:{},n:null,scene:'',crT:0,gullT:0,musT:0,on:0};
+const auS=()=>{s.audio=s.audio||{on:1,amb:60,mus:35,sfx:70};return s.audio};
+function auInit(){if(AU.ctx)return;const AC=typeof AudioContext!=='undefined'?AudioContext:typeof webkitAudioContext!=='undefined'?webkitAudioContext:null;if(!AC)return;
+  try{const c=new AC();AU.ctx=c;AU.m=c.createGain();AU.m.connect(c.destination);
+    for(const k of['amb','mus','sfx']){AU.g[k]=c.createGain();AU.g[k].connect(AU.m)}
+    const len=c.sampleRate*2,b=c.createBuffer(1,len,c.sampleRate),d=b.getChannelData(0);let br=0;for(let i=0;i<len;i++){const w=Math.random()*2-1;br=(br+0.02*w)/1.02;d[i]=w*0.5+br*3}AU.n=b;
+    /* прибій: шум крізь низькочастотний фільтр, гучність гойдається хвилями */
+    const surf=auNoise(),lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=480;const sg=c.createGain();sg.gain.value=0.5;surf.connect(lp);lp.connect(sg);
+    const lfo=c.createOscillator(),lg=c.createGain();lfo.frequency.value=0.09;lg.gain.value=0.35;lfo.connect(lg);lg.connect(sg.gain);lfo.start();
+    AU.surf=c.createGain();AU.surf.gain.value=0;sg.connect(AU.surf);AU.surf.connect(AU.g.amb);
+    /* вітер: смуговий фільтр, що повільно блукає */
+    const wind=auNoise(),bp=c.createBiquadFilter();bp.type='bandpass';bp.frequency.value=700;bp.Q.value=0.8;const wl=c.createOscillator(),wlg=c.createGain();wl.frequency.value=0.05;wlg.gain.value=350;wl.connect(wlg);wlg.connect(bp.frequency);wl.start();
+    AU.wind=c.createGain();AU.wind.gain.value=0;wind.connect(bp);bp.connect(AU.wind);AU.wind.connect(AU.g.amb);
+    /* музика: тиха луна-затримка */
+    const dl=c.createDelay(2);dl.delayTime.value=0.46;const fb=c.createGain();fb.gain.value=0.38;const dlp=c.createBiquadFilter();dlp.type='lowpass';dlp.frequency.value=1800;
+    AU.mbus=c.createGain();AU.mbus.connect(AU.g.mus);AU.mbus.connect(dl);dl.connect(dlp);dlp.connect(fb);fb.connect(dl);dlp.connect(AU.g.mus);
+    AU.on=1;auVol();auScene(true);setInterval(auTick,200)}catch(e){AU.ctx=null}}
+function auNoise(){const c=AU.ctx,src=c.createBufferSource();src.buffer=AU.n;src.loop=true;src.start(0,Math.random()*2);return src}
+function auVol(){if(!AU.ctx)return;const a=auS(),t=AU.ctx.currentTime;try{if(a.on)AU.ctx.resume();else setTimeout(()=>{if(AU.ctx&&!auS().on)AU.ctx.suspend()},500)}catch(e){}AU.m.gain.setTargetAtTime(a.on?0.9:0,t,0.15);
+  AU.g.amb.gain.setTargetAtTime(a.amb/100,t,0.2);AU.g.mus.gain.setTargetAtTime(a.mus/100*0.6,t,0.2);AU.g.sfx.gain.setTargetAtTime(a.sfx/100*0.8,t,0.05)}
+/* Кожна вкладка має свій шум: біля вогнища — тріск, на березі — прибій і мартини. */
+function auScene(force){if(!AU.ctx)return;const sc=s.cb?'cb':s.tab==='shore'?'shore':s.tab==='home'?'home':'in';if(sc===AU.scene&&!force)return;AU.scene=sc;const t=AU.ctx.currentTime;
+  const surf={shore:0.55,home:0.3,cb:0.15,in:0.12}[sc],wind={shore:0.1,home:0.07,cb:0.05,in:0.05}[sc];AU.surf.gain.setTargetAtTime(surf,t,1.2);AU.wind.gain.setTargetAtTime(wind,t,1.2)}
+function auTick(){if(!AU.ctx||!auS().on)return;if(AU.ctx.state==='suspended'){try{AU.ctx.resume()}catch(e){}}auScene();const now=AU.ctx.currentTime;
+  if(AU.scene==='home'&&(s.b.hearth||s.r.ember>0)){if(now>AU.crT){auCrackle(now);AU.crT=now+0.05+Math.random()*(s.b.hearth?0.35:0.9)}}
+  if(AU.scene==='shore'&&now>AU.gullT){if(AU.gullT)auGull(now);AU.gullT=now+14+Math.random()*26}
+  if(now>AU.musT-1){auPhrase(Math.max(now,AU.musT));AU.musT=Math.max(now,AU.musT)+7+Math.random()*6}}
+function env(g,t,a,peak,dec){g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(peak,t+a);g.gain.exponentialRampToValueAtTime(0.0001,t+a+dec)}
+function auBurst(t,{f=2000,type='highpass',q=0.7,peak=0.3,a=0.002,dec=0.05,bus='amb',rate=1}){const c=AU.ctx,n=c.createBufferSource();n.buffer=AU.n;n.playbackRate.value=rate;const fl=c.createBiquadFilter();fl.type=type;fl.frequency.value=f;fl.Q.value=q;const g=c.createGain();
+  n.connect(fl);fl.connect(g);g.connect(AU.g[bus]);env(g,t,a,peak,dec);n.start(t,Math.random()*1.5);n.stop(t+a+dec+0.05)}
+function auTone(t,{f=440,f2=0,type='sine',peak=0.2,a=0.005,dec=0.3,bus='sfx'}){const c=AU.ctx,o=c.createOscillator(),g=c.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+a+dec);o.connect(g);g.connect(bus==='mus'?AU.mbus:AU.g[bus]);env(g,t,a,peak,dec);o.start(t);o.stop(t+a+dec+0.05)}
+function auCrackle(t){auBurst(t,{f:1800+Math.random()*2500,peak:0.08+Math.random()*0.18,dec:0.015+Math.random()*0.03});if(Math.random()<0.15)auBurst(t+0.02,{f:300,type:'lowpass',peak:0.12,dec:0.12})}
+function auGull(t){const n=2+Math.floor(Math.random()*3);for(let i=0;i<n;i++){const t0=t+i*(0.28+Math.random()*0.1),c=AU.ctx,o=c.createOscillator(),g=c.createGain(),v=c.createOscillator(),vg=c.createGain();
+  o.type='triangle';o.frequency.setValueAtTime(1500,t0);o.frequency.exponentialRampToValueAtTime(900,t0+0.22);v.frequency.value=28;vg.gain.value=40;v.connect(vg);vg.connect(o.frequency);o.connect(g);g.connect(AU.g.amb);env(g,t0,0.02,0.035,0.22);o.start(t0);v.start(t0);o.stop(t0+0.3);v.stop(t0+0.3)}}
+/* Музика: поодинокі ноти мінорної пентатоніки, м’яко, з довгим загасанням. */
+const PENT=[146.83,174.61,196,220,261.63,293.66,349.23,392,440];
+function auPhrase(t){const r=Math.random();if(r<0.35){const b=PENT[Math.floor(Math.random()*3)];for(const m of[1,1.5])auTone(t,{f:b*m/2,type:'sine',peak:0.05,a:1.8,dec:5,bus:'mus'})}
+  const k=2+Math.floor(Math.random()*3);let ix=3+Math.floor(Math.random()*4);for(let i=0;i<k;i++){ix=Math.max(0,Math.min(PENT.length-1,ix+[-2,-1,1,2][Math.floor(Math.random()*4)]));auTone(t+0.3+i*(0.7+Math.random()*0.6),{f:PENT[ix],type:'triangle',peak:0.045,a:0.04,dec:2.2,bus:'mus'})}}
+/* Звуки дій */
+function sfx(k){if(!AU.ctx||!auS().on)return;try{const t=AU.ctx.currentTime+0.01;
+  switch(k){
+  case'tap':auBurst(t,{f:900,type:'bandpass',q:1.2,peak:0.5,dec:0.07,bus:'sfx'});auTone(t,{f:190,f2:120,peak:0.25,dec:0.08});break;
+  case'metal':auTone(t,{f:1650,type:'square',peak:0.05,dec:0.12});auTone(t,{f:2470,peak:0.06,dec:0.25});auBurst(t,{f:3000,peak:0.15,dec:0.04,bus:'sfx'});break;
+  case'splash':auBurst(t,{f:1400,type:'lowpass',peak:0.45,a:0.02,dec:0.35,bus:'sfx',rate:0.8});auBurst(t+0.08,{f:3500,peak:0.12,dec:0.2,bus:'sfx'});break;
+  case'ember':auBurst(t,{f:600,type:'bandpass',q:0.6,peak:0.3,a:0.12,dec:0.4,bus:'sfx'});break;
+  case'build':auBurst(t,{f:700,type:'bandpass',peak:0.5,dec:0.08,bus:'sfx'});auBurst(t+0.18,{f:600,type:'bandpass',peak:0.45,dec:0.1,bus:'sfx'});auTone(t,{f:150,f2:90,peak:0.25,dec:0.15});break;
+  case'craft':auTone(t,{f:1180,peak:0.12,dec:0.6});auTone(t,{f:1770,peak:0.07,dec:0.45});break;
+  case'hit':auTone(t,{f:880,peak:0.12,dec:0.25});auTone(t+0.07,{f:1320,peak:0.1,dec:0.35});break;
+  case'miss':auTone(t,{f:220,f2:150,type:'triangle',peak:0.12,dec:0.18});break;
+  case'nope':auTone(t,{f:330,f2:260,type:'triangle',peak:0.06,dec:0.1});break;
+  case'chime':[0,4,7,12].forEach((st,i)=>auTone(t+i*0.11,{f:392*Math.pow(2,st/12),peak:0.09,dec:1.2}));break;
+  case'page':auBurst(t,{f:2500,type:'bandpass',q:0.5,peak:0.12,a:0.03,dec:0.18,bus:'sfx'});break;
+  case'bell':auTone(t,{f:1568,peak:0.08,dec:1.4});auTone(t,{f:2350,peak:0.04,dec:0.9});break;
+  case'horn':{const c=AU.ctx,o=c.createOscillator(),g=c.createGain(),lp=c.createBiquadFilter();o.type='sawtooth';o.frequency.value=98;lp.type='lowpass';lp.frequency.value=420;o.connect(lp);lp.connect(g);g.connect(AU.g.sfx);g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.22,t+0.8);g.gain.setValueAtTime(0.22,t+1.6);g.gain.exponentialRampToValueAtTime(0.0001,t+3);o.start(t);o.stop(t+3.1);break}
+  case'strike':auBurst(t,{f:1200,type:'bandpass',peak:0.4,dec:0.06,bus:'sfx'});auTone(t,{f:160,f2:80,peak:0.2,dec:0.1});break}}catch(e){}}
+const SFXA={gather:'tap',scrapw:'metal',fishing:'splash',blow:'ember',bld:'build',floor:'build',craft:'craft',wup:'craft',repair:'build',schooner:'build',c_atk:'strike',c_shoot:'strike'};
+/* Панель звуку живе поза перемальовуванням, тож повзунки не зриваються. */
+function auUI(){const el=typeof document!=='undefined'&&document.getElementById('snd');if(!el||!el.querySelector)return;const a=auS();
+  el.innerHTML=`<details class="sett"><summary>Звук</summary><div class="setb sndb"><button type="button" class="toggle" id="sndOn">${a.on?'Звук: увімкнено':'Звук: вимкнено'}</button>
+    ${[['amb','Море й вітер'],['mus','Музика'],['sfx','Звуки дій']].map(([k,n])=>`<label class="sndr"><span>${n}</span><input type="range" min="0" max="100" step="1" value="${a[k]}" data-snd="${k}" aria-label="${n}"></label>`).join('')}</div></details>`;
+  el.querySelector('#sndOn').onclick=e=>{a.on=a.on?0:1;e.target.textContent=a.on?'Звук: увімкнено':'Звук: вимкнено';auInit();auVol();save()};
+  el.querySelectorAll('input[data-snd]').forEach(r=>{r.oninput=()=>{a[r.dataset.snd]=+r.value;auInit();auVol()};r.onchange=()=>{save();if(r.dataset.snd==='sfx')sfx('hit')}})}
+if(typeof document!=='undefined'&&document.addEventListener){const go=()=>{if(auS().on)auInit()};document.addEventListener('pointerdown',go,true);document.addEventListener('keydown',go,true)}
 /* ============ SAVE / LOOP ============ */
 function save(){s.ts=Date.now();try{localStorage.setItem(KEY,JSON.stringify(s))}catch(e){}}
 function load(){try{const raw=localStorage.getItem(KEY);if(!raw)return;const d=JSON.parse(raw),f=fresh();
@@ -4165,11 +4238,11 @@ document.addEventListener('wheel',e=>{const el=e.target.closest&&e.target.closes
 document.addEventListener('pointerup',()=>{ptr=0});
 document.addEventListener('pointercancel',()=>{ptr=0});
 
-load();checks();snap9(s.tab);render();
+load();checks();snap9(s.tab);render();auUI();
 let last=Date.now(),sv=0;
 setInterval(()=>{const now=Date.now(),dt=Math.max(0,Math.min(7200,(now-last)/1000));last=now;s.t+=dt;
   for(let r=dt;r>0;r-=5)produce(Math.min(5,r));checks();
-  const typing=document.activeElement&&document.activeElement.tagName==='INPUT';
+  const typing=document.activeElement&&document.activeElement.tagName==='INPUT'&&document.activeElement.type!=='range';
   if(dirty&&!typing&&!ptr)render();else refresh();
   if((sv+=dt)>=3){sv=0;save()}},250);
 </script>

@@ -54,10 +54,10 @@ document.addEventListener('wheel',e=>{const el=e.target.closest&&e.target.closes
 document.addEventListener('pointerup',()=>{ptr=0});
 document.addEventListener('pointercancel',()=>{ptr=0});
 
-load();checks();snap9(s.tab);render();
+load();checks();snap9(s.tab);render();auUI();
 let last=Date.now(),sv=0;
 setInterval(()=>{const now=Date.now(),dt=Math.max(0,Math.min(7200,(now-last)/1000));last=now;s.t+=dt;
   for(let r=dt;r>0;r-=5)produce(Math.min(5,r));checks();
-  const typing=document.activeElement&&document.activeElement.tagName==='INPUT';
+  const typing=document.activeElement&&document.activeElement.tagName==='INPUT'&&document.activeElement.type!=='range';
   if(dirty&&!typing&&!ptr)render();else refresh();
   if((sv+=dt)>=3){sv=0;save()}},250);
