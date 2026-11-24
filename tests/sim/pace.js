@@ -25,8 +25,9 @@ function scan(){for(const t in s.tabs)mark('tab:'+t,'вкладка «'+(TABS.fi
   s.chs.forEach((c,i)=>mark('ch:'+i,'розділ '+(i+1),1));
   for(const k in s.inv)if(s.inv[k]&&IT[k])mark('it:'+k,'річ: '+IT[k].n,0);
   for(const k of RES)if(s.seen[k])mark('res:'+k,'ресурс: '+k,1);
+  for(const k in s.odd)mark('odd:'+k,'дивина: '+OD[k].n,1);for(const k in s.runes||{})mark('rune:'+k,'камінь з написом',1);for(const k in s.ford||{})mark('ford:'+k,'брід: '+k,1);
   mark('lvl:'+s.h.lvl,'рівень героя '+s.h.lvl,0);
-  for(const k of ['rod','wreck','people','boat','schooner','won','siege1','ostap','chest','crypt','stones','fordSeen','fordDone','gullrack','rats','drown1','zinovii','horpyna','cache'])if(s.f[k])mark('f:'+k,'подія: '+k,1)}
+  for(const k of ['rod','wreck','people','boat','schooner','won','siege1','ostap','chest','crypt','stones','fordSeen','fordDone','gullrack','rats','drown1','zinovii','horpyna','cache','tracks','seal','signal','martinSet'])if(s.f[k])mark('f:'+k,'подія: '+k,1)}
 /* діалоги: читаємо й тиснемо першу кнопку */
 function dialogs(){let g=0;while((s.dlg||[]).length&&g++<30){const d=s.dlg[0];wait(P.read);
   if(d.bgsel){act('bg',Object.keys(BGS)[0]);continue}
@@ -100,7 +101,7 @@ function lackSet(){const lack=new Set(),tg=target();if(tg)for(const k in tg[2])i
   /* ланцюжки: якщо бракує того, що робить перетворювач, бракує і його сировини */
   for(let g=0;g<3;g++){if(lack.has('ember')&&s.b.hearth)lack.add('wood');for(const id in CONV){if(!s.b[id])continue;const C=CONV[id];if(Object.keys(C.out).some(k=>lack.has(k)))for(const k in C.in)if(s.r[k]<50)lack.add(k)}}return lack}
 const togT={};
-function convs(){const lack=lackSet();for(const id in CONV){if(!s.b[id])continue;if(T-(togT[id]||-1e9)<120)continue;const C=CONV[id],need=Object.keys(C.out).some(k=>lack.has(k)),eats=Object.keys(C.in).some(k=>lack.has(k)),on=s.on[id]!==false;
+function convs(){const lack=lackSet();const CV=Object.assign({hearth:{in:{wood:1},out:{ember:1}}},CONV);for(const id in CV){if(!s.b[id])continue;if(T-(togT[id]||-1e9)<120)continue;const C=CV[id],need=Object.keys(C.out).some(k=>lack.has(k)),eats=Object.keys(C.in).some(k=>lack.has(k)),on=s.on[id]!==false;
   const should=need||!eats;if(should!==on){togT[id]=T;acts++;act('tog',id);wait(1)}}}
 /* головний цикл гравця */
 act('look');let lastNew=0,stuck=0,nEv=0;

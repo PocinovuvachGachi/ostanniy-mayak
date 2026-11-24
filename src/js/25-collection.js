@@ -13,7 +13,7 @@ Object.assign(ODI,{spiral:'shell',pearl:'shell',ear:'shell',letter1:'lore',holec
 const OSET={shells:{n:'Мушлі відпливу',gain:()=>{s.h.pts=(s.h.pts||0)+1},gt:'+1 очко характеристик'}};
 function collFind(src){const L=Object.keys(OD).filter(k=>OD[k].src===src&&!s.odd[k]);if(!L.length)return false;const id=L[Math.floor(Math.random()*L.length)];odd(id);setCheck(id);return true}
 function setCheck(id){const st=OD[id]&&OD[id].set;if(!st||(s.oset||{})[st])return;const all=Object.keys(OD).filter(k=>OD[k].set===st);if(!all.every(k=>s.odd[k]))return;
-  s.oset=s.oset||{};s.oset[st]=1;OSET[st].gain();dlg({k:'find',title:`Набір: ${OSET[st].n}`,img:{t:'icon',id:ODI[id]},body:`<p>Речі лягли на полицю поруч — і разом вони щось розповідають. Здається, ти став уважнішим до світу.</p>`,gains:[OSET[st].gt]})}
+  s.oset=s.oset||{};s.oset[st]=1;OSET[st].gain();dlg({k:'find',title:`Набір: ${OSET[st].n}`,img:{t:'icon',id:ODI[id]},body:`<p>Речі лягли на полицю поруч — і разом вони щось розповідають. Здається, ти став уважнішим до світу.</p>`,gains:[OSET[st].gt]});if(OSET[st].after)OSET[st].after()}
 /* Полиця в нижній залі */
 function shelf3(n){const b=pbuf(40,26);prect(b,0,0,40,26,'V');prect(b,1,1,38,24,'x');for(const y of[11,24]){prect(b,1,y,38,2,'W');prect(b,1,y,38,1,'Y')}
   for(let k=0;k<Math.min(8,n);k++){const x=3+(k%4)*9,y=k<4?4:17;prect(b,x,y+3,5,4,['O','N','e','H','6','T','b','g'][k%8]);prect(b,x+1,y+2,3,1,'u')}return b}

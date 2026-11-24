@@ -46,7 +46,7 @@ let flat=0;for(const k in res){const R=res[k],n=R.n,f=x=>(x*100/n).toFixed(0).pa
   const dw=(R.tac.w-R.dumb.w)/n,dh=(R.dumb.hp-R.tac.hp)/n,mark=Math.abs(dw)<.1&&Math.abs(dh)<.1?'  ← тактика майже не важить':'';if(mark)flat++;
   console.log(k.padEnd(20),(R.t/60).toFixed(0).padStart(4),'   ',f(R.dumb.w),'/',f(R.dumb.hp/1),'           ',f(R.tac.w),'/',f(R.tac.hp/1),'          ',(dw*100>=0?'+':'')+(dw*100).toFixed(0)+'% перемог, '+(dh*100>=0?'−':'+')+Math.abs(dh*100).toFixed(0)+'% HP',mark)}
 /* у кожного ворога має бути особлива механіка */
-const plain=Object.keys(EN).filter(k=>{const T=EN[k];if(T.obj||T.ally||T.struct)return false;const kinds=new Set(T.p.map(p=>p[0]));kinds.delete('hit');return!kinds.size&&!T.fly&&!T.swim&&!T.amb&&!T.drain&&!T.thorns&&!T.enr&&!T.burst&&!T.poison});
+const plain=Object.keys(EN).filter(k=>{const T=EN[k];if(T.obj||T.ally||T.struct)return false;const kinds=new Set(T.p.map(p=>p[0]));kinds.delete('hit');return!kinds.size&&!T.fly&&!T.swim&&!T.amb&&!T.drain&&!T.thorns&&!T.enr&&!T.burst&&!T.poison&&!T.pack});
 console.log('\\nВороги без особливої механіки:',plain.length?plain.map(k=>EN[k].n).join(', '):'немає');
 console.log('Боїв, де тактика майже не важить:',flat,'з',Object.keys(res).length);
 })();`);
