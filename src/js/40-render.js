@@ -149,25 +149,9 @@ function towerImg(){const F=s.floors,st={floors:F,hearth:s.b.hearth,forge:s.b.fo
   if(!AF[key]){const u=[];for(let k=0;k<4;k++)u.push(pxURL(key+'~'+k,()=>waveFrame(towerCut(st,k),k,104)));AF[key]=u}
   const u=AF[key];return u[0]?`<img class="px" src="${u[0]}" data-fr="${key}" data-xk="${key}" width="300" height="400" alt="Маяк у розрізі">`:''}
 function floorBuilt(id){return id==='hall'?!!s.b.hearth:!!s.floors[id]}
-function rTower(){const sel=s.flsel&&FLN[s.flsel]?s.flsel:'hall';
-  let hot='';for(const id of['lantern','gallery','study','work','hall']){const[y0,y1]=TCUT[id],hw=tcHW((y0+y1)>>1)+(id==='gallery'?9:0);
-    hot+=`<button type="button" class="hot${sel===id?' on':''}" data-a="flsel" data-i="${id}" style="left:${(48-hw)/96*100}%;width:${2*hw/96*100}%;top:${(id==='lantern'?3:y0)/128*100}%;height:${(y1-(id==='lantern'?3:y0))/128*100}%" aria-label="${FLN[id]}" ${TA(`<b>${FLN[id]}</b><br>${floorBuilt(id)?'Відновлено. Натисни, щоб подивитися.':'Ще в руїнах.'}`)}></button>`}
-  let h=`<section><h2>Маяк</h2><div class="tcut"><div class="tcbox">${towerImg()}${hot}</div><div>`;
-  const b=floorBuilt(sel),U2=FLU[sel],fl=FL.find(f=>f.id===sel);
-  h+=`<h3>${FLN[sel]}</h3><p>${FLD[sel]}</p>`;
-  if(!b){if(sel==='hall')h+=`<p class="m">Склади вогнище у вкладці «Вогнище».</p>`;else{const ix=FL.findIndex(f=>f.id===sel),prevOk=ix===0||s.floors[FL[ix-1].id];
-      if(!prevOk)h+=`<p class="m">Спершу треба відбудувати нижчі поверхи.</p>`;else{const reqOk=!fl.req||fl.req(),itOk=afford({},fl.it||{});h+=`<p class="m">${fl.d}</p>${!reqOk||!itOk?`<p class="m">${typeof fl.why==='function'?fl.why():fl.why}</p>`:''}${btn(`Відновити (${costTxt(fl.c,fl.it)})`,'floor',fl.id,{ok:()=>(!fl.req||fl.req())&&afford(fl.c,fl.it),cls:'main'})}`}}}
-  else{h+=`<p><span class="done">відновлено</span></p>`;
-    if(U2){const tr=fuL(sel),nx=U2[tr];for(let k=0;k<tr;k++)h+=`<div class="row"><div><b>${U2[k].n}</b><br><span class="m">${U2[k].d}</span></div><span class="done">збудовано</span></div>`;
-      if(nx&&nx.req())h+=`<div class="tdet"><b>Покращення: ${nx.n}</b>${fresh9('u:'+sel+tr)}<p class="m">${nx.d}</p>${btn(`Збудувати (${costTxt(nx.c)})`,'flu',sel,{ok:()=>afford(nx.c)})}</div>`;
-      else if(nx)h+=`<p class="m">${tr?'Наступне покращення':'Покращення'} цього поверху стане можливим згодом.</p>`;
-      else h+=`<p class="m">Поверх удосконалено повністю.</p>`}}
-  h+=`<p class="m" style="margin-top:10px">Натискай на поверхи маяка, щоб подивитися, що там.</p></div></div></section>`;
-  const nx=FL.find((f,ix)=>!s.floors[f.id]&&(ix===0||s.floors[FL[ix-1].id]));
-  if(nx&&sel!==nx.id)h+=`<section><div class="row"><div><b>Наступний поверх: ${nx.n}</b><br><span class="m">${nx.d}</span>${(nx.req&&!nx.req())||!afford({},nx.it||{})?`<br><span class="m">${typeof nx.why==='function'?nx.why():nx.why}</span>`:''}</div>${btn(`Відновити (${costTxt(nx.c,nx.it)})`,'floor',nx.id,{ok:()=>(!nx.req||nx.req())&&afford(nx.c,nx.it)})}</div></section>`;
-  if(s.floors.lantern&&!s.f.won)h+=rLens();
-  if(s.f.won)h+=rBeam();
-  return h}
+function rTower(){let h=`<section><h2>Маяк</h2><p class="m">Натискай на поверхи, щоб зазирнути всередину.</p>`;
+  const nx=FL.find((f,ix)=>!s.floors[f.id]&&(ix===0||s.floors[FL[ix-1].id]));if(nx&&s.b.hearth)h+=`<p class="m">Далі можна відбудувати: <b>${nx.n}</b>.</p>`;
+  h+=`</section>`;if(s.floors.lantern&&!s.f.won)h+=rLens();if(s.f.won)h+=rBeam();return h}
 function rBeam(){const L=s.lost,tele=fuL('gallery')>=1,cur=s.beam||0;
   let w=`<div class="wedge" style="background:conic-gradient(from ${cur*60-30}deg,rgba(240,184,74,.55) 0 60deg,transparent 60deg 360deg)"></div><div class="core"></div>`;
   SECT.forEach((n,i)=>{const a=(i*60-90)*Math.PI/180,x=50+Math.cos(a)*40,y=50+Math.sin(a)*40;w+=`<button type="button" class="${cur===i?'on':''}${L&&tele&&L.sec===i?' lost':''}" style="left:${x}%;top:${y}%" data-a="beam" data-i="${i}">${n}</button>`});
@@ -511,8 +495,8 @@ function render(){B={};bn=0;
     if(s.tab==='map')markSeen('map',s.at?'a:'+s.at+'.':'L:');else if(s.tab!=='hero')markSeen(s.tab);if(s.newTab[s.tab])delete s.newTab[s.tab]}
   try{if(!texInit){texInit=1;const rs=document.documentElement.style;for(const k of['stone','sand','plank','board']){const u=pxURL('tx:'+k,()=>texBuf(k));if(u)rs.setProperty('--tx-'+k,`url(${u})`)}}
     if(!texInit2){texInit2=1;const rs=document.documentElement.style;for(const k of['wood','drift','stone']){const u=pxURL('fr:'+k,()=>frameBuf(k));if(u)rs.setProperty('--fr-'+k,`url(${u})`)}}
-    const th=s.cb?'':s.tab==='home'?'th-home':s.tab==='shore'?'th-shore':'';document.body.classList.toggle('th-home',th==='th-home');document.body.classList.toggle('th-shore',th==='th-shore')}catch(e){}
-  hideTip();const mn=$('main');const vw0=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:''),same0=vw0===lastView&&!s.cb,xs=same0?xSnap(mn):null,as0=same0?aSnap(mn):null;let tlx=null;try{const q=same0&&mn.querySelector('.chr-tl');if(q)tlx=q.scrollLeft>=q.scrollWidth-q.clientWidth-4?-1:q.scrollLeft}catch(e){}patchStage(s.cb?'':s.tab==='home'?homeScene():s.tab==='shore'?shoreScene():'');mn.innerHTML=h;if(tlx!==null){try{const q=mn.querySelector('.chr-tl');if(q)q.scrollLeft=tlx<0?q.scrollWidth:tlx}catch(e){}}glossify(mn);rDlg();if(xs)xFade(mn,xs,1);if(as0)aMark(mn,as0);
+    const th=s.cb?'':s.tab==='home'||s.tab==='tower'?'th-home':s.tab==='shore'?'th-shore':'';document.body.classList.toggle('th-home',th==='th-home');document.body.classList.toggle('th-shore',th==='th-shore')}catch(e){}
+  hideTip();const mn=$('main');const vw0=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:''),same0=vw0===lastView&&!s.cb,xs=same0?xSnap(mn):null,as0=same0?aSnap(mn):null;let tlx=null;try{const q=same0&&mn.querySelector('.chr-tl');if(q)tlx=q.scrollLeft>=q.scrollWidth-q.clientWidth-4?-1:q.scrollLeft}catch(e){}patchStage(s.cb?'':s.tab==='home'?homeScene():s.tab==='shore'?shoreScene():s.tab==='tower'?towerScene():'');mn.innerHTML=h;if(tlx!==null){try{const q=mn.querySelector('.chr-tl');if(q)q.scrollLeft=tlx<0?q.scrollWidth:tlx}catch(e){}}glossify(mn);rDlg();if(xs)xFade(mn,xs,1);if(as0)aMark(mn,as0);
   const view=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:'');const prevView=lastView;if(view!==lastView&&mn.classList&&!RM()){for(const e of[mn,$('stage')]){if(!e||!e.classList)continue;e.classList.remove('tin');void e.offsetWidth;e.classList.add('tin')}}lastView=view;
   placePop();
   if(hlT){const tg=hlT;hlT=null;try{const el=document.getElementById(tg);if(el){el.scrollIntoView({block:'center',behavior:RM()?'auto':'smooth'});el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash')}}catch(e){}}

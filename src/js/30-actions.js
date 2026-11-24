@@ -127,5 +127,6 @@ function rcVisible(rc){if(rc.req&&!rc.req())return false;if(rc.tool)return rc.id
 /* Мла збирається на метушню: її додають лише дії гравця. Поки біля маяка тихо — вона дрімає. */
 const MLA_A={smith:0.15,gather:0.08,scrapw:0.15,fishing:0.2,blow:0.05,bld:1.5,floor:2,craft:1,wup:1.5,schooner:2,exp:0.8};
 let paidN=0;
-function act(a,i){s.lastAct=Date.now();const w=MLA_A[a],fx=SFXA[a];if(!w&&!fx){act0(a,i);return}const cd0=s.cd[a],p0=paidN,ap0=s.cb?s.cb.ap:null;act0(a,i);
-  if(s.cd[a]!==cd0||paidN!==p0||(s.cb&&ap0!==null&&s.cb.ap!==ap0)){if(w)mlaAdd(w);if(fx)sfx(fx)}}
+let actOk=1;
+function act(a,i){s.lastAct=Date.now();const w=MLA_A[a],fx=SFXA[a];actOk=1;if(!w&&!fx){act0(a,i);return}const cd0=s.cd[a],p0=paidN,ap0=s.cb?s.cb.ap:null;act0(a,i);
+  actOk=s.cd[a]!==cd0||paidN!==p0||(s.cb&&ap0!==null&&s.cb.ap!==ap0)?1:0;if(actOk){if(w)mlaAdd(w);if(fx)sfx(fx)}}

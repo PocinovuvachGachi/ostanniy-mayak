@@ -317,9 +317,9 @@ button.hs.no:hover{border-color:#8a8f96;background:rgba(138,143,150,.12)}
 @keyframes bang{to{transform:translateY(-4px)}}
 .spk{position:absolute;left:40%;top:30%;width:8%;aspect-ratio:1;background:#fff0b0;box-shadow:12px 6px 0 #f0b84a,-9px 10px 0 #f0b84a,4px -8px 0 #fff0b0;opacity:min(1,calc(var(--p,0)*100));animation:spk .3s steps(2,end) infinite;pointer-events:none}
 @keyframes spk{50%{transform:translate(3px,-3px) scale(.6)}}
-.fpop{position:absolute;z-index:60;pointer-events:none;font:700 15px var(--mono);color:#fff0b0;text-shadow:0 2px 0 #0b1418,0 0 4px #0b1418;white-space:nowrap;animation:fpop 1.1s ease-out forwards;display:flex;gap:4px;align-items:center}
+.fpop{position:absolute;z-index:60;pointer-events:none;font:600 13px var(--mono);color:#e8dcb4;opacity:.9;text-shadow:0 1px 0 #0b1418,0 0 3px #0b1418;white-space:nowrap;animation:fpop 1.7s cubic-bezier(.2,.6,.3,1) forwards;display:flex;gap:4px;align-items:center}
 .fpop img{width:16px;height:16px;image-rendering:pixelated}
-@keyframes fpop{0%{transform:translate(-50%,0);opacity:1}100%{transform:translate(-50%,-44px);opacity:0}}
+@keyframes fpop{0%{transform:translate(-50%,0);opacity:0}12%{opacity:.9}100%{transform:translate(-50%,-30px);opacity:0}}
 details.alist{margin:8px 0 4px}
 details.alist>summary{cursor:pointer;font:600 12px var(--mono);color:var(--mute);text-transform:uppercase;letter-spacing:.06em;list-style:none;display:inline-block;padding:2px 0}
 details.alist>summary::before{content:"▸ "}
@@ -779,3 +779,11 @@ button.hs.zone:hover,button.hs.zone:focus-visible{background:transparent;border:
 @media (prefers-reduced-motion:reduce){.ob.ghost.ready .obo{animation:none}}
 /* Шар частинок: іскри, промінь, піна, птахи, перехожі */
 .scn canvas.fx{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:945;image-rendering:pixelated}
+/* Важке присідання при натисканні: униз і трохи вшир, без відскоку */
+.scn .ob{transition:translate .26s cubic-bezier(.2,.7,.3,1),scale .26s cubic-bezier(.2,.7,.3,1);transform-origin:50% 100%}
+.scn .ob.press{translate:0 1.5px;scale:1.012 .975;transition:translate 60ms ease-in,scale 60ms ease-in}
+@media (prefers-reduced-motion:reduce){.scn .ob.press{translate:none;scale:none}}
+/* Маяк у розрізі */
+.flu{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0}
+.scn.tw .ob.ruin .obi{filter:saturate(.7)}
+.scn.tw .scene{aspect-ratio:432/300}

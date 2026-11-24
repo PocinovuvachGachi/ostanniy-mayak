@@ -105,7 +105,21 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await p.close();
   }
 
-  // 5. Дзвіночок
+  // 5. Маяк у розрізі: картка поверху відновлює його
+  {
+    const p = await page(1100, 1000);
+    await p.evaluate(() => { window.dlg = () => {}; s.f.looked = 1; s.b.hearth = 2; for (const k of RES) s.r[k] = 5000; s.tabs = { home: 1, tower: 1 }; s.dlg = []; s.tab = 'tower'; render(); });
+    await p.waitForTimeout(300);
+    const el = await p.$('.scn [data-k="fl:work"]'), bb = el && await el.boundingBox();
+    if (bb) { await p.mouse.click(bb.x + bb.width / 2, bb.y + bb.height / 2); await p.waitForTimeout(300); }
+    const btn = await p.$('#popl [data-a="floor"][data-i="work"]');
+    A(!!btn, 'картка майстерні з кнопкою «Відновити»');
+    if (btn) { await btn.click(); await p.waitForTimeout(200); }
+    A(await p.evaluate(() => !!s.floors.work), 'майстерню відновлено з картки');
+    await p.close();
+  }
+
+  // 6. Дзвіночок
   {
     const p = await page(390, 844);
     const r = await p.evaluate(() => {
