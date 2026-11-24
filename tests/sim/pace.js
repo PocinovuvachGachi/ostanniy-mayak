@@ -83,7 +83,8 @@ function explore(){const ls=Object.keys(s.disc).filter(l=>LOC[l]);for(const l of
       const w0=s.c.wins||0,sig0=JSON.stringify([s.done,s.f,s.inv,s.disc]).length;A('la',x.id);dialogs();if(s.cb){fight();if((s.c.wins||0)>w0)s.done['win:'+x.id]=1}
       else if(JSON.stringify([s.done,s.f,s.inv,s.disc]).length===sig0)skipT[x.id]=T+900}
     if(s.at)A('leave','',P.travel);return 1}return 0}
-function misc(){let d=0;if(s.wolf){if(!s.wolf.name)A('wname','Сірко',1);if(!wolfSated()&&afford(wolfFood())){A('wfeed','',1);d=1}}
+function misc(){let d=0;if(s.wolf&&wTrainOn()){for(const N of WTR)if(!wHas(N.id)&&(!N.need||wHas(N.need))&&(s.wolf.tp||0)>=N.c){A('wlearn',N.id,1);d=1}if(!onCd('wlesson')){A('wlesson','',8);d=1}}
+  if(s.wolf){if(!s.wolf.name)A('wname','Сірко',1);if(!wolfSated()&&afford(wolfFood())){A('wfeed','',1);d=1}}
   if(s.tabs.kitchen&&s.h.hp<maxHP()*.6)for(const D of DISH)if(rcpKnown(D.id)&&afford(D.c)&&(s.r.fish>20)){A('cookp',D.id,1);d=1;break}
   if(s.floors.gallery&&s.tabs.map&&SCAN.some(x=>!s.disc[x])&&s.r.ember>=scanCost()){A('scan');d=1}
   for(const f in s.req||{}){if(afford(s.req[f].give)){A('freq',f);d=1}}

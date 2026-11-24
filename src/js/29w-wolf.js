@@ -14,7 +14,7 @@ SPR.wolfpet=SPR.wolf.map((r,y)=>y===7?r.slice(0,11)+'ii'+r.slice(13):r);
 function wolfFind(){if(s.wolf)return;s.wolf={name:'',g:0,sat:0,lt:Date.now(),fed:0,hurt:0};
   dlg({k:'story',title:'Лігво на скелях',img:{t:'scene',id:'cliffs'},body:`<p>За уступом, де стояла коза, — лігво під виступом скелі. Усередині тихо скиглить вовченя: сіре, мокре, з очима кольору туману. Зграї, що його годувала, більше немає.</p><p>Ти загортаєш його в куртку. Біля вогнища маяка буде тепло.</p>`,gains:['Вовченя біля вогнища — дай йому ім’я']})}
 function wolfFeed(){const w=s.wolf;if(!w)return;const now=Date.now();if(now<w.sat-5*60000){say(`${wcap(wolfNm())} ситий і дрімає біля вогню.`,'info');return}
-  const c=wolfFood();if(!afford(c))return;pay(c);w.sat=Math.min(now+15*60000,Math.max(now,w.sat)+10*60000);w.fed++;
+  const c=wolfFood();if(!afford(c))return;pay(c);w.sat=Math.min(now+15*60000,Math.max(now,w.sat)+10*60000);w.fed++;if(wolfSt()>=2&&w.fed%3===0)wtpAdd(1,'годування');
   say(w.fed===1?`${wcap(wolfNm())} спершу обнюхує їжу, тоді жадібно їсть і засинає, притулившись до твоєї ноги.`:`${wcap(wolfNm())} їсть і вдоволено вкладається біля вогнища.`,'info');dirty=1}
 function wolfName(v){const w=s.wolf;if(!w||w.name)return;if(v==null&&typeof document!=='undefined'&&document.querySelector){const el=document.querySelector('input[data-wname]');v=el&&el.value}
   v=String(v||'').replace(/[<>&"'`]/g,'').trim().slice(0,16);if(!v){say('Вовченя чекає на ім’я.','info');return}w.name=wcap(v);say(`Тепер його звати ${w.name}. Вовченя ворушить вухом, наче погоджується.`,'info');dirty=1}
@@ -25,8 +25,8 @@ function wolfTick(){const w=s.wolf;if(!w)return;const now=Date.now(),dt=Math.min
     gains:k1===1?['Вовк ходить із тобою в бій']:['Вовк сильніший у бою']})}
 /* у бою: стає поруч із героєм */
 function wolfJoin(c){const k=wolfSt();if(k<1||Date.now()<(s.wolf.hurt||0))return;for(const[dx,dy]of[[0,1],[0,-1],[1,0],[1,1],[1,-1],[-1,1],[-1,-1]]){const x=c.hx+dx,y=c.hy+dy;
-    if(x<0||y<0||x>=GW||y>=GH||solid(tileAt(c.a,x,y))||tileAt(c.a,x,y)==='~'||unitAt(c,x,y))continue;const u=mkUnit('wolfpet',x,y,1);u.hp=u.max=WST[k].hp;u.p0=WST[k].bite;u.nm=wcap(wolfNm());c.u.push(u);c.log.push(`${u.nm} стає поруч і шкірить зуби.`);return}}
-function wolfDown(u){if(u.t!=='wolfpet'||!s.wolf)return;s.wolf.hurt=Date.now()+5*60000;cbLog(`${u.nm||'Вовк'} скавчить і відповзає з бою — до маяка, до вогню.`)}
+    if(x<0||y<0||x>=GW||y>=GH||solid(tileAt(c.a,x,y))||tileAt(c.a,x,y)==='~'||unitAt(c,x,y))continue;const u=mkUnit('wolfpet',x,y,1);u.hp=u.max=WST[k].hp+(wHas('alpha')?12:0);u.p0=WST[k].bite+(wHas('alpha')?2:0);u.nm=wcap(wolfNm());c.u.push(u);c.log.push(`${u.nm} стає поруч і шкірить зуби.`);return}}
+function wolfDown(u){if(u.t!=='wolfpet'||!s.wolf)return;if(wHas('brave')&&!u.brave){u.brave=1;const c=s.cb,tg=c&&alive(c).find(v=>dist(v.x,v.y,u.x,u.y)<=1);if(tg){const d=Math.max(1,(u.p0||4)+2);tg.hp-=d;cbLog(`${u.nm} з останніх сил кусає: ${E(EN[tg.t].n)} −${d}.`);if(tg.hp<=0)kill(tg)}}s.wolf.hurt=Date.now()+5*60000;cbLog(`${u.nm||'Вовк'} скавчить і відповзає з бою — до маяка, до вогню.`)}
 /* сцена: вовк у нижній залі біля вогнища */
 function wolfScene3(k){const b=pbuf(30,18),S=[.62,.8,1][k],cx=15,cy=12.5;
   const E=(x,y,ex,ey,rx,ry)=>((x-ex)/rx)**2+((y-ey)/ry)**2<=1,ear=(x,y,ex)=>y>cy-6.4*S&&y<cy-3.4*S&&Math.abs(x-ex)<=(y-(cy-6.4*S))/(3*S)*1.3*S;
@@ -42,4 +42,4 @@ function wolfPopHTML(){const w=s.wolf;if(!w)return'';const k=wolfSt(),nm=w.name|
   <p class="m">${wcap(WST[k].n)}. ${hurt?'Зализує рани біля вогню.':wolfSated()?'Ситий, дрімає біля вогнища.':'Голодний: дивиться на тебе й тихо скиглить.'} ${k<2?(wolfSated()?'Поки ситий — росте.':'Голодний не росте.'):''}</p>
   ${w.name?'':`<div class="act"><input data-wname maxlength="16" autocomplete="off" aria-label="Ім’я вовченяти" placeholder="Ім’я">${btn('Назвати','wname','')}</div>`}
   <div class="act">${btn(`Нагодувати (${costTxt(c)})`,'wfeed','',{ok:()=>afford(c)&&Date.now()>=(s.wolf.sat||0)-5*60000})}</div>
-  <p class="hint">${k?'Іде з тобою в бій і кидається на найближчого ворога. Накази — коли навчиш.':'Підросте — ходитиме з тобою в бій.'}</p></div>`}
+  ${wTrainHTML()}<p class="hint">${k?'Іде з тобою в бій і кидається на найближчого ворога. Накази — коли навчиш.':'Підросте — ходитиме з тобою в бій.'}</p></div>`}

@@ -213,6 +213,7 @@ function cAct(a,i){const c=s.cb;if(!c)return;setGrid(c);c.fx=[];c.fxt=0;
   else if(a==='c_heavy'){const u=selU();if(u)heroMelee(u,1)}
   else if(a==='c_shoot'){const u=selU();if(u)heroShoot(u)}
   else if(a==='c_bomb'){const u=selU();if(u)heroBomb(u)}
+  else if(a==='c_wcmd'){c.wcmd=i||'';cbLog(i==='grab'?'Ти показуєш вовкові на ціль: «Хапай!»':i==='heel'?'«До ноги!» — вовк стає поруч.':'Вовк знову діє сам.')}
   else if(a==='c_guard'&&c.ap>=1&&!c.guard){c.guard=c.ap;c.ap=0;cbLog(`Ти стаєш у захисну стійку: удари зблизька −${guardPct(1)}%, постріли й чари −${guardPct(0)}%.`);endTurn();dirty=1;return}
   else if(a==='c_sw'){const it=IT[i];if(it&&packHas(i)&&has(i)&&c.ap>=1&&s.eq[it.slot]!==i){c.ap-=1;s.eq[it.slot]=i;c.mode='';cbLog(`Ти береш у руки: ${I(wN(i))}.`)}}
   else if(a==='c_item'&&c.ap>=1&&beltHas(i)&&IT[i].use==='heal'){c.ap-=1;s.inv[i]--;s.h.hp=Math.min(maxHP(),s.h.hp+IT[i].v);dishEffect(i);fxP({t:'txt',x:c.hx,y:c.hy,v:'+'+IT[i].v,k:'heal'},0);cbLog(`${IT[i].n}: +${IT[i].v} здоров’я.`)}
@@ -248,7 +249,7 @@ function roleAct(c,u){const T=EN[u.t];const structs=c.u.filter(v=>v.hp>0&&EN[v.t
   fxP({t:'bump',x0:u.x,y0:u.y,x1:tg.x,y1:tg.y},110);
   if(u.role==='thief'){u.loot=1;cbLog(`${E(T.n)} хапає припаси зі складу! Не дай йому дійти до води.`);return true}
   const d=Math.round((4+s.h.lvl*0.5)*DIFF_DMG);tg.hp-=d;fxP({t:'txt',x:tg.x,y:tg.y,v:'−'+d,k:'hit'},120);cbLog(`${E(T.n)} ламає: ${tg.nm||EN[tg.t].n} −${d}.`);if(tg.hp<=0)kill(tg);return true}
-function enemyAct(c,u){const T=EN[u.t];if(T.obj)return;if(T.ally){allyAct(c,u);return}
+function enemyAct(c,u){const T=EN[u.t];if(T.obj)return;if(u.t==='wolfpet'){wolfAct(c,u);return}if(T.ally){allyAct(c,u);return}
   if(u.hid){if(dist(u.x,u.y,c.hx,c.hy)<=2||Math.random()<0.35){u.hid=0;cbLog(`${E(T.n)} вискакує з засідки!`);fxP({t:'appear',x:u.x,y:u.y},140)}else{u.step++;return}}
   if(u.burn>0){u.burn--;u.hp-=3;cbLog(`${E(T.n)} горить: −3.`);fxP({t:'txt',x:u.x,y:u.y,v:'−3',k:'hit'},90);if(u.hp<=0){kill(u);return}}
   if(u.bleed>0){u.bleed--;const bd=u.bleedD||2;u.hp-=bd;cbLog(`${E(T.n)} стікає кров’ю: −${bd}.`);fxP({t:'txt',x:u.x,y:u.y,v:'−'+bd,k:'hit'},90);if(u.hp<=0){kill(u);return}}
@@ -259,7 +260,7 @@ function enemyAct(c,u){const T=EN[u.t];if(T.obj)return;if(T.ally){allyAct(c,u);r
   const near=()=>dist(u.x,u.y,c.hx,c.hy)<=1;
   const hurtHero=(x0,ign)=>{let x=x0*(c.mult||1)*DIFF_DMG*(u.el==='fury'?1.3:1)*(T.enr&&u.hp<u.max/2?1.3:1);if(u.weak){x*=0.5;u.weak=0}if(c.guard)x*=1-guardPct(near())/100;x=Math.max(1,Math.round(x)-(ign?0:armor()));s.h.hp-=x;fxP({t:'txt',x:c.hx,y:c.hy,v:'−'+x,k:'hurt'},160);return x};
   const pinc=c.u.filter(v=>v.hp>0&&!isObj(v)&&!EN[v.t].ally&&dist(v.x,v.y,c.hx,c.hy)<=1).length>=2;
-  const strike=(dmg,ign)=>{const ch=clamp(85+(pinc?10:0)-3*Math.max(0,s.h.a.dex-2)-(s.h.ft.nimble?5:0)-(s.h.ft.evade?15:0)-eqv('dodge'),5,95);fxP({t:'bump',x0:u.x,y0:u.y,x1:c.hx,y1:c.hy,cold:k==='cold'},110);
+  const strike=(dmg,ign)=>{if(wolfBlock(c,u,dmg))return true;const ch=clamp(85+(pinc?10:0)-3*Math.max(0,s.h.a.dex-2)-(s.h.ft.nimble?5:0)-(s.h.ft.evade?15:0)-eqv('dodge'),5,95);fxP({t:'bump',x0:u.x,y0:u.y,x1:c.hx,y1:c.hy,cold:k==='cold'},110);
     if(Math.random()*100>=ch){cbLog(`${E(T.n)}: ${nm.toLowerCase()} — мимо.`);fxP({t:'txt',x:c.hx,y:c.hy,v:'мимо',k:'miss'},140);u.wind=0;u.weak=0;
       if(s.eq.weapon&&Math.random()*100<3*s.h.k.melee+(s.h.ft.riposte?15:0)){cbLog('Контрудар!');dmgTo(u,wDmg()+s.h.a.str-1,1,0,'m')}return false}
     if(s.eq.weapon==='sabre'&&Math.random()*100<(wmLv('sabre')>=3?40:25)){u.wind=0;u.weak=0;fxP({t:'txt',x:c.hx,y:c.hy,v:'відбито',k:'heal'},120);cbLog(`Шабля відбиває удар! Відповідь:`);dmgTo(u,wDmg()+s.h.a.str-1,1,0,'m');if(wF('sabre')>=1&&u.hp>0)dmgTo(u,wDmg()+s.h.a.str-1,1,0,'m');return false}
@@ -300,7 +301,7 @@ function endTurn(){const c=s.cb;c.sand=0;c.wrap=0;c.mode='';c.kfree=0;for(const 
   for(const k in c.cds)if(c.cds[k]>0&&c.cds[k]<99)c.cds[k]--;
   c.guard=0;c.smoke=0;c.ap=Math.max(1,maxAP()-(c.wrap?2:0))}
 let lastCb=null;
-function win(){const c=s.cb;lastCb=c;s.cb=null;s.c.wins=(s.c.wins||0)+1;say('Перемога! Усіх ворогів переможено.','fight');const q0=(s.dlg||[]).length;const m=finishWin(c.win);const bu=c.u.find(u=>EN[u.t].boss);if(bu)mom('boss',`Переможено: ${EN[bu.t].n}`,EN[bu.t].d,{t:'spr',id:bu.t},1);
+function win(){const c=s.cb;lastCb=c;s.cb=null;s.c.wins=(s.c.wins||0)+1;if(c.u.some(v=>v.t==='wolfpet'&&v.hp>0))wtpAdd(1/3,'спільна перемога');say('Перемога! Усіх ворогів переможено.','fight');const q0=(s.dlg||[]).length;const m=finishWin(c.win);const bu=c.u.find(u=>EN[u.t].boss);if(bu)mom('boss',`Переможено: ${EN[bu.t].n}`,EN[bu.t].d,{t:'spr',id:bu.t},1);
   const g=c.sn?gainsOf(c.sn):[];for(const w in c.wmg||{})g.push(`Майстерність «${IT[w].n}»: +${c.wmg[w]} (рівень ${wmLv(w)})`);
   const foe=c.u.find(u=>!isObj(u));s.dlg=s.dlg||[];s.dlg.splice(q0,0,{k:'fight',title:'Перемога',img:foe?{t:'spr',id:foe.t}:null,body:`<p>${m||'Усіх ворогів переможено.'}</p>`,gains:g})}
 function finishWin(w){let m='';
@@ -343,7 +344,7 @@ function thrDrop(enc,story){const E0=ENC[enc];if(!E0)return 0;let v=0;const lc=l
   E0.e.forEach(([t],ix)=>{const T=EN[t];if(!T||T.obj||T.ally||T.struct)return;const u=lc&&lc[ix];v+=Math.max(2,Math.round(T.hp/5))*(T.boss?2:1)*(u&&u.el?1.5:1)});
   v*=(E0.mult||1)*(story?2:1);return Math.min(60,Math.round(v))}
 function thrMul(){const br=defL('brazier')&&s.on.brazier!==false&&s.r.oil>0?1-0.2*defL('brazier'):1;return(fac('silent')>=50?0.85:1)*br*(s.f.won?0.8:1)*((s.b.hearth||0)>=5?0.9:1)*(s.h.lvl<6?1:1.5)}
-function mlaAdd(v){if(!thrOn()||s.cb||s.raid)return;const k=v*(s.h.lvl<6?1:1.5);s.threat=Math.min(100,(s.threat||0)+v*thrMul());if(defL('brazier')&&s.on.brazier!==false)s.r.oil=Math.max(0,s.r.oil-0.8*k*defL('brazier'))}
+function mlaAdd(v){if(!thrOn()||s.cb||s.raid)return;const k=v*(s.h.lvl<6?1:1.5);s.threat=Math.min(100,(s.threat||0)+v*thrMul()*(wHas('mla')?.85:1));if(defL('brazier')&&s.on.brazier!==false)s.r.oil=Math.max(0,s.r.oil-0.8*k*defL('brazier'))}
 const away=()=>Date.now()-(s.lastAct||0)>120000||(typeof document!=='undefined'&&!!document.hidden);
 const raidGap=()=>(s.h.lvl<6?480+Math.random()*300:300+Math.random()*200)*1000;
 function raidCheck(){if(away())return;

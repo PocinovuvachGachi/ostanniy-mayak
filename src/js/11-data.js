@@ -435,7 +435,7 @@ const ENC={
   sentinels:{a:'guard',mult:1.3,h:[1,3],e:[['sentinel',8,2],['sentinel',8,4]]},
   mill:{a:'cliff',mult:1.6,h:[1,3],e:[['wolf',8,1],['wolf',9,3],['wolf',8,5]]},
   cove:{a:'shore',mult:1.6,h:[1,3],e:[['harpooner',8,3],['medic',9,1],['smuggler',9,5],['barrel',6,4]]},
-  heart:{a:'heartL',noElite:1,fixed:1,mult:1.55,h:[1,4],e:[['heart',9,4],['drowned',8,1],['drowned',8,7]],boss:1},
+  heart:{a:'heartL',noElite:1,fixed:1,mult:2.1,h:[1,4],e:[['heart',9,4],['drowned',8,1],['drowned',8,7]],boss:1},
 };
 
 const FACE={

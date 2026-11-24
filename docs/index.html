@@ -956,6 +956,11 @@ body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .
 .mgct .n{position:absolute;left:-6px;right:-6px;height:4px;margin-bottom:-2px;background:#f0b84a;box-shadow:0 0 6px #f0b84a}
 @media (prefers-reduced-motion:reduce){.mgcp i{animation:none}}
 .rdbar{height:8px;background:#16252e;border:2px solid #0b1418;margin:6px 0}.rdbar i{display:block;height:100%;background:#f0b84a}
+.mgwolf{position:relative;height:120px;display:flex;align-items:center;justify-content:center;background:#2b3a22}
+.mgwolf img{width:64px;height:64px;image-rendering:pixelated}
+.mgwolf .ex{position:absolute;top:10px;left:50%;font:700 28px var(--mono);color:#f0b84a;opacity:0;transition:opacity .1s}
+.mgwolf.sig .ex{opacity:1}
+.wtr{border-top:1px dashed var(--rule);margin-top:8px;padding-top:6px}
 </style>
 </head>
 <body>
@@ -2505,7 +2510,7 @@ const ENC={
   sentinels:{a:'guard',mult:1.3,h:[1,3],e:[['sentinel',8,2],['sentinel',8,4]]},
   mill:{a:'cliff',mult:1.6,h:[1,3],e:[['wolf',8,1],['wolf',9,3],['wolf',8,5]]},
   cove:{a:'shore',mult:1.6,h:[1,3],e:[['harpooner',8,3],['medic',9,1],['smuggler',9,5],['barrel',6,4]]},
-  heart:{a:'heartL',noElite:1,fixed:1,mult:1.55,h:[1,4],e:[['heart',9,4],['drowned',8,1],['drowned',8,7]],boss:1},
+  heart:{a:'heartL',noElite:1,fixed:1,mult:2.1,h:[1,4],e:[['heart',9,4],['drowned',8,1],['drowned',8,7]],boss:1},
 };
 
 const FACE={
@@ -3441,6 +3446,7 @@ function cAct(a,i){const c=s.cb;if(!c)return;setGrid(c);c.fx=[];c.fxt=0;
   else if(a==='c_heavy'){const u=selU();if(u)heroMelee(u,1)}
   else if(a==='c_shoot'){const u=selU();if(u)heroShoot(u)}
   else if(a==='c_bomb'){const u=selU();if(u)heroBomb(u)}
+  else if(a==='c_wcmd'){c.wcmd=i||'';cbLog(i==='grab'?'Ти показуєш вовкові на ціль: «Хапай!»':i==='heel'?'«До ноги!» — вовк стає поруч.':'Вовк знову діє сам.')}
   else if(a==='c_guard'&&c.ap>=1&&!c.guard){c.guard=c.ap;c.ap=0;cbLog(`Ти стаєш у захисну стійку: удари зблизька −${guardPct(1)}%, постріли й чари −${guardPct(0)}%.`);endTurn();dirty=1;return}
   else if(a==='c_sw'){const it=IT[i];if(it&&packHas(i)&&has(i)&&c.ap>=1&&s.eq[it.slot]!==i){c.ap-=1;s.eq[it.slot]=i;c.mode='';cbLog(`Ти береш у руки: ${I(wN(i))}.`)}}
   else if(a==='c_item'&&c.ap>=1&&beltHas(i)&&IT[i].use==='heal'){c.ap-=1;s.inv[i]--;s.h.hp=Math.min(maxHP(),s.h.hp+IT[i].v);dishEffect(i);fxP({t:'txt',x:c.hx,y:c.hy,v:'+'+IT[i].v,k:'heal'},0);cbLog(`${IT[i].n}: +${IT[i].v} здоров’я.`)}
@@ -3476,7 +3482,7 @@ function roleAct(c,u){const T=EN[u.t];const structs=c.u.filter(v=>v.hp>0&&EN[v.t
   fxP({t:'bump',x0:u.x,y0:u.y,x1:tg.x,y1:tg.y},110);
   if(u.role==='thief'){u.loot=1;cbLog(`${E(T.n)} хапає припаси зі складу! Не дай йому дійти до води.`);return true}
   const d=Math.round((4+s.h.lvl*0.5)*DIFF_DMG);tg.hp-=d;fxP({t:'txt',x:tg.x,y:tg.y,v:'−'+d,k:'hit'},120);cbLog(`${E(T.n)} ламає: ${tg.nm||EN[tg.t].n} −${d}.`);if(tg.hp<=0)kill(tg);return true}
-function enemyAct(c,u){const T=EN[u.t];if(T.obj)return;if(T.ally){allyAct(c,u);return}
+function enemyAct(c,u){const T=EN[u.t];if(T.obj)return;if(u.t==='wolfpet'){wolfAct(c,u);return}if(T.ally){allyAct(c,u);return}
   if(u.hid){if(dist(u.x,u.y,c.hx,c.hy)<=2||Math.random()<0.35){u.hid=0;cbLog(`${E(T.n)} вискакує з засідки!`);fxP({t:'appear',x:u.x,y:u.y},140)}else{u.step++;return}}
   if(u.burn>0){u.burn--;u.hp-=3;cbLog(`${E(T.n)} горить: −3.`);fxP({t:'txt',x:u.x,y:u.y,v:'−3',k:'hit'},90);if(u.hp<=0){kill(u);return}}
   if(u.bleed>0){u.bleed--;const bd=u.bleedD||2;u.hp-=bd;cbLog(`${E(T.n)} стікає кров’ю: −${bd}.`);fxP({t:'txt',x:u.x,y:u.y,v:'−'+bd,k:'hit'},90);if(u.hp<=0){kill(u);return}}
@@ -3487,7 +3493,7 @@ function enemyAct(c,u){const T=EN[u.t];if(T.obj)return;if(T.ally){allyAct(c,u);r
   const near=()=>dist(u.x,u.y,c.hx,c.hy)<=1;
   const hurtHero=(x0,ign)=>{let x=x0*(c.mult||1)*DIFF_DMG*(u.el==='fury'?1.3:1)*(T.enr&&u.hp<u.max/2?1.3:1);if(u.weak){x*=0.5;u.weak=0}if(c.guard)x*=1-guardPct(near())/100;x=Math.max(1,Math.round(x)-(ign?0:armor()));s.h.hp-=x;fxP({t:'txt',x:c.hx,y:c.hy,v:'−'+x,k:'hurt'},160);return x};
   const pinc=c.u.filter(v=>v.hp>0&&!isObj(v)&&!EN[v.t].ally&&dist(v.x,v.y,c.hx,c.hy)<=1).length>=2;
-  const strike=(dmg,ign)=>{const ch=clamp(85+(pinc?10:0)-3*Math.max(0,s.h.a.dex-2)-(s.h.ft.nimble?5:0)-(s.h.ft.evade?15:0)-eqv('dodge'),5,95);fxP({t:'bump',x0:u.x,y0:u.y,x1:c.hx,y1:c.hy,cold:k==='cold'},110);
+  const strike=(dmg,ign)=>{if(wolfBlock(c,u,dmg))return true;const ch=clamp(85+(pinc?10:0)-3*Math.max(0,s.h.a.dex-2)-(s.h.ft.nimble?5:0)-(s.h.ft.evade?15:0)-eqv('dodge'),5,95);fxP({t:'bump',x0:u.x,y0:u.y,x1:c.hx,y1:c.hy,cold:k==='cold'},110);
     if(Math.random()*100>=ch){cbLog(`${E(T.n)}: ${nm.toLowerCase()} — мимо.`);fxP({t:'txt',x:c.hx,y:c.hy,v:'мимо',k:'miss'},140);u.wind=0;u.weak=0;
       if(s.eq.weapon&&Math.random()*100<3*s.h.k.melee+(s.h.ft.riposte?15:0)){cbLog('Контрудар!');dmgTo(u,wDmg()+s.h.a.str-1,1,0,'m')}return false}
     if(s.eq.weapon==='sabre'&&Math.random()*100<(wmLv('sabre')>=3?40:25)){u.wind=0;u.weak=0;fxP({t:'txt',x:c.hx,y:c.hy,v:'відбито',k:'heal'},120);cbLog(`Шабля відбиває удар! Відповідь:`);dmgTo(u,wDmg()+s.h.a.str-1,1,0,'m');if(wF('sabre')>=1&&u.hp>0)dmgTo(u,wDmg()+s.h.a.str-1,1,0,'m');return false}
@@ -3528,7 +3534,7 @@ function endTurn(){const c=s.cb;c.sand=0;c.wrap=0;c.mode='';c.kfree=0;for(const 
   for(const k in c.cds)if(c.cds[k]>0&&c.cds[k]<99)c.cds[k]--;
   c.guard=0;c.smoke=0;c.ap=Math.max(1,maxAP()-(c.wrap?2:0))}
 let lastCb=null;
-function win(){const c=s.cb;lastCb=c;s.cb=null;s.c.wins=(s.c.wins||0)+1;say('Перемога! Усіх ворогів переможено.','fight');const q0=(s.dlg||[]).length;const m=finishWin(c.win);const bu=c.u.find(u=>EN[u.t].boss);if(bu)mom('boss',`Переможено: ${EN[bu.t].n}`,EN[bu.t].d,{t:'spr',id:bu.t},1);
+function win(){const c=s.cb;lastCb=c;s.cb=null;s.c.wins=(s.c.wins||0)+1;if(c.u.some(v=>v.t==='wolfpet'&&v.hp>0))wtpAdd(1/3,'спільна перемога');say('Перемога! Усіх ворогів переможено.','fight');const q0=(s.dlg||[]).length;const m=finishWin(c.win);const bu=c.u.find(u=>EN[u.t].boss);if(bu)mom('boss',`Переможено: ${EN[bu.t].n}`,EN[bu.t].d,{t:'spr',id:bu.t},1);
   const g=c.sn?gainsOf(c.sn):[];for(const w in c.wmg||{})g.push(`Майстерність «${IT[w].n}»: +${c.wmg[w]} (рівень ${wmLv(w)})`);
   const foe=c.u.find(u=>!isObj(u));s.dlg=s.dlg||[];s.dlg.splice(q0,0,{k:'fight',title:'Перемога',img:foe?{t:'spr',id:foe.t}:null,body:`<p>${m||'Усіх ворогів переможено.'}</p>`,gains:g})}
 function finishWin(w){let m='';
@@ -3571,7 +3577,7 @@ function thrDrop(enc,story){const E0=ENC[enc];if(!E0)return 0;let v=0;const lc=l
   E0.e.forEach(([t],ix)=>{const T=EN[t];if(!T||T.obj||T.ally||T.struct)return;const u=lc&&lc[ix];v+=Math.max(2,Math.round(T.hp/5))*(T.boss?2:1)*(u&&u.el?1.5:1)});
   v*=(E0.mult||1)*(story?2:1);return Math.min(60,Math.round(v))}
 function thrMul(){const br=defL('brazier')&&s.on.brazier!==false&&s.r.oil>0?1-0.2*defL('brazier'):1;return(fac('silent')>=50?0.85:1)*br*(s.f.won?0.8:1)*((s.b.hearth||0)>=5?0.9:1)*(s.h.lvl<6?1:1.5)}
-function mlaAdd(v){if(!thrOn()||s.cb||s.raid)return;const k=v*(s.h.lvl<6?1:1.5);s.threat=Math.min(100,(s.threat||0)+v*thrMul());if(defL('brazier')&&s.on.brazier!==false)s.r.oil=Math.max(0,s.r.oil-0.8*k*defL('brazier'))}
+function mlaAdd(v){if(!thrOn()||s.cb||s.raid)return;const k=v*(s.h.lvl<6?1:1.5);s.threat=Math.min(100,(s.threat||0)+v*thrMul()*(wHas('mla')?.85:1));if(defL('brazier')&&s.on.brazier!==false)s.r.oil=Math.max(0,s.r.oil-0.8*k*defL('brazier'))}
 const away=()=>Date.now()-(s.lastAct||0)>120000||(typeof document!=='undefined'&&!!document.hidden);
 const raidGap=()=>(s.h.lvl<6?480+Math.random()*300:300+Math.random()*200)*1000;
 function raidCheck(){if(away())return;
@@ -3980,7 +3986,7 @@ SPR.wolfpet=SPR.wolf.map((r,y)=>y===7?r.slice(0,11)+'ii'+r.slice(13):r);
 function wolfFind(){if(s.wolf)return;s.wolf={name:'',g:0,sat:0,lt:Date.now(),fed:0,hurt:0};
   dlg({k:'story',title:'Лігво на скелях',img:{t:'scene',id:'cliffs'},body:`<p>За уступом, де стояла коза, — лігво під виступом скелі. Усередині тихо скиглить вовченя: сіре, мокре, з очима кольору туману. Зграї, що його годувала, більше немає.</p><p>Ти загортаєш його в куртку. Біля вогнища маяка буде тепло.</p>`,gains:['Вовченя біля вогнища — дай йому ім’я']})}
 function wolfFeed(){const w=s.wolf;if(!w)return;const now=Date.now();if(now<w.sat-5*60000){say(`${wcap(wolfNm())} ситий і дрімає біля вогню.`,'info');return}
-  const c=wolfFood();if(!afford(c))return;pay(c);w.sat=Math.min(now+15*60000,Math.max(now,w.sat)+10*60000);w.fed++;
+  const c=wolfFood();if(!afford(c))return;pay(c);w.sat=Math.min(now+15*60000,Math.max(now,w.sat)+10*60000);w.fed++;if(wolfSt()>=2&&w.fed%3===0)wtpAdd(1,'годування');
   say(w.fed===1?`${wcap(wolfNm())} спершу обнюхує їжу, тоді жадібно їсть і засинає, притулившись до твоєї ноги.`:`${wcap(wolfNm())} їсть і вдоволено вкладається біля вогнища.`,'info');dirty=1}
 function wolfName(v){const w=s.wolf;if(!w||w.name)return;if(v==null&&typeof document!=='undefined'&&document.querySelector){const el=document.querySelector('input[data-wname]');v=el&&el.value}
   v=String(v||'').replace(/[<>&"'`]/g,'').trim().slice(0,16);if(!v){say('Вовченя чекає на ім’я.','info');return}w.name=wcap(v);say(`Тепер його звати ${w.name}. Вовченя ворушить вухом, наче погоджується.`,'info');dirty=1}
@@ -3991,8 +3997,8 @@ function wolfTick(){const w=s.wolf;if(!w)return;const now=Date.now(),dt=Math.min
     gains:k1===1?['Вовк ходить із тобою в бій']:['Вовк сильніший у бою']})}
 /* у бою: стає поруч із героєм */
 function wolfJoin(c){const k=wolfSt();if(k<1||Date.now()<(s.wolf.hurt||0))return;for(const[dx,dy]of[[0,1],[0,-1],[1,0],[1,1],[1,-1],[-1,1],[-1,-1]]){const x=c.hx+dx,y=c.hy+dy;
-    if(x<0||y<0||x>=GW||y>=GH||solid(tileAt(c.a,x,y))||tileAt(c.a,x,y)==='~'||unitAt(c,x,y))continue;const u=mkUnit('wolfpet',x,y,1);u.hp=u.max=WST[k].hp;u.p0=WST[k].bite;u.nm=wcap(wolfNm());c.u.push(u);c.log.push(`${u.nm} стає поруч і шкірить зуби.`);return}}
-function wolfDown(u){if(u.t!=='wolfpet'||!s.wolf)return;s.wolf.hurt=Date.now()+5*60000;cbLog(`${u.nm||'Вовк'} скавчить і відповзає з бою — до маяка, до вогню.`)}
+    if(x<0||y<0||x>=GW||y>=GH||solid(tileAt(c.a,x,y))||tileAt(c.a,x,y)==='~'||unitAt(c,x,y))continue;const u=mkUnit('wolfpet',x,y,1);u.hp=u.max=WST[k].hp+(wHas('alpha')?12:0);u.p0=WST[k].bite+(wHas('alpha')?2:0);u.nm=wcap(wolfNm());c.u.push(u);c.log.push(`${u.nm} стає поруч і шкірить зуби.`);return}}
+function wolfDown(u){if(u.t!=='wolfpet'||!s.wolf)return;if(wHas('brave')&&!u.brave){u.brave=1;const c=s.cb,tg=c&&alive(c).find(v=>dist(v.x,v.y,u.x,u.y)<=1);if(tg){const d=Math.max(1,(u.p0||4)+2);tg.hp-=d;cbLog(`${u.nm} з останніх сил кусає: ${E(EN[tg.t].n)} −${d}.`);if(tg.hp<=0)kill(tg)}}s.wolf.hurt=Date.now()+5*60000;cbLog(`${u.nm||'Вовк'} скавчить і відповзає з бою — до маяка, до вогню.`)}
 /* сцена: вовк у нижній залі біля вогнища */
 function wolfScene3(k){const b=pbuf(30,18),S=[.62,.8,1][k],cx=15,cy=12.5;
   const E=(x,y,ex,ey,rx,ry)=>((x-ex)/rx)**2+((y-ey)/ry)**2<=1,ear=(x,y,ex)=>y>cy-6.4*S&&y<cy-3.4*S&&Math.abs(x-ex)<=(y-(cy-6.4*S))/(3*S)*1.3*S;
@@ -4008,7 +4014,65 @@ function wolfPopHTML(){const w=s.wolf;if(!w)return'';const k=wolfSt(),nm=w.name|
   <p class="m">${wcap(WST[k].n)}. ${hurt?'Зализує рани біля вогню.':wolfSated()?'Ситий, дрімає біля вогнища.':'Голодний: дивиться на тебе й тихо скиглить.'} ${k<2?(wolfSated()?'Поки ситий — росте.':'Голодний не росте.'):''}</p>
   ${w.name?'':`<div class="act"><input data-wname maxlength="16" autocomplete="off" aria-label="Ім’я вовченяти" placeholder="Ім’я">${btn('Назвати','wname','')}</div>`}
   <div class="act">${btn(`Нагодувати (${costTxt(c)})`,'wfeed','',{ok:()=>afford(c)&&Date.now()>=(s.wolf.sat||0)-5*60000})}</div>
-  <p class="hint">${k?'Іде з тобою в бій і кидається на найближчого ворога. Накази — коли навчиш.':'Підросте — ходитиме з тобою в бій.'}</p></div>`}
+  ${wTrainHTML()}<p class="hint">${k?'Іде з тобою в бій і кидається на найближчого ворога. Накази — коли навчиш.':'Підросте — ходитиме з тобою в бій.'}</p></div>`}
+/* ============ ДРЕСИРУВАННЯ ВОВКА (етап III, #34) ============
+   Коли вовк дорослий, відкривається дерево «Дресирування»: три гілки по три навички.
+   Очки дресирування — разом із годуванням (кожне третє годування), зі спільних перемог (кожна третя) і з занять:
+   коротка міні-гра «Команда» — подати знак, щойно вовк глянув на тебе.
+   До дресирування вовк б'ється сам і примітивно; навички дають накази й нові вміння. */
+const WTR=[
+  {id:'grab',br:'Бій',n:'Хапай!',c:1,d:'Наказ: вовк кидається на твою ціль і притискає її — вона пропускає наступний хід.'},
+  {id:'heel',br:'Бій',n:'До ноги!',c:2,need:'grab',d:'Наказ: вовк стає поруч і боронить тебе — частину ударів бере на себе.'},
+  {id:'flank',br:'Бій',n:'Обхід',c:2,need:'grab',d:'Вовк кусає вдвічі сильніше ворога, що стоїть поруч із тобою.'},
+  {id:'scent',br:'Нюх',n:'Слід',c:1,d:'Вовк чує прихованих ворогів поблизу — вони виходять із засідки.'},
+  {id:'stash',br:'Нюх',n:'Схованки',c:2,need:'scent',d:'У кожному місці, де ти ще не нюхав із вовком, він може відкопати щось цінне.'},
+  {id:'mla',br:'Нюх',n:'Чує Млу',c:2,need:'scent',d:'Вовк раніше чує туман: Мла збирається на маяк повільніше.'},
+  {id:'guard',br:'Сторож',n:'Сторож складу',c:1,d:'Під час облоги вовк першим кидається на злодіїв.'},
+  {id:'alpha',br:'Сторож',n:'Вожак',c:2,need:'guard',d:'Вовк міцнішає: більше здоров’я й сильніший укус.'},
+  {id:'brave',br:'Сторож',n:'Не відступає',c:3,need:'alpha',d:'Знесилений вовк не відповзає з бою одразу, а ще раз кусає наостанок.'}];
+const wHas=id=>!!((s.wolf||{}).tr||{})[id];
+const wTrainOn=()=>wolfSt()>=2;
+function wtpAdd(n,why){if(!s.wolf||!wTrainOn())return;const w=s.wolf;w.tpx=(w.tpx||0)+n;while(w.tpx>=1){w.tpx-=1;w.tp=(w.tp||0)+1;say(`${wcap(wolfNm())} краще розуміє тебе: +1 очко дресирування${why?' — '+why:''}.`,'lvl')}dirty=1}
+function wLearn(id){const N=WTR.find(x=>x.id===id),w=s.wolf;if(!N||!w||!wTrainOn()||wHas(id)||(N.need&&!wHas(N.need))||(w.tp||0)<N.c)return;w.tp-=N.c;w.tr=w.tr||{};w.tr[id]=1;
+  say(`${wcap(wolfNm())} навчився: ${N.n}`,'lvl');dirty=1}
+/* заняття: міні-гра «Команда» */
+function wLesson(){if(!wTrainOn()||onCd('wlesson'))return;setCd('wlesson',600);
+  if(typeof MGH!=='undefined'&&!MGH.wlesson)MGH.wlesson={help:()=>false,lab:['Подати знак звично',''],st:'per',bonus:0,dl:[{title:'Вовк тебе розуміє',body:'Вовк уже сам ловить твій погляд. Заняття можна проводити звично, не стежачи за кожним рухом.'},{title:'',body:''}]};
+  mgRun('wlesson',()=>mgWolf(),(res,skip)=>wLessonEnd(skip==='auto'?(res>0?2:0):res))}
+function wLessonEnd(res){if(res>=2)wtpAdd(1,'заняття');else say(`${wcap(wolfNm())} відволікся на чайок. Наступного разу вийде.`,'info')}
+function mgWolf(){let tries=0,good=0,sig=-1,wait=1+Math.random()*2;
+  mgStart({type:'wlesson',title:'Заняття: '+wcap(wolfNm()),hint:'Вовк бігає по траві. Щойно він гляне на тебе (з’явиться «!»), подай знак — натисни. Тричі.',
+    field:`<div class="mgwolf"><img src="${sprURL('wolfpet')}" alt=""><b class="ex">!</b></div>`,init(){MG.st.textContent='знаків: 0/3'},
+    tick(dt,tt){const f=MG.f;if(sig<0){wait-=dt;if(wait<=0){sig=tt;f.classList.add('sig')}}else if(tt-sig>.9){f.classList.remove('sig');sig=-1;wait=1+Math.random()*2;tries++;mgMsg('Не встиг — вовк відвернувся.','');MG.st.textContent=`знаків: ${tries}/3`;if(tries>=3)mgEnd(good)}
+      f.querySelector('img').style.transform=`translateX(${Math.sin(tt*1.3)*90}px) scaleX(${Math.cos(tt*1.3)>0?1:-1})`;if(tt>30)mgEnd(good)},
+    down(){if(sig<0){mgMsg('Зарано: він ще не дивиться.','');return}MG.f.classList.remove('sig');sig=-1;wait=1+Math.random()*2;tries++;good++;mgMsg('Вовк слухає!','ok');MG.st.textContent=`знаків: ${tries}/3`;if(tries>=3)mgEnd(good)},
+    end:res=>wLessonEnd(res)})}
+/* бій: накази й навички */
+function wolfAct(c,u){const foes=alive(c).filter(v=>!v.hid);if(!foes.length)return;
+  if(wHas('scent'))for(const v of c.u)if(v.hid&&v.hp>0&&dist(v.x,v.y,u.x,u.y)<=3){v.hid=0;cbLog(`${u.nm} гарчить на кущі — звідти виходить ${E(EN[v.t].n)}!`)}
+  if(c.wcmd==='heel'){if(dist(u.x,u.y,c.hx,c.hy)>1)moveTo(c,u,c.hx,c.hy);const nb=foes.filter(v=>dist(v.x,v.y,u.x,u.y)<=1);if(!nb.length)return;wolfBite(c,u,nb[0]);return}
+  let tg=c.wcmd==='grab'?c.u[c.sel]:null;if(!tg||tg.hp<=0||EN[tg.t].ally||EN[tg.t].obj)tg=null;
+  if(!tg&&wHas('guard')&&c.win==='raid')tg=foes.find(v=>v.role==='thief')||null;
+  if(!tg)tg=foes.reduce((a,b)=>dist(u.x,u.y,a.x,a.y)<=dist(u.x,u.y,b.x,b.y)?a:b);
+  if(dist(u.x,u.y,tg.x,tg.y)>1)moveTo(c,u,tg.x,tg.y);if(dist(u.x,u.y,tg.x,tg.y)>1)return;wolfBite(c,u,tg)}
+function wolfBite(c,u,tg){fxP({t:'bump',x0:u.x,y0:u.y,x1:tg.x,y1:tg.y},110);if(Math.random()<.2){cbLog(`${u.nm} хапає повітря.`);return}
+  let d=Math.max(1,Math.round(((u.p0||4)+s.h.lvl*0.5)*(wHas('flank')&&dist(tg.x,tg.y,c.hx,c.hy)<=1?2:1))-uArm(tg));tg.hp-=d;gripFree(c,tg);
+  fxP({t:'txt',x:tg.x,y:tg.y,v:'−'+d,k:'hit'},130);cbLog(`${u.nm} кусає: ${E(EN[tg.t].n)} −${d}.`);
+  if(c.wcmd==='grab'&&wHas('grab')&&tg.hp>0&&!EN[tg.t].boss){tg.pin=Math.max(tg.pin||0,1);cbLog(`${u.nm} притискає ${E(EN[tg.t].n.toLowerCase())} до землі!`)}
+  if(tg.hp<=0)kill(tg)}
+/* «До ноги!»: частину ударів по героєві бере вовк */
+function wolfBlock(c,u,dmg){if(c.wcmd!=='heel'||!wHas('heel'))return false;const w=c.u.find(v=>v.t==='wolfpet'&&v.hp>0&&dist(v.x,v.y,c.hx,c.hy)<=1);if(!w||Math.random()>.35)return false;
+  const d=Math.max(1,Math.round(dmg));w.hp-=d;fxP({t:'txt',x:w.x,y:w.y,v:'−'+d,k:'hurt'},130);cbLog(`${w.nm} кидається між тобою й ${E(EN[u.t].n.toLowerCase())}: −${d}.`);if(w.hp<=0)kill(w);return true}
+function wolfCmdHTML(c){const w=c.u.find(v=>v.t==='wolfpet'&&v.hp>0);if(!w||!(wHas('grab')||wHas('heel')))return'';
+  const L=[['','сам'],...(wHas('grab')?[['grab','хапай мою ціль']]:[]),...(wHas('heel')?[['heel','до ноги']]:[])];
+  return`<p class="m"><b>${w.nm}:</b> ${L.map(([k,n])=>btn(n,'c_wcmd',k,{cls:(c.wcmd||'')===k?'on':''})).join(' ')}</p>`}
+/* вовк на місці: схованки */
+function wolfSniff(l){if(!wHas('stash')||!s.wolf||wolfSt()<2)return;s.sniff=s.sniff||{};if(s.sniff[l])return;s.sniff[l]=1;if(Math.random()>.35)return;
+  if(typeof collFind==='function'&&Math.random()<.4&&collFind('pool'))return;const n=10+rnd(15);add('coin',n);say(`${wcap(wolfNm())} розгрібає землю під каменем — там стара схованка: ${R('coin',n)}.`,'find')}
+function wTrainHTML(){if(!wTrainOn())return'';const w=s.wolf;const br=['Бій','Нюх','Сторож'];
+  return`<div class="wtr"><p><b>Дресирування</b> · очок: ${w.tp||0}</p>${br.map(b=>`<p class="m"><b>${b}:</b></p><div class="rlist">${WTR.filter(x=>x.br===b).map(N=>{const has=wHas(N.id),lock=N.need&&!wHas(N.need);
+    return`<div class="row"><span><b>${N.n}</b>${has?' ✓':''}<br><span class="m">${lock?'спершу «'+WTR.find(x=>x.id===N.need).n+'»':N.d}</span></span>${has||lock?'':btn(`Навчити (${N.c})`,'wlearn',N.id,{ok:()=>(w.tp||0)>=N.c})}</div>`}).join('')}</div>`).join('')}
+    <div class="act">${btn('Заняття','wlesson','',{cd:'wlesson',cs:600})}</div><p class="hint">Очки дресирування — з годування, спільних перемог і занять.</p></div>`}
 /* ============ ЕТАП II, КРОК 4: КОМОРА ОСТАПА Й СХОВОК КОНТРАБАНДИСТІВ ============
    Ключ хранителя зі сховку етапу I відмикає старий човновий сарай Остапа на Причалі. Усередині — його записка:
    скарб контрабандистів під третьою палею в Затоці Мулу, але дорогу знає той, хто відгадав три загадки —
@@ -4244,6 +4308,8 @@ function act0(a,i){
   case 'rune':runeRead(i);break;
   case 'wfeed':wolfFeed();break;
   case 'wname':wolfName(i||null);break;
+  case 'wlearn':wLearn(i);break;
+  case 'wlesson':wLesson();break;
   case 'cache':cacheOpen();break;
   case 'scrapw':if(F.wreck&&!onCd('scrapw')){setCd('scrapw',2);s.c.scrap=(s.c.scrap||0)+1;add('scrap',1+(s.rs.metal?1:0)+(s.h.ft.thrifty?1:0)+(has('rake')?1:0))}break;
   case 'fishing':if(F.rod&&!onCd('fishing')){setCd('fishing',3);if(!s.bite&&s.c.fish>=6&&F.crab1&&Date.now()-(s.bigT||0)>240000&&Math.random()<1/6){s.bigT=Date.now();if(mgHabit('fish')||s.quickMG){s.c.fish++;mgRun('fish',mgFish,fishEnd);break}s.bite={until:Date.now()+30000};say('Вудка вигнулася дугою: щось велике тягне линву!','find');break}add('fish',wolf());s.c.fish++;
@@ -4291,7 +4357,7 @@ function act0(a,i){
   case 'eat':if(s.r.fish>=1&&s.h.hp<maxHP()){s.r.fish--;s.h.hp=Math.min(maxHP(),s.h.hp+8)}break;
   case 'eatp':if(s.r.prov>=1&&s.h.hp<maxHP()){s.r.prov--;s.h.hp=Math.min(maxHP(),s.h.hp+15)}break;
   case 'scan':{const nx=SCAN.find(x=>!s.disc[x]);if(nx&&s.tabs.map&&s.r.ember>=scanCost()){s.r.ember-=scanCost();s.scans++;reveal(nx);say(SCANMSG[nx]+' Місце з’явилося на мапі.','world')}break}
-  case 'go':{const[ok,why]=canGo(i);if(!ok){say(why);break}snap9('map');if(LOC[i].sea){const pv=seaCost(LOC[i]);s.r.prov-=pv;say(`Ти виходиш у море. Витрачено ${R('prov',pv)}.`,'world')}s.at=i;s.tab='map';popB='';if(!s.visited[i]){s.visited[i]=1;xp(5);if(LOC[i].first)LOC[i].first()}break}
+  case 'go':{const[ok,why]=canGo(i);if(!ok){say(why);break}snap9('map');if(LOC[i].sea){const pv=seaCost(LOC[i]);s.r.prov-=pv;say(`Ти виходиш у море. Витрачено ${R('prov',pv)}.`,'world')}s.at=i;s.tab='map';popB='';if(!s.visited[i]){s.visited[i]=1;xp(5);if(LOC[i].first)LOC[i].first()}wolfSniff(i);break}
   case 'leave':s.at='';popB='';break;
   case 'la':doLA(i);break;
   case 'qf':doLA(i,1);break;
@@ -4771,6 +4837,7 @@ const inR=u0&&inReach(u0),cv=u0?cover(c,c.hx,c.hy,u0.x,u0.y):0;
   <ul class="clog" aria-live="polite">${c.log.map(x=>`<li>${x}</li>`).join('')}</ul></div><div>
   <p class="m">Здоров’я ${Math.max(0,Math.ceil(s.h.hp))} / ${maxHP()}, броня ${armor()}</p><div class="bar"><i style="width:${Math.max(0,s.h.hp/maxHP()*100)}%"></i></div>
   <p class="ap" aria-label="Очки дії: ${c.ap}">${'●'.repeat(c.ap)}${'○'.repeat(Math.max(0,maxAP()-c.ap))}</p>
+  ${wolfCmdHTML(c)}
   ${c.enc==='rsiege'?'<p class="m"><b>Оборона Причалу.</b> Утопленики йдуть ламати хати, вовки кидаються на людей. Бережи рибалок і хати.</p>':''}
   ${c.win==='raid'?'<p class="m"><b>Оборона маяка.</b> Захисти склад і будівлі: злодії тягнуть припаси до води праворуч, руйнівники ламають будівлі. Поруч із пошкодженою будівлею її можна полагодити.</p>':''}
   ${c.u.some(u=>EN[u.t].ally&&u.hp>0)?`<p class="m">Союзники: ${c.u.filter(u=>EN[u.t].ally&&u.hp>0).map(u=>`${u.nm||EN[u.t].n.toLowerCase()} ${u.hp}/${u.max}`).join(', ')}.</p>`:''}
