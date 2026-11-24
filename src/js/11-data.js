@@ -659,11 +659,13 @@ const RANKS=[[-100,'Ворожі'],[-40,'Насторожені'],[0,'Нейтр
 const fac=f=>((s.fac||{})[f]===undefined?(f==='silent'?-50:0):s.fac[f]);
 const rankI=v=>{let r=0;RANKS.forEach((q,ix)=>{if(v>=q[0])r=ix});return r};
 function trust(f,n,why){s.fac=s.fac||{};const v0=fac(f),v=clamp(v0+n,-100,100);if(v===v0)return;s.fac[f]=v;const F=FAC[f];
-  if(F.known())say(`Довіра · ${F.n}: ${n>0?'+':''}${n}${why?' — '+why:''}.`,'world');
+  const one=typeof facKnownN==='function'&&facKnownN()<2;
+  if(F.known())say(one?`${why?why.charAt(0).toUpperCase()+why.slice(1)+'. ':''}${n>0?'Тобі тут довіряють трохи більше.':'Тобі тут довіряють менше.'}`:`Довіра · ${F.n}: ${n>0?'+':''}${n}${why?' — '+why:''}.`,'world');
   const r0=rankI(v0),r1=rankI(v);if(r1!==r0&&F.known()){const up=r1>r0;if(up)mom('fac',`${F.n}: ${RANKS[r1][1].toLowerCase()}`,'Громада довіряє тобі більше, ніж досі.',{t:'face',id:F.face});const gained=F.perks.filter(p=>p[0]>=0?(v0<p[0]&&v>=p[0]):(v0>p[0]&&v<=p[0]));
-    dlg({k:'world',title:`${F.n}: ${RANKS[r1][1].toLowerCase()}`,img:{t:'face',id:F.face},body:`<p>${up?'Тобі довіряють більше.':'Довіра до тебе впала.'} Тепер стосунки з громадою «${F.n}»: <b>${RANKS[r1][1].toLowerCase()}</b>.</p>`,gains:gained.map(p=>p[1])})}
+    if(f==='rot'&&typeof RW!=='undefined')dlg({k:'world',title:`${F.n}: ти ${RW[r1]}`,img:{t:'face',id:F.face},body:`<p>${up&&ROTUP[r1]?ROTUP[r1]:up?'Тобі довіряють більше.':'Довіра до тебе впала.'}</p>`,gains:gained.map(p=>p[1])});
+    else dlg({k:'world',title:`${F.n}: ${RANKS[r1][1].toLowerCase()}`,img:{t:'face',id:F.face},body:`<p>${up?'Тобі довіряють більше.':'Довіра до тебе впала.'} Тепер стосунки з громадою «${F.n}»: <b>${RANKS[r1][1].toLowerCase()}</b>.</p>`,gains:gained.map(p=>p[1])})}
   dirty=1}
-const TRUST={'village.hut.give':[['rot',15]],'village.pier.report':[['rot',10]],'village.shop.crate':[['rot',10]],'warehouse.cell.free':[['rot',10]],'village.hut.meds':[['rot',15]],
+const TRUST={'village.boy.riddle':[['rot',4]],'village.hut.give':[['rot',15]],'village.pier.report':[['rot',10]],'village.shop.crate':[['rot',10]],'warehouse.cell.free':[['rot',10]],'village.hut.meds':[['rot',15]],
   'warehouse.hall.bluff':[['silent',10]],'warehouse.hall.fight':[['rot',5],['silent',-5]],'fort.tower.talk':[['silent',30],['rot',-10]],'fort.tower.fight':[['rot',15],['silent',-30]],
   'mine.forge.free':[['rot',5],['silent',-5]],'cape.mill.wolves':[['cape',20]],'cape.hut.riddle':[['cape',10]],'cape.port.talkdown':[['cape',10],['silent',15]],'cape.port.cove':[['cape',15],['silent',-20]],
   'village.harbor.talk':[['sails',10]],'cape.mill.buy':[['cape',1]],'village.harbor.bye':[['sails',10]]};
@@ -677,7 +679,7 @@ const REQS={
 function reqTick(){const now=Date.now();s.req=s.req||{};s.reqT=s.reqT||{};
   for(const f in FAC){if(!FAC[f].known()||(f==='silent'&&fac(f)<-39))continue;if(s.req[f])continue;if((s.reqT[f]||0)>now)continue;
     const L=REQS[f].filter(q=>Object.keys(q.give).every(k=>s.seen[k]));if(!L.length)continue;s.req[f]=Object.assign({},L[rnd(L.length)]);dirty=1}}
-function folkTick(){if(!s.tabs.folk&&Object.keys(FAC).some(f=>FAC[f].known()))unlock('folk');if(s.tabs.folk)reqTick();
+function folkTick(){if(!s.tabs.folk&&Object.keys(FAC).filter(f=>FAC[f].known()).length>=2)unlock('folk');if(s.tabs.folk)reqTick();
   if(s.f.gnat&&!s.f.evRef&&!s.cb&&!(s.dlg||[]).length&&Math.random()<0.003){s.f.evRef=1;s.dlg=s.dlg||[];s.dlg.push({k:'story',title:'Стукіт у двері',img:{t:'face',id:'gnat'},body:'<p>Уночі хтось стукає в двері маяка. На порозі — поранений Мовчун у мокрому плащі. «Гнат упав, ватага розбіглася. Мене шукають у Причалі. Пусти до вогню, хранителю».</p>',btns:[['Прихистити','evr','keep'],['Прогнати','evr','away'],['Видати селищу','evr','give']]})}
   if(s.f.people&&(s.pop||0)>=2&&!s.f.evFam&&s.met.hanna&&!s.cb&&!(s.dlg||[]).length&&Math.random()<0.002){s.f.evFam=1;s.dlg=s.dlg||[];s.dlg.push({k:'story',title:'Голод у Причалі',img:{t:'face',id:'hanna'},body:`<p>${P('Ганна')} приходить сама, що буває рідко: ${Q('Сіті порожні третій тиждень. Діти пухнуть з голоду. Хранителю, якщо можеш — поділися провізією')}.</p><p class="m">Просять 30 провізії. У тебе ${Math.floor(s.r.prov)}.</p>`,btns:[['Віддати провізію','evf','give'],['Відмовити','evf','no']]})}}
 function rFolk(){return`<section><h2>Громади шхер</h2><p class="m">Прапор громади піднімається вище, коли тобі довіряють. Прохання пришпилені до дошки.</p><details class="ledg"${s.ldOpen?' open':''}><summary>Усе списком</summary>${rFolkList()}</details></section>`}

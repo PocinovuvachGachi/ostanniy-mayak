@@ -137,7 +137,7 @@ function spotNew(l,S){return(S.acts||[]).some(A=>{const id=`${l}.${S.id}.${A.id}
 function locScene(){const l=s.at,L=LOC[l],C=LKS[l]||{sp:{}},W=LCW,H=LCH,dark=(L.dark||C.dark)&&!s.eq.light;
   let h=`<span data-sk="bg" data-sig="bg" class="scbg">${VH(()=>pimg(pxURL('lc3:'+lcSig(l)+':'+GR,()=>lkBg3(l)),864,480,'scene',L.n))}</span>`;
   const sps=L.spots.filter(S=>!S.show||S.show()),lights=[];let auto=0;
-  for(const S of sps){let p=C.sp[S.id];if(!p){p=[60+((auto++)*97)%320,200]}const[x,y]=p,nw=spotNew(l,S);
+  for(const S of sps){let p=C.sp[S.id]||S.pos;if(!p){p=[60+((auto++)*97)%320,200]}const[x,y]=p,nw=spotNew(l,S);
     if(S.face){const sp=obURL('lcq3',lkPlq3);h+=ob('lc:'+S.id,'bpop','lc:'+S.id,sp,x-18,y-46,W,H,S.n,`<b>${S.n}</b>`,{cls:'lcp',pulse:nw,always:nw,inner:`<img class="lcface" src="${faceSceneURL(S.face)}" alt=""><span class="mpl">${S.n}</span>`})}
     else{const on=!(S.dark&&!s.eq.light);h+=ob('lc:'+S.id,'bpop','lc:'+S.id,obURL('lcp3:'+(on?1:0),()=>lkPin3(on)),x-5,y-22,W,H,S.n,`<b>${S.n}</b>`,{cls:'lcp',pulse:nw,always:nw,inner:`<span class="mpl">${S.n}</span>`});if(on)lights.push({x,y:y-11,r:26,c:WARM,a:.55})}}
   h+=ob('lc:leave','leave','',obURL('lcb3:'+(L.sea?1:0),()=>lkBoat3(!!L.sea)),6,LCH-24,W,H,'Повернутися до маяка','<b>Назад</b><br>Повернутися до маяка.',{cls:'lcp',inner:'<span class="mpl">До маяка</span>'});
