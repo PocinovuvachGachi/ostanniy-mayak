@@ -3072,7 +3072,9 @@ heart:{n:'Серце Мли',x:340,y:12,lx:'l',sea:2,d:'Острів, якого
 ]},
 };
 
-const TABS=[['home','Вогнище'],['shore','Берег'],['tower','Маяк'],['work','Майстерня'],['study','Кабінет'],['hero','Герой'],['map','Мапа'],['trade','Торг'],['folk','Громади'],['chron','Літопис'],['journal','Журнал']];
+const TABS=[['home','Вогнище'],['shore','Берег'],['tower','Маяк'],['hero','Герой'],['map','Мапа'],['trade','Торг'],['folk','Громади'],['chron','Літопис'],['journal','Журнал']];
+/* підвкладки «Маяка»: поверхи, що мають власну сцену */
+const SUBT={kitchen:'Кухня',work:'Майстерня',study:'Кабінет'};
 
 /* ============ STATE ============ */
 function fresh(){return{
@@ -3109,7 +3111,7 @@ function afford(c={},it={}){return Object.keys(c).every(k=>s.r[k]>=c[k])&&Object
 function pay(c={},it={}){paidN++;for(const k in c)s.r[k]-=c[k];for(const k in it)s.inv[k]-=it[k]}
 function costTxt(c={},it={}){const ik=Object.keys(it),kn=ik.filter(k=>KN(k));return[...Object.keys(c).map(k=>R(k,fmt(c[k]))),...kn.map(k=>(it[k]>1?it[k]+' × ':'')+IT[k].n.toLowerCase()),...(kn.length<ik.length?['ще дещо, чого ти поки не знаєш']:[])].join(', ')}
 function dlg(o){s.dlg=s.dlg||[];if(s.dlg.length>14)return;if(o.k==='fight')s.dlg.unshift(o);else{s.dlg.push(o);try{if(away())s.bellHold=1}catch(e){}}dirty=1}
-function unlock(t){if(!s.tabs[t]){s.tabs[t]=1;s.newTab[t]=1;dirty=1;if(t==='hero'){if(s.h.xpb){const b=s.h.xpb;s.h.xpb=0;xp(b)}}const nm=(TABS.find(x=>x[0]===t)||[0,''])[1];if(t!=='shore')dlg({k:'world',title:`Відкрито: ${nm}`,body:`<p>${TABV[t]||TABINFO[t]||''}${TABV[t]&&TABINFO[t]?ih(TABINFO[t]):''}</p>`,gains:[`Відкрилася вкладка «${nm}».`]})}}
+function unlock(t){if(!s.tabs[t]){s.tabs[t]=1;s.newTab[t]=1;if(SUBT[t]){s.newTab.tower=1;s.ttNew=typeof s.ttNew==='object'&&s.ttNew?s.ttNew:{};s.ttNew[t]=1}dirty=1;if(t==='hero'){if(s.h.xpb){const b=s.h.xpb;s.h.xpb=0;xp(b)}}const nm=(TABS.find(x=>x[0]===t)||[0,SUBT[t]||''])[1];if(t!=='shore')dlg({k:'world',title:`Відкрито: ${nm}`,body:`<p>${TABV[t]||TABINFO[t]||''}${TABV[t]&&TABINFO[t]?ih(TABINFO[t]):''}</p>`,gains:[SUBT[t]?`«${nm}» — у вкладці «Маяк».`:`Відкрилася вкладка «${nm}».`]})}}
 function page(n){if(!s.pages.includes(n)){s.pages.push(n);if(n===1)s.met.ostap=1;dlg({k:'story',title:n==='m'?'Записка Остапа без номера':`Записка Остапа, аркуш ${n}`,body:`<div class="note">${PG[n].replace(/ — О\.$/,'')}<span class="sig">— О.</span></div>`,gains:['Записку збережено в журналі.']});unlock('journal');dirty=1}}
 function book(id){if(!s.books.includes(id)){s.books.push(id);dirty=1}}
 function odd(id,pre){if(s.odd[id])return;s.odd[id]=1;s.oddNew=(s.oddNew||0)+1;xp(20);say((pre?pre+' ':'')+`Дивина: ${I(OD[id].n)}. +20 досвіду.`,'find');const ik=ODI[id];dlg({k:'find',title:`Дивина: ${OD[id].n}`,img:{t:'icon',id:ik},body:`<p>${pre?pre+' ':''}${OD[id].d}</p>`,gains:['+20 досвіду',`Знайдено дивин: ${Object.keys(s.odd).length}`]})}
@@ -4044,7 +4046,7 @@ const DISH=[
 for(const D of DISH){const T=IT[D.id];IT[D.id+'_t']=Object.assign({},T,{n:'Смачна '+T.n.charAt(0).toLowerCase()+T.n.slice(1),v:Math.round(T.v*1.5),warm:T.warm?T.warm*2:0,full:T.full?T.full+1:0,tasty:1,
   d:`Смачна! Лікує ${Math.round(T.v*1.5)} здоров’я.${T.warm?` Тепло — ${T.warm*2} хвилин.`:''}${T.full?` Ситість — ${T.full+1} ${T.full+1<5?'бої':'боїв'}.`:''}`});ICO[D.id+'_t']=ICO[D.id];ILD[D.id]=T.d;ILD[D.id+'_t']=IT[D.id+'_t'].d}
 const rcpKnown=id=>!!(s.rcp||{})[id];
-function kitTick(){if(typeof MGH!=='undefined'&&!MGH.cook)MGH.cook=MGH_COOK;if(!s.f.tracks)return;if(!s.tabs.kitchen){s.tabs.kitchen=1;s.ttNew=1;if(s.tabs.tower)s.newTab.tower=1;dlg({k:'world',title:'Відкрилося: Кухня',body:'<p>У нижній залі, біля вогнища, Зиновій поставив казан і стіл. Кухня — у вкладці «Маяк», поруч із розрізом маяка.</p>'})}s.rcp=s.rcp||{};
+function kitTick(){if(typeof MGH!=='undefined'&&!MGH.cook)MGH.cook=MGH_COOK;if(!s.f.tracks)return;if(!s.tabs.kitchen){s.tabs.kitchen=1;s.ttNew=typeof s.ttNew==='object'&&s.ttNew?s.ttNew:{};s.ttNew.kitchen=1;if(s.tabs.tower)s.newTab.tower=1;dlg({k:'world',title:'Відкрилося: Кухня',body:'<p>У нижній залі, біля вогнища, Зиновій поставив казан і стіл. Кухня — у вкладці «Маяк», поруч із розрізом маяка.</p>'})}s.rcp=s.rcp||{};
   for(const D of DISH)if(!s.rcp[D.id]&&D.learn()){s.rcp[D.id]=1;if(Object.keys(s.rcp).length>2)dlg({k:'find',title:'Новий рецепт',img:{t:'icon',id:D.id},body:`<p><b>${IT[D.id].n}.</b> ${D.who} показує, як: ${D.how.charAt(0).toLowerCase()+D.how.slice(1)}</p>`,gains:['Рецепт на кухні']})}}
 const dishOk=D=>rcpKnown(D.id)&&afford(D.c);
 function cookDone(id,q){const D=DISH.find(x=>x.id===id),n=q>=2?2:1,it=q>=3?id+'_t':id;giveI(it,n);s.c.cook=(s.c.cook||0)+1;
@@ -4106,9 +4108,12 @@ function kitPopHTML(id){const head=(t)=>`<div class="bpop wide" role="dialog" ar
   if(id==='kt:zin')return head('Зиновій')+`<p class="m">${Q(['Казан не любить поспіху. Тріску — коли стихає, не раніше.','Голодний хранитель — поганий хранитель.','Ганна знає трави, Оксана — сіль. Питай людей, хранителю.','Смачне лікує краще. Це не я вигадав — це всі коки знають.'][Math.floor(Date.now()/60000)%4])}</p></div>`;
   return''}
 function rKitchen(){return`<section><h2>Кухня</h2><p class="m">Казан, стіл і книга рецептів — натискай на них у кухні. Біля казана страви виходять кращими.</p></section>`}
-/* підвкладки «Маяка»: розріз і кухня */
-function ttBar(){if(!s.tabs.kitchen)return'';const L=[['cut','Маяк','ember'],['kitchen','Кухня','soup']];if(s.tt!=='kitchen')s.tt='cut';
-  return`<div class="sub2" role="tablist">${L.map(x=>btn(`${pimg(icoURL(x[2]),18,18)}${x[1]}${x[0]==='kitchen'&&s.ttNew?'<span class="dot"></span>':''}`,'tt',x[0],{cls:s.tt===x[0]?'on':''})).join('')}</div>`}
+/* підвкладки «Маяка»: розріз, кухня, майстерня, кабінет */
+const ttCur=()=>{const t=s.tt||'cut';return t==='cut'||s.tabs[t]?t:'cut'};
+function ttGo(i){s.tt=i;delete s.newTab[i];if(s.ttNew&&typeof s.ttNew==='object')delete s.ttNew[i];snap9(i==='cut'?'tower':i)}
+function ttBar(){const L=[['cut','Маяк','ember'],['kitchen','Кухня','soup'],['work','Майстерня','rake'],['study','Кабінет','lore']].filter(x=>x[0]==='cut'||s.tabs[x[0]]);if(L.length<2)return'';
+  const nw=typeof s.ttNew==='object'&&s.ttNew?s.ttNew:{},cur=ttCur();
+  return`<div class="sub2" role="tablist">${L.map(x=>btn(`${pimg(icoURL(x[2]),18,18)}${x[1]}${nw[x[0]]?'<span class="dot"></span>':''}`,'tt',x[0],{cls:cur===x[0]?'on':''})).join('')}</div>`}
 /* ============ ACTIONS ============ */
 function act0(a,i){
   if(a.indexOf('c_')===0){cAct(a,i);return}
@@ -4132,7 +4137,7 @@ function act0(a,i){
   if(s.cb)return;
   const F=s.f;
   switch(a){
-  case 'tab':popB='';if(s.tabs[i]){zoomPrep(i);s.tab=i;delete s.newTab[i];snap9(i)}break;
+  case 'tab':popB='';if(SUBT[i]){if(s.tabs[i]){zoomPrep(i);s.tab='tower';ttGo(i)}break}if(s.tabs[i]){zoomPrep(i);s.tab=i;delete s.newTab[i];snap9(i)}break;
   case 'chok':s.chSeen=s.chs.length;break;
   case 'jt':s.jt=i;break;
   case 'look':if(!F.looked&&s.tot.ember>=10){F.looked=1;unlock('shore');say('Ти в нижній залі маяка. Сходи вгору тонуть у темряві, крізь щілину дверей чути море. Жарині потрібне паливо. Відкрито: Берег.','story')}break;
@@ -4188,7 +4193,7 @@ function act0(a,i){
   case 'eatfull':eatFull();break;
   case 'cook':cook(i);break;
   case 'cookp':cook(i,'plain');break;
-  case 'tt':s.tt=i;if(i==='kitchen')s.ttNew=0;popB='';break;
+  case 'tt':popB='';if(i==='cut'||s.tabs[i]){zoomPrep(i);ttGo(i)}break;
   case 'eat':if(s.r.fish>=1&&s.h.hp<maxHP()){s.r.fish--;s.h.hp=Math.min(maxHP(),s.h.hp+8)}break;
   case 'eatp':if(s.r.prov>=1&&s.h.hp<maxHP()){s.r.prov--;s.h.hp=Math.min(maxHP(),s.h.hp+15)}break;
   case 'scan':{const nx=SCAN.find(x=>!s.disc[x]);if(nx&&s.tabs.map&&s.r.ember>=scanCost()){s.r.ember-=scanCost();s.scans++;reveal(nx);say(SCANMSG[nx]+' Місце з’явилося на мапі.','world')}break}
@@ -4723,7 +4728,7 @@ const inR=u0&&inReach(u0),cv=u0?cover(c,c.hx,c.hy,u0.x,u0.y):0;
   h=h.replace('<ul class="foes">',BAR+'<ul class="foes">');
   h+=`</div></div></section>`;
   return h}
-const TR={chron:rChron,folk:rFolk,talents:rTalents,home:rHome,shore:rShore,tower:()=>ttBar()+(s.tt==='kitchen'&&s.tabs.kitchen?rKitchen():rTower()),work:rWork,study:rStudy,hero:rHero,map:rMap,trade:rTrade,journal:rJournal};
+const TR={chron:rChron,folk:rFolk,talents:rTalents,home:rHome,shore:rShore,tower:()=>ttBar()+({work:rWork,kitchen:rKitchen,study:rStudy}[ttCur()]||rTower)(),work:rWork,study:rStudy,hero:rHero,map:rMap,trade:rTrade,journal:rJournal};
 function render(){B={};bn=0;
   const tl=TABS.filter(t=>s.tabs[t[0]]);
   const dOpen=(s.dlg||[]).length>0&&!s.bellHold;if(!tabSeen)tabSeen=new Set(tl.map(t=>t[0]));
@@ -4734,13 +4739,13 @@ function render(){B={};bn=0;
   if(s.cb)h=rCombat();
   else{
     h+='<div style="height:10px"></div>';
-    if(!s.tabs[s.tab])s.tab='home';
+    if(SUBT[s.tab]){s.tt=s.tab;s.tab='tower'}if(!s.tabs[s.tab])s.tab='home';
     h+=TR[s.tab]();
-    if(s.tab==='map')markSeen('map',s.at?'a:'+s.at+'.':'L:');else if(s.tab!=='hero')markSeen(s.tab);if(s.newTab[s.tab])delete s.newTab[s.tab]}
+    if(s.tab==='map')markSeen('map',s.at?'a:'+s.at+'.':'L:');else if(s.tab==='tower'&&ttCur()!=='cut')markSeen(ttCur());else if(s.tab!=='hero')markSeen(s.tab);if(s.newTab[s.tab])delete s.newTab[s.tab]}
   try{if(!texInit){texInit=1;const rs=document.documentElement.style;for(const k of['stone','sand','plank','board','paper','slate','ruled','roll']){const u=pxURL('tx:'+k,()=>texBuf(k));if(u)rs.setProperty('--tx-'+k,`url(${u})`)}}
     if(!texInit2){texInit2=1;const rs=document.documentElement.style;for(const k of['wood','drift','stone','paper','slate']){const u=pxURL('fr:'+k,()=>frameBuf(k));if(u)rs.setProperty('--fr-'+k,`url(${u})`)}}
     const th=s.cb?'th-home':['home','tower','work','kitchen','study','hero','folk','trade','chron','journal'].includes(s.tab)||s.tab==='map'?'th-home':s.tab==='shore'?'th-shore':'';document.body.classList.toggle('th-home',th==='th-home');document.body.classList.toggle('th-shore',th==='th-shore')}catch(e){}
-  hideTip();const mn=$('main');const vw0=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:s.tab==='tower'?s.tt||'':''),same0=vw0===lastView&&!s.cb,xs=same0?xSnap(mn):null,as0=same0?aSnap(mn):null;let tlx=null;try{const q=same0&&mn.querySelector('.chr-tl');if(q)tlx=q.scrollLeft>=q.scrollWidth-q.clientWidth-4?-1:q.scrollLeft}catch(e){}patchStage(s.cb?'':s.tab==='home'?homeScene():s.tab==='shore'?shoreScene():s.tab==='tower'?(s.tt==='kitchen'&&s.tabs.kitchen?kitchenScene():towerScene()):s.tab==='work'?workScene():s.tab==='study'?studyScene():s.tab==='map'?(s.at?locScene():mapScene()):s.tab==='hero'?heroScene():s.tab==='folk'?folkScene():s.tab==='trade'?tradeScene():'');zoomRun();mn.innerHTML=h;if(tlx!==null){try{const q=mn.querySelector('.chr-tl');if(q)q.scrollLeft=tlx<0?q.scrollWidth:tlx}catch(e){}}glossify(mn);rDlg();if(xs)xFade(mn,xs,1);if(as0)aMark(mn,as0);
+  hideTip();const mn=$('main');const vw0=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:s.tab==='tower'?s.tt||'':''),same0=vw0===lastView&&!s.cb,xs=same0?xSnap(mn):null,as0=same0?aSnap(mn):null;let tlx=null;try{const q=same0&&mn.querySelector('.chr-tl');if(q)tlx=q.scrollLeft>=q.scrollWidth-q.clientWidth-4?-1:q.scrollLeft}catch(e){}patchStage(s.cb?'':s.tab==='home'?homeScene():s.tab==='shore'?shoreScene():s.tab==='tower'?({work:workScene,kitchen:kitchenScene,study:studyScene}[ttCur()]||towerScene)():s.tab==='work'?workScene():s.tab==='study'?studyScene():s.tab==='map'?(s.at?locScene():mapScene()):s.tab==='hero'?heroScene():s.tab==='folk'?folkScene():s.tab==='trade'?tradeScene():'');zoomRun();mn.innerHTML=h;if(tlx!==null){try{const q=mn.querySelector('.chr-tl');if(q)q.scrollLeft=tlx<0?q.scrollWidth:tlx}catch(e){}}glossify(mn);rDlg();if(xs)xFade(mn,xs,1);if(as0)aMark(mn,as0);
   const view=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:s.tab==='tower'?s.tt||'':'');const prevView=lastView;if(view!==lastView&&mn.classList&&!RM()){for(const e of[mn,$('stage')]){if(!e||!e.classList)continue;e.classList.remove('tin');void e.offsetWidth;e.classList.add('tin')}}lastView=view;
   placePop();
   if(hlT){const tg=hlT;hlT=null;try{const el=document.getElementById(tg);if(el){el.scrollIntoView({block:'center',behavior:RM()?'auto':'smooth'});el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash')}}catch(e){}}

@@ -16,7 +16,7 @@ function A(a,i,cost){acts++;act(a,i);wait(cost==null?P.act:cost)}
 const mins=()=>(T/60).toFixed(1);
 /* що вважаємо відкриттям */
 function mark(k,label,major){if(seen.has(k))return;seen.add(k);ev.push({t:T,k,label,major})}
-function scan(){for(const t in s.tabs)mark('tab:'+t,'вкладка «'+(TABS.find(x=>x[0]===t)||[t,t])[1]+'»',1);
+function scan(){for(const t in s.tabs)mark('tab:'+t,'вкладка «'+(TABS.find(x=>x[0]===t)||[t,SUBT[t]||t])[1]+'»',1);
   for(const f in s.floors)if(s.floors[f])mark('floor:'+f,'поверх: '+((FL.find(x=>x.id===f)||{}).n||f),1);
   if(s.b.hearth)mark('b:hearth','вогнище',1);for(const b of BD)if(s.b[b.id])mark('b:'+b.id,'будівля: '+b.n,1);
   for(const l in s.disc)mark('disc:'+l,'місце на мапі: '+LOC[l].n,1);for(const l in s.visited||{})mark('vis:'+l,'побував: '+LOC[l].n,0);

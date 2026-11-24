@@ -40,7 +40,7 @@ const DISH=[
 for(const D of DISH){const T=IT[D.id];IT[D.id+'_t']=Object.assign({},T,{n:'Смачна '+T.n.charAt(0).toLowerCase()+T.n.slice(1),v:Math.round(T.v*1.5),warm:T.warm?T.warm*2:0,full:T.full?T.full+1:0,tasty:1,
   d:`Смачна! Лікує ${Math.round(T.v*1.5)} здоров’я.${T.warm?` Тепло — ${T.warm*2} хвилин.`:''}${T.full?` Ситість — ${T.full+1} ${T.full+1<5?'бої':'боїв'}.`:''}`});ICO[D.id+'_t']=ICO[D.id];ILD[D.id]=T.d;ILD[D.id+'_t']=IT[D.id+'_t'].d}
 const rcpKnown=id=>!!(s.rcp||{})[id];
-function kitTick(){if(typeof MGH!=='undefined'&&!MGH.cook)MGH.cook=MGH_COOK;if(!s.f.tracks)return;if(!s.tabs.kitchen){s.tabs.kitchen=1;s.ttNew=1;if(s.tabs.tower)s.newTab.tower=1;dlg({k:'world',title:'Відкрилося: Кухня',body:'<p>У нижній залі, біля вогнища, Зиновій поставив казан і стіл. Кухня — у вкладці «Маяк», поруч із розрізом маяка.</p>'})}s.rcp=s.rcp||{};
+function kitTick(){if(typeof MGH!=='undefined'&&!MGH.cook)MGH.cook=MGH_COOK;if(!s.f.tracks)return;if(!s.tabs.kitchen){s.tabs.kitchen=1;s.ttNew=typeof s.ttNew==='object'&&s.ttNew?s.ttNew:{};s.ttNew.kitchen=1;if(s.tabs.tower)s.newTab.tower=1;dlg({k:'world',title:'Відкрилося: Кухня',body:'<p>У нижній залі, біля вогнища, Зиновій поставив казан і стіл. Кухня — у вкладці «Маяк», поруч із розрізом маяка.</p>'})}s.rcp=s.rcp||{};
   for(const D of DISH)if(!s.rcp[D.id]&&D.learn()){s.rcp[D.id]=1;if(Object.keys(s.rcp).length>2)dlg({k:'find',title:'Новий рецепт',img:{t:'icon',id:D.id},body:`<p><b>${IT[D.id].n}.</b> ${D.who} показує, як: ${D.how.charAt(0).toLowerCase()+D.how.slice(1)}</p>`,gains:['Рецепт на кухні']})}}
 const dishOk=D=>rcpKnown(D.id)&&afford(D.c);
 function cookDone(id,q){const D=DISH.find(x=>x.id===id),n=q>=2?2:1,it=q>=3?id+'_t':id;giveI(it,n);s.c.cook=(s.c.cook||0)+1;
@@ -102,6 +102,9 @@ function kitPopHTML(id){const head=(t)=>`<div class="bpop wide" role="dialog" ar
   if(id==='kt:zin')return head('Зиновій')+`<p class="m">${Q(['Казан не любить поспіху. Тріску — коли стихає, не раніше.','Голодний хранитель — поганий хранитель.','Ганна знає трави, Оксана — сіль. Питай людей, хранителю.','Смачне лікує краще. Це не я вигадав — це всі коки знають.'][Math.floor(Date.now()/60000)%4])}</p></div>`;
   return''}
 function rKitchen(){return`<section><h2>Кухня</h2><p class="m">Казан, стіл і книга рецептів — натискай на них у кухні. Біля казана страви виходять кращими.</p></section>`}
-/* підвкладки «Маяка»: розріз і кухня */
-function ttBar(){if(!s.tabs.kitchen)return'';const L=[['cut','Маяк','ember'],['kitchen','Кухня','soup']];if(s.tt!=='kitchen')s.tt='cut';
-  return`<div class="sub2" role="tablist">${L.map(x=>btn(`${pimg(icoURL(x[2]),18,18)}${x[1]}${x[0]==='kitchen'&&s.ttNew?'<span class="dot"></span>':''}`,'tt',x[0],{cls:s.tt===x[0]?'on':''})).join('')}</div>`}
+/* підвкладки «Маяка»: розріз, кухня, майстерня, кабінет */
+const ttCur=()=>{const t=s.tt||'cut';return t==='cut'||s.tabs[t]?t:'cut'};
+function ttGo(i){s.tt=i;delete s.newTab[i];if(s.ttNew&&typeof s.ttNew==='object')delete s.ttNew[i];snap9(i==='cut'?'tower':i)}
+function ttBar(){const L=[['cut','Маяк','ember'],['kitchen','Кухня','soup'],['work','Майстерня','rake'],['study','Кабінет','lore']].filter(x=>x[0]==='cut'||s.tabs[x[0]]);if(L.length<2)return'';
+  const nw=typeof s.ttNew==='object'&&s.ttNew?s.ttNew:{},cur=ttCur();
+  return`<div class="sub2" role="tablist">${L.map(x=>btn(`${pimg(icoURL(x[2]),18,18)}${x[1]}${nw[x[0]]?'<span class="dot"></span>':''}`,'tt',x[0],{cls:cur===x[0]?'on':''})).join('')}</div>`}
