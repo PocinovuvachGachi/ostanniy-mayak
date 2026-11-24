@@ -828,6 +828,29 @@ button.hs.zone:hover,button.hs.zone:focus-visible{background:transparent;border:
 .bpop .rlist .row>span:first-child{min-width:0;flex:1 1 160px}
 .bpop .rlist img{vertical-align:middle;image-rendering:pixelated}
 .bpop .dials{display:flex;gap:8px;margin:6px 0}
+/* Дерево знань */
+.bpop.wide{width:min(640px,calc(100vw - 16px))}
+.tree2{position:relative;line-height:0;margin:6px 0;border:2px solid #6b4a2c}
+.tree2 img{width:100%;height:auto;image-rendering:pixelated;display:block}
+.tn2{position:absolute;width:5%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;border:0;background:transparent;padding:0;cursor:pointer}
+.tn2:hover,.tn2:focus-visible{box-shadow:0 0 0 2px #f0b84a}
+.tn2.on{box-shadow:0 0 0 2px #fff0b0,0 0 10px 2px rgba(240,184,74,.7)}
+.tn2.avail{animation:tnp 1.6s ease-in-out infinite}
+@keyframes tnp{50%{box-shadow:0 0 0 3px rgba(229,102,42,.65)}}
+.tdet2{padding:4px 0}
+@media (prefers-reduced-motion:reduce){.tn2.avail{animation:none}}
+.tn2,.tn2:hover,.tn2:focus,.tn2:active{background:transparent!important;border:0!important;color:inherit;overflow:visible!important;min-width:0!important;min-height:0!important}
+.tn2 .tl{position:absolute;left:50%;top:115%;transform:translateX(-50%);white-space:nowrap;font:600 10px/1.1 var(--mono);color:#3a2718;background:rgba(214,203,169,.85);padding:1px 3px;pointer-events:none;line-height:1.2}
+.tn2.lock .tl{color:#6b5a44}
+.tn2.on .tl{background:#3a2718;color:#fff0b0}
+@media (max-width:560px){.tn2 .tl{display:none}.tn2.on .tl{display:block}}
+/* Мапа-пергамент */
+.scn.mp .scene{aspect-ratio:432/292}
+.scn .mpst{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:930;image-rendering:pixelated;opacity:calc(var(--mla) * .55);transition:opacity 4s}
+.ob.mpk .mpl{position:absolute;left:50%;top:100%;transform:translateX(-50%);white-space:nowrap;font:italic 600 12px/1.1 var(--serif);color:#3a2718;text-shadow:0 0 2px #d6cba9,0 0 3px #d6cba9;pointer-events:none}
+.ob.mpk.far .mpl{color:#6b5a44}
+.ob.mpk.new .mpl{color:#7a2e22}
+@media (max-width:560px){.ob.mpk .mpl{font-size:10px}}
 </style>
 </head>
 <body>
@@ -1216,7 +1239,7 @@ function gradeRGB(c,ph){const hex=PAL[c];let r=parseInt(hex.slice(1,3),16),g=par
   const T={n:{ds:.25,m:[7,12,22],a:.5,k:[.88,.95,1.08]},d:{ds:.12,m:[38,26,46],a:.3,k:[1.05,.93,.92]},y:{ds:.45,m:[108,114,120],a:.28,k:[.9,.91,.93]}}[ph];if(!T)return[r,g,b];
   const l=.3*r+.59*g+.11*b;r+=(l-r)*T.ds;g+=(l-g)*T.ds;b+=(l-b)*T.ds;r+=(T.m[0]-r)*T.a;g+=(T.m[1]-g)*T.a;b+=(T.m[2]-b)*T.a;const cl=v=>Math.max(0,Math.min(255,Math.round(v)));return[cl(r*T.k[0]),cl(g*T.k[1]),cl(b*T.k[2])]}
 function dayPh(){if(typeof s!=='undefined'&&s.dbgPh)return s.dbgPh;const d=new Date(),h=d.getHours()+d.getMinutes()/60;return h>=8&&h<18?'y':(h>=6&&h<8)||(h>=18&&h<20.5)?'d':'n'}
-function pxURL(key,make){const sk=SCK.has(key),ck=sk?key+'|'+GR:key;if(PXC[ck])return PXC[ck];const b=make();const sc=b.k===SK;if(sc&&!sk){SCK.add(key);if(PXC[key+'|'+GR])return PXC[key+'|'+GR]}const fk=sc?key+'|'+GR:key;let u='';
+function pxURL(key,make){const sk=SCK.has(key),ck=sk?key+'|'+GR:key;if(ck in PXC)return PXC[ck];if(typeof document==='undefined'||!document.createElement||!document.body||!document.body.appendChild)return PXC[ck]='';const b=make();const sc=b.k===SK&&!b.ng;if(sc&&!sk){SCK.add(key);if(PXC[key+'|'+GR])return PXC[key+'|'+GR]}const fk=sc?key+'|'+GR:key;let u='';
   try{const cv=document.createElement('canvas');if(cv&&cv.getContext){cv.width=b.W||b.w;cv.height=b.H||b.h;const g=cv.getContext('2d');const im=g.createImageData(cv.width,cv.height),cc={};
     for(let i=0;i<b.p.length;i++){const c=b.p[i];if(c==='.')continue;const rgb=cc[c]||(cc[c]=sc?gradeRGB(c,GR):gradeRGB(c,''));im.data[i*4]=rgb[0];im.data[i*4+1]=rgb[1];im.data[i*4+2]=rgb[2];im.data[i*4+3]=255}
     g.putImageData(im,0,0);u=cv.toDataURL('image/png')}}catch(e){u=''}
@@ -3370,6 +3393,7 @@ function act0(a,i){
   case 'beam':{const n=+i;if(!s.f.won||n===(s.beam||0)||n<0||n>5||s.r.oil<3)break;s.r.oil-=3;s.beam=n;break}
   case 'flot':{const f=s.flot;if(!f)break;s.flot=null;s.flotT=Date.now()+(150+Math.random()*120)*1000;flotTake(f.k,+i>1?+i:1);break}
   case 'flotmg':{const f=s.flot;if(!f)break;if(f.k==='bottle'){act('flot');break}mgRun('flot',()=>{f.until=Math.max(f.until,Date.now()+90000);mgFlot(f.k)},r=>act('flot',r>1?String(r):'1'));break}
+  case 'rsel':{if(RS.find(r=>r.id===i))s.rsSel=i;break}
   case 'bigfish':{if(!s.bite)break;s.bite=null;s.c.fish++;mgRun('fish',mgFish,fishEnd);break}
   case 'smith':{if(!s.b.forge||onCd('smith')||s.hot)break;const c={scrap:4,ember:2};if(!afford(c)){say(`Для кування треба ${costTxt(c)}.`,'world');break}pay(c);setCd('smith',4);const n=smithN();add('iron',n);
     if(Date.now()-(s.hotT||0)>180000&&Math.random()<1/7){s.hotT=Date.now();if(mgHabit('forge')||s.quickMG)mgRun('forge',null,smithEnd);else{s.hot={until:Date.now()+30000};say('Заготовка розжарилася як слід: ще удар у слушну мить, і метал віддасть більше.','find')}}break}
@@ -3698,14 +3722,14 @@ function mapSig(){return Object.keys(LOC).map(k=>(s.disc[k]?1:0)+(s.visited[k]?1
 const mapMake=()=>mapBuf({disc:s.disc,visited:s.visited,boat:s.f.boat,won:s.f.won,gnat:s.f.gnat});
 function mapURL(){return pxURL('mp:'+mapSig(),mapMake)}
 const LSC=id=>id==='mine'?'mine':id==='bay'?(lowTide()?'bayLow':'bayHigh'):id;
-function rMap(){if(s.at)return rLoc();const u=mapURL();
-  let h=`<section><h2>Шхери</h2>`;
+function rMap(){if(s.at)return rLoc();return`<section><h2>Шхери</h2><p class="m">Натискай на позначки, щоб вирушити. Нерозвідане ховається в млі. Біля маяка — далекогляд і сигнальне вогнище.</p><details class="ledg"${s.ldOpen?' open':''}><summary>Усе списком</summary>${rMapList()}</details></section>`}
+function rMapList(){const u=0;
+  let h=`<section>`;
   if(u){h+=`<div class="pmap">${pimgA('mp:'+mapSig(),mapMake,640,432,'','Мапа шхер',0,WATER2)}`;
     for(const k in LOC){if(!s.disc[k]||!MAPPT[k])continue;const[x,y]=MAPPT[k],[ok]=canGo(k);
       h+=`<button type="button" class="mk${s.visited[k]?' vis':''}${ok?'':' far'}" style="left:${x/160*100}%;top:${y/108*100}%" data-a="go" data-i="${k}" aria-label="${LOC[k].n}"><span>${LOC[k].n}</span></button>`}
     h+=`<span class="mk home" style="left:${MAPPT.tower[0]/160*100}%;top:${MAPPT.tower[1]/108*100}%"><span>Маяк</span></span></div>`}
-  else h+=`<div class="mapbox">${mapSvg()}</div>`;
-  h+=`<p class="m" style="margin-top:8px">Натисни на позначку, щоб вирушити. Нерозвідане ховається в млі.</p>`;
+
   if(SCAN.some(x=>!s.disc[x]))h+=`<div class="row"><div><b>Далекогляд</b><br><span class="m">Пробити млу й знайти нове місце.</span></div>${btn(`Оглянути обрій (${R('ember',fmt(scanCost()))})`,'scan','',{ok:()=>s.r.ember>=scanCost()})}</div>`;
   h+=`<div class="row"><div><b>Сигнальне вогнище</b><br><span class="m">Великий вогонь на оглядовій кличе кораблі, що минають шхери. Вони скидають вантаж. Раз на дві хвилини.</span></div>${btn(`Запалити (${R('ember',fmt(sigCost()))})`,'signal','',{ok:()=>s.r.ember>=sigCost(),cd:'signal',cs:120})}</div>`;
   h+=`</section><section><h2>Відомі місця</h2>${s.f.boat?`<p class="m">Вихід у море коштує ${R('prov',SEAFOOD)}${s.f.schooner?`, похід на шхуні — ${R('prov',SEAFOOD*2)}`:''}.</p>`:''}<div class="lcards">`;
@@ -3897,8 +3921,8 @@ function render(){B={};bn=0;
     if(s.tab==='map')markSeen('map',s.at?'a:'+s.at+'.':'L:');else if(s.tab!=='hero')markSeen(s.tab);if(s.newTab[s.tab])delete s.newTab[s.tab]}
   try{if(!texInit){texInit=1;const rs=document.documentElement.style;for(const k of['stone','sand','plank','board','paper','slate']){const u=pxURL('tx:'+k,()=>texBuf(k));if(u)rs.setProperty('--tx-'+k,`url(${u})`)}}
     if(!texInit2){texInit2=1;const rs=document.documentElement.style;for(const k of['wood','drift','stone','paper','slate']){const u=pxURL('fr:'+k,()=>frameBuf(k));if(u)rs.setProperty('--fr-'+k,`url(${u})`)}}
-    const th=s.cb?'':['home','tower','work','study'].includes(s.tab)?'th-home':s.tab==='shore'?'th-shore':'';document.body.classList.toggle('th-home',th==='th-home');document.body.classList.toggle('th-shore',th==='th-shore')}catch(e){}
-  hideTip();const mn=$('main');const vw0=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:''),same0=vw0===lastView&&!s.cb,xs=same0?xSnap(mn):null,as0=same0?aSnap(mn):null;let tlx=null;try{const q=same0&&mn.querySelector('.chr-tl');if(q)tlx=q.scrollLeft>=q.scrollWidth-q.clientWidth-4?-1:q.scrollLeft}catch(e){}patchStage(s.cb?'':s.tab==='home'?homeScene():s.tab==='shore'?shoreScene():s.tab==='tower'?towerScene():s.tab==='work'?workScene():s.tab==='study'?studyScene():'');zoomRun();mn.innerHTML=h;if(tlx!==null){try{const q=mn.querySelector('.chr-tl');if(q)q.scrollLeft=tlx<0?q.scrollWidth:tlx}catch(e){}}glossify(mn);rDlg();if(xs)xFade(mn,xs,1);if(as0)aMark(mn,as0);
+    const th=s.cb?'':['home','tower','work','study'].includes(s.tab)||(s.tab==='map'&&!s.at)?'th-home':s.tab==='shore'?'th-shore':'';document.body.classList.toggle('th-home',th==='th-home');document.body.classList.toggle('th-shore',th==='th-shore')}catch(e){}
+  hideTip();const mn=$('main');const vw0=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:''),same0=vw0===lastView&&!s.cb,xs=same0?xSnap(mn):null,as0=same0?aSnap(mn):null;let tlx=null;try{const q=same0&&mn.querySelector('.chr-tl');if(q)tlx=q.scrollLeft>=q.scrollWidth-q.clientWidth-4?-1:q.scrollLeft}catch(e){}patchStage(s.cb?'':s.tab==='home'?homeScene():s.tab==='shore'?shoreScene():s.tab==='tower'?towerScene():s.tab==='work'?workScene():s.tab==='study'?studyScene():s.tab==='map'&&!s.at?mapScene():'');zoomRun();mn.innerHTML=h;if(tlx!==null){try{const q=mn.querySelector('.chr-tl');if(q)q.scrollLeft=tlx<0?q.scrollWidth:tlx}catch(e){}}glossify(mn);rDlg();if(xs)xFade(mn,xs,1);if(as0)aMark(mn,as0);
   const view=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:'');const prevView=lastView;if(view!==lastView&&mn.classList&&!RM()){for(const e of[mn,$('stage')]){if(!e||!e.classList)continue;e.classList.remove('tin');void e.offsetWidth;e.classList.add('tin')}}lastView=view;
   placePop();
   if(hlT){const tg=hlT;hlT=null;try{const el=document.getElementById(tg);if(el){el.scrollIntoView({block:'center',behavior:RM()?'auto':'smooth'});el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash')}}catch(e){}}
@@ -4044,6 +4068,7 @@ function smk(x,y,W,H){return[0,1,2].map(n=>`<i class="smk" style="left:${(x/W*10
 function bpopHTML(){const id=popB;if(!id)return'';let nm,lvl,d,btns='',extra='';
   if(id.startsWith('fl:'))return flPopHTML(id.slice(3));
   if(id.startsWith('wk:')||id.startsWith('st:'))return roomPopHTML(id);
+  if(id.startsWith('mp:'))return mapPopHTML(id);
   if(id==='hearth'){const n=s.b.hearth||0,c=bCost(HEARTH);nm='Вогнище';lvl=n;d=`+${2*n} жару/с, спалює ${fr(0.12*n)} плавника/с.`;
     btns=`${btn('Підкинути дров','bld','hearth',{ok:()=>afford(c),cls:'main'})}<span class="ccs">${costChips(c)}</span>${btn(s.on.hearth===false?'Розпалити':'Пригасити','tog','hearth',{cls:'toggle'})}`}
   else{const b=BD.find(x=>x.id===id);if(!b)return'';const n=s.b[id]||0,w=(s.wk||{})[id]||0,mx=b.max&&n>=b.max,dm=(s.dmgB||{})[id];nm=b.n;lvl=n;d=typeof b.d==='function'?b.d():b.d||'';
@@ -4056,7 +4081,7 @@ function bpopHTML(){const id=popB;if(!id)return'';let nm,lvl,d,btns='',extra='';
   return html}
 function placePop(){try{let L=document.getElementById('popl');if(!popB||s.cb){if(L&&L.innerHTML){L.innerHTML='';L.dataset.sig=''}return}
   if(!L){L=document.createElement('div');L.id='popl';document.body.appendChild(L)}
-  const el=document.querySelector(popB==='hearth'?'.scn [data-k="hearth"]':/^(fl|wk|st):/.test(popB)?`#stage .scn [data-k="${popB}"]`:`.scn [data-k="b:${popB}"],.scn [data-k^="b:${popB}"]`);if(!el){L.innerHTML='';return}
+  const el=document.querySelector(popB==='hearth'?'.scn [data-k="hearth"]':/^(fl|wk|st|mp):/.test(popB)?`#stage .scn [data-k="${popB}"]`:`.scn [data-k="b:${popB}"],.scn [data-k^="b:${popB}"]`);if(!el){L.innerHTML='';return}
   const html=bpopHTML(),sg=hsh(html);if(L.dataset.sig!==sg){L.innerHTML=html;L.dataset.sig=sg}const c=L.firstElementChild;if(!c)return;
   if(innerWidth<=560||(window.matchMedia&&matchMedia('(max-width:560px)').matches)){c.classList.add('sheet');return}c.classList.remove('sheet');
   const r=el.getBoundingClientRect(),cw=c.offsetWidth,ch=c.offsetHeight;let x=r.left+r.width/2+scrollX-cw/2;x=Math.max(8,Math.min(x,document.documentElement.clientWidth-cw-8));
@@ -4137,6 +4162,58 @@ function flPopHTML(id){const nm=FLN[id],built=floorBuilt(id),U2=FLU[id]||[],tr=f
     else if(nx)ex+=`<p class="hand bph2">${tr?'Згодом тут можна буде зробити ще краще.':'Згодом цей поверх можна буде облаштувати краще.'}</p>`;else ex+=`<p class="hand bph2">Поверх облаштовано повністю.</p>`;
     const tb=FLTAB[id];if(tb&&s.tabs[tb]&&tb!=='home')bt+=btn('Зайти','tab',tb,{cls:'toggle'})}
   return`<div class="bpop" role="dialog" aria-label="${nm}"><div class="bph"><b>${nm}</b><span class="bplv">${built?(tr?'облаштовано: '+tr:'відновлено'):'у руїнах'}</span><button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div><p class="m">${FLD[id]}</p>${ex}<div class="act">${bt}</div></div>`}
+/* ============ МАПА: морська карта на пергаменті ============
+   Стара піксельна мапа (mapBuf, 160×108) — маска суші й деталей; поверх неї малюємо карту чорнилом:
+   пергамент, штрихування моря, обведені береги, обмілини, румби, троянда вітрів. Нерозвідане ховається під вугільним туманом.
+   Місця — позначки-об'єкти з картками; маяк — далекогляд і сигнальне вогнище. */
+const MPW=432,MPH=292,MPK=MPW/160;
+const MPSEA='234';
+function mapChart3(st){const o=PK;PK=1;const base=mapBuf(st);PK=o;const BW=base.w,BH=base.h,gp=(x,y)=>base.p[Math.max(0,Math.min(BH-1,y))*BW+Math.max(0,Math.min(BW-1,x))];
+  const land=new Float32Array(BW*BH);for(let i=0;i<BW*BH;i++){const c=base.p[i];land[i]=MPSEA.includes(c)?0:1}
+  const lv=(u,v)=>{const x0=Math.floor(u-.5),y0=Math.floor(v-.5),fx=u-.5-x0,fy=v-.5-y0,g=(x,y)=>land[Math.max(0,Math.min(BH-1,y))*BW+Math.max(0,Math.min(BW-1,x))];return g(x0,y0)*(1-fx)*(1-fy)+g(x0+1,y0)*fx*(1-fy)+g(x0,y0+1)*(1-fx)*fy+g(x0+1,y0+1)*fx*fy};
+  const pts=[MAPPT.tower,...Object.keys(st.disc).filter(k=>st.disc[k]&&MAPPT[k]).map(k=>MAPPT[k])].map(([x,y])=>[x*MPK,y*MPK]);
+  const b=pbuf(MPW,MPH),kk=b.k||1;b.ng=1;
+  hiRect(b,0,0,MPW,MPH,(i,j,x,y)=>{const u=x/MPK,v=y/MPK,l=lv(u,v)+(hh2(i,j)-.5)*.08,c=gp(Math.floor(u),Math.floor(v));let col;
+    if(l>.5){col=c==='l'||c==='k'||c==='o'?(hh2(i>>1,j>>1)<.05?'Z':hh2(i,j)<.12?'M':'N'):c==='b'?(hh2(i,j)<.1?'M':'N'):(c==='9'||c==='0'||c==='1'||c==='a')?((i+j)%3===0?'d':'L'):(c==='c'||c==='d'||c==='e'||c==='f')?'V':c==='j'?'j':'M';if(l<.56)col='d'}
+    else if(l>.36){col=(i+j)%4===0?'b':'O'}else{col=(j%7===0&&hh2(i>>3,j)>.4)?'N':hh2(i,j)<.05?'N':'O'}
+    /* туман над нерозвіданим */
+    let dm=1e9;for(const[px,py]of pts)dm=Math.min(dm,Math.hypot(x-px,(y-py)*1.15));const f=Math.max(0,Math.min(1,(dm-44)/34));
+    if(f>.08){const h1=(i+j)%6===0,h2=(i-j+600)%6===0;if((f>.15&&h1)||(f>.5&&h2)||(f>.85&&(i+j)%3===0))col=f>.75?'p':'b';else if(f>.9)col=col==='O'?'N':col==='N'?'M':col}
+    /* потемніння до країв аркуша */
+    const e=Math.min(x,MPW-x,y,MPH-y);if(e<14&&(1-e/14)*.7>bay(i,j))col=col==='O'?'b':col;return col});
+  /* румби від троянди вітрів */
+  const cx=58,cy=238;for(let a=0;a<16;a++){const an=a/16*6.283,dx=Math.cos(an),dy=Math.sin(an);for(let t=26;t<520;t+=1.4){const x=cx+dx*t,y=cy+dy*t;if(x<8||y<8||x>MPW-8||y>MPH-8)break;if(Math.floor(t/3)%2)continue;const hx=Math.round(x*kk),hy=Math.round(y*kk),c=b.p[hy*b.W+hx];if(c==='O')phx(b,hx,hy,'N')}}
+  /* троянда вітрів */
+  for(let a=0;a<8;a++){const an=a/8*6.283-Math.PI/2,L=a%2?11:20,w=a%2?2.5:4,px=-Math.sin(an),py=Math.cos(an);polyFill(b,[[cx+Math.cos(an)*L,cy+Math.sin(an)*L],[cx+px*w,cy+py*w],[cx-px*w,cy-py*w]],(x,y)=>pset(b,x,y,a===0?'j':((EXX+EXY)%2?'d':'V')))}
+  polyFill(b,Array.from({length:12},(_,a)=>[cx+Math.cos(a/12*6.283)*4,cy+Math.sin(a/12*6.283)*4]),(x,y)=>pset(b,x,y,'O'));pset(b,cx,cy,'d');
+  /* рамка аркуша */
+  for(const[d,c]of[[4,'d'],[7,'V']]){prect(b,d,d,MPW-2*d,1,c);prect(b,d,MPH-d-1,MPW-2*d,1,c);prect(b,d,d,1,MPH-2*d,c);prect(b,MPW-d-1,d,1,MPH-2*d,c)}
+  return b}
+function mlaStain3(){const b=pbuf(MPW,MPH);b.ng=1;hiRect(b,0,0,MPW,MPH,(i,j,x,y)=>{const e=Math.min(x,MPW-x,y*1.2,(MPH-y)*1.2)/90,n=hh2(i>>2,j>>2)*.35;if(e<1&&(1-e)*(.75+n)>bay(i,j))return e<.35?'0':'o'});return b}
+function mpMark3(kind){const b=pbuf(12,14);b.ng=1;if(kind==='new'){polyFill(b,Array.from({length:10},(_,a)=>[6+Math.cos(a/10*6.283)*5,6+Math.sin(a/10*6.283)*5]),(x,y)=>pset(b,x,y,(EXX+EXY)%5?'j':'i'));prect(b,5,3,2,6,'t');prect(b,3,5,6,2,'t');pset(b,4,3,'w')}
+  else if(kind==='vis'){pline(b,2,2,10,10,'d');pline(b,10,2,2,10,'d');prect(b,5,10,2,4,'V')}
+  else{pline(b,2,2,10,10,'a');pline(b,10,2,2,10,'a')}return b}
+function mpTower3(won){const b=pbuf(16,26);b.ng=1;prect(b,6,8,5,16,'d');prect(b,7,8,3,16,'O');for(let y=10;y<24;y+=4)prect(b,6,y,5,1,'j');prect(b,5,6,7,2,'d');prect(b,6,3,5,3,won?'g':'d');prect(b,5,2,7,1,'d');prect(b,3,24,11,2,'d');
+  if(won){for(const[dx,dy]of[[-4,-1],[-3,-3],[4,-1],[3,-3]])pline(b,8+dx*.5,4,8+dx*2,4+dy,'g')}return b}
+function mpSpy3(){const b=pbuf(34,14);b.ng=1;pline(b,2,11,30,3,'e');pline(b,2,12,30,4,'g');pline(b,3,12,31,4,'e');prect(b,26,1,6,6,'g');prect(b,1,10,5,4,'d');return b}
+for(const f of['mapChart3','mlaStain3','mpMark3','mpTower3','mpSpy3'])globalThis[f]=HI(globalThis[f]);
+
+const mpSig=()=>Object.keys(LOC).map(k=>(s.disc[k]?1:0)).join('')+(s.f.won?1:0)+(s.f.gnat?1:0);
+function mapScene(){const W=MPW,H=MPH,st={disc:s.disc,visited:s.visited,boat:s.f.boat,won:s.f.won,gnat:s.f.gnat};
+  let h=`<span data-sk="bg" data-sig="bg" class="scbg">${VH(()=>pimg(pxURL('mc5:'+mpSig(),()=>mapChart3(st)),864,584,'scene','Мапа шхер'))}</span>`;
+  h+=`<img class="mpst" data-sk="mpst" data-sig="1" src="${pxURL('mps3',mlaStain3)}" alt="" aria-hidden="true">`;
+  for(const k in LOC){if(!s.disc[k]||!MAPPT[k])continue;const[x,y]=MAPPT[k],[ok]=canGo(k),kind=!s.visited[k]?'new':ok?'vis':'far',L=LOC[k];
+    h+=ob('mp:'+k,'bpop','mp:'+k,obURL('mpm3:'+kind,()=>mpMark3(kind)),x*MPK-6,y*MPK-7,W,H,L.n,`<b>${L.n}</b><br>${s.visited[k]?'Відвідано.':'Ще не бував.'}`,{pulse:kind==='new'?1:0,always:kind==='new'?1:0,cls:'mpk '+kind,inner:`<span class="mpl">${L.n}</span>`})}
+  const[tx,ty]=MAPPT.tower;h+=ob('mp:tower','bpop','mp:tower',obURL('mpt3:'+(s.f.won?1:0),()=>mpTower3(!!s.f.won)),tx*MPK-8,ty*MPK-24,W,H,'Маяк','<b>Маяк</b><br>Далекогляд і сигнальне вогнище.',{cls:'mpk',inner:'<span class="mpl">Маяк</span>'});
+  if(s.floors.gallery&&SCAN.some(x=>!s.disc[x]))h+=ob('mp:spy','bpop','mp:tower',obURL('mpspy3',mpSpy3),376,262,W,H,'Далекогляд','<b>Далекогляд</b><br>Пробити млу й знайти нове місце.',{});
+  return`<div class="scn mp" data-scn="mp" style="${scnD()}">${h}${fxCanvas('mp',W,H)}</div>`}
+function mapPopHTML(id){const card=(nm,lv,body,act)=>`<div class="bpop" role="dialog" aria-label="${nm}"><div class="bph"><b>${nm}</b>${lv?`<span class="bplv">${lv}</span>`:''}<button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div>${body}${act?`<div class="act">${act}</div>`:''}</div>`;
+  const k=id.slice(3);
+  if(k==='tower'){let b='',a='';if(s.floors.gallery&&SCAN.some(x=>!s.disc[x]))b+=`<div class="row"><span><b>Далекогляд</b><br><span class="m">Пробити млу й знайти нове місце.</span></span>${btn('Оглянути обрій','scan','',{ok:()=>s.r.ember>=scanCost()})}<span class="ccs">${R('ember',fmt(scanCost()))}</span></div>`;
+    if(s.floors.gallery)b+=`<div class="row"><span><b>Сигнальне вогнище</b><br><span class="m">Великий вогонь кличе кораблі, що минають шхери. Вони скидають вантаж. Раз на дві хвилини.</span></span>${btn('Запалити','signal','',{ok:()=>s.r.ember>=sigCost(),cd:'signal',cs:120})}<span class="ccs">${R('ember',fmt(sigCost()))}</span></div>`;
+    if(!b)b='<p class="hand">Звідси видно лише найближчі береги. Вище, з оглядової, було б видно далі.</p>';return card('Маяк','',`<div class="rlist">${b}</div>`,a)}
+  const L=LOC[k];if(!L||!s.disc[k])return'';const[ok,why]=canGo(k);const tags=[s.visited[k]?'відвідано':'нове',L.sea===2?'шхуна':L.sea?'море':'',L.dark?'темрява':''].filter(Boolean).map(t=>`<span class="chip">${t}</span>`).join(' ');
+  return card(L.n,'',`${pimg(sceneURL(LSC(k)),264,110,'thumb')}<div class="chips">${tags}</div><p class="m">${why||L.d}</p>${L.sea&&s.f.boat?`<p class="m">Вихід у море: ${R('prov',seaCost(L))}.</p>`:''}`,btn('Вирушити','go',k,{ok:()=>canGo(k)[0],cls:'main'}))}
 /* ============ КІМНАТИ МАЯКА ЗБЛИЗЬКА: майстерня й кабінет ============
    Кожна кімната — жива сцена: речі на сцені відкривають картки з тими самими діями, що й списки нижче.
    Списки лишаються в «Усе списком» для тих, кому так зручніше. */
@@ -4175,7 +4252,7 @@ function wkScrap3(n){const b=pbuf(34,30);prect(b,0,8,34,22,'X');prect(b,0,8,34,2
 function wkGrind3(){const b=pbuf(32,40);prect(b,2,20,3,20,'W');prect(b,27,20,3,20,'W');prect(b,0,32,32,3,'X');polyFill(b,Array.from({length:16},(_,a)=>[16+Math.cos(a/16*6.283)*12,18+Math.sin(a/16*6.283)*12]),(x,y)=>pset(b,x,y,(x+y)%3?'F':'G'));prect(b,15,17,3,3,'D');return b}
 /* --- кабінет --- */
 function studyRoom3(st){const b=pbuf(RMW,RMH),tr=st.tr||0;roomBase(b,{win:[198,36,40,56],st:-1});
-  if(tr>=2){prect(b,256,44,84,56,'b');prect(b,258,46,80,52,'O');pnoise(b,258,46,80,52,'N',0.15,31);pline(b,264,82,290,62,'L');pline(b,290,62,312,74,'L');pline(b,312,74,332,56,'L');for(const[x,y]of[[274,74],[300,66],[326,60]])prect(b,x,y,2,2,'j');polyFill(b,[[262,96],[270,88],[282,96]],(x,y)=>pset(b,x,y,'S'))}
+  if(tr>=2){prect(b,128,16,64,38,'b');prect(b,130,18,60,34,'O');pnoise(b,130,18,60,34,'N',0.15,31);pline(b,134,44,150,32,'L');pline(b,150,32,166,38,'L');pline(b,166,38,184,26,'L');for(const[x,y]of[[142,38],[160,35],[178,30]])prect(b,x,y,2,2,'j');polyFill(b,[[134,50],[140,44],[148,50]],(x,y)=>pset(b,x,y,'S'))}
   if(tr>=3){prect(b,150,150,34,50,'t');prect(b,154,154,26,26,'v');prect(b,150,178,34,10,'v');prect(b,150,178,34,1,'w');prect(b,148,170,6,30,'t');prect(b,180,170,6,30,'t');prect(b,152,198,4,2,'V');prect(b,178,198,4,2,'V')}
   if(tr>=3){hiRect(b,150,206,170,26,(i,j,x,y)=>{const e=Math.min(x-150,320-x,y-206,232-y);return e<2?'g':e<4?'t':hh2(i>>2,j>>2)<.3?'v':'i'})}
   return b}
@@ -4186,7 +4263,7 @@ function stDesk3(lit){const b=pbuf(110,62);prect(b,0,18,110,6,'X');prect(b,0,18,
   prect(b,92,6,4,12,'u');prect(b,90,16,8,2,'G');if(lit){pset(b,93,4,'I');pset(b,94,4,'I');pset(b,93,3,'J');pset(b,94,2,'J')}else pset(b,93,5,'x');return b}
 function stChest3(open){const b=pbuf(52,34);if(open){polyFill(b,[[2,10],[8,0],[50,0],[44,10]],(x,y)=>pset(b,x,y,'W'))}else{prect(b,0,6,52,8,'X');prect(b,0,6,52,2,'Y')}
   prect(b,0,14,52,20,'W');prect(b,0,14,52,1,'Y');for(const x of[6,44])prect(b,x,6,3,28,'z');prect(b,22,16,8,8,'G');for(let i=0;i<3;i++)prect(b,23+i*2,18,1,4,'H');if(open)prect(b,4,12,44,3,'x');return b}
-function stNotes3(n){const b=pbuf(60,70);for(let i=0;i<Math.min(9,n);i++){const x=2+(i%3)*19,y=2+Math.floor(i/3)*22;prect(b,x,y+2,16,18,'O');prect(b,x,y+2,16,1,'u');for(let l=0;l<4;l++)prect(b,x+2,y+6+l*3,11-(l%2)*3,1,'a');pset(b,x+7,y+1,'j')}return b}
+function stNotes3(n){const b=pbuf(60,70);/* записки нижче, під картою */for(let i=0;i<Math.min(9,n);i++){const x=2+(i%3)*19,y=2+Math.floor(i/3)*22;prect(b,x,y+2,16,18,'O');prect(b,x,y+2,16,1,'u');for(let l=0;l<4;l++)prect(b,x+2,y+6+l*3,11-(l%2)*3,1,'a');pset(b,x+7,y+1,'j')}return b}
 for(const f of['workRoom3','wkBench3','wkNote3','wkForge3','wkScrap3','wkGrind3','studyRoom3','stShelf3','stDesk3','stChest3','stNotes3'])globalThis[f]=HI(globalThis[f]);
 
 /* --- сцени --- */
@@ -4205,8 +4282,9 @@ function studyScene(){const tr=floorBuilt('study')?fuL('study'):0,st={tr,ph:GR},
   h+=ob('st:shelf','bpop','st:shelf',obURL('sts3:'+Math.min(8,nb)+tr,()=>stShelf3(nb,tr)),22,40,W,H,'Книжкові полиці',`<b>Полиці</b><br>Книг: ${nb}. Кожна пришвидшує дослідження.`,{});
   h+=ob('st:desk','bpop','st:desk',obURL('std3',()=>stDesk3(1)),246,140,W,H,'Стіл з рукописом',`<b>Стіл Остапа</b><br>${av?'Є що дослідити.':'Записи, чорнило, свічка.'}`,{pulse:av?1:0,always:av?1:0});
   h+=ob('st:chest','bpop','st:chest',obURL('stc3:'+(s.f.chest?1:0),()=>stChest3(!!s.f.chest)),364,166,W,H,'Скриня Остапа','<b>Скриня</b><br>Кодовий замок із трьома коліщатами.',{});
-  if(s.pages.length)h+=ob('st:notes',s.tabs.journal?'tab':'','journal',obURL('stn3:'+Math.min(9,s.pages.length),()=>stNotes3(s.pages.length)),130,48,W,H,'Записки на стіні',`<b>Записки Остапа</b><br>${s.pages.length} сторінок.${s.tabs.journal?' Натисни, щоб перечитати в журналі.':''}`,{});
-  const L={fire:[{x:339,y:146,r:95,e:.8,c:WARM,n:4}],win:[{x:216,y:150,r:240,e:.6,c:WARM,a:.3},{x:216,y:70,r:40,c:PALE,a:GR==='y'?.5:.15}]};
+  h+=ob('st:tree','bpop','st:tree',obURL('stt3:'+rsSig(),()=>treeBuf(.62)),254,22,W,H,'Дерево знань',`<b>Дерево знань</b><br>Тут видно, що вже досліджено і куди ростемо далі.`,{pulse:av?1:0,always:av?1:0});
+  if(s.pages.length)h+=ob('st:notes',s.tabs.journal?'tab':'','journal',obURL('stn3:'+Math.min(9,s.pages.length),()=>stNotes3(s.pages.length)),130,60,W,H,'Записки на стіні',`<b>Записки Остапа</b><br>${s.pages.length} сторінок.${s.tabs.journal?' Натисни, щоб перечитати в журналі.':''}`,{});
+  const L={fire:[{x:339,y:146,r:95,e:.8,c:WARM,n:4}],win:[{x:216,y:150,r:240,e:.6,c:WARM,a:.3},{x:216,y:70,r:40,c:PALE,a:GR==='y'?.35:.1}]};
   return`<div class="scn rm st" data-scn="st" style="${scnD()}">${h}${fxCanvas('st',W,H)}${lightLayers(W,H,L)}</div>`}
 
 /* --- картки --- */
@@ -4218,8 +4296,9 @@ function roomPopHTML(id){const card=(nm,lv,body,act)=>`<div class="bpop" role="d
       return`<div class="row"><span>${pimg(wIco(w),20,20)} ${wN(w)}${!nx?' <span class="done">краще не буде</span>':why?` <span class="m">— ${why}</span>`:''}</span>${nx&&!why?`${btn('Удосконалити','wup',w,{ok:()=>afford(cst)})}<span class="ccs">${costChips(cst)}</span>`:''}</div>`}).join('')}</div>`,'')}
   if(id==='wk:scrap'){const dl=Object.keys(s.inv).filter(canDism);return card('Ящик для розбору','',`<p class="m">Те, що в руках, не чіпаємо.</p><div class="rlist">${dl.map(d=>{const v=dismVal(d);return v?`<div class="row"><span>${pimg(icoURL(d),20,20)} ${IT[d].n}${s.inv[d]>1?' × '+s.inv[d]:''} <span class="m">→ ${costTxt(v)}</span></span>${btn('Розібрати','dism',d)}</div>`:''}).join('')}</div>`,'')}
   if(id==='st:shelf'){return card('Полиці',`книг: ${s.books.length}`,`<p class="m">Кожна знайдена книга пришвидшує дослідження. Розум теж допомагає.</p>${s.books.length?`<p class="m">${s.books.map(b=>I('«'+BK[b]+'»')).join(', ')}.</p>`:'<p class="hand">Порожньо. Книги ще чекають у шхерах.</p>'}`,'')}
+  if(id==='st:tree')return treePopHTML();
   if(id==='st:desk'){const av=RS.filter(r=>!s.rs[r.id]&&rsReady(r)&&!(r.kill&&!s.seenE[r.kill]));
-    return card('Стіл Остапа','',`<p>Знання: ${V(()=>fmt(s.r.lore))}, ${V(()=>'+'+fr(rates().lore))} за секунду.</p><div class="rlist">${av.length?av.map(r=>{const c=rsCost(r);return`<div class="row"><span><b>${U(r.n)}</b><br><span class="m">${U(r.d)}</span></span>${btn('Дослідити','rs',r.id,{ok:()=>s.r.lore>=c})}<span class="ccs">${R('lore',c)}</span></div>`}).join(''):'<p class="hand">Нових тем поки немає. Вони з’являться після нових досліджень і зустрічей.</p>'}</div>`,'')}
+    return card('Стіл Остапа','',`<p>Знання: ${V(()=>fmt(s.r.lore))}, ${V(()=>'+'+fr(rates().lore))} за секунду.</p>${btn('Дерево знань','bpop','st:tree',{cls:'toggle'})}<div class="rlist">${av.length?av.map(r=>{const c=rsCost(r);return`<div class="row"><span><b>${U(r.n)}</b><br><span class="m">${U(r.d)}</span></span>${btn('Дослідити','rs',r.id,{ok:()=>s.r.lore>=c})}<span class="ccs">${R('lore',c)}</span></div>`}).join(''):'<p class="hand">Нових тем поки немає. Вони з’являться після нових досліджень і зустрічей.</p>'}</div>`,'')}
   if(id==='st:chest'){if(s.f.chest)return card('Скриня Остапа','відчинена','<p class="m">Скриня відчинена й порожня.</p>','');
     return card('Скриня Остапа','',`<p class="m">Кодовий замок із трьома коліщатами. На кришці вирізано:</p><p class="quote">Хто вертається з моря, спершу бачить камінь, тоді небо, а засинає в гавані.</p><div class="dials">${s.chest.map((v,k)=>`<div class="dial"><b>${CHEST[v]}</b>${btn('Крутити','dial',k)}</div>`).join('')}</div>${s.chestFail>=3?`<p class="hint">Ти згадуєш, як Остап казав: «Уночі першим із туману виринає не вогонь, а чорна тінь берега».</p>`:''}`,btn('Відкрити скриню','chestTry','',{cls:'main'}))}
   return''}
@@ -4228,6 +4307,30 @@ let zoomFrom=null;
 function zoomPrep(tab){try{const id={work:'work',study:'study'}[tab];if(!id||s.tab!=='tower')return;const el=document.querySelector(`.scn [data-k="fl:${id}"]`),st=document.getElementById('stage');if(!el||!st)return;zoomFrom={r:el.getBoundingClientRect(),s:st.getBoundingClientRect()}}catch(e){zoomFrom=null}}
 function zoomRun(){if(!zoomFrom)return;const z=zoomFrom;zoomFrom=null;try{const st=document.getElementById('stage');if(!st||!st.animate||RM())return;const n=st.getBoundingClientRect(),sc=Math.max(.15,z.r.width/n.width),dx=z.r.left-n.left,dy=z.r.top-n.top;
   st.style.transformOrigin='0 0';st.animate([{transform:`translate(${dx}px,${dy}px) scale(${sc})`,opacity:.35},{transform:'none',opacity:1}],{duration:480,easing:'cubic-bezier(.2,.7,.3,1)'})}catch(e){}}
+
+/* ===== Дерево знань: дослідження ростуть гілками; видно лише те, що вже відкрилося ===== */
+const RSXY={currents:[40,98],herbal:[62,106],render:[82,94],metal:[112,98],order:[24,72],signals:[50,66],tactics:[98,70],mech:[124,64],optics:[116,40],beacon:[100,14],
+  a_crab:[150,106],a_gull:[168,88],a_eel:[188,98],a_silent:[146,68],weak:[154,42],a_fog:[184,60],a_shark:[176,34],a_stone:[194,78]};
+const RS_T=[100,100],RS_B=[140,96];
+function rsVis(r){return!!s.rs[r.id]||rsReady(r)||((r.r||[]).every(q=>s.rs[q])&&(!r.kill||!!s.seenE[r.kill]))}
+function rsSt(r){return s.rs[r.id]?'done':rsReady(r)&&!(r.kill&&!s.seenE[r.kill])?'avail':'lock'}
+function rsPos(r,i){return RSXY[r.id]||[20+(i*37)%160,110-r.t*24]}
+const rsSig=()=>RS.filter(rsVis).map(r=>r.id[0]+r.id.slice(-2)+rsSt(r)[0]).join('');
+function treeBuf(sc){const W=Math.round(200*sc),H=Math.round(130*sc),b=pbuf(W,H),P=([x,y])=>[x*sc,y*sc];
+  if(sc>=1)b.ng=1;prect(b,0,0,W,H,sc<1?'N':'O');pnoise(b,0,0,W,H,sc<1?'M':'N',0.14,41);pnoise(b,0,0,W,H,'b',0.05,42);prect(b,0,0,W,1,'b');prect(b,0,H-1,W,1,'b');prect(b,0,0,1,H,'b');prect(b,W-1,0,1,H,'b');
+  const vis=RS.filter(rsVis),anyK=vis.some(r=>r.kill),ink=(a,c,col)=>{const[x0,y0]=P(a),[x1,y1]=P(c);pline(b,x0,y0,x1,y1,col)};
+  /* стовбур і коріння */
+  const[tx,ty]=P(RS_T);prect(b,tx-2*sc,ty,4*sc,H-ty,'d');for(const dx of[-14,-6,6,14])pline(b,tx,H-3,tx+dx*sc,H-1,'d');if(anyK)ink([100,112],RS_B,'d');
+  vis.forEach((r,i)=>{const p=rsPos(r,i),par=(r.r&&r.r.length)?r.r.map(q=>RS.find(x=>x.id===q)):[null];for(const q of par){const a=q?rsPos(q,RS.indexOf(q)):r.kill?RS_B:RS_T;ink(a,p,s.rs[r.id]?'d':'a');if(s.rs[r.id]){const[x0,y0]=P(a),[x1,y1]=P(p);for(let k=1;k<4;k++){const u=k/4,lx=x0+(x1-x0)*u,ly=y0+(y1-y0)*u;pset(b,lx+1,ly-1,k%2?'k':'l');pset(b,lx-1,ly+1,'l')}}}});
+  vis.forEach((r,i)=>{const[x,y]=P(rsPos(r,i)),st=rsSt(r),R=Math.max(2,3*sc);polyFill(b,Array.from({length:10},(_,a)=>[x+Math.cos(a/10*6.283)*R,y+Math.sin(a/10*6.283)*R]),(px,py)=>{const d=Math.hypot(EXX/SK-x,EXY/SK-y)/R;pset(b,px,py,st==='done'?(d<.45?'h':d<.8?'g':'d'):st==='avail'?(d<.5?'O':d<.85?'j':'t'):(d<.7?'O':'a'))})});
+  return b}
+treeBuf=HI(treeBuf);
+function treePopHTML(){const vis=RS.filter(rsVis),sel=RS.find(r=>r.id===s.rsSel&&rsVis(r))||vis.find(r=>rsSt(r)==='avail')||vis[0];let nodes='';
+  vis.forEach(r=>{const[x,y]=rsPos(r,RS.indexOf(r)),st=rsSt(r);nodes+=`<button type="button" class="tn2 ${st}${sel&&sel.id===r.id?' on':''}" style="left:${x/2}%;top:${y/1.3}%" data-a="rsel" data-i="${r.id}" aria-label="${U(r.n)}"><span class="tl">${U(r.n)}</span></button>`});
+  let det='';if(sel){const st=rsSt(sel),c=rsCost(sel),why=[...(sel.r||[]).filter(q=>!s.rs[q]).map(q=>'спершу «'+U(RS.find(x=>x.id===q).n)+'»'),...(sel.kill&&!s.kills[sel.kill]?['перемогти: '+EN[sel.kill].n.toLowerCase()]:[])];
+    det=`<div class="tdet2"><b>${U(sel.n)}</b>${sel.kill?' <span class="abtag">вивчення</span>':''}<p class="m">${U(sel.d)}</p>${st==='done'?`<p class="hand">${sel.rep?U(sel.rep):'Досліджено.'}</p>`:st==='avail'?`<div class="act">${btn('Дослідити','rs',sel.id,{ok:()=>s.r.lore>=c,cls:'main'})}<span class="ccs">${R('lore',c)}</span></div>`:`<p class="m">Потрібно: ${why.join('; ')}.</p>`}</div>`}
+  return`<div class="bpop wide" role="dialog" aria-label="Дерево знань"><div class="bph"><b>Дерево знань</b><span class="bplv">знання: ${V(()=>fmt(s.r.lore))}</span><button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div>
+    <div class="tree2">${pimg(pxURL('rtree:1:'+rsSig(),()=>treeBuf(1)),600,390,'','Дерево знань')}${nodes}</div>${det}</div>`}
 /* ============ ЖИВИЙ СВІТ: частинки й анімації поверх сцени ============
    Один <canvas class="fx"> у сцені, малюємо в точній сітці (логічні координати × SK) через ImageData.
    Цикл ~30 кадрів/с; спить, коли сцени немає, вкладка схована або ввімкнено «менше руху». */
@@ -4250,7 +4353,7 @@ function fxReset(sc){FX.sc=sc;FX.ps=[];FX.walk=[];FX.crab=null;FX.ev={};FX.moth=
 function fxTick(ts){requestAnimationFrame(fxTick);if(typeof document==='undefined'||document.hidden)return;if(ts-FX.last<33)return;const dt=Math.min(.1,(ts-FX.last)/1000||.033);FX.last=ts;
   const cv=document.querySelector('#stage canvas.fx');if(!cv||RM()){if(FX.cv){FX.cv=null}return}
   if(cv!==FX.cv){FX.cv=cv;FX.g=cv.getContext('2d');FX.W=cv.width;FX.H=cv.height;FX.im=FX.g.createImageData(FX.W,FX.H);FX.u=new Uint32Array(FX.im.data.buffer);const sc=(cv.dataset.sig||'').slice(3);if(sc!==FX.sc)fxReset(sc)}
-  FX.t+=dt;FX.u.fill(0);try{if(FX.sc==='yd')fxYard(dt);else if(FX.sc==='sh')fxShore(dt);else if(FX.sc==='tw')fxTower(dt);else if(FX.sc==='wk'||FX.sc==='st')fxRoom(dt);fxParts(dt)}catch(e){}FX.g.putImageData(FX.im,0,0)}
+  FX.t+=dt;FX.u.fill(0);try{if(FX.sc==='yd')fxYard(dt);else if(FX.sc==='sh')fxShore(dt);else if(FX.sc==='tw')fxTower(dt);else if(FX.sc==='wk'||FX.sc==='st')fxRoom(dt);else if(FX.sc==='mp')fxMap(dt);fxParts(dt)}catch(e){}FX.g.putImageData(FX.im,0,0)}
 /* Частинки: іскри, пил, бризки */
 function fxParts(dt){const out=[];for(const p of FX.ps){p.life+=dt;if(p.life>p.max)continue;p.vy+=(p.gr||0)*dt;p.vx*=1-.8*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;const f=p.life/p.max;
   if(p.kind==='flash'){const R=14*(1-f*.4),a=.55*(1-f);for(let j=-R;j<=R;j++)for(let i=-R;i<=R;i++){const d=Math.hypot(i,j)/R;if(d<1&&(1-d)*a>bay((p.x+i)|0,(p.y+j)|0))fxP(p.x+i,p.y+j,fxCol(d<.35?'I':'J',.5))}out.push(p);continue}
@@ -4352,7 +4455,18 @@ function fxRoom(dt){const k=SK;FX.mote=FX.mote||[];if(FX.mote.length<55&&Math.ra
   FX.mote=FX.mote.filter(m=>(m.l+=dt)<m.m);for(const m of FX.mote){m.x+=m.vx*dt;m.y+=m.vy*dt;const lx=FX.sc==='wk'?120:339,ly=FX.sc==='wk'?44:146,near=Math.max(0,1-Math.hypot(m.x-lx,(m.y-ly)*1.3)/140);fxP(m.x*k,m.y*k,fxCol('h',Math.sin(m.l/m.m*Math.PI)*(.15+.55*near)))}
   if(FX.sc==='wk'&&s.b.forge&&Math.random()<dt*3)FX.ps.push({x:(231+fxR(-6,6))*k,y:181*k,vx:fxR(-8,8),vy:fxR(-30,-14),gr:-4,life:0,max:fxR(.5,1.2),kind:'spark'});
   if(FX.sc==='wk'&&floorBuilt('work')&&fuL('work')>=2&&Math.random()<dt*.5)fxBurst('wk',316,170,'spark',6);
-  if(FX.sc==='st'){const f=.5+.5*Math.sin(FX.t*7)*Math.sin(FX.t*3.1);fxP(339*k,141*k,fxCol('I',.4+.5*f));fxP(339*k+1,141*k-1,fxCol('J',.3*f))}}
+  if(FX.sc==='st'){const pu=.5+.5*Math.sin(FX.t*3);RS.forEach((r,i)=>{if(!rsVis(r)||rsSt(r)!=='avail')return;const[x,y]=rsPos(r,i),cx=(254+x*.62+2/SK)*k,cy=(22+y*.62+2/SK)*k;for(let a=0;a<12;a++){const an=a/12*6.283;fxP(cx+Math.cos(an)*(4+pu*2),cy+Math.sin(an)*(4+pu*2),fxCol('I',.35+.4*pu))}});
+    const f=.5+.5*Math.sin(FX.t*7)*Math.sin(FX.t*3.1);fxP(339*k,141*k,fxCol('I',.4+.5*f));fxP(339*k+1,141*k-1,fxCol('J',.3*f))}}
+/* ---------- Мапа ---------- */
+function fxMap(dt){const k=SK,[tx,ty]=MAPPT.tower.map(v=>v*MPK);
+  /* човни експедицій: пунктир від маяка в море й назад */
+  (s.exp||[]).forEach((e,n)=>{const X=EXP[e.id];if(!X)return;const T=X.t*1000,p=Math.max(0,Math.min(1,1-(e.until-Date.now())/T)),out=p<.5?p*2:(1-p)*2,an=-.6-n*.7,dist=40+out*120,bx=tx+Math.cos(an)*dist,by=ty+Math.sin(an)*dist*.7;
+    for(let t=0;t<dist;t+=5)fxP((tx+Math.cos(an)*t)*k,(ty+Math.sin(an)*t*.7)*k,fxCol('d',.55));const bob=Math.sin(FX.t*2+n)*.6;
+    for(let i=-3;i<=3;i++)fxP((bx+i/1.5)*k,(by+2+bob)*k,fxCol('V',1));for(let i=-2;i<=2;i++)fxP((bx+i/1.5)*k,(by+3+bob)*k,fxCol('V',1));for(let j=0;j<6;j++)fxP(bx*k,(by-3+j/1.5+bob)*k,fxCol('d',1));for(let j=0;j<4;j++)fxP((bx+1+j/2)*k,(by-2+j/1.5+bob)*k,fxCol('u',.9))});
+  /* нові місця ледь мерехтять чорнилом */
+  for(const id in LOC){if(!s.disc[id]||s.visited[id]||!MAPPT[id])continue;const[x,y]=MAPPT[id],pu=.5+.5*Math.sin(FX.t*2.4+x);for(let a=0;a<14;a++){const an=a/14*6.283;fxP((x*MPK+Math.cos(an)*(8+pu*2))*k,(y*MPK+Math.sin(an)*(8+pu*2))*k,fxCol('j',.25+.35*pu))}}
+  /* маяк на карті світить, якщо запалено */
+  if(s.f.won){const th=FX.t*.42,c=Math.cos(th),sn=Math.sin(th);for(let t=4;t<40;t+=1){const x=tx+c*t,y=ty-20+sn*t*.5;fxP(x*k,y*k,fxCol('g',.5*(1-t/40)))}}}
 if(typeof requestAnimationFrame==='function')requestAnimationFrame(fxTick);
 /* ============ ВКЛАДКА «МАЯК»: розріз маяка як жива сцена ============
    Тло (небо, море, острів, кам'яна оболонка вежі, перекриття, балкон, ліхтарня) — одна картинка.

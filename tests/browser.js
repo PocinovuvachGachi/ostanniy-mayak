@@ -135,7 +135,23 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await p.close();
   }
 
-  // 7. Дзвіночок
+  // 7. Мапа: позначка місця відкриває картку з «Вирушити»; дерево знань у кабінеті
+  {
+    const p = await page(1100, 1000);
+    await p.evaluate(() => { window.dlg = () => {}; storyCheck = () => {}; s.f.looked = 1; s.b.hearth = 3; s.disc = { cape: 1, cave: 1 }; s.tabs = { home: 1, map: 1, study: 1 }; s.floors = { work: 1, gallery: 1, study: 1 }; s.dlg = []; s.tab = 'map'; render(); });
+    await p.waitForTimeout(300);
+    const m = await p.$('.scn [data-k="mp:cape"]');
+    if (m) { await m.click(); await p.waitForTimeout(300); }
+    A(!!await p.$('#popl [data-a="go"][data-i="cape"]'), 'картка місця на мапі');
+    await p.evaluate(() => { popB = ''; s.tab = 'study'; render(); });
+    await p.waitForTimeout(300);
+    const tr = await p.$('.scn [data-k="st:tree"]');
+    if (tr) { await tr.click(); await p.waitForTimeout(300); }
+    A((await p.$$('#popl .tn2')).length > 0, 'дерево знань з вузлами');
+    await p.close();
+  }
+
+  // 8. Дзвіночок
   {
     const p = await page(390, 844);
     const r = await p.evaluate(() => {

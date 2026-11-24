@@ -20,7 +20,7 @@ function fxReset(sc){FX.sc=sc;FX.ps=[];FX.walk=[];FX.crab=null;FX.ev={};FX.moth=
 function fxTick(ts){requestAnimationFrame(fxTick);if(typeof document==='undefined'||document.hidden)return;if(ts-FX.last<33)return;const dt=Math.min(.1,(ts-FX.last)/1000||.033);FX.last=ts;
   const cv=document.querySelector('#stage canvas.fx');if(!cv||RM()){if(FX.cv){FX.cv=null}return}
   if(cv!==FX.cv){FX.cv=cv;FX.g=cv.getContext('2d');FX.W=cv.width;FX.H=cv.height;FX.im=FX.g.createImageData(FX.W,FX.H);FX.u=new Uint32Array(FX.im.data.buffer);const sc=(cv.dataset.sig||'').slice(3);if(sc!==FX.sc)fxReset(sc)}
-  FX.t+=dt;FX.u.fill(0);try{if(FX.sc==='yd')fxYard(dt);else if(FX.sc==='sh')fxShore(dt);else if(FX.sc==='tw')fxTower(dt);else if(FX.sc==='wk'||FX.sc==='st')fxRoom(dt);fxParts(dt)}catch(e){}FX.g.putImageData(FX.im,0,0)}
+  FX.t+=dt;FX.u.fill(0);try{if(FX.sc==='yd')fxYard(dt);else if(FX.sc==='sh')fxShore(dt);else if(FX.sc==='tw')fxTower(dt);else if(FX.sc==='wk'||FX.sc==='st')fxRoom(dt);else if(FX.sc==='mp')fxMap(dt);fxParts(dt)}catch(e){}FX.g.putImageData(FX.im,0,0)}
 /* Частинки: іскри, пил, бризки */
 function fxParts(dt){const out=[];for(const p of FX.ps){p.life+=dt;if(p.life>p.max)continue;p.vy+=(p.gr||0)*dt;p.vx*=1-.8*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;const f=p.life/p.max;
   if(p.kind==='flash'){const R=14*(1-f*.4),a=.55*(1-f);for(let j=-R;j<=R;j++)for(let i=-R;i<=R;i++){const d=Math.hypot(i,j)/R;if(d<1&&(1-d)*a>bay((p.x+i)|0,(p.y+j)|0))fxP(p.x+i,p.y+j,fxCol(d<.35?'I':'J',.5))}out.push(p);continue}
@@ -122,5 +122,16 @@ function fxRoom(dt){const k=SK;FX.mote=FX.mote||[];if(FX.mote.length<55&&Math.ra
   FX.mote=FX.mote.filter(m=>(m.l+=dt)<m.m);for(const m of FX.mote){m.x+=m.vx*dt;m.y+=m.vy*dt;const lx=FX.sc==='wk'?120:339,ly=FX.sc==='wk'?44:146,near=Math.max(0,1-Math.hypot(m.x-lx,(m.y-ly)*1.3)/140);fxP(m.x*k,m.y*k,fxCol('h',Math.sin(m.l/m.m*Math.PI)*(.15+.55*near)))}
   if(FX.sc==='wk'&&s.b.forge&&Math.random()<dt*3)FX.ps.push({x:(231+fxR(-6,6))*k,y:181*k,vx:fxR(-8,8),vy:fxR(-30,-14),gr:-4,life:0,max:fxR(.5,1.2),kind:'spark'});
   if(FX.sc==='wk'&&floorBuilt('work')&&fuL('work')>=2&&Math.random()<dt*.5)fxBurst('wk',316,170,'spark',6);
-  if(FX.sc==='st'){const f=.5+.5*Math.sin(FX.t*7)*Math.sin(FX.t*3.1);fxP(339*k,141*k,fxCol('I',.4+.5*f));fxP(339*k+1,141*k-1,fxCol('J',.3*f))}}
+  if(FX.sc==='st'){const pu=.5+.5*Math.sin(FX.t*3);RS.forEach((r,i)=>{if(!rsVis(r)||rsSt(r)!=='avail')return;const[x,y]=rsPos(r,i),cx=(254+x*.62+2/SK)*k,cy=(22+y*.62+2/SK)*k;for(let a=0;a<12;a++){const an=a/12*6.283;fxP(cx+Math.cos(an)*(4+pu*2),cy+Math.sin(an)*(4+pu*2),fxCol('I',.35+.4*pu))}});
+    const f=.5+.5*Math.sin(FX.t*7)*Math.sin(FX.t*3.1);fxP(339*k,141*k,fxCol('I',.4+.5*f));fxP(339*k+1,141*k-1,fxCol('J',.3*f))}}
+/* ---------- Мапа ---------- */
+function fxMap(dt){const k=SK,[tx,ty]=MAPPT.tower.map(v=>v*MPK);
+  /* човни експедицій: пунктир від маяка в море й назад */
+  (s.exp||[]).forEach((e,n)=>{const X=EXP[e.id];if(!X)return;const T=X.t*1000,p=Math.max(0,Math.min(1,1-(e.until-Date.now())/T)),out=p<.5?p*2:(1-p)*2,an=-.6-n*.7,dist=40+out*120,bx=tx+Math.cos(an)*dist,by=ty+Math.sin(an)*dist*.7;
+    for(let t=0;t<dist;t+=5)fxP((tx+Math.cos(an)*t)*k,(ty+Math.sin(an)*t*.7)*k,fxCol('d',.55));const bob=Math.sin(FX.t*2+n)*.6;
+    for(let i=-3;i<=3;i++)fxP((bx+i/1.5)*k,(by+2+bob)*k,fxCol('V',1));for(let i=-2;i<=2;i++)fxP((bx+i/1.5)*k,(by+3+bob)*k,fxCol('V',1));for(let j=0;j<6;j++)fxP(bx*k,(by-3+j/1.5+bob)*k,fxCol('d',1));for(let j=0;j<4;j++)fxP((bx+1+j/2)*k,(by-2+j/1.5+bob)*k,fxCol('u',.9))});
+  /* нові місця ледь мерехтять чорнилом */
+  for(const id in LOC){if(!s.disc[id]||s.visited[id]||!MAPPT[id])continue;const[x,y]=MAPPT[id],pu=.5+.5*Math.sin(FX.t*2.4+x);for(let a=0;a<14;a++){const an=a/14*6.283;fxP((x*MPK+Math.cos(an)*(8+pu*2))*k,(y*MPK+Math.sin(an)*(8+pu*2))*k,fxCol('j',.25+.35*pu))}}
+  /* маяк на карті світить, якщо запалено */
+  if(s.f.won){const th=FX.t*.42,c=Math.cos(th),sn=Math.sin(th);for(let t=4;t<40;t+=1){const x=tx+c*t,y=ty-20+sn*t*.5;fxP(x*k,y*k,fxCol('g',.5*(1-t/40)))}}}
 if(typeof requestAnimationFrame==='function')requestAnimationFrame(fxTick);

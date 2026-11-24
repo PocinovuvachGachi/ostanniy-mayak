@@ -814,3 +814,26 @@ button.hs.zone:hover,button.hs.zone:focus-visible{background:transparent;border:
 .bpop .rlist .row>span:first-child{min-width:0;flex:1 1 160px}
 .bpop .rlist img{vertical-align:middle;image-rendering:pixelated}
 .bpop .dials{display:flex;gap:8px;margin:6px 0}
+/* Дерево знань */
+.bpop.wide{width:min(640px,calc(100vw - 16px))}
+.tree2{position:relative;line-height:0;margin:6px 0;border:2px solid #6b4a2c}
+.tree2 img{width:100%;height:auto;image-rendering:pixelated;display:block}
+.tn2{position:absolute;width:5%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;border:0;background:transparent;padding:0;cursor:pointer}
+.tn2:hover,.tn2:focus-visible{box-shadow:0 0 0 2px #f0b84a}
+.tn2.on{box-shadow:0 0 0 2px #fff0b0,0 0 10px 2px rgba(240,184,74,.7)}
+.tn2.avail{animation:tnp 1.6s ease-in-out infinite}
+@keyframes tnp{50%{box-shadow:0 0 0 3px rgba(229,102,42,.65)}}
+.tdet2{padding:4px 0}
+@media (prefers-reduced-motion:reduce){.tn2.avail{animation:none}}
+.tn2,.tn2:hover,.tn2:focus,.tn2:active{background:transparent!important;border:0!important;color:inherit;overflow:visible!important;min-width:0!important;min-height:0!important}
+.tn2 .tl{position:absolute;left:50%;top:115%;transform:translateX(-50%);white-space:nowrap;font:600 10px/1.1 var(--mono);color:#3a2718;background:rgba(214,203,169,.85);padding:1px 3px;pointer-events:none;line-height:1.2}
+.tn2.lock .tl{color:#6b5a44}
+.tn2.on .tl{background:#3a2718;color:#fff0b0}
+@media (max-width:560px){.tn2 .tl{display:none}.tn2.on .tl{display:block}}
+/* Мапа-пергамент */
+.scn.mp .scene{aspect-ratio:432/292}
+.scn .mpst{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:930;image-rendering:pixelated;opacity:calc(var(--mla) * .55);transition:opacity 4s}
+.ob.mpk .mpl{position:absolute;left:50%;top:100%;transform:translateX(-50%);white-space:nowrap;font:italic 600 12px/1.1 var(--serif);color:#3a2718;text-shadow:0 0 2px #d6cba9,0 0 3px #d6cba9;pointer-events:none}
+.ob.mpk.far .mpl{color:#6b5a44}
+.ob.mpk.new .mpl{color:#7a2e22}
+@media (max-width:560px){.ob.mpk .mpl{font-size:10px}}

@@ -366,7 +366,7 @@ function gradeRGB(c,ph){const hex=PAL[c];let r=parseInt(hex.slice(1,3),16),g=par
   const T={n:{ds:.25,m:[7,12,22],a:.5,k:[.88,.95,1.08]},d:{ds:.12,m:[38,26,46],a:.3,k:[1.05,.93,.92]},y:{ds:.45,m:[108,114,120],a:.28,k:[.9,.91,.93]}}[ph];if(!T)return[r,g,b];
   const l=.3*r+.59*g+.11*b;r+=(l-r)*T.ds;g+=(l-g)*T.ds;b+=(l-b)*T.ds;r+=(T.m[0]-r)*T.a;g+=(T.m[1]-g)*T.a;b+=(T.m[2]-b)*T.a;const cl=v=>Math.max(0,Math.min(255,Math.round(v)));return[cl(r*T.k[0]),cl(g*T.k[1]),cl(b*T.k[2])]}
 function dayPh(){if(typeof s!=='undefined'&&s.dbgPh)return s.dbgPh;const d=new Date(),h=d.getHours()+d.getMinutes()/60;return h>=8&&h<18?'y':(h>=6&&h<8)||(h>=18&&h<20.5)?'d':'n'}
-function pxURL(key,make){const sk=SCK.has(key),ck=sk?key+'|'+GR:key;if(PXC[ck])return PXC[ck];const b=make();const sc=b.k===SK;if(sc&&!sk){SCK.add(key);if(PXC[key+'|'+GR])return PXC[key+'|'+GR]}const fk=sc?key+'|'+GR:key;let u='';
+function pxURL(key,make){const sk=SCK.has(key),ck=sk?key+'|'+GR:key;if(ck in PXC)return PXC[ck];if(typeof document==='undefined'||!document.createElement||!document.body||!document.body.appendChild)return PXC[ck]='';const b=make();const sc=b.k===SK&&!b.ng;if(sc&&!sk){SCK.add(key);if(PXC[key+'|'+GR])return PXC[key+'|'+GR]}const fk=sc?key+'|'+GR:key;let u='';
   try{const cv=document.createElement('canvas');if(cv&&cv.getContext){cv.width=b.W||b.w;cv.height=b.H||b.h;const g=cv.getContext('2d');const im=g.createImageData(cv.width,cv.height),cc={};
     for(let i=0;i<b.p.length;i++){const c=b.p[i];if(c==='.')continue;const rgb=cc[c]||(cc[c]=sc?gradeRGB(c,GR):gradeRGB(c,''));im.data[i*4]=rgb[0];im.data[i*4+1]=rgb[1];im.data[i*4+2]=rgb[2];im.data[i*4+3]=255}
     g.putImageData(im,0,0);u=cv.toDataURL('image/png')}}catch(e){u=''}
