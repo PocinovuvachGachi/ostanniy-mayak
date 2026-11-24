@@ -21,4 +21,14 @@ s.fac.rot=85;A(LOC.village.spots.find(S=>S.id==='hut').acts.find(a=>a.id==='key'
 /* Мирон у гостях */
 s.at='';s.tab='shore';s.dbgTide='low';s.shf='';s.lastAct=Date.now();s.shfT={};for(const k of['seal','tracks','signal','gullrack','zinovii','rats','drown1','horpyna'])s.f[k]=1;s.f.crab1=0;s.sealCyc=tideCyc();
 shfTick();A(s.shf==='myronvisit','Мирон іде бродом');act('shfgo');A(s.c.myron===1,'брат і сестра');
+/* дрібні справи: з'являються періодично, до двох одразу */
+s.at='village';s.lastAct=Date.now();s.vg=null;for(const k of RES)s.seen[k]=1;for(const k of RES)s.r[k]=Math.max(s.r[k],300);vgTick();A(s.vg.list.length===1,'перша справа');vgTick();A(s.vg.list.length===1,'не всі одразу');
+__adv(11*60000);s.lastAct=Date.now();vgTick();A(s.vg.list.length===2,'друга справа згодом');let done=0;
+for(let g=0;g<40&&done<6;g++){s.lastAct=Date.now();for(const k of[0,1]){const q=s.vg.list[k];if(!q)continue;const t0=fac('rot'),c0=s.c.vg||0;
+  if(q.k==='give')la('village.g'+k+'.give');else if(q.k==='work'){for(let i=0;i<3;i++)la('village.g'+k+'.work')}else{s.h.hp=maxHP();la('village.g'+k+'.fight');botFight()}
+  if((s.c.vg||0)>c0)done++;else A(0,'справа не виконалась: '+q.k+' '+q.n)}
+  __adv(11*60000);s.lastAct=Date.now();vgTick()}
+A(done>=6,'справи йдуть одна за одною: '+done);
+/* острів Хибних Вогнів — після кабінету */
+s.tabs.map=1;s.disc.fort=1;s.f.boat=1;A(!canGo('fort')[0],'острів — лише з картою рифів');s.floors.study=1;vgTick();A(s.f.reefmap&&canGo('fort')[0]!==false||/рифи/.test(canGo('fort')[1]||'')===false,'карта рифів у кабінеті');
 console.log('fails',fails)`);

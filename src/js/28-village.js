@@ -48,3 +48,42 @@ for(const Q0 of VQ)LOC.village.spots.push({id:'q_'+Q0.id,n:Q0.n,pos:Q0.pos,quest
 /* Ганна віддає ключ, коли Причал вважає тебе своїм */
 function hannaKey(){dlg({k:'story',title:'Ключ Ганни',img:{t:'face',id:'hanna'},body:`<p>Ганна знімає з цвяха над піччю ключ на вицвілій стрічці. ${Q('Остап дав мені його в ту осінь, коли почав ходити ночами на північ. Сказав: «Віддаси тому, кому Причал повірить, як мені»')}.</p><p>${Q('Люди кажуть, ти свій. То й бери')}.</p>`,gains:['Ключ від кабінету']});
   return `${P('Ганна')} віддає тобі ${I('Ключ від кабінету')}.`}
+
+/* Дрібні справи Причалу: генеруються періодично (до двох одразу), щоб завжди було чим допомогти.
+   Віддати припаси, попрацювати руками або відігнати непрошених гостей. Чекають, поки гравець візьметься. */
+Object.assign(ENC,{vrats:{a:'store',h:[1,3],xpm:.5,e:[['rat',7,2],['rat',8,4],['rat',6,5]]},
+  vgulls:{a:'rack',h:[1,3],xpm:.5,e:[['gull',8,1],['gull',9,4],['gull',10,2]]}});
+const VGV={fish:.8,oil:2,wood:.5,scrap:.8,herb:2.5,prov:1.5,tar:3,med:8,iron:2};
+const VGT=[
+  {k:'give',who:'Оксана',n:'Риба для дітей',r:{fish:[10,16]},d:'Оксана знову на пірсі: діти голодні, а сітей у неї немає.',ok:'Оксана ділить рибу між дітьми. Найменший уже сміється.'},
+  {k:'give',who:'Левко',n:'Олія для каганців',r:{oil:[4,7]},d:'У корчмі знову темнувато. Левко розводить руками.',ok:'Каганці розгоряються. Левко наливає тобі за рахунок корчми.'},
+  {k:'give',who:'Лука',n:'Дошки на човен',r:{wood:[20,35]},d:'Старий Лука латає човна, та дошок бракує.',ok:'Лука стукає молотком до темряви й насвистує щось давнє.'},
+  {k:'give',who:'рибалки',n:'Цвяхи й скоби',r:{scrap:[12,20]},d:'Рибалки лагодять палі пірсу: потрібні цвяхи й скоби.',ok:'Пірс більше не хитається під ногами.'},
+  {k:'give',who:'Ярема',n:'Копчена риба на продаж',r:{prov:[6,10]},d:'Ярема обіцяв купцям копчену рибу, а своєї не вистачає.',ok:'Ярема задоволено рахує: «Чесна угода — то половина торгу»'},
+  {k:'give',who:'Ганна',n:'Трави для відварів',r:{herb:[5,8]},d:'У Ганни закінчилися трави, а в селищі кашляють діти.',ok:'Ганна вже ставить казанок на вогонь.'},
+  {k:'give',who:'рибалки',n:'Смола на латання',r:{tar:[4,7]},d:'Човни течуть: без смоли в море не вийдеш.',ok:'Запах гарячої смоли стоїть над усім пірсом.'},
+  {k:'give',who:'Ганна',n:'Ліки для хворих',r:{med:[2,4]},d:'У двох хатах гарячка. Ганна сама не встигає.',ok:'Ганна мовчки стискає тобі руку.'},
+  {k:'work',who:'рибалки',n:'Латати сіті',t:'Сісти до сітей',d:'Порвані сіті сохнуть на палях. Робота довга, але гуртом швидше.',ok:'Останній вузол — і сіті знову цілі.',r:{fish:6}},
+  {k:'work',who:'Ганна',n:'Наносити води',t:'Носити воду',d:'Ганні треба води на відвари, а криниця на краю селища.',ok:'Повні діжки стоять біля порога. Ганна киває.',r:{herb:2}},
+  {k:'work',who:'Оксана',n:'Чистити рибу',t:'Чистити рибу',d:'Улов великий, а рук мало. Ножі, луска, чайки над головою.',ok:'Риба в бочках, засолена на зиму.',r:{prov:3}},
+  {k:'work',who:'Лука',n:'Лагодити паль',t:'Забивати паль',d:'Шторм підмив палю під хатою Луки. Треба забити нову.',ok:'Хата більше не скрипить на вітрі.',r:{coin:4}},
+  {k:'fight',who:'Ярема',n:'Пацюки в коморі',enc:'vrats',d:'У коморі Яреми шкребуть пацюки. Гуртом вони сміливі.',ok:'Комора чиста. Ярема дає тобі монет «за санітарну службу».'},
+  {k:'fight',who:'Оксана',n:'Чайки над сушнею',enc:'vgulls',d:'Чайки пікірують на рибу, що сохне на палях.',ok:'Чайки з криком розлітаються. Риба ціла.'}];
+const vgOn=()=>vqDone('widow');
+function vgMake(){const L=VGT.filter(T=>T.k!=='give'||Object.keys(T.r).every(k=>s.seen[k]));const cur=(s.vg.list||[]).map(q=>q.n);const C=L.filter(T=>!cur.includes(T.n));const T=C[rnd(C.length)];if(!T)return null;
+  const q={n:T.n,k:T.k,who:T.who,d:T.d,ok:T.ok,t:T.t,enc:T.enc,id:++s.vg.c};const sc=1+Math.min(1.5,(s.chs||[]).length*.12);
+  if(T.k==='give'){q.give={};let v=0;for(const r in T.r){const[a,b]=T.r[r],n=Math.round((a+Math.random()*(b-a))*sc);q.give[r]=n;v+=n*(VGV[r]||1)}q.coin=Math.max(3,Math.round(v*.6))}
+  else if(T.k==='work'){q.need=3;q.done=0;q.rew=Object.fromEntries(Object.entries(T.r).map(([k,n])=>[k,Math.round(n*sc)]));}
+  else q.coin=Math.round(8*sc);return q}
+function vgTick(){if(!vgOn()||away())return;s.vg=s.vg||{list:[],c:0,t:0};const now=Date.now();
+  if(s.vg.list.length<2&&now>=(s.vg.t||0)){const q=vgMake();if(q){s.vg.list.push(q);s.vg.t=now+(6+Math.random()*4)*60000;if(s.at!=='village')say(`На Причалі просять допомоги: ${q.n.toLowerCase()}.`,'world');dirty=1}}
+  if(s.floors.study&&s.disc.fort&&!s.f.reefmap){s.f.reefmap=1;dlg({k:'find',title:'Карта рифів',img:{t:'icon',id:'lore'},body:`<p>Між Остаповими книгами — лоцманська карта, вся в олівцевих позначках. Навколо Острова Хибних Вогнів вона показує прохід між рифами: ${Q('лише на світанку, коли вода стоїть')}.</p>`,gains:['Тепер можна дістатися Острова Хибних Вогнів']})}}
+function vgDone(q,msg){s.vg.list=s.vg.list.filter(x=>x!==q);s.vg.t=Math.max(s.vg.t||0,Date.now()+4*60000);s.c.vg=(s.c.vg||0)+1;trust('rot',q.k==='fight'?4:3);return msg}
+for(const k of[0,1])LOC.village.spots.push({id:'g'+k,quest:1,pos:[[124,228],[212,232]][k],get n(){const q=((s.vg||{}).list||[])[k];return q?q.n:'Справа'},show:()=>!!((s.vg||{}).list||[])[k],
+  get d(){const q=s.vg.list[k];if(!q)return'';return`${q.d}${q.k==='work'?` <span class="m">Зроблено ${q.done} з ${q.need}.</span>`:''}${q.coin?` <span class="m">Віддячать: ${R('coin',q.coin)}.</span>`:''}`},
+  acts:[{id:'give',t:'Допомогти',get c(){const q=(s.vg.list||[])[k];return q&&q.k==='give'?q.give:undefined},show:()=>{const q=(s.vg.list||[])[k];return!!q&&q.k==='give'},
+      run(){const q=s.vg.list[k];add('coin',q.coin);return vgDone(q,`${q.ok} Тобі дають ${R('coin',q.coin)}.`)}},
+    {id:'work',get t(){const q=(s.vg.list||[])[k];return q&&q.t||'Працювати'},cd:20,show:()=>{const q=(s.vg.list||[])[k];return!!q&&q.k==='work'},
+      run(){const q=s.vg.list[k];q.done++;if(q.done<q.need)return'Ще трохи — і буде готово.';for(const r in q.rew)add(r,q.rew[r]);xp(3);return vgDone(q,q.ok)}},
+    {id:'fight',t:'Відігнати',get fight(){const q=(s.vg.list||[])[k];return q&&q.enc||'vrats'},show:()=>{const q=(s.vg.list||[])[k];return!!q&&q.k==='fight'},
+      win(){const q=s.vg.list[k];if(!q)return'';add('coin',q.coin);return vgDone(q,`${q.ok} ${R('coin',q.coin)}.`)}}]});
