@@ -955,6 +955,7 @@ body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .
 .mgct .z{position:absolute;left:0;right:0;background:rgba(165,217,142,.45)}
 .mgct .n{position:absolute;left:-6px;right:-6px;height:4px;margin-bottom:-2px;background:#f0b84a;box-shadow:0 0 6px #f0b84a}
 @media (prefers-reduced-motion:reduce){.mgcp i{animation:none}}
+.rdbar{height:8px;background:#16252e;border:2px solid #0b1418;margin:6px 0}.rdbar i{display:block;height:100%;background:#f0b84a}
 </style>
 </head>
 <body>
@@ -3193,7 +3194,7 @@ function flow(dt,dry){const L=s.b,d={};for(const k of RES)d[k]=0;const av=k=>s.r
   if(!dry)for(const k of RES)if(d[k]){add(k,d[k]);if(s.r[k]<0)s.r[k]=0}
   return d}
 function rates(){const d=flow(1,true);d.xp=(s.b.dummy||0)*0.08;return d}
-function produce(dt){s.play=(s.play||0)+dt;flow(dt);const L=s.b;
+function produce(dt){s.play=(s.play||0)+dt;flow(dt);rdTick(dt);const L=s.b;
   if(L.dummy)xp(L.dummy*0.08*dt);
   if(!s.cb)s.h.hp=Math.min(maxHP(),s.h.hp+regenRate()*dt);
 }
@@ -3605,7 +3606,7 @@ function gainsOf(sn){const g=[];const dx=Math.round(totXP()-sn.xp);if(dx>0)g.pus
 function findA(id){const[l,sp,a]=id.split('.');return LOC[l].spots.find(x=>x.id===sp).acts.find(x=>x.id===a)}
 function findS(id){const[l,sp]=id.split('.');return LOC[l].spots.find(x=>x.id===sp)}
 const seaCost=L=>Math.max(1,SEAFOOD*(L.sea||0)-(fac('cape')>=80?1:0));
-function canGo(id){const L=LOC[id];if(!s.tabs.map)return[false,'Спершу треба дістатися великого острова.'];if(id==='fort'&&!s.f.reefmap&&!s.floors.study)return[false,'Острів Хибних Вогнів оточують рифи. Без лоцманської карти туди не пройти — така мала бути в Остапа, у його кабінеті.'];if(L.sea===2&&!s.f.schooner)return[false,'Так далеко на північ дійде лише шхуна.'];if(L.sea===2&&s.r.prov<seaCost(L))return[false,`Для походу на шхуні потрібно ${seaCost(L)} провізії.`];if(L.sea&&!s.f.boat)return[false,'Туди можна дістатися лише човном.'];if(L.sea&&s.r.prov<seaCost(L))return[false,`Для виходу в море потрібно ${seaCost(L)} провізії.`];if(L.dark&&!s.eq.light)return[false,'Там темно. Візьми в руку ліхтар.'];return[true,'']}
+function canGo(id){const L=LOC[id];if(!s.tabs.map)return[false,'Спершу треба дістатися великого острова.'];if(id==='fort'&&!s.f.reefmap&&!s.floors.study)return[false,'Острів Хибних Вогнів оточують рифи. Без лоцманської карти туди не пройти — така мала бути в Остапа, у його кабінеті.'];if(id==='fort'&&!tideLow()&&!s.f.ostap)return[false,'Прохід між рифами відкривається лише на відпливі. '+tideTxt()];if(L.sea===2&&!s.f.schooner)return[false,'Так далеко на північ дійде лише шхуна.'];if(L.sea===2&&s.r.prov<seaCost(L))return[false,`Для походу на шхуні потрібно ${seaCost(L)} провізії.`];if(L.sea&&!s.f.boat)return[false,'Туди можна дістатися лише човном.'];if(L.sea&&s.r.prov<seaCost(L))return[false,`Для виходу в море потрібно ${seaCost(L)} провізії.`];if(L.dark&&!s.eq.light)return[false,'Там темно. Візьми в руку ліхтар.'];return[true,'']}
 function laOk(id){const A=findA(id),S=findS(id);if(!A||!S)return false;
   if(S.show&&!S.show())return false;if(A.show&&!A.show())return false;if(A.once&&s.done[id])return false;
   if(A.cd&&onCd('la.'+id))return false;
@@ -3903,7 +3904,7 @@ function vgMake(){const L=VGT.filter(T=>T.k!=='give'||Object.keys(T.r).every(k=>
   else q.coin=Math.round(8*sc);return q}
 function vgTick(){if(!vgOn()||away())return;s.vg=s.vg||{list:[],c:0,t:0};const now=Date.now();
   if(s.vg.list.length<2&&now>=(s.vg.t||0)){const q=vgMake();if(q){s.vg.list.push(q);s.vg.t=now+(6+Math.random()*4)*60000;if(s.at!=='village')say(`На Причалі просять допомоги: ${q.n.toLowerCase()}.`,'world');dirty=1}}
-  if(s.floors.study&&s.disc.fort&&!s.f.reefmap){s.f.reefmap=1;dlg({k:'find',title:'Карта рифів',img:{t:'icon',id:'lore'},body:`<p>Між Остаповими книгами — лоцманська карта, вся в олівцевих позначках. Навколо Острова Хибних Вогнів вона показує прохід між рифами: ${Q('лише на світанку, коли вода стоїть')}.</p>`,gains:['Тепер можна дістатися Острова Хибних Вогнів']})}}
+  if(s.floors.study&&s.disc.fort&&!s.f.reefmap){s.f.reefmap=1;dlg({k:'find',title:'Карта рифів',img:{t:'icon',id:'lore'},body:`<p>Між Остаповими книгами — лоцманська карта, вся в олівцевих позначках. Навколо Острова Хибних Вогнів вона показує прохід між рифами: ${Q('лише на відпливі, коли каміння виходить з води')}.</p>`,gains:['Тепер можна дістатися Острова Хибних Вогнів']})}}
 function vgDone(q,msg){s.vg.list=s.vg.list.filter(x=>x!==q);s.vg.t=Math.max(s.vg.t||0,Date.now()+4*60000);s.c.vg=(s.c.vg||0)+1;if(Math.random()<.12&&typeof collFind==='function')collFind('errand');trust('rot',q.k==='fight'?4:3);return msg}
 for(const k of[0,1])LOC.village.spots.push({id:'g'+k,quest:1,pos:[[124,228],[212,232]][k],get n(){const q=((s.vg||{}).list||[])[k];return q?q.n:'Справа'},show:()=>!!((s.vg||{}).list||[])[k],
   get d(){const q=s.vg.list[k];if(!q)return'';return`${q.d}${q.k==='work'?` <span class="m">Зроблено ${q.done} з ${q.need}.</span>`:''}${q.coin?` <span class="m">Віддячать: ${R('coin',q.coin)}.</span>`:''}`},
@@ -3940,6 +3941,29 @@ VQ.push(
 /* прохання з VQ, додані тут, теж стають місцями Причалу */
 for(const Q0 of VQ.slice(-2))LOC.village.spots.push({id:'q_'+Q0.id,n:Q0.n,pos:Q0.pos,quest:1,show:()=>{s.vq=s.vq||{};const tt=s.vq.t||{};return!tt[Q0.id]&&Q0.ok()},get d(){return Q0.d()},
   acts:Q0.acts.map(A=>Object.assign({},A,{once:1,run(){s.vq=s.vq||{};s.vq.t=s.vq.t||{};s.vq.t[Q0.id]=Date.now();return A.run()},win(){s.vq=s.vq||{};s.vq.t=s.vq.t||{};s.vq.t[Q0.id]=Date.now();return A.win()}}))});
+/* ============ ДЕРЕВО ЗНАНЬ ЯК ШЛЯХ (етап III, #16) ============
+   Дослідження — це читання: знання платиш одразу, а далі книга читається час (від кількох хвилин на початку до
+   пів години глибше). Читаєш одну книгу за раз; почате не пропадає, можна відкласти й узяти іншу.
+   Поки тебе немає, читання йде, але повільніше; з Остапом — удвічі швидше.
+   Частина вузлів вимагає знахідок зі світу: «Природа Мли» — пляшку з туманом, «Оптика» — уламок лінзи,
+   «Маякова справа» — самого Остапа. */
+const RDMIN={1:3,2:8,3:15,4:25};
+const rdTime=r=>(r.kill?6:RDMIN[r.t]||10)*60;
+const RSNEED={a_fog:{ok:()=>!!s.odd.fogbottle,t:'пляшка з туманом — щоб було що вивчати'},optics:{ok:()=>shards()>=1,t:'уламок лінзи в руках'},beacon:{ok:()=>!!s.f.ostap,t:'Остап — цього в книгах немає'}};
+const rsNeedOk=r=>!RSNEED[r.id]||RSNEED[r.id].ok();
+const rdRate=()=>(away()?.4:1)*(s.f.ostap?2:1)*(fuL('study')>=2?1.2:1);
+function rsStart(i){const r=RS.find(x=>x.id===i);if(!r||s.rs[i]||!rsReady(r)||!rsNeedOk(r))return;s.rdp=s.rdp||{};
+  if(s.rdp[i]==null){if(s.r.lore<rsCost(r))return;s.r.lore-=rsCost(r);s.rdp[i]=0}
+  s.rd=i;say(`Читаєш: ${r.n}. ${s.f.ostap?'Остап читає разом із тобою.':'Свічка, перо, пісочний годинник.'}`,'info');dirty=1}
+function rsDone(i){const r=RS.find(x=>x.id===i);s.rs[i]=1;delete s.rdp[i];if(s.rd===i)s.rd='';say(`Досліджено: ${r.n}.`,'lvl');xp(10);
+  dlg({k:'lvl',title:`Звіт: ${r.n}`,img:s.f.ostap?{t:'face',id:'ostap'}:{t:'icon',id:'lore'},body:`<div class="note">${U(r.rep||r.d)}<span class="sig">— ${s.f.ostap?'Остап':'із записів Остапа'}</span></div>`,gains:[U(r.d)]});dirty=1}
+function rdTick(dt){if(!s.rd||!s.rdp)return;const r=RS.find(x=>x.id===s.rd);if(!r){s.rd='';return}s.rdp[s.rd]=(s.rdp[s.rd]||0)+dt*rdRate();if(s.rdp[s.rd]>=rdTime(r))rsDone(s.rd)}
+const rdLeft=i=>{const r=RS.find(x=>x.id===i);return Math.max(0,rdTime(r)-((s.rdp||{})[i]||0))};
+const rdMin=sec=>{const m=Math.ceil(sec/60);return m<=1?'менше хвилини':`${m} хв`};
+function rdHTML(sel){if(!sel)return'';const st=rsSt(sel),c=rsCost(sel),begun=(s.rdp||{})[sel.id]!=null,cur=s.rd===sel.id;
+  if(st!=='avail')return'';if(!rsNeedOk(sel))return`<p class="m">Потрібно: ${RSNEED[sel.id].t}.</p>`;
+  if(cur){const p=Math.min(100,Math.round((s.rdp[sel.id]||0)/rdTime(sel)*100));return`<div class="rdbar"><i style="width:${p}%"></i></div><p class="m">Читаєш. Лишилось ${rdMin(rdLeft(sel.id)/rdRate())}${away()?'':' (без тебе — повільніше)'}.</p>`}
+  return`<div class="act">${btn(begun?'Читати далі':'Читати','rs',sel.id,{ok:()=>begun||s.r.lore>=c,cls:'main'})}${begun?'':`<span class="ccs">${R('lore',c)}</span>`}<span class="m">${begun?`лишилось ${rdMin(rdLeft(sel.id))}`:`~${rdMin(rdTime(sel))} читання`}${s.rd&&!cur?' · поточну книгу буде відкладено':''}</span></div>`}
 /* ============ РУЧНИЙ ВОВК ============
    Після бою з вовками за козу в лігві на скелях лишається вовченя Туманного вовка. Гравець дає йому ім'я,
    годує (риба, згодом провізія) — і воно росте, поки ти поруч і воно сите: вовченя → підліток → дорослий.
@@ -4238,7 +4262,7 @@ function act0(a,i){
   case 'craft':{const rc=RC.find(x=>x.id===i);if(!rc||!rcVisible(rc))break;const c=rcCost(rc);
     if((rc.craft||0)>st('craft')||!afford(c,rc.it))break;pay(c,rc.it);s.f.craft1=1;
     if(rc.tool){if(rc.id==='rod'){F.rod=1;say('Вудка готова. Тепер на березі можна рибалити.','find')}else{if(rc.id==='pack1')F.pack=1;if(rc.id==='pack2')F.pack=2;if(rc.id==='belt1')F.belt=1;dlg({k:'find',title:`Зроблено: ${rc.n}`,img:{t:'icon',id:rc.id==='belt1'?'belt':'pack'},body:`<p>${rc.d}</p>`,gains:[`Рюкзак: ${packSlots()} зброї, вантаж до ${loadCap()}`,`Пояс: ${beltSlots()} предмети`]})}}else{giveI(rc.out);let ex='';if(rc.multi&&Math.random()<0.05*st('craft')){giveI(rc.out);ex=' Вдалося зробити дві!'}say(`Зроблено: ${I(IT[rc.out].n)}.${ex}`,'find')}break}
-  case 'rs':{const r=RS.find(x=>x.id===i);if(!r||s.rs[i]||!rsReady(r)||s.r.lore<rsCost(r))break;s.r.lore-=rsCost(r);s.rs[i]=1;say(`Досліджено: ${r.n}.`,'lvl');dlg({k:'lvl',title:`Звіт: ${r.n}`,img:s.f.ostap?{t:'face',id:'ostap'}:{t:'icon',id:'lore'},body:`<div class="note">${U(r.rep||r.d)}<span class="sig">— ${s.f.ostap?'Остап':'із записів Остапа'}</span></div>`,gains:[U(r.d)]});break}
+  case 'rs':rsStart(i);break;
   case 'repok':s.report=null;break;
   case 'attr':if(s.h.pts>0&&s.h.a[i]!==undefined&&s.h.a[i]<ACAP){s.h.pts--;s.h.a[i]++;if(i==='con')s.h.hp+=5}break;
   case 'skill':if(s.h.sp>0&&s.h.k[i]!==undefined&&s.h.k[i]<skillCap()){s.h.sp--;s.h.k[i]++}break;
@@ -4531,7 +4555,7 @@ function rStudyList(){let h=`<section><p>Знання: ${V(()=>fmt(s.r.lore))}, 
     for(const r of vis){const dn=!!s.rs[r.id],rd=rsReady(r),cost=rsCost(r);
       const why=[...(r.r||[]).filter(q=>!s.rs[q]).map(q=>'спершу «'+RS.find(x=>x.id===q).n+'»'),...(r.kill&&!s.kills[r.kill]?[s.seenE[r.kill]?'перемогти: '+EN[r.kill].n.toLowerCase():'трофей невідомої істоти']:[])];
       const hide=!dn&&!rd&&r.kill&&!s.seenE[r.kill];
-      h+=`<div class="node ${dn?'taken':rd?'avail':'lock'}"><b>${hide?'???':U(r.n)}</b>${!dn&&rd?fresh9('s:'+r.id):''}${r.kill?' <span class="abtag">вивчення</span>':''}<p class="m">${hide?'Щось чекає на твою першу зустріч.':U(r.d)}</p>${dn?'<span class="done">досліджено</span>':rd?btn(`Дослідити (${R('lore',cost)})`,'rs',r.id,{ok:()=>s.r.lore>=cost}):`<p class="m">Потрібно: ${why.join('; ')}.</p>`}</div>`}
+      h+=`<div class="node ${dn?'taken':rd?'avail':'lock'}"><b>${hide?'???':U(r.n)}</b>${!dn&&rd?fresh9('s:'+r.id):''}${r.kill?' <span class="abtag">вивчення</span>':''}<p class="m">${hide?'Щось чекає на твою першу зустріч.':U(r.d)}</p>${dn?'<span class="done">досліджено</span>':rd?rdHTML(r):`<p class="m">Потрібно: ${why.join('; ')}.</p>`}</div>`}
     h+=`</div>`}
   h+=`</div>`;
   h+=`</section><section><h2>Скриня Остапа</h2>${pimg(pxURL('ch:'+(s.f.chest?1:0),()=>chestBuf(s.f.chest)),576,240,'scene','Скриня')}`;
@@ -5582,7 +5606,7 @@ treeBuf=HI(treeBuf);
 function treePopHTML(){const vis=RS.filter(rsVis),sel=RS.find(r=>r.id===s.rsSel&&rsVis(r))||vis.find(r=>rsSt(r)==='avail')||vis[0];let nodes='';
   vis.forEach(r=>{const[x,y]=rsPos(r,RS.indexOf(r)),st=rsSt(r);nodes+=`<button type="button" class="tn2 ${st}${sel&&sel.id===r.id?' on':''}" style="left:${x/2}%;top:${y/1.3}%" data-a="rsel" data-i="${r.id}" aria-label="${U(r.n)}"><span class="tl">${U(r.n)}</span></button>`});
   let det='';if(sel){const st=rsSt(sel),c=rsCost(sel),why=[...(sel.r||[]).filter(q=>!s.rs[q]).map(q=>'спершу «'+U(RS.find(x=>x.id===q).n)+'»'),...(sel.kill&&!s.kills[sel.kill]?['перемогти: '+EN[sel.kill].n.toLowerCase()]:[])];
-    det=`<div class="tdet2"><b>${U(sel.n)}</b>${sel.kill?' <span class="abtag">вивчення</span>':''}<p class="m">${U(sel.d)}</p>${st==='done'?`<p class="hand">${sel.rep?U(sel.rep):'Досліджено.'}</p>`:st==='avail'?`<div class="act">${btn('Дослідити','rs',sel.id,{ok:()=>s.r.lore>=c,cls:'main'})}<span class="ccs">${R('lore',c)}</span></div>`:`<p class="m">Потрібно: ${why.join('; ')}.</p>`}</div>`}
+    det=`<div class="tdet2"><b>${U(sel.n)}</b>${sel.kill?' <span class="abtag">вивчення</span>':''}<p class="m">${U(sel.d)}</p>${st==='done'?`<p class="hand">${sel.rep?U(sel.rep):'Досліджено.'}</p>`:st==='avail'?rdHTML(sel):`<p class="m">Потрібно: ${why.join('; ')}.</p>`}</div>`}
   return`<div class="bpop wide" role="dialog" aria-label="Дерево знань"><div class="bph"><b>Дерево знань</b><span class="bplv">знання: ${V(()=>fmt(s.r.lore))}</span><button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div>
     <div class="tree2">${pimg(pxURL('rtree:1:'+rsSig(),()=>treeBuf(1)),600,390,'','Дерево знань')}${nodes}</div>${det}</div>`}
 /* ============ ЖИВИЙ СВІТ: частинки й анімації поверх сцени ============

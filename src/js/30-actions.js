@@ -53,7 +53,7 @@ function act0(a,i){
   case 'craft':{const rc=RC.find(x=>x.id===i);if(!rc||!rcVisible(rc))break;const c=rcCost(rc);
     if((rc.craft||0)>st('craft')||!afford(c,rc.it))break;pay(c,rc.it);s.f.craft1=1;
     if(rc.tool){if(rc.id==='rod'){F.rod=1;say('Вудка готова. Тепер на березі можна рибалити.','find')}else{if(rc.id==='pack1')F.pack=1;if(rc.id==='pack2')F.pack=2;if(rc.id==='belt1')F.belt=1;dlg({k:'find',title:`Зроблено: ${rc.n}`,img:{t:'icon',id:rc.id==='belt1'?'belt':'pack'},body:`<p>${rc.d}</p>`,gains:[`Рюкзак: ${packSlots()} зброї, вантаж до ${loadCap()}`,`Пояс: ${beltSlots()} предмети`]})}}else{giveI(rc.out);let ex='';if(rc.multi&&Math.random()<0.05*st('craft')){giveI(rc.out);ex=' Вдалося зробити дві!'}say(`Зроблено: ${I(IT[rc.out].n)}.${ex}`,'find')}break}
-  case 'rs':{const r=RS.find(x=>x.id===i);if(!r||s.rs[i]||!rsReady(r)||s.r.lore<rsCost(r))break;s.r.lore-=rsCost(r);s.rs[i]=1;say(`Досліджено: ${r.n}.`,'lvl');dlg({k:'lvl',title:`Звіт: ${r.n}`,img:s.f.ostap?{t:'face',id:'ostap'}:{t:'icon',id:'lore'},body:`<div class="note">${U(r.rep||r.d)}<span class="sig">— ${s.f.ostap?'Остап':'із записів Остапа'}</span></div>`,gains:[U(r.d)]});break}
+  case 'rs':rsStart(i);break;
   case 'repok':s.report=null;break;
   case 'attr':if(s.h.pts>0&&s.h.a[i]!==undefined&&s.h.a[i]<ACAP){s.h.pts--;s.h.a[i]++;if(i==='con')s.h.hp+=5}break;
   case 'skill':if(s.h.sp>0&&s.h.k[i]!==undefined&&s.h.k[i]<skillCap()){s.h.sp--;s.h.k[i]++}break;

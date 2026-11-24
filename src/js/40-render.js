@@ -201,7 +201,7 @@ function rStudyList(){let h=`<section><p>Знання: ${V(()=>fmt(s.r.lore))}, 
     for(const r of vis){const dn=!!s.rs[r.id],rd=rsReady(r),cost=rsCost(r);
       const why=[...(r.r||[]).filter(q=>!s.rs[q]).map(q=>'спершу «'+RS.find(x=>x.id===q).n+'»'),...(r.kill&&!s.kills[r.kill]?[s.seenE[r.kill]?'перемогти: '+EN[r.kill].n.toLowerCase():'трофей невідомої істоти']:[])];
       const hide=!dn&&!rd&&r.kill&&!s.seenE[r.kill];
-      h+=`<div class="node ${dn?'taken':rd?'avail':'lock'}"><b>${hide?'???':U(r.n)}</b>${!dn&&rd?fresh9('s:'+r.id):''}${r.kill?' <span class="abtag">вивчення</span>':''}<p class="m">${hide?'Щось чекає на твою першу зустріч.':U(r.d)}</p>${dn?'<span class="done">досліджено</span>':rd?btn(`Дослідити (${R('lore',cost)})`,'rs',r.id,{ok:()=>s.r.lore>=cost}):`<p class="m">Потрібно: ${why.join('; ')}.</p>`}</div>`}
+      h+=`<div class="node ${dn?'taken':rd?'avail':'lock'}"><b>${hide?'???':U(r.n)}</b>${!dn&&rd?fresh9('s:'+r.id):''}${r.kill?' <span class="abtag">вивчення</span>':''}<p class="m">${hide?'Щось чекає на твою першу зустріч.':U(r.d)}</p>${dn?'<span class="done">досліджено</span>':rd?rdHTML(r):`<p class="m">Потрібно: ${why.join('; ')}.</p>`}</div>`}
     h+=`</div>`}
   h+=`</div>`;
   h+=`</section><section><h2>Скриня Остапа</h2>${pimg(pxURL('ch:'+(s.f.chest?1:0),()=>chestBuf(s.f.chest)),576,240,'scene','Скриня')}`;

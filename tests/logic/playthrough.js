@@ -1,6 +1,6 @@
 require('../harness.js')(`
 FOEST.fill(1);ENC.heart.mult=1.4;/* проходження перевіряє сюжетний перебіг, не баланс */
-let fails=0;function A(c,m){if(!c){fails++;console.log('FAIL',m)}}
+const rsNow=r=>{act('rs',r);if(s.rd===r)rsDone(r)};let fails=0;function A(c,m){if(!c){fails++;console.log('FAIL',m)}}
 function T(n){for(let i=0;i<n;i++){produce(1);checks()}}
 function allTabs(){const t0=s.tab;for(const t in s.tabs){s.tab=t;render()}s.tab=t0;render()}
 function clickN(a,i,n){for(let k=0;k<n;k++){s.cd={};act(a,i);checks()}}
@@ -36,7 +36,7 @@ s.fac.rot=80;s.f.rsiege=1;act('la','village.hut.key');A(has('key'),'key');
 s.r.iron+=20;s.r.wood+=200;s.r.scrap+=100;s.r.ember+=1500;act('floor','study');A(s.floors.study,'study');T(5);allTabs();
 for(let k=0;k<3;k++)act('chestTry');render();
 for(let k=0;k<3;k++)act('dial',0);act('dial',1);act('chestTry');A(s.f.chest&&s.f.bpCrossbow,'chest');
-s.r.lore+=500;['currents','herbal','render','metal','order','tactics','mech','optics','beacon'].forEach(r=>act('rs',r));A(s.rs.beacon,'research');
+s.r.lore+=500;['currents','herbal','render','metal','order','tactics','mech'].forEach(rsNow);A(s.rs.mech,'research');act('rs','beacon');A(!s.rd,'маякова справа — лише з Остапом');
 s.h.k.craft=3;s.r.scrap+=100;s.r.ember+=500;s.r.wood+=50;s.r.iron+=60;s.r.tar+=20;act('craft','cleaver');act('equip','cleaver');act('craft','crossbow');act('equip','crossbow');
 s.h.a.con=5;s.h.hp=maxHP();act('go','bay');render();
 act('la','bay.deep.eel');botFight();A(s.f.eel,'eel');
@@ -50,8 +50,8 @@ act('leave');act('go','cliffs');render();s.cd={};s.h.hp=maxHP();checks();A(quick
 act('leave');act('go','village');act('la','village.shop.crate');A(s.f.crateDone,'crate');act('tab','trade');render();act('buy','tales');
 act('leave');s.r.prov=0;A(!canGo('reef')[0],'need prov');s.r.prov+=10;act('go','reef');A(s.r.prov===8,'prov spent');act('bell',2);act('bell',2);render();[0,1,0,1].forEach(b=>act('bell',b));A(s.f.crypt,'crypt');act('la','reef.crypt.wick');A(has('wick'),'wick');
 els['rd-reef-grave-riddle']={value:'луна'};act('riddle','reef.grave.riddle');A(s.f.riddle2&&has('shell'),'riddle2');
-act('leave');act('go','fort');act('la','fort.pier.pass');s.h.hp=maxHP();act('la','fort.yard.fight');botFight();A(s.f.yard,'yard');
-act('la','fort.prison.key');A(s.f.ostap,'ostap');act('unequip','ranged');act('packRem','harpoon');act('packRem','crossbow');giveI('mail');act('equip','mail');giveI('potion',6);s.belt=['potion','bandage'];s.h.a.con=10;s.h.hp=maxHP();act('la','fort.tower.fight');A(s.cb&&s.cb.boss,'boss');botFight(800);A(s.f.gnat&&shards()===3,'gnat');act('la','fort.tower.fire');
+act('leave');const tdb=s.dbgTide;s.dbgTide='low';act('go','fort');s.dbgTide=tdb;act('la','fort.pier.pass');s.h.hp=maxHP();act('la','fort.yard.fight');botFight();A(s.f.yard,'yard');
+act('la','fort.prison.key');A(s.f.ostap,'ostap');s.r.lore+=300;['optics','beacon'].forEach(rsNow);A(s.rs.beacon,'оптика й маякова справа');act('unequip','ranged');act('packRem','harpoon');act('packRem','crossbow');giveI('mail');act('equip','mail');giveI('potion',6);s.belt=['potion','bandage'];s.h.a.con=10;s.h.hp=maxHP();act('la','fort.tower.fight');A(s.cb&&s.cb.boss,'boss');botFight(800);A(s.f.gnat&&shards()===3,'gnat');act('la','fort.tower.fire');
 act('leave');s.r.ember+=2000;act('signal');A(s.sig===1,'signal');giveI('knife');act('tab','work');render();act('dism','knife');A(!has('knife'),'dism');act('craft','lens');A(has('lens'),'lens');
 s.r.wood+=500;s.r.scrap+=300;s.r.oil+=200;s.r.ember+=7000;s.r.iron+=60;s.r.tar+=30;act('floor','lantern');A(s.floors.lantern,'lantern');render();
 act('mirror','D');act('mirror','A');act('mirror','B');A(!s.f.won,'not yet');act('mirror','C');A(s.f.won,'WON');
@@ -90,7 +90,7 @@ const st0=s.r.steel,g0=s.r.gls;T(30);A(s.r.steel>st0&&s.r.gls>g0,'steel+glass ma
 giveI('r_oar2');if(!has('r_cleaver1')&&!wF('cleaver'))giveI('r_cleaver1');giveI('r_cleaver2');s.r.steel+=20;s.r.coal+=20;act('wup','oar');A(wF('oar')===2&&wN('oar')==='Лопата хранителя','oar form2');act('wup','cleaver');act('wup','cleaver');A(wF('cleaver')===2,'cleaver2');
 s.r.gls+=10;s.h.k.craft=3;act('craft','spyglass');act('craft','steelmail');act('craft','elixir');A(has('spyglass')&&has('steelmail')&&has('elixir'),'new recipes');
 s.r.med+=10;act('go','village');act('la','village.hut.meds');A(s.f.medDone,'meds');act('leave');
-s.r.lore+=500;['a_crab','a_silent','a_fog','a_shark','weak'].forEach(r=>act('rs',r));
+s.r.lore+=500;['a_crab','a_silent','a_fog','a_shark','weak'].forEach(rsNow);
 allTabs();
 // ===== ACT 2 =====
 act('go','village');act('la','village.harbor.talk');A(s.met.marta&&s.disc.shipisle,'marta');act('leave');

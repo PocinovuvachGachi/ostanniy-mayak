@@ -43,7 +43,7 @@ function hero(){let g=0;while(s.h.pts>0&&g++<20){const k=Object.keys(s.h.a).sort
   g=0;while(s.h.fp>0&&g++<5){const f=FT.find(f=>tVis(f)&&featOk(f));if(!f)break;A('feat',f.id,2)}}
 const want=()=>{const L=[];const fi=FL.findIndex(f=>!s.floors[f.id]);const f=FL[fi];if(f&&(!f.req||f.req())&&(!f.it||afford({},f.it)))L.push(['floor',f.id,f.c]);
   for(const rc of RC)if(rcVisible(rc)&&!rc.multi&&(rc.craft||0)<=st('craft'))L.push(['craft',rc.id,rcCost(rc),rc.it]);
-  if(s.tabs.study)for(const r of RS)if(!s.rs[r.id]&&rsReady(r))L.push(['rs',r.id,{lore:rsCost(r)}]);
+  if(s.tabs.study&&!s.rd)for(const r of RS)if(!s.rs[r.id]&&rsReady(r)&&rsNeedOk(r))L.push(['rs',r.id,(s.rdp||{})[r.id]!=null?{}:{lore:rsCost(r)}]);
   if((s.b.hearth||0)<8)L.push(['bld','hearth',bCost(HEARTH)]);
   for(const b of BD)if(b.show()&&!(b.max&&(s.b[b.id]||0)>=b.max)&&(s.b[b.id]||0)<6)L.push(['bld',b.id,bCost(b)]);
   if(s.b.shipyard&&!s.f.schooner)L.unshift(['schooner','',SCHOONER]);

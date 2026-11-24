@@ -100,7 +100,7 @@ function flow(dt,dry){const L=s.b,d={};for(const k of RES)d[k]=0;const av=k=>s.r
   if(!dry)for(const k of RES)if(d[k]){add(k,d[k]);if(s.r[k]<0)s.r[k]=0}
   return d}
 function rates(){const d=flow(1,true);d.xp=(s.b.dummy||0)*0.08;return d}
-function produce(dt){s.play=(s.play||0)+dt;flow(dt);const L=s.b;
+function produce(dt){s.play=(s.play||0)+dt;flow(dt);rdTick(dt);const L=s.b;
   if(L.dummy)xp(L.dummy*0.08*dt);
   if(!s.cb)s.h.hp=Math.min(maxHP(),s.h.hp+regenRate()*dt);
 }
