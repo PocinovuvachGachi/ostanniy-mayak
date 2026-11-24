@@ -529,6 +529,7 @@ function refresh(){
   document.querySelectorAll('[data-w]').forEach(el=>{const f=B[el.dataset.w];if(f)el.style.width=f()+'%'});
   const now=Date.now();
   document.querySelectorAll('[data-cd]').forEach(el=>{const left=(s.cd[el.dataset.cd]||0)-now;el.style.setProperty('--p',left>0?String(left/(+el.dataset.cs*1000)):'0')});
+  {const m=mlaV().toFixed(2);document.querySelectorAll('.scn').forEach(el=>{if(el.style&&el.style.getPropertyValue('--mla')!==m)el.style.setProperty('--mla',m)})}
   rTop();rToast();animTick();if((bdg9=(bdg9+1)%4)===0)badges9()}
 let bdg9=0;function badges9(){const el=$('tabs');if(!el||!el.querySelectorAll)return;el.querySelectorAll('button[data-i]').forEach(b=>{const t=b.dataset.i,n=s.tab!==t&&isNew(t);if(b.classList.contains('new')!==n)b.classList.toggle('new',n)})}
 function dlgImg(m){if(!m)return'';if(m.t==='scene')return sceneImg(m.id);if(m.t==='yard')return yardImg();

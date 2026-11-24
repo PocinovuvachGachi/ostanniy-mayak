@@ -91,13 +91,15 @@ function mgFish(){const str=(s.h.a.str||2),lo=25,hi=Math.min(90,78+2*Math.max(0,
     down(){hold=1;MG.f.classList.add('hold')},up(){hold=0;if(MG)MG.f.classList.remove('hold')},
     end:fishEnd})}
 function forgeEnd(id,res,skip){if(res>0){s.wfb=s.wfb||{};const v=Math.min(2,(s.wfb[id]||0)+1);s.wfb[id]=v;say(`${skip==='auto'?(mgHelp('forge')?'Кіндрат постарався: ':'Звичне кування вдалося: '):'Добре кування: '}${wN(id)} б’є на 1 сильніше.`,'find')}else if(skip!==1)say('Кування вийшло звичайним. Зброя все одно стала кращою.','world')}
-function mgForge(id){let strikes=0,good=0,heat=0;const per=1.7;
-  mgStart({type:'forge',title:'Кування: '+wN(id),hint:'Метал то розжарюється, то холоне. Бий молотом, коли він світиться найяскравіше.',
-    field:`<div class="mgforge"><div class="mgmetal"></div><img class="mgw" src="${wIco(id)}" alt=""><div class="mgheat"><i></i></div></div>`,
+const smithN=()=>1+Math.floor((s.b.forge||1)/2);
+function smithEnd(res,skip){if(res>0){const n=2+smithN()*2;add('iron',n);say(`${skip==='auto'?(mgHelp('forge')?'Кіндрат перехопив молот: ':'Звичний удар: '):'Дзвінко! '}розжарена заготовка дала ще ${R('iron',n)}.`,'find')}else if(skip!==1)say('Удари вийшли звичайними, заготовка охолола.','world')}
+function mgForge(id){let strikes=0,good=0,heat=0;const per=1.7,sm=id==='smith';
+  mgStart({type:'forge',title:sm?'Розжарена заготовка':'Кування: '+wN(id),hint:'Метал то розжарюється, то холоне. Бий молотом, коли він світиться найяскравіше.',
+    field:`<div class="mgforge"><div class="mgmetal"></div><img class="mgw" src="${sm?icoURL('iron'):wIco(id)}" alt=""><div class="mgheat"><i></i></div></div>`,
     tick(dt,tt){heat=Math.sin((tt%per)/per*Math.PI);const m=MG.f.querySelector('.mgmetal');m.style.opacity=String(0.25+heat*0.75);m.style.boxShadow=`0 0 ${Math.round(heat*30)}px rgba(255,170,60,${heat})`;MG.f.querySelector('.mgheat i').style.width=(heat*100)+'%';if(tt>25)mgEnd(good>=3?1:0)},
     init(){MG.st.textContent='ударів: 0/3'},
     down(){if(strikes>=3)return;strikes++;const ok=heat>0.82-0.02*Math.max(0,(s.h.a.str||2)-2);if(ok)good++;mgMsg(ok?'Дзвінкий удар!':'Метал ще холодний.',ok?'ok':'');MG.st.textContent=`ударів: ${strikes}/3`;MG.f.classList.remove('hit');void MG.f.offsetWidth;MG.f.classList.add('hit');if(strikes>=3)mgEnd(good>=3?1:0)},
-    end:(res,skip)=>forgeEnd(id,res,skip)})}
-function nope(el){sfx('nope');try{el.classList.remove('nope');void el.offsetWidth;el.classList.add('nope');const k=el.dataset.cd,tx={fishing:'Ще не клює',gather:'Хвиля ще далеко',scrapw:'Руки ще не відпочили',blow:'Жарина ще жевріє'}[k]||'Зачекай';
+    end:(res,skip)=>sm?smithEnd(res,skip):forgeEnd(id,res,skip)})}
+function nope(el){sfx('nope');try{el.classList.remove('nope');void el.offsetWidth;el.classList.add('nope');const k=el.dataset.cd,tx={fishing:'Ще не клює',gather:'Хвиля ще далеко',scrapw:'Руки ще не відпочили',blow:'Жарина ще жевріє',smith:'Метал ще не нагрівся'}[k]||'Зачекай';
   const b=el.getBoundingClientRect(),p=document.createElement('div');p.className='fpop ny';p.style.left=(b.left+b.width/2+scrollX)+'px';p.style.top=(b.top+scrollY-4)+'px';p.textContent=tx;document.body.appendChild(p);setTimeout(()=>p.remove(),1100)}catch(e){}}
 

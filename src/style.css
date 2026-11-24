@@ -743,3 +743,31 @@ button.hs.zone:hover,button.hs.zone:focus-visible{background:transparent;border:
 #dbg textarea{width:100%;box-sizing:border-box;font:10px var(--mono);background:#16252e;color:#e3ebe6;border:1px solid #4a7486;margin-top:4px}
 #dbg .dbgl{margin:6px 0 0;color:#b3c5c4}
 #dbg details:not([open]){width:auto}
+/* Світло й видима Мла */
+.scn .lt{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:950;mix-blend-mode:screen;image-rendering:pixelated;opacity:.95}
+.scn .ltf{animation:ltf 2.6s steps(1,end) infinite;animation-delay:var(--d)}
+@keyframes ltf{0%{opacity:.95;transform:scale(1)}13%{opacity:.82;transform:scale(.985)}27%{opacity:1;transform:scale(1.012)}41%{opacity:.88;transform:scale(.995)}58%{opacity:.97;transform:scale(1.008)}72%{opacity:.8;transform:scale(.98)}86%{opacity:.93;transform:scale(1.004)}}
+.scn .lt:not(.ltf){animation:ltw 7s ease-in-out infinite alternate;animation-delay:var(--d)}
+@keyframes ltw{from{opacity:.8}to{opacity:1}}
+.scn{--mla:0}
+.scm{position:absolute;inset:0;pointer-events:none;z-index:940;overflow:hidden}
+.mla{position:absolute;left:0;width:200%;top:var(--t);height:var(--h);background-repeat:repeat-x;background-size:50% 100%;image-rendering:pixelated;opacity:calc(var(--mla) * .7);transform:translateY(calc((1 - var(--mla)) * 30%));transition:opacity 4s ease,transform 6s ease;animation:fogm 160s linear infinite;animation-delay:var(--d2)}
+.mla.m2{opacity:calc(var(--mla) * var(--mla) * .6);animation-duration:100s;animation-direction:reverse;transform:translateY(calc((1 - var(--mla)) * 40% - 12%))}
+.scn .fog{opacity:calc(.14 + var(--mla) * .2)}
+.scn .fog.f2{opacity:calc(.09 + var(--mla) * .15)}
+@media (prefers-reduced-motion:reduce){.scn .ltf,.scn .lt,.mla{animation:none}}
+/* Велика риба й розжарена заготовка: об'єкт кличе, але не змушує */
+.ob.bite .obi{animation:bitesh .28s steps(2,end) infinite}
+@keyframes bitesh{0%{transform:translate(0,0) rotate(0)}50%{transform:translate(1px,-1px) rotate(-2deg)}100%{transform:translate(-1px,1px) rotate(1.5deg)}}
+.ob.bite .bang{opacity:1!important;font-size:18px}
+.ob.bite .obo{opacity:.9}
+@media (prefers-reduced-motion:reduce){.ob.bite .obi{animation:none}}
+/* Кування в діалозі удосконалення */
+.fgx{position:relative;height:46px;margin:0 auto 6px;width:90px}
+.fgx .fgh{position:absolute;left:30px;top:2px;width:26px;height:10px;background:#7a7468;box-shadow:0 0 0 2px #0b1418,10px 10px 0 -2px #7a5232;transform-origin:90% 90%;animation:fgh .9s cubic-bezier(.5,0,.8,.4) infinite}
+.fgx::after{content:"";position:absolute;left:22px;bottom:4px;width:46px;height:9px;background:#4a4f56;box-shadow:0 0 0 2px #0b1418,inset 0 2px 0 #8a929a}
+.fgx b{position:absolute;left:44px;bottom:12px;width:3px;height:3px;background:#ffd36a;opacity:0;animation:fgs .9s ease-out infinite}
+.fgx b:nth-child(2){--dx:-26px;--dy:-18px}.fgx b:nth-child(3){--dx:24px;--dy:-22px;animation-delay:.02s}.fgx b:nth-child(4){--dx:-14px;--dy:-30px;animation-delay:.04s}.fgx b:nth-child(5){--dx:32px;--dy:-8px}.fgx b:nth-child(6){--dx:-34px;--dy:-6px;animation-delay:.03s}
+@keyframes fgh{0%,100%{transform:rotate(-40deg)}55%{transform:rotate(-40deg)}75%{transform:rotate(6deg)}}
+@keyframes fgs{0%,72%{opacity:0;transform:translate(0,0)}75%{opacity:1}100%{opacity:0;transform:translate(var(--dx),var(--dy))}}
+@media (prefers-reduced-motion:reduce){.fgx .fgh,.fgx b{animation:none}}

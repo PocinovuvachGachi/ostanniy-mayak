@@ -2,19 +2,36 @@
 const PAL={'0':'#0b1418','1':'#16252e','2':'#22394a','3':'#2f5163','4':'#4a7486','5':'#7c9ca3','6':'#b3c5c4','7':'#e3ebe6',
  '8':'#2c2a27','9':'#4d4a44','a':'#7a7468','b':'#a89c82','c':'#4a3220','d':'#7a5232','e':'#a8763f','f':'#c8761c','g':'#f0b84a','h':'#fff0b0',
  'i':'#8f2f2b','j':'#c9584a','k':'#3d5a34','l':'#6f8a4c','m':'#d9a27c','n':'#a86f52','o':'#5c4a6e','p':'#8a8f96','q':'#c3c9cf'};
-function pbuf(w,h,f){return{w,h,p:new Array(w*h).fill(f||'.')}}
-function pset(b,x,y,c){x|=0;y|=0;if(x>=0&&y>=0&&x<b.w&&y<b.h&&c!=='.')b.p[y*b.w+x]=c}
-function pget(b,x,y){return(x>=0&&y>=0&&x<b.w&&y<b.h)?b.p[y*b.w+x]:'.'}
-function prect(b,x,y,w,h,c){for(let j=0;j<h;j++)for(let i=0;i<w;i++)pset(b,x+i,y+j,c)}
+/* Растр із масштабом. Малюємо в «логічних» пікселях (w×h), а буфер має k-кратну роздільність (W×H).
+   Сцени (двір, берег) малюються з k=SK: контури, лінії, градієнти й шум виходять у 1,5 раза дрібніші.
+   Усередині polyFill колбек отримує логічні координати, а точні — у EXX/EXY (для дрібних текстур). */
+let PK=1;const SK=1.5,OP=2/SK;
+function pbuf(w,h,f){const k=PK,W=Math.round(w*k),H=Math.round(h*k);return{w,h,k,W,H,p:new Array(W*H).fill(f||'.')}}
+let EXB=null,EXX=0,EXY=0,EXL=0,EXT=0;
+function phx(b,x,y,c){if(c!=='.'&&x>=0&&y>=0&&x<b.W&&y<b.H)b.p[y*b.W+x]=c}
+function pset(b,x,y,c){if(c==='.')return;if(b.k===1){x|=0;y|=0;if(x>=0&&y>=0&&x<b.w&&y<b.h)b.p[y*b.w+x]=c;return}
+  if(b===EXB&&x===EXL&&y===EXT){b.p[EXY*b.W+EXX]=c;return}
+  const k=b.k;x=Math.floor(x);y=Math.floor(y);const x0=Math.max(0,Math.round(x*k)),x1=Math.min(b.W,Math.round((x+1)*k)),y0=Math.max(0,Math.round(y*k)),y1=Math.min(b.H,Math.round((y+1)*k));
+  for(let j=y0;j<y1;j++)for(let i=x0;i<x1;i++)b.p[j*b.W+i]=c}
+function pget(b,x,y){if(b.k===1)return(x>=0&&y>=0&&x<b.w&&y<b.h)?b.p[y*b.w+x]:'.';if(b===EXB&&x===EXL&&y===EXT)return b.p[EXY*b.W+EXX];
+  const hx=Math.floor((Math.floor(x)+.5)*b.k),hy=Math.floor((Math.floor(y)+.5)*b.k);return(hx>=0&&hy>=0&&hx<b.W&&hy<b.H)?b.p[hy*b.W+hx]:'.'}
+function prect(b,x,y,w,h,c){if(b.k===1){for(let j=0;j<h;j++)for(let i=0;i<w;i++)pset(b,x+i,y+j,c);return}
+  const k=b.k,x0=Math.round(x*k),x1=Math.round((x+Math.ceil(w))*k),y0=Math.round(y*k),y1=Math.round((y+Math.ceil(h))*k);for(let j=y0;j<y1;j++)for(let i=x0;i<x1;i++)phx(b,i,j,c)}
+/* Текстура в точній роздільності: fn(hx,hy,x,y) повертає колір або нічого (x,y — логічні дробові) */
+function hiRect(b,x,y,w,h,fn){const k=b.k||1,X0=Math.round(x*k),X1=Math.round((x+w)*k),Y0=Math.round(y*k),Y1=Math.round((y+h)*k);for(let j=Y0;j<Y1;j++)for(let i=X0;i<X1;i++){const c=fn(i,j,i/k,j/k);if(c)phx(b,i,j,c)}}
+const hh2=(a,b)=>{let t=Math.imul(a*374761393+b*668265263|0,1274126177);t^=t>>>13;return(t>>>0)%1000/1000};
+/* Буфер-обгортка: виконати малювання з масштабом SK */
+const HI=f=>function(...a){const o=PK;PK=SK;try{return f.apply(this,a)}finally{PK=o}};
 function pblit(b,rows,x,y,map){rows.forEach((r,j)=>{for(let i=0;i<r.length;i++){let c=r[i];if(map&&map[c])c=map[c];pset(b,x+i,y+j,c)}})}
 function rng(seed){let a=seed>>>0;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
-function pnoise(b,x,y,w,h,c,dens,seed){const R=rng(seed);for(let j=0;j<h;j++)for(let i=0;i<w;i++)if(R()<dens)pset(b,x+i,y+j,c)}
+function pnoise(b,x,y,w,h,c,dens,seed){const R=rng(seed);if(b.k!==1){const k=b.k,X0=Math.round(x*k),Y0=Math.round(y*k),X1=Math.round((x+w)*k),Y1=Math.round((y+h)*k);for(let j=Y0;j<Y1;j++)for(let i=X0;i<X1;i++)if(R()<dens)phx(b,i,j,c);return}for(let j=0;j<h;j++)for(let i=0;i<w;i++)if(R()<dens)pset(b,x+i,y+j,c)}
 function ppoly(b,pts,c){let y0=Infinity,y1=-Infinity;for(const p of pts){y0=Math.min(y0,p[1]);y1=Math.max(y1,p[1])}
   for(let y=Math.floor(y0);y<=Math.ceil(y1);y++){const xs=[];for(let i=0;i<pts.length;i++){const[a,b2]=[pts[i],pts[(i+1)%pts.length]];
     if((a[1]<=y+.5&&b2[1]>y+.5)||(b2[1]<=y+.5&&a[1]>y+.5)){xs.push(a[0]+(y+.5-a[1])*(b2[0]-a[0])/(b2[1]-a[1]))}}
     xs.sort((p,q)=>p-q);for(let k=0;k+1<xs.length;k+=2)for(let x=Math.round(xs[k]);x<Math.round(xs[k+1]);x++)pset(b,x,y,c)}}
-function pline(b,x0,y0,x1,y1,c){const n=Math.max(Math.abs(x1-x0),Math.abs(y1-y0))||1;for(let i=0;i<=n;i++)pset(b,Math.round(x0+(x1-x0)*i/n),Math.round(y0+(y1-y0)*i/n),c)}
-function dither(b,x,y,w,h,c,phase){for(let j=0;j<h;j++)for(let i=0;i<w;i++)if((i+j+(phase||0))%2===0)pset(b,x+i,y+j,c)}
+function pline(b,x0,y0,x1,y1,c){if(b.k!==1){const k=b.k,f=v=>(v+.5)*k-.5,a=f(x0),bb=f(y0),cx=f(x1),cy=f(y1),n=Math.max(1,Math.round(Math.max(Math.abs(cx-a),Math.abs(cy-bb)))),st=Math.abs(cx-a)>=Math.abs(cy-bb);
+    for(let i=0;i<=n;i++){const X=Math.round(a+(cx-a)*i/n),Y=Math.round(bb+(cy-bb)*i/n);phx(b,X,Y,c);if(st)phx(b,X,Y+1,c);else phx(b,X+1,Y,c)}return}const n=Math.max(Math.abs(x1-x0),Math.abs(y1-y0))||1;for(let i=0;i<=n;i++)pset(b,Math.round(x0+(x1-x0)*i/n),Math.round(y0+(y1-y0)*i/n),c)}
+function dither(b,x,y,w,h,c,phase){if(b.k!==1){const k=b.k;for(let j=Math.round(y*k);j<Math.round((y+h)*k);j++)for(let i=Math.round(x*k);i<Math.round((x+w)*k);i++)if((i+j+(phase||0))%2===0)phx(b,i,j,c);return}for(let j=0;j<h;j++)for(let i=0;i<w;i++)if((i+j+(phase||0))%2===0)pset(b,x+i,y+j,c)}
 /* sky with fog band, sea with waves */
 function psky(b,hz,night){const W=b.w;prect(b,0,0,W,hz,night?'0':'1');
   const t1=Math.floor(hz*0.35),t2=Math.floor(hz*0.65);
@@ -343,7 +360,7 @@ function towerCut(st,k){const W=96,H=128,b=pbuf(W,H),F=st.floors||{},lit=!!st.wo
 /* to data URL (browser), cached */
 const PXC={},PXK={};
 function pxURL(key,make){if(PXC[key])return PXC[key];const b=make();let u='';
-  try{const cv=document.createElement('canvas');if(cv&&cv.getContext){cv.width=b.w;cv.height=b.h;const g=cv.getContext('2d');const im=g.createImageData(b.w,b.h);
+  try{const cv=document.createElement('canvas');if(cv&&cv.getContext){cv.width=b.W||b.w;cv.height=b.H||b.h;const g=cv.getContext('2d');const im=g.createImageData(cv.width,cv.height);
     for(let i=0;i<b.p.length;i++){const c=b.p[i];if(c==='.')continue;const hex=PAL[c];im.data[i*4]=parseInt(hex.slice(1,3),16);im.data[i*4+1]=parseInt(hex.slice(3,5),16);im.data[i*4+2]=parseInt(hex.slice(5,7),16);im.data[i*4+3]=255}
     g.putImageData(im,0,0);u=cv.toDataURL('image/png')}}catch(e){u=''}
   if(u)PXK[u]=key;return PXC[key]=u}

@@ -30,7 +30,7 @@ function act0(a,i){
     if(s.c.gather===6){say('Між водоростями блищить пляшка, заткнута воском. Усередині записка. Відкрито: Журнал.','story');page(1)}
     if(s.c.gather===60)odd('gull','У плавнику застрягла вирізана з дерева чайка.')}break;
   case 'scrapw':if(F.wreck&&!onCd('scrapw')){setCd('scrapw',2);add('scrap',1+(s.rs.metal?1:0)+(s.h.ft.thrifty?1:0))}break;
-  case 'fishing':if(F.rod&&!onCd('fishing')){setCd('fishing',3);if(s.c.fish>=6&&F.crab1&&(mgOk()||mgHabit('fish')||s.quickMG)&&Math.random()<1/8){s.c.fish++;mgRun('fish',mgFish,fishEnd);break}add('fish',wolf());s.c.fish++;
+  case 'fishing':if(F.rod&&!onCd('fishing')){setCd('fishing',3);if(!s.bite&&s.c.fish>=6&&F.crab1&&Date.now()-(s.bigT||0)>240000&&Math.random()<1/6){s.bigT=Date.now();if(mgHabit('fish')||s.quickMG){s.c.fish++;mgRun('fish',mgFish,fishEnd);break}s.bite={until:Date.now()+30000};say('Вудка вигнулася дугою: щось велике тягне линву!','find');break}add('fish',wolf());s.c.fish++;
     if(!F.crab1&&!F.crabWarn&&s.c.fish>=5){F.crabWarn=1;crabWarn()}}break;
   case 'bld':{const b=i==='hearth'?HEARTH:BD.find(x=>x.id===i);if(b.max&&(s.b[i]||0)>=b.max)break;const c=bCost(b);if(afford(c)){pay(c);s.b[i]=(s.b[i]||0)+1;upT[i]=Date.now();if(typeof setTimeout==="function")setTimeout(()=>{dirty=1},1700);
     say(i==='hearth'&&s.b[i]===1?'Ти складаєш вогнище з плавника й кладеш у нього жарину. Полум’я оживає, а приплив тепер сам приносить трохи плавника до порогу.':`${b.n}: рівень ${s.b[i]}.`,'world')}break}
@@ -56,8 +56,8 @@ function act0(a,i){
   case 'packRem':s.pack=s.pack.filter(x=>x!==i);for(const sl of['weapon','ranged'])if(s.eq[sl]===i)s.eq[sl]='';break;
   case 'beltAdd':if(has(i)&&IT[i].use&&!s.belt.includes(i)&&s.belt.length<beltSlots())s.belt.push(i);break;
   case 'beltRem':s.belt=s.belt.filter(x=>x!==i);break;
-  case 'wup':{const tier=wF(i),cst=wfCost(tier),rel=REL[i]&&REL[i][tier];if(!cst||!WF[i]||!s.b.forge||!has(i)||wmLv(i)<WFM[tier]||!rel||!has(rel)||!afford(cst))break;const old=wN(i);pay(cst);s.inv[rel]--;s.wf=s.wf||{};s.wf[i]=tier+1;mgRun('forge',()=>setTimeout(()=>mgForge(i),60),(r,sk)=>forgeEnd(i,r,sk));
-    say(`Кузня: ${I(old)} тепер ${I(wN(i))}.`,'find');dlg({k:'find',title:`Удосконалено: ${wN(i)}`,img:{t:'wico',id:i},body:`<p>${tier&&s.mst.kindrat?`${P('Кіндрат')} гартує сталь, і ${old.toLowerCase()} стає зовсім іншою зброєю.`:`Кузня гуде до ночі. ${IT[rel].n} лягає на своє місце, і ${old.toLowerCase()} виходить з горна новою зброєю.`}</p>`,gains:['+2 урону',`Нова особливість: ${WF[i][tier].tr}`,'Старі особливості й прийоми майстерності лишаються']});break}
+  case 'wup':{const tier=wF(i),cst=wfCost(tier),rel=REL[i]&&REL[i][tier];if(!cst||!WF[i]||!s.b.forge||!has(i)||wmLv(i)<WFM[tier]||!rel||!has(rel)||!afford(cst))break;const old=wN(i);pay(cst);s.inv[rel]--;s.wf=s.wf||{};s.wf[i]=tier+1;
+    say(`Кузня: ${I(old)} тепер ${I(wN(i))}.`,'find');dlg({k:'find',title:`Удосконалено: ${wN(i)}`,img:{t:'wico',id:i},body:`<div class="fgx" aria-hidden="true"><span class="fgh"></span><b></b><b></b><b></b><b></b><b></b></div><p>${tier&&s.mst.kindrat?`${P('Кіндрат')} гартує сталь, і ${old.toLowerCase()} стає зовсім іншою зброєю.`:`Кузня гуде до ночі. ${IT[rel].n} лягає на своє місце, і ${old.toLowerCase()} виходить з горна новою зброєю.`}</p>`,gains:['+2 урону',`Нова особливість: ${WF[i][tier].tr}`,'Старі особливості й прийоми майстерності лишаються']});break}
   case 'wk+':if(BD.find(b=>b.id===i)&&WKB.includes(i)&&freeW()>0&&((s.wk||{})[i]||0)<(s.b[i]||0)){s.wk=s.wk||{};s.wk[i]=(s.wk[i]||0)+1}break;
   case 'wk-':if((s.wk||{})[i]>0)s.wk[i]--;break;
   case 'olheal':if(s.mst.olesya&&!onCd('olheal')&&s.h.hp<maxHP()){setCd('olheal',120);s.h.hp=maxHP();say(`${P('Олеся')} перев’язує тебе й мастить рани зіллям. Ти знову повний сил.`)}break;
@@ -101,6 +101,10 @@ function act0(a,i){
   case 'beam':{const n=+i;if(!s.f.won||n===(s.beam||0)||n<0||n>5||s.r.oil<3)break;s.r.oil-=3;s.beam=n;break}
   case 'flot':{const f=s.flot;if(!f)break;s.flot=null;s.flotT=Date.now()+(150+Math.random()*120)*1000;flotTake(f.k,+i>1?+i:1);break}
   case 'flotmg':{const f=s.flot;if(!f)break;if(f.k==='bottle'){act('flot');break}mgRun('flot',()=>{f.until=Math.max(f.until,Date.now()+90000);mgFlot(f.k)},r=>act('flot',r>1?String(r):'1'));break}
+  case 'bigfish':{if(!s.bite)break;s.bite=null;s.c.fish++;mgRun('fish',mgFish,fishEnd);break}
+  case 'smith':{if(!s.b.forge||onCd('smith')||s.hot)break;const c={scrap:4,ember:2};if(!afford(c)){say(`Для кування треба ${costTxt(c)}.`,'world');break}pay(c);setCd('smith',4);const n=smithN();add('iron',n);
+    if(Date.now()-(s.hotT||0)>180000&&Math.random()<1/7){s.hotT=Date.now();if(mgHabit('forge')||s.quickMG)mgRun('forge',null,smithEnd);else{s.hot={until:Date.now()+30000};say('Заготовка розжарилася як слід: ще удар у слушну мить, і метал віддасть більше.','find')}}break}
+  case 'smithhot':{if(!s.hot)break;s.hot=null;mgRun('forge',()=>mgForge('smith'),smithEnd);break}
   case 'mghab':{s.mgHab=s.mgHab||{};s.mgHab[i]=s.mgHab[i]?0:1;break}
   case 'sett':break;
   case 'qmg':s.quickMG=s.quickMG?0:1;break;
@@ -121,7 +125,7 @@ function rcVisible(rc){if(rc.req&&!rc.req())return false;if(rc.tool)return rc.id
 
 
 /* Мла збирається на метушню: її додають лише дії гравця. Поки біля маяка тихо — вона дрімає. */
-const MLA_A={gather:0.08,scrapw:0.15,fishing:0.2,blow:0.05,bld:1.5,floor:2,craft:1,wup:1.5,schooner:2,exp:0.8};
+const MLA_A={smith:0.15,gather:0.08,scrapw:0.15,fishing:0.2,blow:0.05,bld:1.5,floor:2,craft:1,wup:1.5,schooner:2,exp:0.8};
 let paidN=0;
 function act(a,i){s.lastAct=Date.now();const w=MLA_A[a],fx=SFXA[a];if(!w&&!fx){act0(a,i);return}const cd0=s.cd[a],p0=paidN,ap0=s.cb?s.cb.ap:null;act0(a,i);
   if(s.cd[a]!==cd0||paidN!==p0||(s.cb&&ap0!==null&&s.cb.ap!==ap0)){if(w)mlaAdd(w);if(fx)sfx(fx)}}

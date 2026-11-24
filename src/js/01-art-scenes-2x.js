@@ -5,28 +5,34 @@ Object.assign(PAL,{A:'#070d16',B:'#0c1624',C:'#132235',D:'#24262b',E:'#34373d',F
 const BAY=[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];
 const bay=(x,y)=>BAY[y&3][x&3]/16;
 /* vertical ramp with ordered dithering */
-function rampV(b,x,y,w,h,cols){const n=cols.length-1;for(let j=0;j<h;j++){const t=h>1?j/(h-1)*n:0,k=Math.min(n-1,Math.floor(t)),f=t-k;for(let i=0;i<w;i++)pset(b,x+i,y+j,f>bay(x+i,y+j)?cols[Math.min(n,k+1)]:cols[k])}}
-function ditherBlend(b,x,y,w,h,c,amt){for(let j=0;j<h;j++)for(let i=0;i<w;i++)if(amt>bay(x+i,y+j))pset(b,x+i,y+j,c)}
+function rampV(b,x,y,w,h,cols){const n=cols.length-1;if(b.k!==1){const k=b.k,X0=Math.round(x*k),X1=Math.round((x+w)*k),Y0=Math.round(y*k),HH=Math.round((y+h)*k)-Y0;
+    for(let j=0;j<HH;j++){const t=HH>1?j/(HH-1)*n:0,kk=Math.min(n-1,Math.floor(t)),f=t-kk;for(let i=X0;i<X1;i++)phx(b,i,Y0+j,f>bay(i,Y0+j)?cols[Math.min(n,kk+1)]:cols[kk])}return}for(let j=0;j<h;j++){const t=h>1?j/(h-1)*n:0,k=Math.min(n-1,Math.floor(t)),f=t-k;for(let i=0;i<w;i++)pset(b,x+i,y+j,f>bay(x+i,y+j)?cols[Math.min(n,k+1)]:cols[k])}}
+function ditherBlend(b,x,y,w,h,c,amt){if(b.k!==1){const k=b.k;for(let j=Math.round(y*k);j<Math.round((y+h)*k);j++)for(let i=Math.round(x*k);i<Math.round((x+w)*k);i++)if(amt>bay(i,j))phx(b,i,j,c);return}for(let j=0;j<h;j++)for(let i=0;i<w;i++)if(amt>bay(x+i,y+j))pset(b,x+i,y+j,c)}
 function polyFill(b,pts,fn){let y0=Infinity,y1=-Infinity;for(const p of pts){y0=Math.min(y0,p[1]);y1=Math.max(y1,p[1])}
+  if(b.k&&b.k!==1){const k=b.k,sv=[EXB,EXX,EXY,EXL,EXT];EXB=b;try{for(let hy=Math.floor(y0*k);hy<=y1*k;hy++){const y=hy/k,xs=[];for(let i=0;i<pts.length;i++){const[a,c]=[pts[i],pts[(i+1)%pts.length]];if((a[1]<=y&&c[1]>y)||(c[1]<=y&&a[1]>y))xs.push(a[0]+(y-a[1])*(c[0]-a[0])/(c[1]-a[1]))}
+      xs.sort((p,q)=>p-q);for(let q=0;q+1<xs.length;q+=2)for(let hx=Math.ceil(xs[q]*k);hx<xs[q+1]*k;hx++){EXX=hx;EXY=hy;EXL=Math.floor(hx/k);EXT=Math.floor(y);fn(EXL,EXT)}}}finally{[EXB,EXX,EXY,EXL,EXT]=sv}return}
   for(let y=Math.floor(y0);y<=y1;y++){const xs=[];for(let i=0;i<pts.length;i++){const[a,c]=[pts[i],pts[(i+1)%pts.length]];if((a[1]<=y&&c[1]>y)||(c[1]<=y&&a[1]>y))xs.push(a[0]+(y-a[1])*(c[0]-a[0])/(c[1]-a[1]))}
     xs.sort((p,q)=>p-q);for(let k=0;k+1<xs.length;k+=2)for(let x=Math.ceil(xs[k]);x<xs[k+1];x++)fn(x,y)}}
-function outline2(b,c){const o=pbuf(b.w+2,b.h+2);for(let y=-1;y<=b.h;y++)for(let x=-1;x<=b.w;x++){if(pget(b,x,y)!=='.')continue;
+function outline2(b,c){if(b.k!==1){const W=b.W+4,H=b.H+4,o={w:b.w+2*OP,h:b.h+2*OP,k:b.k,W,H,p:new Array(W*H).fill('.')},g=(X,Y)=>X>=0&&Y>=0&&X<b.W&&Y<b.H?b.p[Y*b.W+X]:'.';
+    const r1=new Uint8Array(W*H);for(let y=-2;y<b.H+2;y++)for(let x=-2;x<b.W+2;x++){if(g(x,y)!=='.')continue;if(g(x+1,y)!=='.'||g(x-1,y)!=='.'||g(x,y+1)!=='.'||g(x,y-1)!=='.'){r1[(y+2)*W+x+2]=1;o.p[(y+2)*W+x+2]=c}}
+    for(let y=0;y<H;y++)for(let x=0;x<W;x++){if(r1[y*W+x]||g(x-2,y-2)!=='.')continue;if((x+1<W&&r1[y*W+x+1])||(x>0&&r1[y*W+x-1])||(y+1<H&&r1[(y+1)*W+x])||(y>0&&r1[(y-1)*W+x]))o.p[y*W+x]=c}return o}
+  const o=pbuf(b.w+2,b.h+2);for(let y=-1;y<=b.h;y++)for(let x=-1;x<=b.w;x++){if(pget(b,x,y)!=='.')continue;
   for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]])if(pget(b,x+dx,y+dy)!=='.'){pset(o,x+1,y+1,c);break}}return o}
 /* generic hut: ramps dark->light */
 function hut(w,wallH,roofH,o){const b=pbuf(w,wallH+roofH+(o.chim?8:0));const top=o.chim?8:0,wy=top+roofH;
   const wr=o.wall,rr=o.roof;prect(b,1,wy,w-2,wallH,wr[1]);
-  if(o.brick){for(let y=wy;y<wy+wallH;y++)for(let x=1;x<w-1;x++){const row=(y-wy)>>1,off=row%2?2:0;if((y-wy)%2===1||((x+off)%5===0))pset(b,x,y,wr[0])}}
-  else{for(let x=2;x<w-1;x+=3)prect(b,x,wy,1,wallH,wr[0]);for(let y=wy;y<wy+wallH;y++)if(((y*7)%5)===0)pset(b,(y*13)%(w-3)+1,y,wr[2])}
+  {const k=b.k||1,Y0=Math.round(wy*k);if(o.brick)hiRect(b,1,wy,w-2,wallH,(i,j)=>{const ly=j-Y0,row=Math.floor(ly/3),off=row%2?3:0,bi=Math.floor((i+off)/7);return ly%3===2||(i+off)%7===0?wr[0]:hh2(bi,row)<.18?wr[2]:hh2(bi+7,row)<.12?wr[0]:null});
+    else hiRect(b,1,wy,w-2,wallH,(i,j)=>{const p=Math.floor(i/4);return i%4===3?wr[0]:hh2(p,j>>1)<.07?wr[2]:hh2(p*3,j)<.04?wr[0]:null})}
   prect(b,1,wy,1,wallH,wr[2]);prect(b,w-2,wy,1,wallH,wr[0]);prect(b,1,wy+wallH-1,w-2,1,wr[0]);
-  for(let j=0;j<roofH;j++){const ins=Math.round((roofH-1-j)*(w/2-2)/Math.max(1,roofH-1)*(o.flat?0.35:1));const y=top+j;
-    for(let x=ins;x<w-ins;x++){const sh=x<w/2?rr[2]:rr[1];pset(b,x,y,(j%3===2)?rr[0]:sh)}pset(b,ins,y,rr[0]);pset(b,w-1-ins,y,rr[0])}
+  {const k=b.k||1;for(let hj=Math.round(top*k);hj<Math.round((top+roofH)*k);hj++){const jf=Math.min(roofH-1,hj/k-top),ins=(roofH-1-jf)*(w/2-2)/Math.max(1,roofH-1)*(o.flat?0.35:1),X0=Math.round(ins*k),X1=Math.round((w-ins)*k),row=Math.floor(hj/4),off=row%2?3:0;
+    for(let hx=X0;hx<X1;hx++){const sh=hx<w*k/2?rr[2]:rr[1];phx(b,hx,hj,hx===X0||hx===X1-1||hj%4===3||((hx+off)%6===0&&hj%4>1)?rr[0]:hh2(Math.floor((hx+off)/6),row)<.15?rr[1]:sh)}}}
   if(o.door){const dw=o.dw||4,dx=o.dx!=null?o.dx:Math.floor(w/2-dw/2),dh=Math.min(wallH-1,o.dh||7);prect(b,dx,wy+wallH-dh,dw,dh,o.glow?'K':'x');if(o.glow){prect(b,dx+1,wy+wallH-dh+2,dw-2,dh-2,'J');prect(b,dx+1,wy+wallH-3,dw-2,2,'I')}prect(b,dx-1,wy+wallH-dh-1,dw+2,1,wr[0])}
   if(o.win)for(const wx of o.win){prect(b,wx,wy+3,3,3,o.lit?'J':'x');if(o.lit)pset(b,wx+1,wy+4,'I');prect(b,wx-1,wy+6,5,1,wr[2])}
   if(o.chim){const cx=o.chimX||w-6;prect(b,cx,1,3,top+Math.floor(roofH/2),'F');prect(b,cx,1,1,top+Math.floor(roofH/2),'G');prect(b,cx-1,0,5,1,'E')}
   return b}
 function barrel(b,x,y){prect(b,x,y,6,7,'X');prect(b,x,y,1,7,'W');prect(b,x+5,y,1,7,'V');prect(b,x,y+1,6,1,'z');prect(b,x,y+5,6,1,'z');pset(b,x+2,y,'Y')}
 function logs2(b,x,y,n){for(let i=0;i<n;i++){const r=Math.floor(i/3),c=i%3,lx=x+c*7+r*3,ly=y-r*4;prect(b,lx,ly,7,3,'X');prect(b,lx,ly,7,1,'Y');prect(b,lx,ly+2,7,1,'W');prect(b,lx,ly,1,3,'O');pset(b,lx,ly+1,'M');prect(b,lx+6,ly,1,3,'V')}}
-function stones(b,x,y,w,h,seed){const R=rng(seed);for(let k=0;k<w*h/9;k++){const sx=x+Math.floor(R()*w),sy=y+Math.floor(R()*h),s=1+Math.floor(R()*3);prect(b,sx,sy,s+1,s,'F');pset(b,sx,sy,'H');prect(b,sx,sy+s-1,s+1,1,'D')}}
+function stones(b,x,y,w,h,seed){const R=rng(seed);if(b.k&&b.k!==1){const k=b.k,X0=Math.round(x*k),Y0=Math.round(y*k),Wh=Math.round(w*k),Hh=Math.round(h*k);for(let n=0;n<Wh*Hh/11;n++){const sx=X0+Math.floor(R()*Wh),sy=Y0+Math.floor(R()*Hh),s=2+Math.floor(R()*3),c=R()<.3?'G':'F';for(let j=0;j<s;j++)for(let i=0;i<s+1;i++){if((i===0||i===s)&&(j===0||j===s-1))continue;phx(b,sx+i,sy+j,j===s-1?'D':(i<2&&j<1)?'H':c)}}return}for(let k=0;k<w*h/9;k++){const sx=x+Math.floor(R()*w),sy=y+Math.floor(R()*h),s=1+Math.floor(R()*3);prect(b,sx,sy,s+1,s,'F');pset(b,sx,sy,'H');prect(b,sx,sy+s-1,s+1,1,'D')}}
 /* ---------- YARD BACKGROUND 288x160 ---------- */
 function yardBg2(st){const W=288,H=160,b=pbuf(W,H);
   if(!st.looked){prect(b,0,0,W,H,'x');if(st.lk){for(let i=0;i<6;i++)prect(b,84+i*6,128-i*4,6,1,'B')}return b}

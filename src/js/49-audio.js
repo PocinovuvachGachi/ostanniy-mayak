@@ -55,7 +55,7 @@ function sfx(k){if(!AU.ctx||!auS().on)return;try{const t=AU.ctx.currentTime+0.01
   case'bell':auTone(t,{f:1568,peak:0.08,dec:1.4});auTone(t,{f:2350,peak:0.04,dec:0.9});break;
   case'horn':{const c=AU.ctx,o=c.createOscillator(),g=c.createGain(),lp=c.createBiquadFilter();o.type='sawtooth';o.frequency.value=98;lp.type='lowpass';lp.frequency.value=420;o.connect(lp);lp.connect(g);g.connect(AU.g.sfx);g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.22,t+0.8);g.gain.setValueAtTime(0.22,t+1.6);g.gain.exponentialRampToValueAtTime(0.0001,t+3);o.start(t);o.stop(t+3.1);break}
   case'strike':auBurst(t,{f:1200,type:'bandpass',peak:0.4,dec:0.06,bus:'sfx'});auTone(t,{f:160,f2:80,peak:0.2,dec:0.1});break}}catch(e){}}
-const SFXA={gather:'tap',scrapw:'metal',fishing:'splash',blow:'ember',bld:'build',floor:'build',craft:'craft',wup:'craft',repair:'build',schooner:'build',c_atk:'strike',c_shoot:'strike'};
+const SFXA={smith:'strike',gather:'tap',scrapw:'metal',fishing:'splash',blow:'ember',bld:'build',floor:'build',craft:'craft',wup:'craft',repair:'build',schooner:'build',c_atk:'strike',c_shoot:'strike'};
 /* Панель звуку живе поза перемальовуванням, тож повзунки не зриваються. */
 function auUI(){const el=typeof document!=='undefined'&&document.getElementById('snd');if(!el||!el.querySelector)return;const a=auS();
   el.innerHTML=`<details class="sett"><summary>Звук</summary><div class="setb sndb"><button type="button" class="toggle" id="sndOn">${a.on?'Звук: увімкнено':'Звук: вимкнено'}</button>

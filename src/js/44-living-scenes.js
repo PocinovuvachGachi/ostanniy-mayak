@@ -4,20 +4,50 @@ function hs(k,a,i,box,lab,tip,o={}){const pulse=o.pulse&&(o.always||!(s.hsU||{})
   return`<button type="button" class="hs${pulse?' pulse':''}${o.ok===false?' no':''}" data-a="${a}" data-i="${i||''}" data-k="${k}"${o.cd?` data-cd="${o.cd}" data-cs="${o.cs}"`:''} style="${box}" aria-label="${lab}" ${TA(tip||`<b>${lab}</b>`)}><span class="hsl">${lab}</span>${o.inner||''}</button>`}
 const OBC={};
 function obURL(key,make){const u=pxURL('ob:'+key,make);const o=pxURL('obo:'+key,()=>{const b=make();return outline2(b,'I')});const k='ob:'+key;if(!OBC[k]){const b=make();OBC[k]=[b.w,b.h]}return[u,o,OBC[k][0],OBC[k][1]]}
-function topPx(key,make){const c='tp:'+key;if(OBC[c])return OBC[c];const b=make();for(let y=0;y<b.h;y++)for(let x=0;x<b.w;x++)if(b.p[y*b.w+x]!=='.')return OBC[c]=[x,y];return OBC[c]=[b.w>>1,0]}
+function topPx(key,make){const c='tp:'+key;if(OBC[c])return OBC[c];const b=make(),W=b.W||b.w,H=b.H||b.h,k=b.k||1;for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(b.p[y*W+x]!=='.')return OBC[c]=[x/k,y/k];return OBC[c]=[b.w>>1,0]}
 const pOf=k=>{const l=(s.cd[k]||0)-Date.now();return l>0?l/((CDS[k]||1)*1000):0};const CDS={gather:1,scrapw:2,fishing:3,blow:2};
 function ob(k,a,i,spec,x,y,W,H,lab,tip,o={}){const[u,ol,w,h]=spec;if(!u)return'';const pulse=o.pulse&&(o.always||!(s.hsU||{})[k]);
-  const box=PCT(x-1,y-1,w+2,h+2,W,H),inn=`left:${(100/(w+2)).toFixed(3)}%;top:${(100/(h+2)).toFixed(3)}%;width:${(w/(w+2)*100).toFixed(3)}%;height:${(h/(h+2)*100).toFixed(3)}%`;
+  const box=PCT(x-OP,y-OP,w+2*OP,h+2*OP,W,H),inn=`left:${(OP*100/(w+2*OP)).toFixed(3)}%;top:${(OP*100/(h+2*OP)).toFixed(3)}%;width:${(w/(w+2*OP)*100).toFixed(3)}%;height:${(h/(h+2*OP)*100).toFixed(3)}%`;
   const deco=!a;const gl=!deco&&(pulse||o.cd)?`<span class="gl" style="${inn};-webkit-mask-image:url(${u});mask-image:url(${u})"></span>`:'';
   const body=`<span class="obw"><span class="obj ${o.idle||''}">${deco?'':`<img class="obo" src="${ol}" alt="">`}<img class="obi" src="${u}" alt="" style="${inn}">${gl}</span></span>`;
   const z=10+Math.round(o.z!=null?o.z:y+h);
   if(deco)return`<span class="ob deco${o.cls?' '+o.cls:''}" data-sk="${k}" data-sig="${hsh(u+box+(o.cls||''))}" style="${box};z-index:${z}" aria-hidden="true">${body}${o.inner||''}</span>`;
   const core=`class="ob${pulse?' nw':''}${o.ok===false?' no':''}${o.cls?' '+o.cls:''}" data-a="${a}" data-i="${i||''}" data-k="${k}"${o.cd?` data-cd="${o.cd}" data-cs="${o.cs}"`:''} aria-label="${lab}" ${TA(tip||`<b>${lab}</b>`)}>${body}<span class="hsl">${lab}</span>${o.inner||''}`;
   return`<button type="button" data-sk="${k}" data-sig="${hsh(core+box)}" style="${box};z-index:${z}${o.cd?`;--p:${pOf(o.cd).toFixed(3)}`:''}" ${core}</button>`}
-function innerAt(px,py,pw,ph,w,h,cls,extra){return`<i class="${cls}" style="left:${((px+1)/(w+2)*100).toFixed(2)}%;top:${((py+1)/(h+2)*100).toFixed(2)}%;width:${(pw/(w+2)*100).toFixed(2)}%;height:${(ph/(h+2)*100).toFixed(2)}%;${extra||''}" aria-hidden="true"></i>`}
-function smkIn(sx,sy,w,h){return[0,1,2].map(n=>`<i class="smk" style="left:${((sx+1)/(w+2)*100).toFixed(2)}%;top:${((sy+1)/(h+2)*100).toFixed(2)}%;width:${(3/(w+2)*100).toFixed(2)}%;--o:${n}s" aria-hidden="true"></i>`).join('')}
+function innerAt(px,py,pw,ph,w,h,cls,extra){return`<i class="${cls}" style="left:${((px+OP)/(w+2*OP)*100).toFixed(2)}%;top:${((py+OP)/(h+2*OP)*100).toFixed(2)}%;width:${(pw/(w+2*OP)*100).toFixed(2)}%;height:${(ph/(h+2*OP)*100).toFixed(2)}%;${extra||''}" aria-hidden="true"></i>`}
+function smkIn(sx,sy,w,h){return[0,1,2].map(n=>`<i class="smk" style="left:${((sx+OP)/(w+2*OP)*100).toFixed(2)}%;top:${((sy+OP)/(h+2*OP)*100).toFixed(2)}%;width:${(3/(w+2*OP)*100).toFixed(2)}%;--o:${n}s" aria-hidden="true"></i>`).join('')}
 let popB='',upT={};
 const flameURL=()=>pxURL('flm3:1',flame3Strip),fogURL=k=>pxURL('fog3:'+k,()=>fogBuf3(k));
+/* Світло: піксельна карта з кількома смугами яскравості й дизерингом на межах.
+   Окремий шар над сценою (mix-blend-mode: screen); вогнище мерехтить, вікна дихають. */
+const LTC={};
+function lightURL(key,srcs,W,H){if(LTC[key])return LTC[key];let u='';try{const k=SK,w=Math.round(W*k),h=Math.round(H*k),cv=document.createElement('canvas');if(!cv.getContext)return'';cv.width=w;cv.height=h;
+  const g=cv.getContext('2d'),im=g.createImageData(w,h),A=new Float32Array(w*h),C=new Uint8Array(w*h*3),BA=[0,.16,.3,.46,.62];
+  for(const L of srcs){const cx=L.x*k,cy=L.y*k,rx=L.r*k,ry=rx*(L.e||1),x0=Math.max(0,Math.floor(cx-rx)),x1=Math.min(w,Math.ceil(cx+rx)),y0=Math.max(0,Math.floor(cy-ry)),y1=Math.min(h,Math.ceil(cy+ry));
+    for(let j=y0;j<y1;j++)for(let i=x0;i<x1;i++){const d=Math.hypot((i-cx)/rx,(j-cy)/ry);if(d>=1)continue;const t=(1-d)*(L.n||3)+(bay(i,j)-.5)*.9,bd=Math.max(0,Math.min(4,Math.floor(t+.5))),a=BA[bd]*(L.a||1),q=j*w+i;
+      if(a>A[q]){A[q]=a;C[q*3]=L.c[0];C[q*3+1]=L.c[1];C[q*3+2]=L.c[2]}}}
+  for(let q=0;q<w*h;q++)if(A[q]>0){im.data[q*4]=C[q*3];im.data[q*4+1]=C[q*3+1];im.data[q*4+2]=C[q*3+2];im.data[q*4+3]=Math.round(A[q]*255)}
+  g.putImageData(im,0,0);u=cv.toDataURL('image/png')}catch(e){u=''}return LTC[key]=u}
+const WARM=[255,168,74],FIRE=[255,140,52],PALE=[255,236,168];
+function yardLights(){const fire=[],win=[];if(!s.f.looked)return{fire,win};const hs=s.b.hearth||0,on=s.on.hearth!==false;
+  if(hs&&on)fire.push({x:143,y:210,r:40+6*Math.min(5,hs),e:.62,c:FIRE,n:4},{x:143,y:202,r:16+2*hs,c:PALE,a:.6});
+  const F=s.floors||{};if(hs){win.push({x:55,y:188,r:22,e:.8,c:WARM,a:.8})}
+  for(const[k,y]of[['gallery',74],['study',113],['work',149]])if(F[k])win.push({x:55,y,r:15,c:WARM,a:.7});
+  if(s.f.won)win.push({x:55,y:30,r:46,c:PALE,a:.9});
+  for(const id in BANC){const lv=s.b[id]||0;if(!lv||(s.dmgB||{})[id]||s.on[id]===false)continue;const g=stageOf(lv),strong=['forge','steel','glass','kiln','render'].includes(id);
+    if(!strong&&!['smoke','apoth','house'].includes(id))continue;win.push({x:BANC[id][0],y:BANC[id][1]-8-4*g,r:(strong?18:12)+5*g,e:.8,c:strong?FIRE:WARM,a:strong?.8:.55})}
+  for(let i=0;i<Math.min(4,s.b.house||0);i++)win.push({x:HOUSES[i][0]+5,y:HOUSES[i][1]-10,r:13,e:.8,c:WARM,a:.55});
+  return{fire,win}}
+function lightLayers(W,H,L){let h='';const sig=a=>a.map(o=>[o.x,o.y,o.r,o.a||1].join(',')).join(';');
+  if(L.win.length){const k='w'+W+':'+sig(L.win);h+=`<img class="lt" data-sk="ltw" data-sig="${hsh(k)}" src="${lightURL(k,L.win,W,H)}" alt="" aria-hidden="true">`}
+  if(L.fire.length){const k='f'+W+':'+sig(L.fire);h+=`<img class="lt ltf" data-sk="ltf" data-sig="${hsh(k)}" src="${lightURL(k,L.fire,W,H)}" alt="" aria-hidden="true" style="transform-origin:${(L.fire[0].x/W*100).toFixed(1)}% ${(L.fire[0].y/H*100).toFixed(1)}%">`}
+  return h}
+/* Мла, яку видно: густий бузково-сивий туман від моря; висота й щільність — за шкалою Мли (--mla на .scn) */
+const mlaURL=k=>pxURL('mla5:'+k,()=>HI(()=>{const W=216,H=60,b=pbuf(W,H),T=6.2832;
+  hiRect(b,0,0,W,H,(i,j,x,y)=>{const yy=y/H,n=.5+.32*Math.sin(x/W*T*4+k)*Math.sin(yy*T*1.2+x/W*T*2)+.18*Math.sin(x/W*T*10-k)*Math.sin(yy*T*2.6+1.3),d=Math.pow(yy,.9)*(.35+.8*n)*(yy>.85?(1-yy)/.15:1);
+    if(d>bay(i,j)+.08)return n>.75?'6':n>.45?'5':'o'});return b})());
+const mlaLayer=(top,h)=>`<span class="scm" data-sk="mla" data-sig="m5${top}" aria-hidden="true"><i class="mla" style="--t:${top}%;--h:${h}%;background-image:url(${mlaURL(5)})"></i><i class="mla m2" style="--t:${top}%;--h:${h}%;background-image:url(${mlaURL(11)})"></i></span>`;
+const mlaV=()=>thrOn()?Math.min(1,(s.threat||0)/100):0;
 const fogs=(top,h)=>`<span class="scf" data-sk="fog" data-sig="fog${top}" aria-hidden="true"><i class="fog" style="top:${top}%;height:${h}%;background-image:url(${fogURL(3)})"></i><i class="fog f2" style="top:${top+h*0.35}%;height:${h*0.8}%;background-image:url(${fogURL(8)})"></i></span>`;
 function smk(x,y,W,H){return[0,1,2].map(n=>`<i class="smk" style="left:${(x/W*100).toFixed(2)}%;top:${(y/H*100).toFixed(2)}%;--o:${n}s" aria-hidden="true"></i>`).join('')}
 function bpopHTML(){const id=popB;if(!id)return'';let nm,lvl,d,btns='',extra='';
@@ -41,7 +71,7 @@ function placePop(){try{let L=document.getElementById('popl');if(!popB||s.cb||s.
 function homeHS(){const W=YW,H=YH;let h='';const st=yardSt2();
   if(!s.f.looked){const e=obURL('ember3',emberObj3);h+=ob('ember','blow','',e,84,206,W,H,'Подмухати на жарину','<b>Жарина</b><br>Подмухай, і вона спалахне яскравіше: +3 жару.',{pulse:1,cd:'blow',cs:2,inner:'<i class="emb"></i>'});
     if(s.f.lk)h+=ob('look','look','',obURL('tsil3',()=>towerSil3(st)),18,8,W,H,'Роззирнутися','<b>Роззирнутися</b><br>Очі звикли до темряви. У ній проступають обриси стін і сходів.',{pulse:1});return h}
-  h+=fogs(42,14);
+  h+=fogs(42,14)+mlaLayer(36,36)+lightLayers(W,H,yardLights());
   const tk='tw3:'+[st.floors.work,st.floors.gallery,st.floors.study,st.floors.lantern,st.hearth,st.won].map(v=>v?1:0).join('');
   h+=ob('tower',s.tabs.tower?'tab':'','tower',obURL(tk,()=>towerObj3(st)),18,8,W,H,'Нагору, до поверхів','<b>Маяк</b><br>Сходи ведуть угору, до поверхів.',{pulse:1});
   if(s.f.won)h+=`<i class="lglow" data-sk="lglow" data-sig="1" style="${PCT(28,0,54,52,W,H)};z-index:5" aria-hidden="true"></i>`;
@@ -55,25 +85,27 @@ function homeHS(){const W=YW,H=YH;let h='';const st=yardSt2();
   for(const B of vis){const id=B.id,lvl=s.b[id]||0;
     if(id==='house'){const nH=Math.max(1,Math.min(4,lvl));for(let k=0;k<nH;k++){const sp=obURL('h3:house',()=>BLD3.house(1));h+=bob('house','house',HOUSES[k][0],HOUSES[k][1],sp,lvl,!lvl,k)}continue}
     if(!BANC[id])continue;const g=lvl?stageOf(lvl):1,key=id+g,sp=obURL('b3:'+key,()=>BLD3[id](g));h+=bob(id,key,BANC[id][0],BANC[id][1],sp,lvl,!lvl)}
+  if(s.b.forge){const c={scrap:4,ember:2},n=smithN();h+=s.hot?ob('anvil','smithhot','',obURL('anvil3h',()=>anvilObj3(1)),180,150,W,H,'Бити по заготовці','<b>Заготовка розжарилася!</b><br>Влуч молотом у слушну мить, і вийде більше заліза. Можна й не чіпати: метал охолоне, нічого не втратиш.',{cls:'bite',inner:'<i class="bang">!</i>'})
+    :ob('anvil','smith','',obURL('anvil3',()=>anvilObj3(0)),180,150,W,H,'Кувати',`<b>Ковадло</b><br>Перекувати брухт на залізо: ${costTxt(c)} → ${R('iron',n)}.`,{pulse:1,cd:'smith',cs:4})}
   const hx=124,hy=206;
   if(!s.b.hearth){const c=bCost(HEARTH),ok=s.seen.wood&&afford(c);const sp=obURL('hearth3a',()=>hearthObj3({}));
     h+=ok?ob('hearth0','bld','hearth',sp,hx,hy,W,H,'Скласти вогнище',`<b>Скласти вогнище</b><br>${costTxt(c)}`,{pulse:1,always:1,inner:'<i class="emb"></i>'})
       :ob('ember2','blow','',sp,hx,hy,W,H,'Подмухати на жарину',`<b>Жарина</b><br>Подмухай: +3 жару.${s.seen.wood?`<br>Для вогнища треба ${costTxt(c)}.`:''}`,{pulse:1,cd:'blow',cs:2,inner:'<i class="emb"></i>'})}
   else{const n=s.b.hearth,lit=s.on.hearth!==false,sp=obURL('hearth3b',()=>hearthObj3({hearth:1})),[,,hw,hh]=sp;
-    if(lit)h+=`<i class="fglow" data-sk="fglow" data-sig="1" style="${PCT(hx-50,hy-56,138,100,W,H)}" aria-hidden="true"></i>`;
     const fl=lit?innerAt(10,-22,18,27,hw,hh,'flm'+(n>=4?' big':''),`background-image:url(${flameURL()})`):'';
     h+=ob('hearth','bpop','hearth',sp,hx,hy,W,H,'Вогнище',`<b>Вогнище, рівень ${n}</b><br>Натисни, щоб підкинути дров чи пригасити.`,{inner:fl+(upT.hearth&&Date.now()-upT.hearth<1600?`<i class="upfx" aria-hidden="true"><b>Рівень ${n}</b></i>`:''),cls:popB==='hearth'?'sel':''})}
   if(s.tabs.shore)h+=ob('toshore','tab','shore',obURL('sign3',signObj3),196,196,W,H,'До берега','<b>Стежка до берега</b><br>Плавник, уламки й риба.',{pulse:1});
   return h}
-function shoreHS(){const W=SW,H=SH,S=(x,y,w,h)=>PCT(x,y,w,h,W,H);let h=fogs(8,22);
+function shoreHS(){const W=SW,H=SH,S=(x,y,w,h)=>PCT(x,y,w,h,W,H);let h=fogs(8,22)+mlaLayer(6,62);
   h+=ob('home','tab','home',obURL('door3',doorObj3),6,51,W,H,'До маяка','<b>Двері маяка</b><br>Назад, до вогнища.');
   if(s.ship)h+=ob('ship','hsgo','ship',obURL('ship3',shipObj3),168,0,W,H,'Торговий когг','<b>Торговий когг</b><br>Подивитися обміни.',{pulse:1,always:1,idle:'i-bob'});
   if(s.f.boat)h+=ob('pier','hsgo','pier',obURL('pier3'+((s.exp||[]).length?'o':''),()=>pierObj3({boatOut:!!(s.exp||[]).length})),231,48,W,H,'Пристань','<b>Пристань</b><br>Виходи в море й кораблі.');
   if(s.f.wreck)h+=ob('wreck','scrapw','',obURL('wreck3',wreckObj3),186,69,W,H,'Розбирати уламки','<b>Уламки човна</b><br>Цвяхи, скоби, обшивка: усе згодиться.',{pulse:1,cd:'scrapw',cs:2,inner:'<i class="spk"></i>'});
-  if(s.f.rod)h+=ob('rod','fishing','',obURL('rod3',rodObj3),162,45,W,H,'Рибалити','<b>Вудка</b><br>Закинь і чекай, поки клюне.',{pulse:1,cd:'fishing',cs:3,idle:'i-sway',inner:'<i class="bob"></i><i class="bang">!</i>'});
+  if(s.f.rod)h+=s.bite?ob('rod','bigfish','',obURL('rod3',rodObj3),162,45,W,H,'Тягнути велику рибу','<b>Клює щось велике!</b><br>Натисни, щоб виводити. Можна й не чіпати: риба зірветься, нічого не втратиш.',{cls:'bite',inner:'<i class="bob"></i><i class="bang">!</i>'})
+    :ob('rod','fishing','',obURL('rod3',rodObj3),162,45,W,H,'Рибалити','<b>Вудка</b><br>Закинь і чекай, поки клюне.',{pulse:1,cd:'fishing',cs:3,idle:'i-sway',inner:'<i class="bob"></i><i class="bang">!</i>'});
   if(s.flot)h+=ob('flot:'+s.flot.k,'flotmg','',obURL('flot3:'+s.flot.k,()=>flotObj3(s.flot.k)),126,78,W,H,'Оглянути знахідку','<b>Прибій щось викинув</b><br>Підчепи гаком, поки хвилі не забрали.',{pulse:1,always:1,idle:'i-bob'});
   const[lu,lo,lw,lh]=obURL('log3',log3Buf),pul=!(s.hsU||{}).gather,zx=33,zy=60,zw=66,zh=33,rx=26,ry=19;
-  const zcore=`class="hs zone${pul?' nw':''}" data-a="gather" data-i="" data-k="gather" data-cd="gather" data-cs="1" aria-label="Збирати плавник" ${TA('<b>Прибій</b><br>Хвилі підкочують плавник. Підбери, що винесло.')}><span class="dlw" style="left:${(rx/zw*100).toFixed(2)}%;top:${(ry/zh*100).toFixed(2)}%;width:${((lw+2)/zw*100).toFixed(2)}%;height:${((lh+2)/zh*100).toFixed(2)}%"><img class="obo" src="${lo}" alt=""><img class="obi" src="${lu}" alt="" style="left:${(100/(lw+2)).toFixed(2)}%;top:${(100/(lh+2)).toFixed(2)}%;width:${(lw/(lw+2)*100).toFixed(2)}%;height:${(lh/(lh+2)*100).toFixed(2)}%"><span class="gl" style="left:${(100/(lw+2)).toFixed(2)}%;top:${(100/(lh+2)).toFixed(2)}%;width:${(lw/(lw+2)*100).toFixed(2)}%;height:${(lh/(lh+2)*100).toFixed(2)}%;-webkit-mask-image:url(${lu});mask-image:url(${lu})"></span></span><span class="hsl">Збирати плавник</span>`;
+  const zcore=`class="hs zone${pul?' nw':''}" data-a="gather" data-i="" data-k="gather" data-cd="gather" data-cs="1" aria-label="Збирати плавник" ${TA('<b>Прибій</b><br>Хвилі підкочують плавник. Підбери, що винесло.')}><span class="dlw" style="left:${(rx/zw*100).toFixed(2)}%;top:${(ry/zh*100).toFixed(2)}%;width:${((lw+2*OP)/zw*100).toFixed(2)}%;height:${((lh+2*OP)/zh*100).toFixed(2)}%"><img class="obo" src="${lo}" alt=""><img class="obi" src="${lu}" alt="" style="left:${(OP*100/(lw+2*OP)).toFixed(2)}%;top:${(OP*100/(lh+2*OP)).toFixed(2)}%;width:${(lw/(lw+2*OP)*100).toFixed(2)}%;height:${(lh/(lh+2*OP)*100).toFixed(2)}%"><span class="gl" style="left:${(OP*100/(lw+2*OP)).toFixed(2)}%;top:${(OP*100/(lh+2*OP)).toFixed(2)}%;width:${(lw/(lw+2*OP)*100).toFixed(2)}%;height:${(lh/(lh+2*OP)*100).toFixed(2)}%;-webkit-mask-image:url(${lu});mask-image:url(${lu})"></span></span><span class="hsl">Збирати плавник</span>`;
   h+=`<button type="button" data-sk="gather" data-sig="${hsh(zcore)}" style="${S(zx,zy,zw,zh)};z-index:${10+zy+zh};--p:${pOf('gather').toFixed(3)}" ${zcore}</button>`;
   return h}
 /* Сцена живе поза #main і латається на місці: незмінені вузли не від'єднуються, тож їхні анімації не перезапускаються. */

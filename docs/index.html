@@ -757,6 +757,34 @@ button.hs.zone:hover,button.hs.zone:focus-visible{background:transparent;border:
 #dbg textarea{width:100%;box-sizing:border-box;font:10px var(--mono);background:#16252e;color:#e3ebe6;border:1px solid #4a7486;margin-top:4px}
 #dbg .dbgl{margin:6px 0 0;color:#b3c5c4}
 #dbg details:not([open]){width:auto}
+/* Світло й видима Мла */
+.scn .lt{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:950;mix-blend-mode:screen;image-rendering:pixelated;opacity:.95}
+.scn .ltf{animation:ltf 2.6s steps(1,end) infinite;animation-delay:var(--d)}
+@keyframes ltf{0%{opacity:.95;transform:scale(1)}13%{opacity:.82;transform:scale(.985)}27%{opacity:1;transform:scale(1.012)}41%{opacity:.88;transform:scale(.995)}58%{opacity:.97;transform:scale(1.008)}72%{opacity:.8;transform:scale(.98)}86%{opacity:.93;transform:scale(1.004)}}
+.scn .lt:not(.ltf){animation:ltw 7s ease-in-out infinite alternate;animation-delay:var(--d)}
+@keyframes ltw{from{opacity:.8}to{opacity:1}}
+.scn{--mla:0}
+.scm{position:absolute;inset:0;pointer-events:none;z-index:940;overflow:hidden}
+.mla{position:absolute;left:0;width:200%;top:var(--t);height:var(--h);background-repeat:repeat-x;background-size:50% 100%;image-rendering:pixelated;opacity:calc(var(--mla) * .7);transform:translateY(calc((1 - var(--mla)) * 30%));transition:opacity 4s ease,transform 6s ease;animation:fogm 160s linear infinite;animation-delay:var(--d2)}
+.mla.m2{opacity:calc(var(--mla) * var(--mla) * .6);animation-duration:100s;animation-direction:reverse;transform:translateY(calc((1 - var(--mla)) * 40% - 12%))}
+.scn .fog{opacity:calc(.14 + var(--mla) * .2)}
+.scn .fog.f2{opacity:calc(.09 + var(--mla) * .15)}
+@media (prefers-reduced-motion:reduce){.scn .ltf,.scn .lt,.mla{animation:none}}
+/* Велика риба й розжарена заготовка: об'єкт кличе, але не змушує */
+.ob.bite .obi{animation:bitesh .28s steps(2,end) infinite}
+@keyframes bitesh{0%{transform:translate(0,0) rotate(0)}50%{transform:translate(1px,-1px) rotate(-2deg)}100%{transform:translate(-1px,1px) rotate(1.5deg)}}
+.ob.bite .bang{opacity:1!important;font-size:18px}
+.ob.bite .obo{opacity:.9}
+@media (prefers-reduced-motion:reduce){.ob.bite .obi{animation:none}}
+/* Кування в діалозі удосконалення */
+.fgx{position:relative;height:46px;margin:0 auto 6px;width:90px}
+.fgx .fgh{position:absolute;left:30px;top:2px;width:26px;height:10px;background:#7a7468;box-shadow:0 0 0 2px #0b1418,10px 10px 0 -2px #7a5232;transform-origin:90% 90%;animation:fgh .9s cubic-bezier(.5,0,.8,.4) infinite}
+.fgx::after{content:"";position:absolute;left:22px;bottom:4px;width:46px;height:9px;background:#4a4f56;box-shadow:0 0 0 2px #0b1418,inset 0 2px 0 #8a929a}
+.fgx b{position:absolute;left:44px;bottom:12px;width:3px;height:3px;background:#ffd36a;opacity:0;animation:fgs .9s ease-out infinite}
+.fgx b:nth-child(2){--dx:-26px;--dy:-18px}.fgx b:nth-child(3){--dx:24px;--dy:-22px;animation-delay:.02s}.fgx b:nth-child(4){--dx:-14px;--dy:-30px;animation-delay:.04s}.fgx b:nth-child(5){--dx:32px;--dy:-8px}.fgx b:nth-child(6){--dx:-34px;--dy:-6px;animation-delay:.03s}
+@keyframes fgh{0%,100%{transform:rotate(-40deg)}55%{transform:rotate(-40deg)}75%{transform:rotate(6deg)}}
+@keyframes fgs{0%,72%{opacity:0;transform:translate(0,0)}75%{opacity:1}100%{opacity:0;transform:translate(var(--dx),var(--dy))}}
+@media (prefers-reduced-motion:reduce){.fgx .fgh,.fgx b{animation:none}}
 </style>
 </head>
 <body>
@@ -781,19 +809,36 @@ button.hs.zone:hover,button.hs.zone:focus-visible{background:transparent;border:
 const PAL={'0':'#0b1418','1':'#16252e','2':'#22394a','3':'#2f5163','4':'#4a7486','5':'#7c9ca3','6':'#b3c5c4','7':'#e3ebe6',
  '8':'#2c2a27','9':'#4d4a44','a':'#7a7468','b':'#a89c82','c':'#4a3220','d':'#7a5232','e':'#a8763f','f':'#c8761c','g':'#f0b84a','h':'#fff0b0',
  'i':'#8f2f2b','j':'#c9584a','k':'#3d5a34','l':'#6f8a4c','m':'#d9a27c','n':'#a86f52','o':'#5c4a6e','p':'#8a8f96','q':'#c3c9cf'};
-function pbuf(w,h,f){return{w,h,p:new Array(w*h).fill(f||'.')}}
-function pset(b,x,y,c){x|=0;y|=0;if(x>=0&&y>=0&&x<b.w&&y<b.h&&c!=='.')b.p[y*b.w+x]=c}
-function pget(b,x,y){return(x>=0&&y>=0&&x<b.w&&y<b.h)?b.p[y*b.w+x]:'.'}
-function prect(b,x,y,w,h,c){for(let j=0;j<h;j++)for(let i=0;i<w;i++)pset(b,x+i,y+j,c)}
+/* Растр із масштабом. Малюємо в «логічних» пікселях (w×h), а буфер має k-кратну роздільність (W×H).
+   Сцени (двір, берег) малюються з k=SK: контури, лінії, градієнти й шум виходять у 1,5 раза дрібніші.
+   Усередині polyFill колбек отримує логічні координати, а точні — у EXX/EXY (для дрібних текстур). */
+let PK=1;const SK=1.5,OP=2/SK;
+function pbuf(w,h,f){const k=PK,W=Math.round(w*k),H=Math.round(h*k);return{w,h,k,W,H,p:new Array(W*H).fill(f||'.')}}
+let EXB=null,EXX=0,EXY=0,EXL=0,EXT=0;
+function phx(b,x,y,c){if(c!=='.'&&x>=0&&y>=0&&x<b.W&&y<b.H)b.p[y*b.W+x]=c}
+function pset(b,x,y,c){if(c==='.')return;if(b.k===1){x|=0;y|=0;if(x>=0&&y>=0&&x<b.w&&y<b.h)b.p[y*b.w+x]=c;return}
+  if(b===EXB&&x===EXL&&y===EXT){b.p[EXY*b.W+EXX]=c;return}
+  const k=b.k;x=Math.floor(x);y=Math.floor(y);const x0=Math.max(0,Math.round(x*k)),x1=Math.min(b.W,Math.round((x+1)*k)),y0=Math.max(0,Math.round(y*k)),y1=Math.min(b.H,Math.round((y+1)*k));
+  for(let j=y0;j<y1;j++)for(let i=x0;i<x1;i++)b.p[j*b.W+i]=c}
+function pget(b,x,y){if(b.k===1)return(x>=0&&y>=0&&x<b.w&&y<b.h)?b.p[y*b.w+x]:'.';if(b===EXB&&x===EXL&&y===EXT)return b.p[EXY*b.W+EXX];
+  const hx=Math.floor((Math.floor(x)+.5)*b.k),hy=Math.floor((Math.floor(y)+.5)*b.k);return(hx>=0&&hy>=0&&hx<b.W&&hy<b.H)?b.p[hy*b.W+hx]:'.'}
+function prect(b,x,y,w,h,c){if(b.k===1){for(let j=0;j<h;j++)for(let i=0;i<w;i++)pset(b,x+i,y+j,c);return}
+  const k=b.k,x0=Math.round(x*k),x1=Math.round((x+Math.ceil(w))*k),y0=Math.round(y*k),y1=Math.round((y+Math.ceil(h))*k);for(let j=y0;j<y1;j++)for(let i=x0;i<x1;i++)phx(b,i,j,c)}
+/* Текстура в точній роздільності: fn(hx,hy,x,y) повертає колір або нічого (x,y — логічні дробові) */
+function hiRect(b,x,y,w,h,fn){const k=b.k||1,X0=Math.round(x*k),X1=Math.round((x+w)*k),Y0=Math.round(y*k),Y1=Math.round((y+h)*k);for(let j=Y0;j<Y1;j++)for(let i=X0;i<X1;i++){const c=fn(i,j,i/k,j/k);if(c)phx(b,i,j,c)}}
+const hh2=(a,b)=>{let t=Math.imul(a*374761393+b*668265263|0,1274126177);t^=t>>>13;return(t>>>0)%1000/1000};
+/* Буфер-обгортка: виконати малювання з масштабом SK */
+const HI=f=>function(...a){const o=PK;PK=SK;try{return f.apply(this,a)}finally{PK=o}};
 function pblit(b,rows,x,y,map){rows.forEach((r,j)=>{for(let i=0;i<r.length;i++){let c=r[i];if(map&&map[c])c=map[c];pset(b,x+i,y+j,c)}})}
 function rng(seed){let a=seed>>>0;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
-function pnoise(b,x,y,w,h,c,dens,seed){const R=rng(seed);for(let j=0;j<h;j++)for(let i=0;i<w;i++)if(R()<dens)pset(b,x+i,y+j,c)}
+function pnoise(b,x,y,w,h,c,dens,seed){const R=rng(seed);if(b.k!==1){const k=b.k,X0=Math.round(x*k),Y0=Math.round(y*k),X1=Math.round((x+w)*k),Y1=Math.round((y+h)*k);for(let j=Y0;j<Y1;j++)for(let i=X0;i<X1;i++)if(R()<dens)phx(b,i,j,c);return}for(let j=0;j<h;j++)for(let i=0;i<w;i++)if(R()<dens)pset(b,x+i,y+j,c)}
 function ppoly(b,pts,c){let y0=Infinity,y1=-Infinity;for(const p of pts){y0=Math.min(y0,p[1]);y1=Math.max(y1,p[1])}
   for(let y=Math.floor(y0);y<=Math.ceil(y1);y++){const xs=[];for(let i=0;i<pts.length;i++){const[a,b2]=[pts[i],pts[(i+1)%pts.length]];
     if((a[1]<=y+.5&&b2[1]>y+.5)||(b2[1]<=y+.5&&a[1]>y+.5)){xs.push(a[0]+(y+.5-a[1])*(b2[0]-a[0])/(b2[1]-a[1]))}}
     xs.sort((p,q)=>p-q);for(let k=0;k+1<xs.length;k+=2)for(let x=Math.round(xs[k]);x<Math.round(xs[k+1]);x++)pset(b,x,y,c)}}
-function pline(b,x0,y0,x1,y1,c){const n=Math.max(Math.abs(x1-x0),Math.abs(y1-y0))||1;for(let i=0;i<=n;i++)pset(b,Math.round(x0+(x1-x0)*i/n),Math.round(y0+(y1-y0)*i/n),c)}
-function dither(b,x,y,w,h,c,phase){for(let j=0;j<h;j++)for(let i=0;i<w;i++)if((i+j+(phase||0))%2===0)pset(b,x+i,y+j,c)}
+function pline(b,x0,y0,x1,y1,c){if(b.k!==1){const k=b.k,f=v=>(v+.5)*k-.5,a=f(x0),bb=f(y0),cx=f(x1),cy=f(y1),n=Math.max(1,Math.round(Math.max(Math.abs(cx-a),Math.abs(cy-bb)))),st=Math.abs(cx-a)>=Math.abs(cy-bb);
+    for(let i=0;i<=n;i++){const X=Math.round(a+(cx-a)*i/n),Y=Math.round(bb+(cy-bb)*i/n);phx(b,X,Y,c);if(st)phx(b,X,Y+1,c);else phx(b,X+1,Y,c)}return}const n=Math.max(Math.abs(x1-x0),Math.abs(y1-y0))||1;for(let i=0;i<=n;i++)pset(b,Math.round(x0+(x1-x0)*i/n),Math.round(y0+(y1-y0)*i/n),c)}
+function dither(b,x,y,w,h,c,phase){if(b.k!==1){const k=b.k;for(let j=Math.round(y*k);j<Math.round((y+h)*k);j++)for(let i=Math.round(x*k);i<Math.round((x+w)*k);i++)if((i+j+(phase||0))%2===0)phx(b,i,j,c);return}for(let j=0;j<h;j++)for(let i=0;i<w;i++)if((i+j+(phase||0))%2===0)pset(b,x+i,y+j,c)}
 /* sky with fog band, sea with waves */
 function psky(b,hz,night){const W=b.w;prect(b,0,0,W,hz,night?'0':'1');
   const t1=Math.floor(hz*0.35),t2=Math.floor(hz*0.65);
@@ -1122,7 +1167,7 @@ function towerCut(st,k){const W=96,H=128,b=pbuf(W,H),F=st.floors||{},lit=!!st.wo
 /* to data URL (browser), cached */
 const PXC={},PXK={};
 function pxURL(key,make){if(PXC[key])return PXC[key];const b=make();let u='';
-  try{const cv=document.createElement('canvas');if(cv&&cv.getContext){cv.width=b.w;cv.height=b.h;const g=cv.getContext('2d');const im=g.createImageData(b.w,b.h);
+  try{const cv=document.createElement('canvas');if(cv&&cv.getContext){cv.width=b.W||b.w;cv.height=b.H||b.h;const g=cv.getContext('2d');const im=g.createImageData(cv.width,cv.height);
     for(let i=0;i<b.p.length;i++){const c=b.p[i];if(c==='.')continue;const hex=PAL[c];im.data[i*4]=parseInt(hex.slice(1,3),16);im.data[i*4+1]=parseInt(hex.slice(3,5),16);im.data[i*4+2]=parseInt(hex.slice(5,7),16);im.data[i*4+3]=255}
     g.putImageData(im,0,0);u=cv.toDataURL('image/png')}}catch(e){u=''}
   if(u)PXK[u]=key;return PXC[key]=u}
@@ -1287,28 +1332,34 @@ Object.assign(PAL,{A:'#070d16',B:'#0c1624',C:'#132235',D:'#24262b',E:'#34373d',F
 const BAY=[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];
 const bay=(x,y)=>BAY[y&3][x&3]/16;
 /* vertical ramp with ordered dithering */
-function rampV(b,x,y,w,h,cols){const n=cols.length-1;for(let j=0;j<h;j++){const t=h>1?j/(h-1)*n:0,k=Math.min(n-1,Math.floor(t)),f=t-k;for(let i=0;i<w;i++)pset(b,x+i,y+j,f>bay(x+i,y+j)?cols[Math.min(n,k+1)]:cols[k])}}
-function ditherBlend(b,x,y,w,h,c,amt){for(let j=0;j<h;j++)for(let i=0;i<w;i++)if(amt>bay(x+i,y+j))pset(b,x+i,y+j,c)}
+function rampV(b,x,y,w,h,cols){const n=cols.length-1;if(b.k!==1){const k=b.k,X0=Math.round(x*k),X1=Math.round((x+w)*k),Y0=Math.round(y*k),HH=Math.round((y+h)*k)-Y0;
+    for(let j=0;j<HH;j++){const t=HH>1?j/(HH-1)*n:0,kk=Math.min(n-1,Math.floor(t)),f=t-kk;for(let i=X0;i<X1;i++)phx(b,i,Y0+j,f>bay(i,Y0+j)?cols[Math.min(n,kk+1)]:cols[kk])}return}for(let j=0;j<h;j++){const t=h>1?j/(h-1)*n:0,k=Math.min(n-1,Math.floor(t)),f=t-k;for(let i=0;i<w;i++)pset(b,x+i,y+j,f>bay(x+i,y+j)?cols[Math.min(n,k+1)]:cols[k])}}
+function ditherBlend(b,x,y,w,h,c,amt){if(b.k!==1){const k=b.k;for(let j=Math.round(y*k);j<Math.round((y+h)*k);j++)for(let i=Math.round(x*k);i<Math.round((x+w)*k);i++)if(amt>bay(i,j))phx(b,i,j,c);return}for(let j=0;j<h;j++)for(let i=0;i<w;i++)if(amt>bay(x+i,y+j))pset(b,x+i,y+j,c)}
 function polyFill(b,pts,fn){let y0=Infinity,y1=-Infinity;for(const p of pts){y0=Math.min(y0,p[1]);y1=Math.max(y1,p[1])}
+  if(b.k&&b.k!==1){const k=b.k,sv=[EXB,EXX,EXY,EXL,EXT];EXB=b;try{for(let hy=Math.floor(y0*k);hy<=y1*k;hy++){const y=hy/k,xs=[];for(let i=0;i<pts.length;i++){const[a,c]=[pts[i],pts[(i+1)%pts.length]];if((a[1]<=y&&c[1]>y)||(c[1]<=y&&a[1]>y))xs.push(a[0]+(y-a[1])*(c[0]-a[0])/(c[1]-a[1]))}
+      xs.sort((p,q)=>p-q);for(let q=0;q+1<xs.length;q+=2)for(let hx=Math.ceil(xs[q]*k);hx<xs[q+1]*k;hx++){EXX=hx;EXY=hy;EXL=Math.floor(hx/k);EXT=Math.floor(y);fn(EXL,EXT)}}}finally{[EXB,EXX,EXY,EXL,EXT]=sv}return}
   for(let y=Math.floor(y0);y<=y1;y++){const xs=[];for(let i=0;i<pts.length;i++){const[a,c]=[pts[i],pts[(i+1)%pts.length]];if((a[1]<=y&&c[1]>y)||(c[1]<=y&&a[1]>y))xs.push(a[0]+(y-a[1])*(c[0]-a[0])/(c[1]-a[1]))}
     xs.sort((p,q)=>p-q);for(let k=0;k+1<xs.length;k+=2)for(let x=Math.ceil(xs[k]);x<xs[k+1];x++)fn(x,y)}}
-function outline2(b,c){const o=pbuf(b.w+2,b.h+2);for(let y=-1;y<=b.h;y++)for(let x=-1;x<=b.w;x++){if(pget(b,x,y)!=='.')continue;
+function outline2(b,c){if(b.k!==1){const W=b.W+4,H=b.H+4,o={w:b.w+2*OP,h:b.h+2*OP,k:b.k,W,H,p:new Array(W*H).fill('.')},g=(X,Y)=>X>=0&&Y>=0&&X<b.W&&Y<b.H?b.p[Y*b.W+X]:'.';
+    const r1=new Uint8Array(W*H);for(let y=-2;y<b.H+2;y++)for(let x=-2;x<b.W+2;x++){if(g(x,y)!=='.')continue;if(g(x+1,y)!=='.'||g(x-1,y)!=='.'||g(x,y+1)!=='.'||g(x,y-1)!=='.'){r1[(y+2)*W+x+2]=1;o.p[(y+2)*W+x+2]=c}}
+    for(let y=0;y<H;y++)for(let x=0;x<W;x++){if(r1[y*W+x]||g(x-2,y-2)!=='.')continue;if((x+1<W&&r1[y*W+x+1])||(x>0&&r1[y*W+x-1])||(y+1<H&&r1[(y+1)*W+x])||(y>0&&r1[(y-1)*W+x]))o.p[y*W+x]=c}return o}
+  const o=pbuf(b.w+2,b.h+2);for(let y=-1;y<=b.h;y++)for(let x=-1;x<=b.w;x++){if(pget(b,x,y)!=='.')continue;
   for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]])if(pget(b,x+dx,y+dy)!=='.'){pset(o,x+1,y+1,c);break}}return o}
 /* generic hut: ramps dark->light */
 function hut(w,wallH,roofH,o){const b=pbuf(w,wallH+roofH+(o.chim?8:0));const top=o.chim?8:0,wy=top+roofH;
   const wr=o.wall,rr=o.roof;prect(b,1,wy,w-2,wallH,wr[1]);
-  if(o.brick){for(let y=wy;y<wy+wallH;y++)for(let x=1;x<w-1;x++){const row=(y-wy)>>1,off=row%2?2:0;if((y-wy)%2===1||((x+off)%5===0))pset(b,x,y,wr[0])}}
-  else{for(let x=2;x<w-1;x+=3)prect(b,x,wy,1,wallH,wr[0]);for(let y=wy;y<wy+wallH;y++)if(((y*7)%5)===0)pset(b,(y*13)%(w-3)+1,y,wr[2])}
+  {const k=b.k||1,Y0=Math.round(wy*k);if(o.brick)hiRect(b,1,wy,w-2,wallH,(i,j)=>{const ly=j-Y0,row=Math.floor(ly/3),off=row%2?3:0,bi=Math.floor((i+off)/7);return ly%3===2||(i+off)%7===0?wr[0]:hh2(bi,row)<.18?wr[2]:hh2(bi+7,row)<.12?wr[0]:null});
+    else hiRect(b,1,wy,w-2,wallH,(i,j)=>{const p=Math.floor(i/4);return i%4===3?wr[0]:hh2(p,j>>1)<.07?wr[2]:hh2(p*3,j)<.04?wr[0]:null})}
   prect(b,1,wy,1,wallH,wr[2]);prect(b,w-2,wy,1,wallH,wr[0]);prect(b,1,wy+wallH-1,w-2,1,wr[0]);
-  for(let j=0;j<roofH;j++){const ins=Math.round((roofH-1-j)*(w/2-2)/Math.max(1,roofH-1)*(o.flat?0.35:1));const y=top+j;
-    for(let x=ins;x<w-ins;x++){const sh=x<w/2?rr[2]:rr[1];pset(b,x,y,(j%3===2)?rr[0]:sh)}pset(b,ins,y,rr[0]);pset(b,w-1-ins,y,rr[0])}
+  {const k=b.k||1;for(let hj=Math.round(top*k);hj<Math.round((top+roofH)*k);hj++){const jf=Math.min(roofH-1,hj/k-top),ins=(roofH-1-jf)*(w/2-2)/Math.max(1,roofH-1)*(o.flat?0.35:1),X0=Math.round(ins*k),X1=Math.round((w-ins)*k),row=Math.floor(hj/4),off=row%2?3:0;
+    for(let hx=X0;hx<X1;hx++){const sh=hx<w*k/2?rr[2]:rr[1];phx(b,hx,hj,hx===X0||hx===X1-1||hj%4===3||((hx+off)%6===0&&hj%4>1)?rr[0]:hh2(Math.floor((hx+off)/6),row)<.15?rr[1]:sh)}}}
   if(o.door){const dw=o.dw||4,dx=o.dx!=null?o.dx:Math.floor(w/2-dw/2),dh=Math.min(wallH-1,o.dh||7);prect(b,dx,wy+wallH-dh,dw,dh,o.glow?'K':'x');if(o.glow){prect(b,dx+1,wy+wallH-dh+2,dw-2,dh-2,'J');prect(b,dx+1,wy+wallH-3,dw-2,2,'I')}prect(b,dx-1,wy+wallH-dh-1,dw+2,1,wr[0])}
   if(o.win)for(const wx of o.win){prect(b,wx,wy+3,3,3,o.lit?'J':'x');if(o.lit)pset(b,wx+1,wy+4,'I');prect(b,wx-1,wy+6,5,1,wr[2])}
   if(o.chim){const cx=o.chimX||w-6;prect(b,cx,1,3,top+Math.floor(roofH/2),'F');prect(b,cx,1,1,top+Math.floor(roofH/2),'G');prect(b,cx-1,0,5,1,'E')}
   return b}
 function barrel(b,x,y){prect(b,x,y,6,7,'X');prect(b,x,y,1,7,'W');prect(b,x+5,y,1,7,'V');prect(b,x,y+1,6,1,'z');prect(b,x,y+5,6,1,'z');pset(b,x+2,y,'Y')}
 function logs2(b,x,y,n){for(let i=0;i<n;i++){const r=Math.floor(i/3),c=i%3,lx=x+c*7+r*3,ly=y-r*4;prect(b,lx,ly,7,3,'X');prect(b,lx,ly,7,1,'Y');prect(b,lx,ly+2,7,1,'W');prect(b,lx,ly,1,3,'O');pset(b,lx,ly+1,'M');prect(b,lx+6,ly,1,3,'V')}}
-function stones(b,x,y,w,h,seed){const R=rng(seed);for(let k=0;k<w*h/9;k++){const sx=x+Math.floor(R()*w),sy=y+Math.floor(R()*h),s=1+Math.floor(R()*3);prect(b,sx,sy,s+1,s,'F');pset(b,sx,sy,'H');prect(b,sx,sy+s-1,s+1,1,'D')}}
+function stones(b,x,y,w,h,seed){const R=rng(seed);if(b.k&&b.k!==1){const k=b.k,X0=Math.round(x*k),Y0=Math.round(y*k),Wh=Math.round(w*k),Hh=Math.round(h*k);for(let n=0;n<Wh*Hh/11;n++){const sx=X0+Math.floor(R()*Wh),sy=Y0+Math.floor(R()*Hh),s=2+Math.floor(R()*3),c=R()<.3?'G':'F';for(let j=0;j<s;j++)for(let i=0;i<s+1;i++){if((i===0||i===s)&&(j===0||j===s-1))continue;phx(b,sx+i,sy+j,j===s-1?'D':(i<2&&j<1)?'H':c)}}return}for(let k=0;k<w*h/9;k++){const sx=x+Math.floor(R()*w),sy=y+Math.floor(R()*h),s=1+Math.floor(R()*3);prect(b,sx,sy,s+1,s,'F');pset(b,sx,sy,'H');prect(b,sx,sy+s-1,s+1,1,'D')}}
 /* ---------- YARD BACKGROUND 288x160 ---------- */
 function yardBg2(st){const W=288,H=160,b=pbuf(W,H);
   if(!st.looked){prect(b,0,0,W,H,'x');if(st.lk){for(let i=0;i<6;i++)prect(b,84+i*6,128-i*4,6,1,'B')}return b}
@@ -1435,7 +1486,7 @@ function yardFull2(st){const b=yardBg2(st);if(!st.looked)return b;const bl=(o,x,
   const L=st.b||{};if(L.house>1)bl(BOBJ.house(),4,94);for(const k in BPOS2)if(L[k])bl(BOBJ[k](),BPOS2[k][0],BPOS2[k][1]);bl(towerObj(st),36,4);bl(hearthObj(st),82,138);return b}
 /* ============ v19: 1.5x scenes with building stages ============ */
 const YW=432,YH=240,SW=288,SH=120;
-function blitTo(b,o,x,y){for(let j=0;j<o.h;j++)for(let i=0;i<o.w;i++){const c=o.p[j*o.w+i];if(c!=='.')pset(b,x+i,y+j,c)}}
+function blitTo(b,o,x,y){if(o.k===b.k&&b.k!==1){const ox=Math.round(x*b.k),oy=Math.round(y*b.k);for(let j=0;j<o.H;j++)for(let i=0;i<o.W;i++){const c=o.p[j*o.W+i];if(c!=='.')phx(b,ox+i,oy+j,c)}return}for(let j=0;j<o.h;j++)for(let i=0;i<o.w;i++){const c=pget(o,i,j);if(c!=='.')pset(b,x+i,y+j,c)}}
 function merge(parts){let x0=0,y0=0,x1=0,y1=0;for(const[o,x,y]of parts){x0=Math.min(x0,x);y0=Math.min(y0,y);x1=Math.max(x1,x+o.w);y1=Math.max(y1,y+o.h)}const b=pbuf(x1-x0,y1-y0);for(const[o,x,y]of parts)blitTo(b,o,x-x0,y-y0);return b}
 function rack(n,fish){const b=pbuf(6+n*6,16);prect(b,0,2,2,14,'W');prect(b,b.w-2,2,2,14,'W');prect(b,0,2,b.w,1,'X');prect(b,0,7,b.w,1,'X');
   if(fish)for(let i=0;i<n*2;i++){const x=3+i*3;prect(b,x,3,2,4,i%2?'T':'S');pset(b,x,3,'U');prect(b,x,8,2,4,i%2?'Y':'X')}return b}
@@ -1495,11 +1546,11 @@ const BSMK3={forge:'chim',smoke:'chim',kiln:'top',steel:'chim',coalpit:'top',hou
 function yardBg3(st){const W=YW,H=YH,b=pbuf(W,H);
   if(!st.looked){prect(b,0,0,W,H,'x');if(st.lk){for(let i=0;i<7;i++)prect(b,126+i*9,192-i*6,9,1,'B')}return b}
   rampV(b,0,0,W,120,st.won?['B','C','1','2','3']:['A','B','C','1','2']);
-  const R=rng(7);for(let i=0;i<150;i++){const x=Math.floor(R()*W),y=Math.floor(R()*92);pset(b,x,y,R()<.12?'y':R()<.5?'6':'5');if(R()<.05){pset(b,x+1,y,'5');pset(b,x-1,y,'5')}}
+  const R=rng(7),kk=b.k||1;for(let i=0;i<260;i++){const x=Math.floor(R()*W*kk),y=Math.floor(R()*92*kk),c=R()<.1?'y':R()<.45?'6':'5';phx(b,x,y,c);if(c==='y'&&R()<.5){phx(b,x+1,y,'5');phx(b,x-1,y,'5');phx(b,x,y-1,'5');phx(b,x,y+1,'5')}}
   polyFill(b,[[220,120],[248,106],[276,110],[300,120]],(x,y)=>pset(b,x,y,'1'));polyFill(b,[[326,120],[352,104],[378,100],[402,110],[432,106],[432,120]],(x,y)=>pset(b,x,y,'1'));
   for(let x=250;x<276;x+=3)pset(b,x,108,'2');for(let x=354;x<398;x+=3)pset(b,x,103,'2');
   rampV(b,0,120,W,120,['T','S','R','Q','P']);const R2=rng(9);
-  for(let i=0;i<300;i++){const x=Math.floor(R2()*W),y=122+Math.floor(R2()*116),l=2+Math.floor(R2()*7);prect(b,x,y,l,1,y<150?'U':'T')}
+  {const kk=b.k||1;for(let i=0;i<520;i++){const x=Math.floor(R2()*W*kk),y=Math.floor((122+R2()*116)*kk),l=Math.round((2+R2()*7)*kk*(0.6+0.4*(y/kk-120)/120));for(let q=0;q<l;q++)phx(b,x+q,y,y/kk<150?'U':'T')}}
   const land=[[0,240],[0,162],[33,150],[60,144],[144,150],[210,156],[285,165],[321,180],[348,204],[369,240]];
   polyFill(b,land,(x,y)=>pset(b,x,y,y<160?'N':'M'));ditherBlend(b,0,144,375,96,'L',0.16);pnoise(b,0,144,375,96,'O',0.05,21);pnoise(b,0,144,375,96,'L',0.07,22);
   polyFill(b,[[21,240],[27,192],[45,177],[135,174],[156,192],[165,240]],(x,y)=>pset(b,x,y,(x+y*3)%11<2?'D':((x*7+y)%9<4?'E':'F')));stones(b,24,180,141,60,31);
@@ -1507,14 +1558,16 @@ function yardBg3(st){const W=YW,H=YH,b=pbuf(W,H);
   for(let i=0;i<land.length-1;i++){const[a,c]=[land[i],land[i+1]];if(a[0]<210)continue;const n=Math.max(Math.abs(c[0]-a[0]),Math.abs(c[1]-a[1]));for(let k=0;k<=n;k++){const x=Math.round(a[0]+(c[0]-a[0])*k/n),y=Math.round(a[1]+(c[1]-a[1])*k/n);pset(b,x+1,y,'u');pset(b,x+2,y,'U');if(k%3===0)pset(b,x+3,y,'u');if(k%5===0)pset(b,x+5,y,'U')}}
   for(let k=0;k<=90;k++){const x=Math.round(156+k*1.75),y=Math.round(201+k*0.42);prect(b,x,y,2,1,'O');pset(b,x,y+1,'N');if(k%4===0)pset(b,x+2,y+1,'O');if(k%7===0)pset(b,x-1,y-1,'N')}
   if(st.hearth)logs2(b,150,226,Math.min(12,1+Math.floor((st.wood||0)/20)));
-  if(st.won){for(let i=0;i<210;i++){const x=108+i,y0=39-i*0.22;for(let d=-1-i*0.06;d<=1+i*0.06;d++){const y=Math.round(y0+d);if(y>=0&&(i+y)%2===0)pset(b,x,y,i<90?'I':'h')}}for(let i=0;i<70;i++){const x=72-i,y0=39-i*0.22;for(let d=-1;d<=1;d++){const y=Math.round(y0+d);if(x>=0&&y>=0&&(x+y)%2===0)pset(b,x,y,'h')}}}
+  if(st.won){const kk=b.k||1;for(let hx=Math.round(108*kk);hx<Math.round(318*kk);hx++){const i=hx/kk-108,y0=39-i*0.22,hw=1.2+i*0.06,a=Math.max(.18,.75-i/320);for(let hy=Math.floor((y0-hw)*kk);hy<=(y0+hw)*kk;hy++){const e=1-Math.abs(hy/kk-y0)/hw;if(hy>=0&&e>0&&a*(.45+e)>bay(hx,hy))phx(b,hx,hy,i<70&&e>.5?'I':'h')}}
+    for(let hx=Math.round(72*kk);hx>=0;hx--){const i=72-hx/kk,y0=39-i*0.22,hw=1.1+i*0.03,a=Math.max(.15,.55-i/200);for(let hy=Math.floor((y0-hw)*kk);hy<=(y0+hw)*kk;hy++){const e=1-Math.abs(hy/kk-y0)/hw;if(hy>=0&&e>0&&a*(.4+e)>bay(hx,hy))phx(b,hx,hy,'h')}}}
   if(st.boat){prect(b,306,192,33,6,'W');prect(b,309,198,27,3,'V');prect(b,306,192,33,1,'Y');prect(b,321,168,3,24,'X');polyFill(b,[[324,168],[339,189],[324,189]],(x,y)=>pset(b,x,y,(x+y)%5?'6':'5'))}
   if(st.schooner){const x=336,y=144;polyFill(b,[[x,y],[x+69,y],[x+60,y+12],[x+9,y+12]],(px,py)=>pset(b,px,py,py<y+3?'Y':'W'));prect(b,x+24,y-42,3,42,'X');prect(b,x+45,y-36,3,36,'X');
     polyFill(b,[[x+27,y-39],[x+42,y-6],[x+27,y-6]],(px,py)=>pset(b,px,py,(px+py)%6?'u':'6'));polyFill(b,[[x+48,y-33],[x+63,y-6],[x+48,y-6]],(px,py)=>pset(b,px,py,(px+py)%6?'6':'5'));pset(b,x+25,y-45,'g')}
   for(let i=0;i<Math.min(8,st.pop||0);i++){const x=176+i*16,y=232-(i%2)*4;prect(b,x,y-9,3,3,'m');prect(b,x-1,y-6,5,4,['X','S','r','v','Y','T','w','Z'][i]);prect(b,x,y-2,1,2,'x');prect(b,x+2,y-2,1,2,'x')}
   return b}
 function towerObj3(st){const W=74,H=192,b=pbuf(W,H),F=st.floors||{},cx=37,hwAt=y=>Math.round(18+(y-45)*0.09);
-  for(let y=45;y<H;y++){const hw=hwAt(y);for(let x=cx-hw;x<cx+hw;x++){const row=Math.floor((y-45)/5),off=row%2?4:0,mort=(y-45)%5===4||((x+off)%8===0);const shade=x<cx-hw+4?'G':x>cx+hw-6?'D':x>cx+hw-12?'E':'F';pset(b,x,y,mort?(shade==='D'?'x':'D'):shade);if(!mort&&(x*13+y*7)%29===0)pset(b,x,y,shade==='F'?'G':'E')}}
+  {const k=b.k||1,Y0=Math.round(45*k);hiRect(b,0,45,W,H-45,(i,j,x,y)=>{const hw=hwAt(Math.floor(y));if(x<cx-hw||x>=cx+hw)return;const ly=j-Y0,bh=Math.round(5*k),bw=Math.round(8*k),row=Math.floor(ly/bh),off=row%2?Math.round(bw/2):0,bi=Math.floor((i+off)/bw),mort=ly%bh===bh-1||(i+off)%bw===0;
+    const shade=x<cx-hw+4?'G':x>cx+hw-6?'D':x>cx+hw-12?'E':'F';if(mort)return shade==='D'?'x':'D';const v=hh2(bi,row);if(v<.12)return shade==='G'?'F':shade==='F'?'E':'D';if(v>.9&&shade!=='D')return shade==='F'?'G':'F';if(((i-off)%bw===1||ly%bh===0)&&shade!=='D')return shade==='E'?'F':'G';return hh2(i,j)<.03?(shade==='F'?'G':'E'):shade})}
   if(!st.won){pline(b,cx-9,90,cx-3,108,'D');pline(b,cx+6,126,cx+12,144,'D');pline(b,cx-3,108,cx-6,114,'D')}
   for(const y of[84,123,156])prect(b,cx-hwAt(y)-1,y,hwAt(y)*2+2,3,'H');
   for(const[k,y]of[['gallery',60],['study',99],['work',135]]){const lit=!!F[k];prect(b,cx-5,y,10,12,'x');if(lit){prect(b,cx-4,y+1,8,10,'J');prect(b,cx-2,y+3,4,5,'I');prect(b,cx-4,y+5,8,1,'K')}else pset(b,cx-1,y+4,'B');prect(b,cx-6,y+12,12,2,'H')}
@@ -1525,7 +1578,7 @@ function towerObj3(st){const W=74,H=192,b=pbuf(W,H),F=st.floors||{},cx=37,hwAt=y
   if(lit){prect(b,cx-3,20,6,10,'y');prect(b,cx-1,18,2,2,'I')}else if(lantern){for(let y=17;y<34;y+=3)pset(b,cx-8,y,'T')}
   polyFill(b,[[cx-15,15],[cx,1],[cx+15,15]],(x,y)=>pset(b,x,y,x<cx?'z':'E'));prect(b,cx,0,1,3,'H');prect(b,cx-15,14,30,1,'D');
   return b}
-function towerSil3(st){const t=towerObj3(Object.assign({},st,{hearth:0,won:0,floors:{}}));const b=pbuf(t.w,t.h);for(let y=0;y<t.h;y++)for(let x=0;x<t.w;x++)if(t.p[y*t.w+x]!=='.'){const e=pget(t,x-1,y)==='.'||pget(t,x+1,y)==='.'||pget(t,x,y-1)==='.';pset(b,x,y,e?'C':((x+y)%5===0?'B':'A'))}return b}
+function towerSil3(st){const t=towerObj3(Object.assign({},st,{hearth:0,won:0,floors:{}}));const b=pbuf(t.w,t.h),g=(x,y)=>x>=0&&y>=0&&x<t.W&&y<t.H?t.p[y*t.W+x]:'.';for(let y=0;y<t.H;y++)for(let x=0;x<t.W;x++)if(g(x,y)!=='.'){const e=g(x-1,y)==='.'||g(x+1,y)==='.'||g(x,y-1)==='.'||g(x,y+1)==='.';b.p[y*b.W+x]=e?'4':(x+y)%7===0?'2':'1'}return b}
 function hearthObj3(st){const b=pbuf(38,18);if(!st.hearth){prect(b,13,11,12,4,'D');pset(b,18,11,'K');pset(b,19,11,'J');pset(b,19,10,'I');pset(b,18,10,'J');prect(b,11,14,16,2,'E');return b}
   for(let i=0;i<9;i++){const x=1+i*4;prect(b,x,12,4,5,i%2?'F':'G');prect(b,x,12,4,1,'H');prect(b,x+3,13,1,4,'D')}
   prect(b,9,7,20,4,'W');prect(b,9,7,20,1,'X');prect(b,12,4,14,3,'X');prect(b,12,4,14,1,'Y');prect(b,6,10,26,2,'K');pset(b,10,9,'J');pset(b,26,9,'J');pset(b,19,11,'I');return b}
@@ -1542,11 +1595,11 @@ function yardFull3(st){const b=yardBg3(st);if(!st.looked)return b;const L=st.b||
   items.sort((p,q)=>(p[2]+p[0].h)-(q[2]+q[0].h));for(const[o,x,y]of items)blitTo(b,o,Math.round(x),Math.round(y));return b}
 /* ---------- SHORE 288x120 ---------- */
 function shoreBg3(st){const W=SW,H=SH,b=pbuf(W,H);rampV(b,0,0,W,24,['C','1','2','4']);
-  rampV(b,0,21,W,60,['T','S','R','Q','R']);const R=rng(41);for(let i=0;i<240;i++){const x=Math.floor(R()*W),y=24+Math.floor(R()*54),l=2+Math.floor(R()*8);prect(b,x,y,l,1,y<36?'U':(R()<.5?'T':'S'))}
-  for(const[yy,c]of[[66,'u'],[72,'U'],[76,'u']]){for(let x=0;x<W;x++){const y=yy+Math.round(Math.sin(x/12+yy)*1.6);pset(b,x,y,c);if(x%4)pset(b,x,y+1,c==='u'?'U':'T');if(x%7===0)pset(b,x,y-1,'U')}}
+  rampV(b,0,21,W,60,['T','S','R','Q','R']);const R=rng(41),kk=b.k||1;for(let i=0;i<420;i++){const x=Math.floor(R()*W*kk),y=Math.floor((24+R()*54)*kk),l=Math.round((2+R()*8)*kk*(0.5+0.5*(y/kk-24)/54)),c=y/kk<36?'U':(R()<.5?'T':'S');for(let q=0;q<l;q++)phx(b,x+q,y,c)}
+  for(const[yy,c]of[[66,'u'],[72,'U'],[76,'u']]){for(let hx=0;hx<W*kk;hx++){const x=hx/kk,y=Math.round((yy+Math.sin(x/12+yy)*1.6)*kk);phx(b,hx,y,c);if(hx%5)phx(b,hx,y+1,c==='u'?'U':'T');if(hx%9===0)phx(b,hx,y-1,'U');if(c==='u'&&hh2(hx,yy)<.25)phx(b,hx,y+2,'U')}}
   rampV(b,0,78,W,12,['M','L','M']);rampV(b,0,87,W,33,['N','N','O']);pnoise(b,0,87,W,33,'M',0.1,44);pnoise(b,0,87,W,33,'L',0.04,45);pnoise(b,0,78,W,12,'T',0.06,46);
   for(let i=0;i<24;i++){const R3=rng(60+i),x=Math.floor(R3()*W),y=90+Math.floor(R3()*28);pset(b,x,y,'r');pset(b,x+1,y,'Z');pset(b,x+2,y-1,'r');if(i%3===0){pset(b,x+4,y+1,'G');pset(b,x+5,y+1,'H')}}
-  for(let y=0;y<93;y++)for(let x=0;x<33;x++){const row=Math.floor(y/5),mort=(y%5===4)||((x+(row%2?4:0))%8===0);pset(b,x,y,mort?'D':x<5?'G':x>26?'E':'F')}
+  {const bh=Math.round(5*kk),bw=Math.round(8*kk);hiRect(b,0,0,33,93,(i,j,x)=>{const row=Math.floor(j/bh),off=row%2?Math.round(bw/2):0,bi=Math.floor((i+off)/bw);if(j%bh===bh-1||(i+off)%bw===0)return'D';const sh=x<5?'G':x>26?'E':'F',v=hh2(bi,row);return v<.12?(sh==='G'?'F':'E'):(j%bh===0&&sh!=='E')?'G':sh})}
   stones(b,0,90,45,30,71);
   logs2(b,42,112,Math.min(12,Math.ceil((st.wood||0)/12)));
   if(st.scrapSeen){const n=Math.min(6,Math.ceil((st.scrap||0)/10));for(let i=0;i<n;i++){prect(b,93+i*4,110-i,12-i,3,i%2?'H':'G');pset(b,94+i*4,109-i,'q')}}
@@ -1568,6 +1621,15 @@ function flotObj3(k){const b=pbuf(24,18);if(k==='bottle'){prect(b,5,9,12,6,'r');
 function log3Buf(){const b=pbuf(27,10);prect(b,3,1,21,8,'X');prect(b,3,1,21,2,'Y');prect(b,3,8,21,1,'V');prect(b,0,2,3,6,'O');pset(b,1,4,'M');pset(b,1,5,'M');prect(b,24,2,3,6,'N');pset(b,9,4,'W');pset(b,16,3,'W');pset(b,13,6,'W');return b}
 function doorObj3(){const b=pbuf(21,39);prect(b,0,0,21,3,'H');prect(b,1,3,19,36,'x');prect(b,3,5,15,34,'V');for(let x=6;x<18;x+=4)prect(b,x,5,1,34,'W');prect(b,3,18,15,1,'W');pset(b,15,21,'g');pset(b,15,22,'I');return b}
 
+
+/* Ковадло на пеньку; гаряче — з розжареною заготовкою */
+function anvilObj3(hot){const b=pbuf(18,14);prect(b,4,9,10,5,'W');prect(b,4,9,1,5,'V');prect(b,13,9,1,5,'V');prect(b,5,9,8,1,'Y');pline(b,6,11,11,11,'V');
+  polyFill(b,[[0,4],[3,3],[3,6]],(x,y)=>pset(b,x,y,'F'));prect(b,3,3,13,3,'G');prect(b,3,3,13,1,'H');prect(b,15,3,2,2,'F');prect(b,6,6,6,2,'F');prect(b,5,8,8,1,'E');
+  if(hot){prect(b,5,1,9,2,'K');prect(b,6,1,7,1,'J');pset(b,9,1,'I');pset(b,3,0,'J');pset(b,15,0,'K');pset(b,12,-1,'J')}return b}
+/* Усі сцени й об'єкти двору та берега малюються з масштабом SK */
+yardBg3=HI(yardBg3);towerObj3=HI(towerObj3);towerSil3=HI(towerSil3);hearthObj3=HI(hearthObj3);emberObj3=HI(emberObj3);flame3Strip=HI(flame3Strip);signObj3=HI(signObj3);fogBuf3=HI(fogBuf3);
+yardFull3=HI(yardFull3);shoreBg3=HI(shoreBg3);wreckObj3=HI(wreckObj3);rodObj3=HI(rodObj3);pierObj3=HI(pierObj3);shipObj3=HI(shipObj3);flotObj3=HI(flotObj3);log3Buf=HI(log3Buf);doorObj3=HI(doorObj3);
+for(const k in BLD3)BLD3[k]=HI(BLD3[k]);anvilObj3=HI(anvilObj3);
 /* ============ TEXT HELPERS ============ */
 const P=t=>`<span class="npc">${t}</span>`;
 const I=t=>`<span class="itm">${t}</span>`;
@@ -1579,12 +1641,12 @@ const XKP={yd:1,y2:1,yf:1,s2:1,y3:1,f3:1,s3:1,sh:1,tc:1,sc:1,mp:1,st:1,ch:1,wk:1
 function xkA(url){let k=PXK[url];if(!k)return'';k=k.replace(/~\d+$/,'');return XKP[k.split(':')[0]]?` data-xk="${k.replace(/"/g,'')}"`:''}
 const pimg=(url,w,h,cls,alt)=>url?`<img class="px ${cls||''}" src="${url}"${xkA(url)} width="${w}" height="${h}" alt="${alt||''}">`:'';
 const WATER={'2':1,'3':1,'4':1,'6':1},WATER2={'2':1,'3':1},WATER3={P:1,Q:1,R:1,S:1,T:1,U:1,u:1};
-function seaTop(b){for(let y=0;y<b.h-1;y++){let n=0;for(let x=0;x<b.w;x++)if(b.p[y*b.w+x]==='4')n++;if(n>=b.w*0.6)return y}return -1}
-function waveFrame(b,k,y0,set){const W=b.w,H=b.h,src=b.p,o=src.slice(),S=set||WATER;for(let y=Math.max(0,y0);y<H;y++){const off=[0,1,0,-1][(k+(y>>1))%4];if(!off)continue;
-  for(let x=0;x<W;x++){const cc=src[y*W+x];if(!S[cc])continue;const sc=src[y*W+(x-off+W)%W];if(S[sc])o[y*W+x]=sc}}return{w:W,h:H,p:o}}
+function seaTop(b){const W=b.W||b.w,H=b.H||b.h;for(let y=0;y<H-1;y++){let n=0;for(let x=0;x<W;x++)if(b.p[y*W+x]==='4')n++;if(n>=W*0.6)return y}return -1}
+function waveFrame(b,k,y0,set){const W=b.W||b.w,H=b.H||b.h,src=b.p,o=src.slice(),S=set||WATER;for(let y=Math.max(0,y0);y<H;y++){const off=[0,1,0,-1][(k+(y>>1))%4];if(!off)continue;
+  for(let x=0;x<W;x++){const cc=src[y*W+x];if(!S[cc])continue;const sc=src[y*W+(x-off+W)%W];if(S[sc])o[y*W+x]=sc}}return{w:b.w,h:b.h,k:b.k||1,W,H,p:o}}
 const AF={};
 function animURLs(key,make,y0,set){if(AF[key])return AF[key];let base=null;const gb=()=>base||(base=make());const u0=pxURL(key,gb);if(!u0)return[u0];
-  const top=y0===undefined?seaTop(gb()):y0;if(top<0)return AF[key]=[u0];const out=[];for(let k=0;k<4;k++)out.push(pxURL(key+'~'+k,()=>waveFrame(gb(),k,top,set)));return AF[key]=out}
+  const top=y0===undefined?seaTop(gb()):Math.round(y0*(gb().k||1));if(top<0)return AF[key]=[u0];const out=[];for(let k=0;k<4;k++)out.push(pxURL(key+'~'+k,()=>waveFrame(gb(),k,top,set)));return AF[key]=out}
 function pimgA(key,make,w,h,cls,alt,y0,set){const u=animURLs(key,make,y0,set);return u[0]?`<img class="px ${cls||''}" src="${u[0]}"${xkA(u[0])}${u.length>1?` data-fr="${key}"`:''} width="${w}" height="${h}" alt="${alt||''}">`:''}
 let frN=0,frT=0;function animTick(){const now=Date.now();if(now-frT<520||RM()||!document.querySelectorAll)return;frT=now;frN++;document.querySelectorAll('img[data-fr]').forEach(el=>{const a=AF[el.dataset.fr];if(a&&a.length>1)el.src=a[frN%a.length]})}
 const STI={stun:['...g...','..ggg..','ggggggg','.ggggg.','.gg.gg.','g.....g','.......'],bleed:['...i...','...i...','..iii..','.iiiii.','.iiiii.','..iii..','.......'],
@@ -2223,7 +2285,7 @@ function flotTake(k,mul=1){let m='';const M=v=>Math.round(v*mul);
   else if(k==='bottle'){const n=NOTES[rnd(NOTES.length)];const g=s.floors.study?{lore:15+rnd(15),coin:5}:{coin:15};for(const x in g)add(x,g[x]);dlg({k:'find',title:'Пляшка з запискою',img:{t:'scene',id:'shore'},body:`<div class="note">${n}</div>`,gains:[costTxt(g)]});return}
   else if(k==='survivor'){if(mul>1){add('coin',20);add('prov',5)}if((s.pop||0)<2*(s.b.house||0)){s.pop=(s.pop||0)+1;m=`На уламку щогли — живий моряк! Він відігрівся біля вогнища й лишився жити біля маяка.${mul>1?` На радощах віддав тобі ${R('coin',20)} і ${R('prov',5)}.`:''}`}else{add('coin',15);m=`На уламку щогли — живий моряк. Ти відігрів його й нагодував. Для нього немає хати, тож він пішов до селища, лишивши ${R('coin',15)}.`;if(s.r.prov>=3)s.r.prov-=3}}
   if(mul>1&&m)m+=' Спритно впорався!';say(m,'find')}
-function shoreTick(){const now=Date.now();if(!s.floors.gallery)return;if(s.flot&&away()&&!mgHelp('flot'))s.flot.until=Math.max(s.flot.until,now+30000);
+function shoreTick(){const now=Date.now();for(const[k,m]of[['bite','Велика риба зірвалася й пішла в глибину. Нічого, ще клюне.'],['hot','Заготовка охолола. Нічого, метал ще розжариться.']])if(s[k]){if(away())s[k].until=Math.max(s[k].until,now+20000);else if(now>s[k].until){s[k]=null;say(m,'world')}}if(!s.floors.gallery)return;if(s.flot&&away()&&!mgHelp('flot'))s.flot.until=Math.max(s.flot.until,now+30000);
   if(s.flot&&now>s.flot.until&&!MG){const k=s.flot.k;s.flot=null;s.flotT=now+(120+Math.random()*120)*1000;if(mgHelp('flot')){say('Варта прибою витягла те, що винесли хвилі.','find');flotTake(k,k==='bottle'?1:mgAutoRes('flot'))}else say('Хвилі забрали те, що лежало на березі.','world')}
   if(!s.flot){if(!s.flotT)s.flotT=now+(90+Math.random()*90)*1000;else if(now>=s.flotT){const ks=['crate','crate','barrel','barrel','cargo','bottle',...(s.f.people?['survivor']:[])];s.flot={k:ks[rnd(ks.length)],until:now+180000};say('Прибій щось викинув на берег.','world');dirty=1}}
   for(const e of (s.exp||[]).slice())if(now>=e.until){s.exp=s.exp.filter(x=>x!==e);const X=EXP[e.id],g=X.res(),bad=fuL('gallery')<3&&Math.random()<0.1;
@@ -3173,7 +3235,7 @@ function act0(a,i){
     if(s.c.gather===6){say('Між водоростями блищить пляшка, заткнута воском. Усередині записка. Відкрито: Журнал.','story');page(1)}
     if(s.c.gather===60)odd('gull','У плавнику застрягла вирізана з дерева чайка.')}break;
   case 'scrapw':if(F.wreck&&!onCd('scrapw')){setCd('scrapw',2);add('scrap',1+(s.rs.metal?1:0)+(s.h.ft.thrifty?1:0))}break;
-  case 'fishing':if(F.rod&&!onCd('fishing')){setCd('fishing',3);if(s.c.fish>=6&&F.crab1&&(mgOk()||mgHabit('fish')||s.quickMG)&&Math.random()<1/8){s.c.fish++;mgRun('fish',mgFish,fishEnd);break}add('fish',wolf());s.c.fish++;
+  case 'fishing':if(F.rod&&!onCd('fishing')){setCd('fishing',3);if(!s.bite&&s.c.fish>=6&&F.crab1&&Date.now()-(s.bigT||0)>240000&&Math.random()<1/6){s.bigT=Date.now();if(mgHabit('fish')||s.quickMG){s.c.fish++;mgRun('fish',mgFish,fishEnd);break}s.bite={until:Date.now()+30000};say('Вудка вигнулася дугою: щось велике тягне линву!','find');break}add('fish',wolf());s.c.fish++;
     if(!F.crab1&&!F.crabWarn&&s.c.fish>=5){F.crabWarn=1;crabWarn()}}break;
   case 'bld':{const b=i==='hearth'?HEARTH:BD.find(x=>x.id===i);if(b.max&&(s.b[i]||0)>=b.max)break;const c=bCost(b);if(afford(c)){pay(c);s.b[i]=(s.b[i]||0)+1;upT[i]=Date.now();if(typeof setTimeout==="function")setTimeout(()=>{dirty=1},1700);
     say(i==='hearth'&&s.b[i]===1?'Ти складаєш вогнище з плавника й кладеш у нього жарину. Полум’я оживає, а приплив тепер сам приносить трохи плавника до порогу.':`${b.n}: рівень ${s.b[i]}.`,'world')}break}
@@ -3199,8 +3261,8 @@ function act0(a,i){
   case 'packRem':s.pack=s.pack.filter(x=>x!==i);for(const sl of['weapon','ranged'])if(s.eq[sl]===i)s.eq[sl]='';break;
   case 'beltAdd':if(has(i)&&IT[i].use&&!s.belt.includes(i)&&s.belt.length<beltSlots())s.belt.push(i);break;
   case 'beltRem':s.belt=s.belt.filter(x=>x!==i);break;
-  case 'wup':{const tier=wF(i),cst=wfCost(tier),rel=REL[i]&&REL[i][tier];if(!cst||!WF[i]||!s.b.forge||!has(i)||wmLv(i)<WFM[tier]||!rel||!has(rel)||!afford(cst))break;const old=wN(i);pay(cst);s.inv[rel]--;s.wf=s.wf||{};s.wf[i]=tier+1;mgRun('forge',()=>setTimeout(()=>mgForge(i),60),(r,sk)=>forgeEnd(i,r,sk));
-    say(`Кузня: ${I(old)} тепер ${I(wN(i))}.`,'find');dlg({k:'find',title:`Удосконалено: ${wN(i)}`,img:{t:'wico',id:i},body:`<p>${tier&&s.mst.kindrat?`${P('Кіндрат')} гартує сталь, і ${old.toLowerCase()} стає зовсім іншою зброєю.`:`Кузня гуде до ночі. ${IT[rel].n} лягає на своє місце, і ${old.toLowerCase()} виходить з горна новою зброєю.`}</p>`,gains:['+2 урону',`Нова особливість: ${WF[i][tier].tr}`,'Старі особливості й прийоми майстерності лишаються']});break}
+  case 'wup':{const tier=wF(i),cst=wfCost(tier),rel=REL[i]&&REL[i][tier];if(!cst||!WF[i]||!s.b.forge||!has(i)||wmLv(i)<WFM[tier]||!rel||!has(rel)||!afford(cst))break;const old=wN(i);pay(cst);s.inv[rel]--;s.wf=s.wf||{};s.wf[i]=tier+1;
+    say(`Кузня: ${I(old)} тепер ${I(wN(i))}.`,'find');dlg({k:'find',title:`Удосконалено: ${wN(i)}`,img:{t:'wico',id:i},body:`<div class="fgx" aria-hidden="true"><span class="fgh"></span><b></b><b></b><b></b><b></b><b></b></div><p>${tier&&s.mst.kindrat?`${P('Кіндрат')} гартує сталь, і ${old.toLowerCase()} стає зовсім іншою зброєю.`:`Кузня гуде до ночі. ${IT[rel].n} лягає на своє місце, і ${old.toLowerCase()} виходить з горна новою зброєю.`}</p>`,gains:['+2 урону',`Нова особливість: ${WF[i][tier].tr}`,'Старі особливості й прийоми майстерності лишаються']});break}
   case 'wk+':if(BD.find(b=>b.id===i)&&WKB.includes(i)&&freeW()>0&&((s.wk||{})[i]||0)<(s.b[i]||0)){s.wk=s.wk||{};s.wk[i]=(s.wk[i]||0)+1}break;
   case 'wk-':if((s.wk||{})[i]>0)s.wk[i]--;break;
   case 'olheal':if(s.mst.olesya&&!onCd('olheal')&&s.h.hp<maxHP()){setCd('olheal',120);s.h.hp=maxHP();say(`${P('Олеся')} перев’язує тебе й мастить рани зіллям. Ти знову повний сил.`)}break;
@@ -3244,6 +3306,10 @@ function act0(a,i){
   case 'beam':{const n=+i;if(!s.f.won||n===(s.beam||0)||n<0||n>5||s.r.oil<3)break;s.r.oil-=3;s.beam=n;break}
   case 'flot':{const f=s.flot;if(!f)break;s.flot=null;s.flotT=Date.now()+(150+Math.random()*120)*1000;flotTake(f.k,+i>1?+i:1);break}
   case 'flotmg':{const f=s.flot;if(!f)break;if(f.k==='bottle'){act('flot');break}mgRun('flot',()=>{f.until=Math.max(f.until,Date.now()+90000);mgFlot(f.k)},r=>act('flot',r>1?String(r):'1'));break}
+  case 'bigfish':{if(!s.bite)break;s.bite=null;s.c.fish++;mgRun('fish',mgFish,fishEnd);break}
+  case 'smith':{if(!s.b.forge||onCd('smith')||s.hot)break;const c={scrap:4,ember:2};if(!afford(c)){say(`Для кування треба ${costTxt(c)}.`,'world');break}pay(c);setCd('smith',4);const n=smithN();add('iron',n);
+    if(Date.now()-(s.hotT||0)>180000&&Math.random()<1/7){s.hotT=Date.now();if(mgHabit('forge')||s.quickMG)mgRun('forge',null,smithEnd);else{s.hot={until:Date.now()+30000};say('Заготовка розжарилася як слід: ще удар у слушну мить, і метал віддасть більше.','find')}}break}
+  case 'smithhot':{if(!s.hot)break;s.hot=null;mgRun('forge',()=>mgForge('smith'),smithEnd);break}
   case 'mghab':{s.mgHab=s.mgHab||{};s.mgHab[i]=s.mgHab[i]?0:1;break}
   case 'sett':break;
   case 'qmg':s.quickMG=s.quickMG?0:1;break;
@@ -3264,7 +3330,7 @@ function rcVisible(rc){if(rc.req&&!rc.req())return false;if(rc.tool)return rc.id
 
 
 /* Мла збирається на метушню: її додають лише дії гравця. Поки біля маяка тихо — вона дрімає. */
-const MLA_A={gather:0.08,scrapw:0.15,fishing:0.2,blow:0.05,bld:1.5,floor:2,craft:1,wup:1.5,schooner:2,exp:0.8};
+const MLA_A={smith:0.15,gather:0.08,scrapw:0.15,fishing:0.2,blow:0.05,bld:1.5,floor:2,craft:1,wup:1.5,schooner:2,exp:0.8};
 let paidN=0;
 function act(a,i){s.lastAct=Date.now();const w=MLA_A[a],fx=SFXA[a];if(!w&&!fx){act0(a,i);return}const cd0=s.cd[a],p0=paidN,ap0=s.cb?s.cb.ap:null;act0(a,i);
   if(s.cd[a]!==cd0||paidN!==p0||(s.cb&&ap0!==null&&s.cb.ap!==ap0)){if(w)mlaAdd(w);if(fx)sfx(fx)}}
@@ -3799,6 +3865,7 @@ function refresh(){
   document.querySelectorAll('[data-w]').forEach(el=>{const f=B[el.dataset.w];if(f)el.style.width=f()+'%'});
   const now=Date.now();
   document.querySelectorAll('[data-cd]').forEach(el=>{const left=(s.cd[el.dataset.cd]||0)-now;el.style.setProperty('--p',left>0?String(left/(+el.dataset.cs*1000)):'0')});
+  {const m=mlaV().toFixed(2);document.querySelectorAll('.scn').forEach(el=>{if(el.style&&el.style.getPropertyValue('--mla')!==m)el.style.setProperty('--mla',m)})}
   rTop();rToast();animTick();if((bdg9=(bdg9+1)%4)===0)badges9()}
 let bdg9=0;function badges9(){const el=$('tabs');if(!el||!el.querySelectorAll)return;el.querySelectorAll('button[data-i]').forEach(b=>{const t=b.dataset.i,n=s.tab!==t&&isNew(t);if(b.classList.contains('new')!==n)b.classList.toggle('new',n)})}
 function dlgImg(m){if(!m)return'';if(m.t==='scene')return sceneImg(m.id);if(m.t==='yard')return yardImg();
@@ -3872,20 +3939,50 @@ function hs(k,a,i,box,lab,tip,o={}){const pulse=o.pulse&&(o.always||!(s.hsU||{})
   return`<button type="button" class="hs${pulse?' pulse':''}${o.ok===false?' no':''}" data-a="${a}" data-i="${i||''}" data-k="${k}"${o.cd?` data-cd="${o.cd}" data-cs="${o.cs}"`:''} style="${box}" aria-label="${lab}" ${TA(tip||`<b>${lab}</b>`)}><span class="hsl">${lab}</span>${o.inner||''}</button>`}
 const OBC={};
 function obURL(key,make){const u=pxURL('ob:'+key,make);const o=pxURL('obo:'+key,()=>{const b=make();return outline2(b,'I')});const k='ob:'+key;if(!OBC[k]){const b=make();OBC[k]=[b.w,b.h]}return[u,o,OBC[k][0],OBC[k][1]]}
-function topPx(key,make){const c='tp:'+key;if(OBC[c])return OBC[c];const b=make();for(let y=0;y<b.h;y++)for(let x=0;x<b.w;x++)if(b.p[y*b.w+x]!=='.')return OBC[c]=[x,y];return OBC[c]=[b.w>>1,0]}
+function topPx(key,make){const c='tp:'+key;if(OBC[c])return OBC[c];const b=make(),W=b.W||b.w,H=b.H||b.h,k=b.k||1;for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(b.p[y*W+x]!=='.')return OBC[c]=[x/k,y/k];return OBC[c]=[b.w>>1,0]}
 const pOf=k=>{const l=(s.cd[k]||0)-Date.now();return l>0?l/((CDS[k]||1)*1000):0};const CDS={gather:1,scrapw:2,fishing:3,blow:2};
 function ob(k,a,i,spec,x,y,W,H,lab,tip,o={}){const[u,ol,w,h]=spec;if(!u)return'';const pulse=o.pulse&&(o.always||!(s.hsU||{})[k]);
-  const box=PCT(x-1,y-1,w+2,h+2,W,H),inn=`left:${(100/(w+2)).toFixed(3)}%;top:${(100/(h+2)).toFixed(3)}%;width:${(w/(w+2)*100).toFixed(3)}%;height:${(h/(h+2)*100).toFixed(3)}%`;
+  const box=PCT(x-OP,y-OP,w+2*OP,h+2*OP,W,H),inn=`left:${(OP*100/(w+2*OP)).toFixed(3)}%;top:${(OP*100/(h+2*OP)).toFixed(3)}%;width:${(w/(w+2*OP)*100).toFixed(3)}%;height:${(h/(h+2*OP)*100).toFixed(3)}%`;
   const deco=!a;const gl=!deco&&(pulse||o.cd)?`<span class="gl" style="${inn};-webkit-mask-image:url(${u});mask-image:url(${u})"></span>`:'';
   const body=`<span class="obw"><span class="obj ${o.idle||''}">${deco?'':`<img class="obo" src="${ol}" alt="">`}<img class="obi" src="${u}" alt="" style="${inn}">${gl}</span></span>`;
   const z=10+Math.round(o.z!=null?o.z:y+h);
   if(deco)return`<span class="ob deco${o.cls?' '+o.cls:''}" data-sk="${k}" data-sig="${hsh(u+box+(o.cls||''))}" style="${box};z-index:${z}" aria-hidden="true">${body}${o.inner||''}</span>`;
   const core=`class="ob${pulse?' nw':''}${o.ok===false?' no':''}${o.cls?' '+o.cls:''}" data-a="${a}" data-i="${i||''}" data-k="${k}"${o.cd?` data-cd="${o.cd}" data-cs="${o.cs}"`:''} aria-label="${lab}" ${TA(tip||`<b>${lab}</b>`)}>${body}<span class="hsl">${lab}</span>${o.inner||''}`;
   return`<button type="button" data-sk="${k}" data-sig="${hsh(core+box)}" style="${box};z-index:${z}${o.cd?`;--p:${pOf(o.cd).toFixed(3)}`:''}" ${core}</button>`}
-function innerAt(px,py,pw,ph,w,h,cls,extra){return`<i class="${cls}" style="left:${((px+1)/(w+2)*100).toFixed(2)}%;top:${((py+1)/(h+2)*100).toFixed(2)}%;width:${(pw/(w+2)*100).toFixed(2)}%;height:${(ph/(h+2)*100).toFixed(2)}%;${extra||''}" aria-hidden="true"></i>`}
-function smkIn(sx,sy,w,h){return[0,1,2].map(n=>`<i class="smk" style="left:${((sx+1)/(w+2)*100).toFixed(2)}%;top:${((sy+1)/(h+2)*100).toFixed(2)}%;width:${(3/(w+2)*100).toFixed(2)}%;--o:${n}s" aria-hidden="true"></i>`).join('')}
+function innerAt(px,py,pw,ph,w,h,cls,extra){return`<i class="${cls}" style="left:${((px+OP)/(w+2*OP)*100).toFixed(2)}%;top:${((py+OP)/(h+2*OP)*100).toFixed(2)}%;width:${(pw/(w+2*OP)*100).toFixed(2)}%;height:${(ph/(h+2*OP)*100).toFixed(2)}%;${extra||''}" aria-hidden="true"></i>`}
+function smkIn(sx,sy,w,h){return[0,1,2].map(n=>`<i class="smk" style="left:${((sx+OP)/(w+2*OP)*100).toFixed(2)}%;top:${((sy+OP)/(h+2*OP)*100).toFixed(2)}%;width:${(3/(w+2*OP)*100).toFixed(2)}%;--o:${n}s" aria-hidden="true"></i>`).join('')}
 let popB='',upT={};
 const flameURL=()=>pxURL('flm3:1',flame3Strip),fogURL=k=>pxURL('fog3:'+k,()=>fogBuf3(k));
+/* Світло: піксельна карта з кількома смугами яскравості й дизерингом на межах.
+   Окремий шар над сценою (mix-blend-mode: screen); вогнище мерехтить, вікна дихають. */
+const LTC={};
+function lightURL(key,srcs,W,H){if(LTC[key])return LTC[key];let u='';try{const k=SK,w=Math.round(W*k),h=Math.round(H*k),cv=document.createElement('canvas');if(!cv.getContext)return'';cv.width=w;cv.height=h;
+  const g=cv.getContext('2d'),im=g.createImageData(w,h),A=new Float32Array(w*h),C=new Uint8Array(w*h*3),BA=[0,.16,.3,.46,.62];
+  for(const L of srcs){const cx=L.x*k,cy=L.y*k,rx=L.r*k,ry=rx*(L.e||1),x0=Math.max(0,Math.floor(cx-rx)),x1=Math.min(w,Math.ceil(cx+rx)),y0=Math.max(0,Math.floor(cy-ry)),y1=Math.min(h,Math.ceil(cy+ry));
+    for(let j=y0;j<y1;j++)for(let i=x0;i<x1;i++){const d=Math.hypot((i-cx)/rx,(j-cy)/ry);if(d>=1)continue;const t=(1-d)*(L.n||3)+(bay(i,j)-.5)*.9,bd=Math.max(0,Math.min(4,Math.floor(t+.5))),a=BA[bd]*(L.a||1),q=j*w+i;
+      if(a>A[q]){A[q]=a;C[q*3]=L.c[0];C[q*3+1]=L.c[1];C[q*3+2]=L.c[2]}}}
+  for(let q=0;q<w*h;q++)if(A[q]>0){im.data[q*4]=C[q*3];im.data[q*4+1]=C[q*3+1];im.data[q*4+2]=C[q*3+2];im.data[q*4+3]=Math.round(A[q]*255)}
+  g.putImageData(im,0,0);u=cv.toDataURL('image/png')}catch(e){u=''}return LTC[key]=u}
+const WARM=[255,168,74],FIRE=[255,140,52],PALE=[255,236,168];
+function yardLights(){const fire=[],win=[];if(!s.f.looked)return{fire,win};const hs=s.b.hearth||0,on=s.on.hearth!==false;
+  if(hs&&on)fire.push({x:143,y:210,r:40+6*Math.min(5,hs),e:.62,c:FIRE,n:4},{x:143,y:202,r:16+2*hs,c:PALE,a:.6});
+  const F=s.floors||{};if(hs){win.push({x:55,y:188,r:22,e:.8,c:WARM,a:.8})}
+  for(const[k,y]of[['gallery',74],['study',113],['work',149]])if(F[k])win.push({x:55,y,r:15,c:WARM,a:.7});
+  if(s.f.won)win.push({x:55,y:30,r:46,c:PALE,a:.9});
+  for(const id in BANC){const lv=s.b[id]||0;if(!lv||(s.dmgB||{})[id]||s.on[id]===false)continue;const g=stageOf(lv),strong=['forge','steel','glass','kiln','render'].includes(id);
+    if(!strong&&!['smoke','apoth','house'].includes(id))continue;win.push({x:BANC[id][0],y:BANC[id][1]-8-4*g,r:(strong?18:12)+5*g,e:.8,c:strong?FIRE:WARM,a:strong?.8:.55})}
+  for(let i=0;i<Math.min(4,s.b.house||0);i++)win.push({x:HOUSES[i][0]+5,y:HOUSES[i][1]-10,r:13,e:.8,c:WARM,a:.55});
+  return{fire,win}}
+function lightLayers(W,H,L){let h='';const sig=a=>a.map(o=>[o.x,o.y,o.r,o.a||1].join(',')).join(';');
+  if(L.win.length){const k='w'+W+':'+sig(L.win);h+=`<img class="lt" data-sk="ltw" data-sig="${hsh(k)}" src="${lightURL(k,L.win,W,H)}" alt="" aria-hidden="true">`}
+  if(L.fire.length){const k='f'+W+':'+sig(L.fire);h+=`<img class="lt ltf" data-sk="ltf" data-sig="${hsh(k)}" src="${lightURL(k,L.fire,W,H)}" alt="" aria-hidden="true" style="transform-origin:${(L.fire[0].x/W*100).toFixed(1)}% ${(L.fire[0].y/H*100).toFixed(1)}%">`}
+  return h}
+/* Мла, яку видно: густий бузково-сивий туман від моря; висота й щільність — за шкалою Мли (--mla на .scn) */
+const mlaURL=k=>pxURL('mla5:'+k,()=>HI(()=>{const W=216,H=60,b=pbuf(W,H),T=6.2832;
+  hiRect(b,0,0,W,H,(i,j,x,y)=>{const yy=y/H,n=.5+.32*Math.sin(x/W*T*4+k)*Math.sin(yy*T*1.2+x/W*T*2)+.18*Math.sin(x/W*T*10-k)*Math.sin(yy*T*2.6+1.3),d=Math.pow(yy,.9)*(.35+.8*n)*(yy>.85?(1-yy)/.15:1);
+    if(d>bay(i,j)+.08)return n>.75?'6':n>.45?'5':'o'});return b})());
+const mlaLayer=(top,h)=>`<span class="scm" data-sk="mla" data-sig="m5${top}" aria-hidden="true"><i class="mla" style="--t:${top}%;--h:${h}%;background-image:url(${mlaURL(5)})"></i><i class="mla m2" style="--t:${top}%;--h:${h}%;background-image:url(${mlaURL(11)})"></i></span>`;
+const mlaV=()=>thrOn()?Math.min(1,(s.threat||0)/100):0;
 const fogs=(top,h)=>`<span class="scf" data-sk="fog" data-sig="fog${top}" aria-hidden="true"><i class="fog" style="top:${top}%;height:${h}%;background-image:url(${fogURL(3)})"></i><i class="fog f2" style="top:${top+h*0.35}%;height:${h*0.8}%;background-image:url(${fogURL(8)})"></i></span>`;
 function smk(x,y,W,H){return[0,1,2].map(n=>`<i class="smk" style="left:${(x/W*100).toFixed(2)}%;top:${(y/H*100).toFixed(2)}%;--o:${n}s" aria-hidden="true"></i>`).join('')}
 function bpopHTML(){const id=popB;if(!id)return'';let nm,lvl,d,btns='',extra='';
@@ -3909,7 +4006,7 @@ function placePop(){try{let L=document.getElementById('popl');if(!popB||s.cb||s.
 function homeHS(){const W=YW,H=YH;let h='';const st=yardSt2();
   if(!s.f.looked){const e=obURL('ember3',emberObj3);h+=ob('ember','blow','',e,84,206,W,H,'Подмухати на жарину','<b>Жарина</b><br>Подмухай, і вона спалахне яскравіше: +3 жару.',{pulse:1,cd:'blow',cs:2,inner:'<i class="emb"></i>'});
     if(s.f.lk)h+=ob('look','look','',obURL('tsil3',()=>towerSil3(st)),18,8,W,H,'Роззирнутися','<b>Роззирнутися</b><br>Очі звикли до темряви. У ній проступають обриси стін і сходів.',{pulse:1});return h}
-  h+=fogs(42,14);
+  h+=fogs(42,14)+mlaLayer(36,36)+lightLayers(W,H,yardLights());
   const tk='tw3:'+[st.floors.work,st.floors.gallery,st.floors.study,st.floors.lantern,st.hearth,st.won].map(v=>v?1:0).join('');
   h+=ob('tower',s.tabs.tower?'tab':'','tower',obURL(tk,()=>towerObj3(st)),18,8,W,H,'Нагору, до поверхів','<b>Маяк</b><br>Сходи ведуть угору, до поверхів.',{pulse:1});
   if(s.f.won)h+=`<i class="lglow" data-sk="lglow" data-sig="1" style="${PCT(28,0,54,52,W,H)};z-index:5" aria-hidden="true"></i>`;
@@ -3923,25 +4020,27 @@ function homeHS(){const W=YW,H=YH;let h='';const st=yardSt2();
   for(const B of vis){const id=B.id,lvl=s.b[id]||0;
     if(id==='house'){const nH=Math.max(1,Math.min(4,lvl));for(let k=0;k<nH;k++){const sp=obURL('h3:house',()=>BLD3.house(1));h+=bob('house','house',HOUSES[k][0],HOUSES[k][1],sp,lvl,!lvl,k)}continue}
     if(!BANC[id])continue;const g=lvl?stageOf(lvl):1,key=id+g,sp=obURL('b3:'+key,()=>BLD3[id](g));h+=bob(id,key,BANC[id][0],BANC[id][1],sp,lvl,!lvl)}
+  if(s.b.forge){const c={scrap:4,ember:2},n=smithN();h+=s.hot?ob('anvil','smithhot','',obURL('anvil3h',()=>anvilObj3(1)),180,150,W,H,'Бити по заготовці','<b>Заготовка розжарилася!</b><br>Влуч молотом у слушну мить, і вийде більше заліза. Можна й не чіпати: метал охолоне, нічого не втратиш.',{cls:'bite',inner:'<i class="bang">!</i>'})
+    :ob('anvil','smith','',obURL('anvil3',()=>anvilObj3(0)),180,150,W,H,'Кувати',`<b>Ковадло</b><br>Перекувати брухт на залізо: ${costTxt(c)} → ${R('iron',n)}.`,{pulse:1,cd:'smith',cs:4})}
   const hx=124,hy=206;
   if(!s.b.hearth){const c=bCost(HEARTH),ok=s.seen.wood&&afford(c);const sp=obURL('hearth3a',()=>hearthObj3({}));
     h+=ok?ob('hearth0','bld','hearth',sp,hx,hy,W,H,'Скласти вогнище',`<b>Скласти вогнище</b><br>${costTxt(c)}`,{pulse:1,always:1,inner:'<i class="emb"></i>'})
       :ob('ember2','blow','',sp,hx,hy,W,H,'Подмухати на жарину',`<b>Жарина</b><br>Подмухай: +3 жару.${s.seen.wood?`<br>Для вогнища треба ${costTxt(c)}.`:''}`,{pulse:1,cd:'blow',cs:2,inner:'<i class="emb"></i>'})}
   else{const n=s.b.hearth,lit=s.on.hearth!==false,sp=obURL('hearth3b',()=>hearthObj3({hearth:1})),[,,hw,hh]=sp;
-    if(lit)h+=`<i class="fglow" data-sk="fglow" data-sig="1" style="${PCT(hx-50,hy-56,138,100,W,H)}" aria-hidden="true"></i>`;
     const fl=lit?innerAt(10,-22,18,27,hw,hh,'flm'+(n>=4?' big':''),`background-image:url(${flameURL()})`):'';
     h+=ob('hearth','bpop','hearth',sp,hx,hy,W,H,'Вогнище',`<b>Вогнище, рівень ${n}</b><br>Натисни, щоб підкинути дров чи пригасити.`,{inner:fl+(upT.hearth&&Date.now()-upT.hearth<1600?`<i class="upfx" aria-hidden="true"><b>Рівень ${n}</b></i>`:''),cls:popB==='hearth'?'sel':''})}
   if(s.tabs.shore)h+=ob('toshore','tab','shore',obURL('sign3',signObj3),196,196,W,H,'До берега','<b>Стежка до берега</b><br>Плавник, уламки й риба.',{pulse:1});
   return h}
-function shoreHS(){const W=SW,H=SH,S=(x,y,w,h)=>PCT(x,y,w,h,W,H);let h=fogs(8,22);
+function shoreHS(){const W=SW,H=SH,S=(x,y,w,h)=>PCT(x,y,w,h,W,H);let h=fogs(8,22)+mlaLayer(6,62);
   h+=ob('home','tab','home',obURL('door3',doorObj3),6,51,W,H,'До маяка','<b>Двері маяка</b><br>Назад, до вогнища.');
   if(s.ship)h+=ob('ship','hsgo','ship',obURL('ship3',shipObj3),168,0,W,H,'Торговий когг','<b>Торговий когг</b><br>Подивитися обміни.',{pulse:1,always:1,idle:'i-bob'});
   if(s.f.boat)h+=ob('pier','hsgo','pier',obURL('pier3'+((s.exp||[]).length?'o':''),()=>pierObj3({boatOut:!!(s.exp||[]).length})),231,48,W,H,'Пристань','<b>Пристань</b><br>Виходи в море й кораблі.');
   if(s.f.wreck)h+=ob('wreck','scrapw','',obURL('wreck3',wreckObj3),186,69,W,H,'Розбирати уламки','<b>Уламки човна</b><br>Цвяхи, скоби, обшивка: усе згодиться.',{pulse:1,cd:'scrapw',cs:2,inner:'<i class="spk"></i>'});
-  if(s.f.rod)h+=ob('rod','fishing','',obURL('rod3',rodObj3),162,45,W,H,'Рибалити','<b>Вудка</b><br>Закинь і чекай, поки клюне.',{pulse:1,cd:'fishing',cs:3,idle:'i-sway',inner:'<i class="bob"></i><i class="bang">!</i>'});
+  if(s.f.rod)h+=s.bite?ob('rod','bigfish','',obURL('rod3',rodObj3),162,45,W,H,'Тягнути велику рибу','<b>Клює щось велике!</b><br>Натисни, щоб виводити. Можна й не чіпати: риба зірветься, нічого не втратиш.',{cls:'bite',inner:'<i class="bob"></i><i class="bang">!</i>'})
+    :ob('rod','fishing','',obURL('rod3',rodObj3),162,45,W,H,'Рибалити','<b>Вудка</b><br>Закинь і чекай, поки клюне.',{pulse:1,cd:'fishing',cs:3,idle:'i-sway',inner:'<i class="bob"></i><i class="bang">!</i>'});
   if(s.flot)h+=ob('flot:'+s.flot.k,'flotmg','',obURL('flot3:'+s.flot.k,()=>flotObj3(s.flot.k)),126,78,W,H,'Оглянути знахідку','<b>Прибій щось викинув</b><br>Підчепи гаком, поки хвилі не забрали.',{pulse:1,always:1,idle:'i-bob'});
   const[lu,lo,lw,lh]=obURL('log3',log3Buf),pul=!(s.hsU||{}).gather,zx=33,zy=60,zw=66,zh=33,rx=26,ry=19;
-  const zcore=`class="hs zone${pul?' nw':''}" data-a="gather" data-i="" data-k="gather" data-cd="gather" data-cs="1" aria-label="Збирати плавник" ${TA('<b>Прибій</b><br>Хвилі підкочують плавник. Підбери, що винесло.')}><span class="dlw" style="left:${(rx/zw*100).toFixed(2)}%;top:${(ry/zh*100).toFixed(2)}%;width:${((lw+2)/zw*100).toFixed(2)}%;height:${((lh+2)/zh*100).toFixed(2)}%"><img class="obo" src="${lo}" alt=""><img class="obi" src="${lu}" alt="" style="left:${(100/(lw+2)).toFixed(2)}%;top:${(100/(lh+2)).toFixed(2)}%;width:${(lw/(lw+2)*100).toFixed(2)}%;height:${(lh/(lh+2)*100).toFixed(2)}%"><span class="gl" style="left:${(100/(lw+2)).toFixed(2)}%;top:${(100/(lh+2)).toFixed(2)}%;width:${(lw/(lw+2)*100).toFixed(2)}%;height:${(lh/(lh+2)*100).toFixed(2)}%;-webkit-mask-image:url(${lu});mask-image:url(${lu})"></span></span><span class="hsl">Збирати плавник</span>`;
+  const zcore=`class="hs zone${pul?' nw':''}" data-a="gather" data-i="" data-k="gather" data-cd="gather" data-cs="1" aria-label="Збирати плавник" ${TA('<b>Прибій</b><br>Хвилі підкочують плавник. Підбери, що винесло.')}><span class="dlw" style="left:${(rx/zw*100).toFixed(2)}%;top:${(ry/zh*100).toFixed(2)}%;width:${((lw+2*OP)/zw*100).toFixed(2)}%;height:${((lh+2*OP)/zh*100).toFixed(2)}%"><img class="obo" src="${lo}" alt=""><img class="obi" src="${lu}" alt="" style="left:${(OP*100/(lw+2*OP)).toFixed(2)}%;top:${(OP*100/(lh+2*OP)).toFixed(2)}%;width:${(lw/(lw+2*OP)*100).toFixed(2)}%;height:${(lh/(lh+2*OP)*100).toFixed(2)}%"><span class="gl" style="left:${(OP*100/(lw+2*OP)).toFixed(2)}%;top:${(OP*100/(lh+2*OP)).toFixed(2)}%;width:${(lw/(lw+2*OP)*100).toFixed(2)}%;height:${(lh/(lh+2*OP)*100).toFixed(2)}%;-webkit-mask-image:url(${lu});mask-image:url(${lu})"></span></span><span class="hsl">Збирати плавник</span>`;
   h+=`<button type="button" data-sk="gather" data-sig="${hsh(zcore)}" style="${S(zx,zy,zw,zh)};z-index:${10+zy+zh};--p:${pOf('gather').toFixed(3)}" ${zcore}</button>`;
   return h}
 /* Сцена живе поза #main і латається на місці: незмінені вузли не від'єднуються, тож їхні анімації не перезапускаються. */
@@ -4051,14 +4150,16 @@ function mgFish(){const str=(s.h.a.str||2),lo=25,hi=Math.min(90,78+2*Math.max(0,
     down(){hold=1;MG.f.classList.add('hold')},up(){hold=0;if(MG)MG.f.classList.remove('hold')},
     end:fishEnd})}
 function forgeEnd(id,res,skip){if(res>0){s.wfb=s.wfb||{};const v=Math.min(2,(s.wfb[id]||0)+1);s.wfb[id]=v;say(`${skip==='auto'?(mgHelp('forge')?'Кіндрат постарався: ':'Звичне кування вдалося: '):'Добре кування: '}${wN(id)} б’є на 1 сильніше.`,'find')}else if(skip!==1)say('Кування вийшло звичайним. Зброя все одно стала кращою.','world')}
-function mgForge(id){let strikes=0,good=0,heat=0;const per=1.7;
-  mgStart({type:'forge',title:'Кування: '+wN(id),hint:'Метал то розжарюється, то холоне. Бий молотом, коли він світиться найяскравіше.',
-    field:`<div class="mgforge"><div class="mgmetal"></div><img class="mgw" src="${wIco(id)}" alt=""><div class="mgheat"><i></i></div></div>`,
+const smithN=()=>1+Math.floor((s.b.forge||1)/2);
+function smithEnd(res,skip){if(res>0){const n=2+smithN()*2;add('iron',n);say(`${skip==='auto'?(mgHelp('forge')?'Кіндрат перехопив молот: ':'Звичний удар: '):'Дзвінко! '}розжарена заготовка дала ще ${R('iron',n)}.`,'find')}else if(skip!==1)say('Удари вийшли звичайними, заготовка охолола.','world')}
+function mgForge(id){let strikes=0,good=0,heat=0;const per=1.7,sm=id==='smith';
+  mgStart({type:'forge',title:sm?'Розжарена заготовка':'Кування: '+wN(id),hint:'Метал то розжарюється, то холоне. Бий молотом, коли він світиться найяскравіше.',
+    field:`<div class="mgforge"><div class="mgmetal"></div><img class="mgw" src="${sm?icoURL('iron'):wIco(id)}" alt=""><div class="mgheat"><i></i></div></div>`,
     tick(dt,tt){heat=Math.sin((tt%per)/per*Math.PI);const m=MG.f.querySelector('.mgmetal');m.style.opacity=String(0.25+heat*0.75);m.style.boxShadow=`0 0 ${Math.round(heat*30)}px rgba(255,170,60,${heat})`;MG.f.querySelector('.mgheat i').style.width=(heat*100)+'%';if(tt>25)mgEnd(good>=3?1:0)},
     init(){MG.st.textContent='ударів: 0/3'},
     down(){if(strikes>=3)return;strikes++;const ok=heat>0.82-0.02*Math.max(0,(s.h.a.str||2)-2);if(ok)good++;mgMsg(ok?'Дзвінкий удар!':'Метал ще холодний.',ok?'ok':'');MG.st.textContent=`ударів: ${strikes}/3`;MG.f.classList.remove('hit');void MG.f.offsetWidth;MG.f.classList.add('hit');if(strikes>=3)mgEnd(good>=3?1:0)},
-    end:(res,skip)=>forgeEnd(id,res,skip)})}
-function nope(el){sfx('nope');try{el.classList.remove('nope');void el.offsetWidth;el.classList.add('nope');const k=el.dataset.cd,tx={fishing:'Ще не клює',gather:'Хвиля ще далеко',scrapw:'Руки ще не відпочили',blow:'Жарина ще жевріє'}[k]||'Зачекай';
+    end:(res,skip)=>sm?smithEnd(res,skip):forgeEnd(id,res,skip)})}
+function nope(el){sfx('nope');try{el.classList.remove('nope');void el.offsetWidth;el.classList.add('nope');const k=el.dataset.cd,tx={fishing:'Ще не клює',gather:'Хвиля ще далеко',scrapw:'Руки ще не відпочили',blow:'Жарина ще жевріє',smith:'Метал ще не нагрівся'}[k]||'Зачекай';
   const b=el.getBoundingClientRect(),p=document.createElement('div');p.className='fpop ny';p.style.left=(b.left+b.width/2+scrollX)+'px';p.style.top=(b.top+scrollY-4)+'px';p.textContent=tx;document.body.appendChild(p);setTimeout(()=>p.remove(),1100)}catch(e){}}
 
 /* ============ v16: NOVELTY QUEUE ============ */
@@ -4181,7 +4282,7 @@ function sfx(k){if(!AU.ctx||!auS().on)return;try{const t=AU.ctx.currentTime+0.01
   case'bell':auTone(t,{f:1568,peak:0.08,dec:1.4});auTone(t,{f:2350,peak:0.04,dec:0.9});break;
   case'horn':{const c=AU.ctx,o=c.createOscillator(),g=c.createGain(),lp=c.createBiquadFilter();o.type='sawtooth';o.frequency.value=98;lp.type='lowpass';lp.frequency.value=420;o.connect(lp);lp.connect(g);g.connect(AU.g.sfx);g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.22,t+0.8);g.gain.setValueAtTime(0.22,t+1.6);g.gain.exponentialRampToValueAtTime(0.0001,t+3);o.start(t);o.stop(t+3.1);break}
   case'strike':auBurst(t,{f:1200,type:'bandpass',peak:0.4,dec:0.06,bus:'sfx'});auTone(t,{f:160,f2:80,peak:0.2,dec:0.1});break}}catch(e){}}
-const SFXA={gather:'tap',scrapw:'metal',fishing:'splash',blow:'ember',bld:'build',floor:'build',craft:'craft',wup:'craft',repair:'build',schooner:'build',c_atk:'strike',c_shoot:'strike'};
+const SFXA={smith:'strike',gather:'tap',scrapw:'metal',fishing:'splash',blow:'ember',bld:'build',floor:'build',craft:'craft',wup:'craft',repair:'build',schooner:'build',c_atk:'strike',c_shoot:'strike'};
 /* Панель звуку живе поза перемальовуванням, тож повзунки не зриваються. */
 function auUI(){const el=typeof document!=='undefined'&&document.getElementById('snd');if(!el||!el.querySelector)return;const a=auS();
   el.innerHTML=`<details class="sett"><summary>Звук</summary><div class="setb sndb"><button type="button" class="toggle" id="sndOn">${a.on?'Звук: увімкнено':'Звук: вимкнено'}</button>
@@ -4262,7 +4363,7 @@ const DBG=[
     for(const fl of['work','gallery','study','lantern'])s.floors[fl]=s.floors[fl]||1;s.pop=Math.max(3,s.pop||0);s.b.house=Math.max(2,s.b.house||0);for(const t of TABS)s.tabs[t[0]]=1;if(!s.h.bg)s.h.bg='old';s.nvU.gear=1}],
   ['Герой +1 рівень',()=>xp(need(s.h.lvl)-s.h.xp+1)],
   ['Риба',()=>mgFish()],['Бочка',()=>mgFlot('barrel')],['Ящик',()=>mgFlot('crate')],['Людина',()=>mgFlot('survivor')],
-  ['Кування',()=>{const w=WEAP.find(has)||'knife';if(!has(w))giveI(w);mgForge(w)}],
+  ['Кування',()=>mgForge('smith')],['Клює велика',()=>{s.f.rod=1;s.bite={until:Date.now()+30000};s.tab='shore'}],['Заготовка',()=>{s.b.forge=s.b.forge||1;s.hot={until:Date.now()+30000};s.tab='home'}],
   ['Знахідка в прибої',()=>{s.floors.gallery=1;const ks=['crate','barrel','cargo','bottle','survivor'];s.flot={k:ks[Math.floor(Math.random()*ks.length)],until:Date.now()+180000};s.tab='shore'}],
   ['Мла +25',()=>{s.threat=Math.min(100,(s.threat||0)+25)}],
   ['Набіг зараз',()=>{s.f.siege1=1;s.threat=100;s.lastAct=Date.now();raidCheck()}],
