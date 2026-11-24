@@ -21,7 +21,7 @@ function act0(a,i){
   if(s.cb)return;
   const F=s.f;
   switch(a){
-  case 'tab':popB='';if(s.tabs[i]){s.tab=i;delete s.newTab[i];snap9(i)}break;
+  case 'tab':popB='';if(s.tabs[i]){zoomPrep(i);s.tab=i;delete s.newTab[i];snap9(i)}break;
   case 'chok':s.chSeen=s.chs.length;break;
   case 'jt':s.jt=i;break;
   case 'look':if(!F.looked&&s.tot.ember>=10){F.looked=1;unlock('shore');say('Ти в нижній залі маяка. Сходи вгору тонуть у темряві, крізь щілину дверей чути море. Жарині потрібне паливо. Відкрито: Берег.','story')}break;

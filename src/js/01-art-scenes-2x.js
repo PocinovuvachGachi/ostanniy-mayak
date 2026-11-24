@@ -150,7 +150,10 @@ function flotObj(k){const b=pbuf(16,12);if(k==='bottle'){prect(b,3,6,8,4,'r');pr
   else{prect(b,2,3,12,9,'X');prect(b,2,3,12,2,'Y');prect(b,2,7,12,1,'W');prect(b,2,3,1,9,'W');prect(b,13,3,1,9,'V');pset(b,7,8,'g')}return b}
 function log2Buf(){const b=pbuf(18,7);prect(b,2,1,14,5,'X');prect(b,2,1,14,1,'Y');prect(b,2,5,14,1,'V');prect(b,0,2,2,3,'O');pset(b,0,3,'M');prect(b,16,2,2,3,'N');pset(b,6,3,'W');pset(b,11,2,'W');return b}
 function doorObj(st){const b=pbuf(14,26);prect(b,0,0,14,2,'H');prect(b,1,2,12,24,'x');prect(b,2,3,10,23,'V');for(let x=4;x<12;x+=3)prect(b,x,3,1,23,'W');pset(b,10,14,'g');return b}
-function frameBuf(k){const S=12,b=pbuf(S,S);const c=k==='wood'?['V','W','X','Y']:k==='drift'?['z','G','H','6']:['D','E','F','G'];
+function frameBuf(k){const S=12,b=pbuf(S,S);
+  if(k==='paper'){prect(b,0,0,S,S,'O');for(let i=0;i<S;i++){const n=hh2(i,7);pset(b,i,0,n<.4?'.':'d');pset(b,i,1,n<.4?'d':'b');pset(b,i,S-1,hh2(i,3)<.4?'.':'d');pset(b,i,S-2,hh2(i,3)<.4?'d':'b');pset(b,0,i,hh2(i,5)<.4?'.':'d');pset(b,1,i,hh2(i,5)<.4?'d':'b');pset(b,S-1,i,hh2(i,9)<.4?'.':'d');pset(b,S-2,i,hh2(i,9)<.4?'d':'b')}prect(b,3,3,6,6,'.');return b}
+  if(k==='slate'){prect(b,0,0,S,S,'1');prect(b,0,0,S,1,'3');prect(b,0,0,1,S,'3');prect(b,0,S-1,S,1,'0');prect(b,S-1,0,1,S,'0');prect(b,1,1,S-2,1,'2');prect(b,1,1,1,S-2,'2');prect(b,3,3,6,6,'.');for(const[x,y]of[[1,1],[10,1],[1,10],[10,10]])pset(b,x,y,'5');return b}
+  const c=k==='wood'?['V','W','X','Y']:k==='drift'?['z','G','H','6']:['D','E','F','G'];
   prect(b,0,0,S,S,c[1]);prect(b,0,0,S,1,c[3]);prect(b,0,0,1,S,c[3]);prect(b,0,S-1,S,1,c[0]);prect(b,S-1,0,1,S,c[0]);prect(b,3,3,6,6,'.');prect(b,3,3,6,1,c[0]);prect(b,3,3,1,6,c[0]);
   for(const[x,y]of[[1,1],[10,1],[1,10],[10,10]])pset(b,x,y,'q');pset(b,6,1,c[2]);pset(b,1,6,c[2]);return b}
 

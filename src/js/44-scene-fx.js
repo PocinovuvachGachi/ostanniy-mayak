@@ -20,7 +20,7 @@ function fxReset(sc){FX.sc=sc;FX.ps=[];FX.walk=[];FX.crab=null;FX.ev={};FX.moth=
 function fxTick(ts){requestAnimationFrame(fxTick);if(typeof document==='undefined'||document.hidden)return;if(ts-FX.last<33)return;const dt=Math.min(.1,(ts-FX.last)/1000||.033);FX.last=ts;
   const cv=document.querySelector('#stage canvas.fx');if(!cv||RM()){if(FX.cv){FX.cv=null}return}
   if(cv!==FX.cv){FX.cv=cv;FX.g=cv.getContext('2d');FX.W=cv.width;FX.H=cv.height;FX.im=FX.g.createImageData(FX.W,FX.H);FX.u=new Uint32Array(FX.im.data.buffer);const sc=(cv.dataset.sig||'').slice(3);if(sc!==FX.sc)fxReset(sc)}
-  FX.t+=dt;FX.u.fill(0);try{if(FX.sc==='yd')fxYard(dt);else if(FX.sc==='sh')fxShore(dt);else if(FX.sc==='tw')fxTower(dt);fxParts(dt)}catch(e){}FX.g.putImageData(FX.im,0,0)}
+  FX.t+=dt;FX.u.fill(0);try{if(FX.sc==='yd')fxYard(dt);else if(FX.sc==='sh')fxShore(dt);else if(FX.sc==='tw')fxTower(dt);else if(FX.sc==='wk'||FX.sc==='st')fxRoom(dt);fxParts(dt)}catch(e){}FX.g.putImageData(FX.im,0,0)}
 /* Частинки: іскри, пил, бризки */
 function fxParts(dt){const out=[];for(const p of FX.ps){p.life+=dt;if(p.life>p.max)continue;p.vy+=(p.gr||0)*dt;p.vx*=1-.8*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;const f=p.life/p.max;
   if(p.kind==='flash'){const R=14*(1-f*.4),a=.55*(1-f);for(let j=-R;j<=R;j++)for(let i=-R;i<=R;i++){const d=Math.hypot(i,j)/R;if(d<1&&(1-d)*a>bay((p.x+i)|0,(p.y+j)|0))fxP(p.x+i,p.y+j,fxCol(d<.35?'I':'J',.5))}out.push(p);continue}
@@ -117,4 +117,10 @@ function fxTower(dt){const k=SK,W=TWW;fxStars(dt,170,W);fxShoot(dt,150,W);fxGull
     for(let i=0;i<L*k;i++){const lx=x0*k+side*i,cy=(y0-(i/k)*.12)*k,hw=(2+(i/k)*.07)*k,ai=br*Math.pow(1-i/(L*k),.7);if(lx<0||lx>=FX.W)break;for(let yy=-hw;yy<=hw;yy++){const e=1-Math.abs(yy)/hw,a=Math.min(.9,ai*(.3+e)*1.1),q=Math.round(a*5)/5;if(q>0)fxP(lx,cy+yy,fxCol(i<50&&e>.5?'I':'h',q))}}}
   if((s.f.won||floorBuilt('lantern'))&&GR!=='y')for(const m of FX.moth){const a=FX.t*m.w+m.ph;fxP((TCX+Math.cos(a)*(m.r+30))*k,(44+Math.sin(a*1.3)*m.r*.7)*k,fxCol('u',.7))}
   fxWisps(dt,240,292,W)}
+/* ---------- Кімнати зблизька ---------- */
+function fxRoom(dt){const k=SK;FX.mote=FX.mote||[];if(FX.mote.length<55&&Math.random()<dt*10)FX.mote.push({x:fxR(20,412),y:fxR(20,196),vx:fxR(-1.2,1.2),vy:fxR(-1.2,.4),l:0,m:fxR(4,9)});
+  FX.mote=FX.mote.filter(m=>(m.l+=dt)<m.m);for(const m of FX.mote){m.x+=m.vx*dt;m.y+=m.vy*dt;const lx=FX.sc==='wk'?120:339,ly=FX.sc==='wk'?44:146,near=Math.max(0,1-Math.hypot(m.x-lx,(m.y-ly)*1.3)/140);fxP(m.x*k,m.y*k,fxCol('h',Math.sin(m.l/m.m*Math.PI)*(.15+.55*near)))}
+  if(FX.sc==='wk'&&s.b.forge&&Math.random()<dt*3)FX.ps.push({x:(231+fxR(-6,6))*k,y:181*k,vx:fxR(-8,8),vy:fxR(-30,-14),gr:-4,life:0,max:fxR(.5,1.2),kind:'spark'});
+  if(FX.sc==='wk'&&floorBuilt('work')&&fuL('work')>=2&&Math.random()<dt*.5)fxBurst('wk',316,170,'spark',6);
+  if(FX.sc==='st'){const f=.5+.5*Math.sin(FX.t*7)*Math.sin(FX.t*3.1);fxP(339*k,141*k,fxCol('I',.4+.5*f));fxP(339*k+1,141*k-1,fxCol('J',.3*f))}}
 if(typeof requestAnimationFrame==='function')requestAnimationFrame(fxTick);

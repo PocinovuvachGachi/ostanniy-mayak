@@ -801,6 +801,33 @@ button.hs.zone:hover,button.hs.zone:focus-visible{background:transparent;border:
 .flu{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0}
 .scn.tw .ob.ruin .obi{filter:saturate(.7)}
 .scn.tw .scene{aspect-ratio:432/300}
+
+/* ===== Сповіщення, підказки, діалоги — у піксельних рамках ===== */
+#toast .tst{--ink:#2b1d12;--mute:#5a4630;--lamp:#7a3f04;background:#d6cba9 var(--tx-paper);color:#2b1d12;border:10px solid transparent;border-image:var(--fr-paper) 4 / 10px round;box-shadow:0 5px 0 rgba(0,0,0,.35);
+  padding:2px 6px;align-items:center;gap:8px;max-width:520px;rotate:var(--rot,0deg);image-rendering:pixelated;font:14px/1.4 var(--serif);animation:tin .35s cubic-bezier(.2,.7,.3,1)}
+#toast .tst.out{animation:tin .35s cubic-bezier(.2,.7,.3,1),tout .6s ease-in var(--left,6.4s) forwards}
+#toast .tst .tico{width:18px;height:18px;image-rendering:pixelated;flex:none;align-self:center}
+#toast .tst .tcn{font:700 12px var(--mono);color:#7a3f04;margin-left:auto;flex:none}
+#toast .tst .ev-text{min-width:0}
+@keyframes tout{to{opacity:0;transform:translateY(6px)}}
+@media (prefers-reduced-motion:reduce){#toast .tst,#toast .tst.out{animation:none}}
+#tip{background:#16252e var(--tx-slate);color:#e3ebe6;border:8px solid transparent;border-image:var(--fr-slate) 4 / 8px round;box-shadow:0 6px 0 rgba(0,0,0,.4);padding:4px 6px;image-rendering:pixelated;--ink:#e3ebe6;--panel:#16252e;--mute:#b3c5c4;--lamp:#f0b84a}
+#tip b{color:#f0b84a}
+#dlg .dlgbox{--ink:#2b1d12;--panel:#d6cba9;--mute:#5a4630;--rule:#8a6a44;--lamp:#7a3f04;--bad:#8f2f2b;--good:#3d5a34;--sea:#22394a;color-scheme:light;
+  background:#d6cba9 var(--tx-paper);color:#2b1d12;border:12px solid transparent;border-image:var(--fr-wood) 4 / 12px round;box-shadow:0 10px 0 rgba(0,0,0,.45);image-rendering:pixelated}
+#dlg .dlgbox .dlgin{image-rendering:auto}
+#dlg .dlgbox .tag{display:inline-flex;align-items:center;gap:5px}
+#dlg .dlgbox .tag .tico{width:14px;height:14px;image-rendering:pixelated}
+#dlg .dlgbox button.main{background:#3a2718;color:#efe3c8;border-color:#6b4a2c}
+#dlg .dlgbox button.toggle{background:transparent;color:#3a2718;border-color:#8a6a44}
+#dlg .dlgbox .tag{color:#7a3f04!important;border-color:#8a6a44!important;background:rgba(122,63,4,.08)!important}
+/* Кімнати зблизька */
+.scn.rm .scene{aspect-ratio:432/240}
+.bpop .rlist{max-height:46vh;overflow:auto;display:flex;flex-direction:column;gap:6px;margin:6px 0}
+.bpop .rlist .row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;border-bottom:1px dashed rgba(201,180,142,.25);padding:0 0 5px}
+.bpop .rlist .row>span:first-child{min-width:0;flex:1 1 160px}
+.bpop .rlist img{vertical-align:middle;image-rendering:pixelated}
+.bpop .dials{display:flex;gap:8px;margin:6px 0}
 </style>
 </head>
 <body>
@@ -1340,6 +1367,8 @@ function texBuf(k){const S=32,b=pbuf(S,S);
   if(k==='stone'){prect(b,0,0,S,S,'0');for(let r=0;r<4;r++){const y=r*8,off=(r%2)*8;for(let x=-16;x<S+16;x+=16){prect(b,x+off,y,15,7,'1');pnoise(b,x+off,y+1,15,6,'2',0.1,r*7+x+40);for(let i=0;i<15;i+=3)pset(b,x+off+i,y,'2')}}}
   else if(k==='sand'){prect(b,0,0,S,S,'b');pnoise(b,0,0,S,S,'a',0.13,11);pnoise(b,0,0,S,S,'6',0.025,12);pnoise(b,0,0,S,S,'e',0.012,13)}
   else if(k==='plank'){prect(b,0,0,S,S,'c');for(let r=0;r<4;r++){const y=r*8;prect(b,0,y+7,S,1,'8');const R=rng(30+r);for(let i=0;i<3;i++){const x=Math.floor(R()*S),w=4+Math.floor(R()*8);prect(b,x,y+2+Math.floor(R()*4),w,1,'8')}pset(b,(r*13+4)%S,y+3,'9')}}
+  else if(k==='paper'){prect(b,0,0,S,S,'O');pnoise(b,0,0,S,S,'b',0.07,71);pnoise(b,0,0,S,S,'N',0.12,72);pnoise(b,0,0,S,S,'u',0.03,73);for(let i=0;i<3;i++){const R=rng(80+i),y=Math.floor(R()*S),x=Math.floor(R()*S);prect(b,x,y,5+Math.floor(R()*7),1,'N')}}
+  else if(k==='slate'){prect(b,0,0,S,S,'1');pnoise(b,0,0,S,S,'0',0.12,91);pnoise(b,0,0,S,S,'2',0.06,92)}
   else if(k==='board'){prect(b,0,0,S,S,'6');for(let r=0;r<4;r++){const y=r*8;prect(b,0,y+7,S,1,'5');const R=rng(60+r);for(let i=0;i<3;i++){const x=Math.floor(R()*S),w=4+Math.floor(R()*9);prect(b,x,y+2+Math.floor(R()*4),w,1,'5')}pset(b,(r*11+6)%S,y+3,'p')}}
   return b}
 function flameStrip(){const b=pbuf(21,9);for(let k=0;k<3;k++){const R=rng(90+k);for(let y=0;y<9;y++){const w=Math.max(1,Math.min(7,Math.round(1+y*0.8+(R()-.5)*1.4))),sh=y<5?Math.round((R()-.5)*1.6):0,x0=k*7+3-Math.floor(w/2)+sh;
@@ -1348,6 +1377,15 @@ function logBuf(){const b=pbuf(10,4);prect(b,1,0,8,4,'d');prect(b,1,0,8,1,'e');p
 /* Дзвіночок сповіщень, 12×12 */
 function bellBuf(){const b=pbuf(12,12),R=['....00......','...0gh0.....','..0ghhg0....','..0ggge0....','.0gggfe0....','.0ggffe0....','.0gfffe0....','0gfffeee0...','00000000000.','....0dd0....','.....00.....','............'];
   R.forEach((r,y)=>{for(let x=0;x<r.length;x++)pset(b,x+1,y,r[x])});return b}
+/* Піксельні значки для сповіщень і діалогів, 9×9 */
+const TAGI={info:['....J....','...JKJ...','...JIJ...','..JIhIJ..','..KIhIK..','..KJIJK..','...KKK...','..DDDDD..','.........'],
+  find:['.........','..XXXXX..','.XYYYYYX.','.XXXgXXX.','.WWWgWWW.','.WWWWWWW.','.WWWWWWW.','.VVVVVVV.','.........'],
+  fight:['H.......H','.H.....H.','..H...H..','...H.H...','....H....','...H.H...','.dH...Hd.','dd.....dd','.........'],
+  story:['.........','.uuu.uuu.','.uOu.uOu.','.uOubuOu.','.uOubuOu.','.uuubuuu.','.dddbddd.','....d....','.........'],
+  lvl:['....g....','....g....','...ghg...','gggghgggg','.gghhhgg.','..ghhhg..','.gg...gg.','.g.....g.','.........'],
+  world:['.........','.........','..UU.....','.U..U..UU','U....UU..','.........','..TT.....','.T..T..TT','T....TT..'],
+  plan:['.........','.OOOOOOO.','.O33333O.','.O3...3O.','.O3...3O.','.O33333O.','.OOOOOOO.','......dd.','.....dd..']};
+const tagURL=k=>pxURL('tag:'+k,()=>{const R=TAGI[k]||TAGI.info,b=pbuf(9,9);R.forEach((r,y)=>{for(let x=0;x<9;x++)pset(b,x,y,r[x])});return b});
 /* ============ v18: 2x living scenes ============ */
 Object.assign(PAL,{A:'#070d16',B:'#0c1624',C:'#132235',D:'#24262b',E:'#34373d',F:'#4a4d54',G:'#666a71',H:'#8c9097',
   I:'#ffe08a',J:'#ffa640',K:'#e5662a',L:'#6f6551',M:'#968a6e',N:'#b8ab8a',O:'#d6cba9',P:'#0c2230',Q:'#12344a',R:'#1a4862',S:'#265f7c',T:'#4f8aa3',U:'#9ccbd8',
@@ -1500,7 +1538,10 @@ function flotObj(k){const b=pbuf(16,12);if(k==='bottle'){prect(b,3,6,8,4,'r');pr
   else{prect(b,2,3,12,9,'X');prect(b,2,3,12,2,'Y');prect(b,2,7,12,1,'W');prect(b,2,3,1,9,'W');prect(b,13,3,1,9,'V');pset(b,7,8,'g')}return b}
 function log2Buf(){const b=pbuf(18,7);prect(b,2,1,14,5,'X');prect(b,2,1,14,1,'Y');prect(b,2,5,14,1,'V');prect(b,0,2,2,3,'O');pset(b,0,3,'M');prect(b,16,2,2,3,'N');pset(b,6,3,'W');pset(b,11,2,'W');return b}
 function doorObj(st){const b=pbuf(14,26);prect(b,0,0,14,2,'H');prect(b,1,2,12,24,'x');prect(b,2,3,10,23,'V');for(let x=4;x<12;x+=3)prect(b,x,3,1,23,'W');pset(b,10,14,'g');return b}
-function frameBuf(k){const S=12,b=pbuf(S,S);const c=k==='wood'?['V','W','X','Y']:k==='drift'?['z','G','H','6']:['D','E','F','G'];
+function frameBuf(k){const S=12,b=pbuf(S,S);
+  if(k==='paper'){prect(b,0,0,S,S,'O');for(let i=0;i<S;i++){const n=hh2(i,7);pset(b,i,0,n<.4?'.':'d');pset(b,i,1,n<.4?'d':'b');pset(b,i,S-1,hh2(i,3)<.4?'.':'d');pset(b,i,S-2,hh2(i,3)<.4?'d':'b');pset(b,0,i,hh2(i,5)<.4?'.':'d');pset(b,1,i,hh2(i,5)<.4?'d':'b');pset(b,S-1,i,hh2(i,9)<.4?'.':'d');pset(b,S-2,i,hh2(i,9)<.4?'d':'b')}prect(b,3,3,6,6,'.');return b}
+  if(k==='slate'){prect(b,0,0,S,S,'1');prect(b,0,0,S,1,'3');prect(b,0,0,1,S,'3');prect(b,0,S-1,S,1,'0');prect(b,S-1,0,1,S,'0');prect(b,1,1,S-2,1,'2');prect(b,1,1,1,S-2,'2');prect(b,3,3,6,6,'.');for(const[x,y]of[[1,1],[10,1],[1,10],[10,10]])pset(b,x,y,'5');return b}
+  const c=k==='wood'?['V','W','X','Y']:k==='drift'?['z','G','H','6']:['D','E','F','G'];
   prect(b,0,0,S,S,c[1]);prect(b,0,0,S,1,c[3]);prect(b,0,0,1,S,c[3]);prect(b,0,S-1,S,1,c[0]);prect(b,S-1,0,1,S,c[0]);prect(b,3,3,6,6,'.');prect(b,3,3,6,1,c[0]);prect(b,3,3,1,6,c[0]);
   for(const[x,y]of[[1,1],[10,1],[1,10],[10,10]])pset(b,x,y,'q');pset(b,6,1,c[2]);pset(b,1,6,c[2]);return b}
 
@@ -2704,7 +2745,7 @@ const onCd=k=>(s.cd[k]||0)>Date.now();
 const setCd=(k,sec)=>{s.cd[k]=Date.now()+sec*1000};
 function fr(n){return String(Math.round(n*100)/100).replace('.',',')}
 function fmt(n){n=Math.floor(n+1e-9);return n>=10000?String(Math.round(n/100)/10).replace('.',',')+'к':String(n)}
-function say(m,t='info'){if(!m)return;s.log.unshift({m,t,at:Date.now()});if(s.log.length>60)s.log.length=60;dirty=1}
+function say(m,t='info'){if(!m)return;const L0=s.log[0],now=Date.now();if(L0&&L0.m===m&&L0.t===t&&now-L0.at<9000){L0.n=(L0.n||1)+1;L0.at=now;dirty=1;return}s.log.unshift({m,t,at:now});if(s.log.length>60)s.log.length=60;dirty=1}
 function add(k,v){s.r[k]+=v;if(v>0){if(!s.seen[k]){s.seen[k]=1;dirty=1}if(s.tot[k]!==undefined)s.tot[k]+=v}}
 function giveI(id,n=1){s.inv[id]=(s.inv[id]||0)+n;s.seenI=s.seenI||{};s.seenI[id]=1;const it=IT[id];s.pack=s.pack||[];s.belt=s.belt||[];
   if(it.slot==='weapon'||it.slot==='ranged'){if(!s.pack.includes(id)&&s.pack.length<packSlots())s.pack.push(id);if(!s.eq[it.slot]&&s.pack.includes(id))s.eq[it.slot]=id}
@@ -3249,7 +3290,7 @@ function act0(a,i){
   if(s.cb)return;
   const F=s.f;
   switch(a){
-  case 'tab':popB='';if(s.tabs[i]){s.tab=i;delete s.newTab[i];snap9(i)}break;
+  case 'tab':popB='';if(s.tabs[i]){zoomPrep(i);s.tab=i;delete s.newTab[i];snap9(i)}break;
   case 'chok':s.chSeen=s.chs.length;break;
   case 'jt':s.jt=i;break;
   case 'look':if(!F.looked&&s.tot.ember>=10){F.looked=1;unlock('shore');say('Ти в нижній залі маяка. Сходи вгору тонуть у темряві, крізь щілину дверей чути море. Жарині потрібне паливо. Відкрито: Берег.','story')}break;
@@ -3529,8 +3570,8 @@ function rLens(){const{path,out,pos}=beam();let g='';
     g+=`<button type="button" class="${cls}" disabled tabindex="-1">${ch}</button>`}
   return `<section><h2>Ліхтарня</h2>${s.f.won?'<p>Промінь іде крізь вікно в море. Маяк горить.</p>':`<p>Вогонь горить, але світло б’ється об стіни. Натискай на дзеркала, щоб повернути їх. Вікно на море позначене <b>O</b>.</p>${s.f.ostap?`<p class="hint">${P('Остап')}: ${Q('Світло біжить прямо, доки дзеркало не поверне його. Не всі дзеркала стоять на його шляху')}.</p>`:''}`}<div class="grid g9" style="margin-top:8px">${g}</div></section>`}
 
-function rWork(){const items=['harpoon','crossbow','cleaver','mail','sling','oar','knife','sabre','pistol','storm','lamp'].filter(has);
-  let h=`<section><h2>Верстак</h2>${pimg(pxURL('wk:'+items.slice(0,5).join(',')+(s.b.forge?'f':'')+(s.f.rod?'r':''),()=>workBuf({items,forge:s.b.forge,rod:s.f.rod})),576,240,'scene','Майстерня')}`;const vis=RC.filter(rcVisible);
+function rWork(){return`<section><h2>Майстерня</h2><p class="m">Креслення на дошці, горн і ящик для розбору — натискай на них у кімнаті.</p><details class="ledg"${s.ldOpen?' open':''}><summary>Усе списком</summary>${rWorkList()}</details></section>`}
+function rWorkList(){let h=`<section><h2>Верстак</h2>`;const vis=RC.filter(rcVisible);
   if(!vis.length)h+=`<p class="m">Поки що нічого нового. Шукай креслення й вивчай записи.</p>`;
   h+=`<div class="bag">`;
   for(const rc of vis){const c=rcCost(rc),nm=rc.tool?rc.n:IT[rc.out].n,d=rc.tool?rc.d:itemShort(rc.out),cr=rc.craft||0,ik=rc.tool?(rc.id==='rod'?'rod':rc.id==='belt1'?'belt':'pack'):rc.out;
@@ -3546,7 +3587,8 @@ function rWork(){const items=['harpoon','crossbow','cleaver','mail','sling','oar
     for(const id of dl){const v=dismVal(id);if(!v)continue;h+=`<div class="cell"><div class="ic" aria-hidden="true">${pimg(icoURL(id),36,36)}</div><b>${IT[id].n}${s.inv[id]>1?` × ${s.inv[id]}`:''}</b><span class="m">Дасть: ${costTxt(v)}</span>${btn('Розібрати','dism',id)}</div>`}
     h+=`</div></section>`}
   return h}
-function rStudy(){const nr=Object.keys(s.rs).length;let h=`<section><h2>Кабінет Остапа</h2>${pimg(pxURL('st:'+s.books.length+','+Math.min(6,nr)+(s.f.ostap?'o':''),()=>studyBuf({books:s.books.length,research:nr,ostap:s.f.ostap})),576,240,'scene','Кабінет')}<p>Знання: ${V(()=>fmt(s.r.lore))}, ${V(()=>'+'+fr(rates().lore))} за секунду. Книг на полицях: ${s.books.length}.${s.f.ostap?` ${P('Остап')} допомагає розбирати записи.`:''}</p><p class="m">Кожна знайдена книга пришвидшує дослідження. Розум теж допомагає.</p>`;
+function rStudy(){return`<section><h2>Кабінет Остапа</h2><p class="m">Стіл із рукописом, полиці й скриня — натискай на них у кімнаті.</p><details class="ledg"${s.ldOpen?' open':''}><summary>Усе списком і дерево досліджень</summary>${rStudyList()}</details></section>`}
+function rStudyList(){let h=`<section><p>Знання: ${V(()=>fmt(s.r.lore))}, ${V(()=>'+'+fr(rates().lore))} за секунду. Книг на полицях: ${s.books.length}.${s.f.ostap?` ${P('Остап')} допомагає розбирати записи.`:''}</p><p class="m">Кожна знайдена книга пришвидшує дослідження. Розум теж допомагає.</p>`;
   if(s.books.length)h+=`<p class="m">${s.books.map(b=>I('«'+BK[b]+'»')).join(', ')}.</p>`;
   h+=`</section>`;
   h+=`<section><h2>Дослідження${ih(`Знання витрачаються одразу. Нові теми з’являються, коли вивчиш попередні або зустрінеш нову істоту.`)}</h2><div class="rtree">`;
@@ -3853,10 +3895,10 @@ function render(){B={};bn=0;
     if(!s.tabs[s.tab])s.tab='home';
     h+=TR[s.tab]();
     if(s.tab==='map')markSeen('map',s.at?'a:'+s.at+'.':'L:');else if(s.tab!=='hero')markSeen(s.tab);if(s.newTab[s.tab])delete s.newTab[s.tab]}
-  try{if(!texInit){texInit=1;const rs=document.documentElement.style;for(const k of['stone','sand','plank','board']){const u=pxURL('tx:'+k,()=>texBuf(k));if(u)rs.setProperty('--tx-'+k,`url(${u})`)}}
-    if(!texInit2){texInit2=1;const rs=document.documentElement.style;for(const k of['wood','drift','stone']){const u=pxURL('fr:'+k,()=>frameBuf(k));if(u)rs.setProperty('--fr-'+k,`url(${u})`)}}
-    const th=s.cb?'':s.tab==='home'||s.tab==='tower'?'th-home':s.tab==='shore'?'th-shore':'';document.body.classList.toggle('th-home',th==='th-home');document.body.classList.toggle('th-shore',th==='th-shore')}catch(e){}
-  hideTip();const mn=$('main');const vw0=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:''),same0=vw0===lastView&&!s.cb,xs=same0?xSnap(mn):null,as0=same0?aSnap(mn):null;let tlx=null;try{const q=same0&&mn.querySelector('.chr-tl');if(q)tlx=q.scrollLeft>=q.scrollWidth-q.clientWidth-4?-1:q.scrollLeft}catch(e){}patchStage(s.cb?'':s.tab==='home'?homeScene():s.tab==='shore'?shoreScene():s.tab==='tower'?towerScene():'');mn.innerHTML=h;if(tlx!==null){try{const q=mn.querySelector('.chr-tl');if(q)q.scrollLeft=tlx<0?q.scrollWidth:tlx}catch(e){}}glossify(mn);rDlg();if(xs)xFade(mn,xs,1);if(as0)aMark(mn,as0);
+  try{if(!texInit){texInit=1;const rs=document.documentElement.style;for(const k of['stone','sand','plank','board','paper','slate']){const u=pxURL('tx:'+k,()=>texBuf(k));if(u)rs.setProperty('--tx-'+k,`url(${u})`)}}
+    if(!texInit2){texInit2=1;const rs=document.documentElement.style;for(const k of['wood','drift','stone','paper','slate']){const u=pxURL('fr:'+k,()=>frameBuf(k));if(u)rs.setProperty('--fr-'+k,`url(${u})`)}}
+    const th=s.cb?'':['home','tower','work','study'].includes(s.tab)?'th-home':s.tab==='shore'?'th-shore':'';document.body.classList.toggle('th-home',th==='th-home');document.body.classList.toggle('th-shore',th==='th-shore')}catch(e){}
+  hideTip();const mn=$('main');const vw0=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:''),same0=vw0===lastView&&!s.cb,xs=same0?xSnap(mn):null,as0=same0?aSnap(mn):null;let tlx=null;try{const q=same0&&mn.querySelector('.chr-tl');if(q)tlx=q.scrollLeft>=q.scrollWidth-q.clientWidth-4?-1:q.scrollLeft}catch(e){}patchStage(s.cb?'':s.tab==='home'?homeScene():s.tab==='shore'?shoreScene():s.tab==='tower'?towerScene():s.tab==='work'?workScene():s.tab==='study'?studyScene():'');zoomRun();mn.innerHTML=h;if(tlx!==null){try{const q=mn.querySelector('.chr-tl');if(q)q.scrollLeft=tlx<0?q.scrollWidth:tlx}catch(e){}}glossify(mn);rDlg();if(xs)xFade(mn,xs,1);if(as0)aMark(mn,as0);
   const view=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:'');const prevView=lastView;if(view!==lastView&&mn.classList&&!RM()){for(const e of[mn,$('stage')]){if(!e||!e.classList)continue;e.classList.remove('tin');void e.offsetWidth;e.classList.add('tin')}}lastView=view;
   placePop();
   if(hlT){const tg=hlT;hlT=null;try{const el=document.getElementById(tg);if(el){el.scrollIntoView({block:'center',behavior:RM()?'auto':'smooth'});el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash')}}catch(e){}}
@@ -3884,11 +3926,17 @@ function rDlg(){const q=s.dlg||[];if(!q.length)s.bellHold=0;const d=s.bellHold&&
   const key=d.title+'|'+String(d.body||'').length+'|'+(d.btns||[]).length+'|'+(s.dlg.length>1);if(key===lastDlg){try{const q=el.querySelector('.dlgq');if(q)q.textContent=s.dlg.length>1?`Ще подій у черзі: ${s.dlg.length-1}`:''}catch(e){}return}const fi=!lastDlg&&!RM();lastDlg=key;sfx(d.chap||d.k==='lvl'?'chime':d.k==='fight'?'horn':'page');
   if(d.chap){el.innerHTML=`<div class="dlgbg chapbg${fi?' fi':''}"><div class="dlgbox chap" role="dialog" aria-modal="true" aria-labelledby="dlgt"><div class="chapno">Розділ ${ROM(d.no)} завершено</div><h2 id="dlgt">${d.sub}</h2><div class="orn" aria-hidden="true">✦ ✦ ✦</div>${dlgImg(d.img)}<div class="dlgbody">${d.body||''}</div><div class="act"><button type="button" class="main" data-a="dlgok" data-i="">Гортати далі</button>${s.dlg.length>1?'<button type="button" class="toggle" data-a="bellDefer" data-i="">Відкласти решту</button>':''}</div><p class="more dlgq">${s.dlg.length>1?`Ще подій у черзі: ${s.dlg.length-1}`:''}</p></div></div>`;
     glossify(el);try{const b=el.querySelector&&el.querySelector('button');if(b)b.focus()}catch(e){}return}
-  el.innerHTML=`<div class="dlgbg${fi?' fi':''}"><div class="dlgbox k-${d.k||'info'}" role="dialog" aria-modal="true" aria-labelledby="dlgt">${dlgImg(d.img)}<div class="dlgin"><span class="tag t-${d.k||'info'}">${TAGN[d.k||'info']}</span><h2 id="dlgt">${d.title}</h2><div class="dlgbody">${d.body||''}</div>${d.gains&&d.gains.length?`<ul class="gains">${d.gains.map(g=>`<li>${g}</li>`).join('')}</ul>`:''}<div class="act">${(d.btns||[['Зрозуміло','dlgok']]).map(b=>`<button type="button" class="main" data-a="${b[1]}" data-i="${b[2]||''}">${b[0]}</button>`).join('')}${s.dlg.length>1&&!d.btns&&d.k!=='fight'?'<button type="button" class="toggle" data-a="bellDefer" data-i="">Відкласти решту</button>':''}</div><p class="m dlgq">${s.dlg.length>1?`Ще подій у черзі: ${s.dlg.length-1}`:''}</p></div></div></div>`;
+  el.innerHTML=`<div class="dlgbg${fi?' fi':''}"><div class="dlgbox k-${d.k||'info'}" role="dialog" aria-modal="true" aria-labelledby="dlgt">${dlgImg(d.img)}<div class="dlgin"><span class="tag t-${d.k||'info'}"><img class="tico" src="${tagURL(d.k||'info')}" alt="" width="14" height="14">${TAGN[d.k||'info']}</span><h2 id="dlgt">${d.title}</h2><div class="dlgbody">${d.body||''}</div>${d.gains&&d.gains.length?`<ul class="gains">${d.gains.map(g=>`<li>${g}</li>`).join('')}</ul>`:''}<div class="act">${(d.btns||[['Зрозуміло','dlgok']]).map(b=>`<button type="button" class="main" data-a="${b[1]}" data-i="${b[2]||''}">${b[0]}</button>`).join('')}${s.dlg.length>1&&!d.btns&&d.k!=='fight'?'<button type="button" class="toggle" data-a="bellDefer" data-i="">Відкласти решту</button>':''}</div><p class="m dlgq">${s.dlg.length>1?`Ще подій у черзі: ${s.dlg.length-1}`:''}</p></div></div></div>`;
   glossify(el);try{const b=el.querySelector&&el.querySelector('button');if(b)b.focus()}catch(e){}}
 let lastToast='';
-function rToast(){const now=Date.now(),L=s.log.filter(x=>x&&x.at&&now-x.at<7000).slice(0,3).reverse();const key=L.map(x=>x.at+x.m.length).join();if(key===lastToast)return;lastToast=key;
-  $('toast').innerHTML=L.map(x=>`<div class="tst t-${x.t}" role="status"><span class="tag t-${x.t}">${TAGN[x.t]}</span><span class="ev-text">${x.m}</span></div>`).join('')}
+/* Сповіщення — клаптики паперу: з'являються, тримаються й тануть; повтори зливаються в «×N» */
+function rToast(){const now=Date.now(),L=s.log.filter(x=>x&&x.at&&now-x.at<7000).slice(0,3).reverse(),el=$('toast');const key=L.map(x=>x.at+':'+(x.n||1)).join();if(key===lastToast)return;lastToast=key;
+  if(!el.querySelector){el.innerHTML=L.map(x=>x.m).join('');return}const keep=new Set();
+  for(const x of L){const id=x.m.length+'|'+x.m.slice(0,24)+'|'+x.t;keep.add(id);let n=[...el.children].find(c=>c.dataset.id===id);
+    if(!n){n=document.createElement('div');n.className='tst t-'+x.t;n.setAttribute('role','status');n.dataset.id=id;n.style.setProperty('--rot',((hsh(x.m).charCodeAt(0)%5)-2)*0.35+'deg');
+      n.innerHTML=`<img class="tico" src="${tagURL(x.t)}" alt="" width="18" height="18"><span class="ev-text">${x.m}</span><b class="tcn"></b>`;el.appendChild(n)}
+    const age=(now-x.at)/1000;n.style.setProperty('--left',Math.max(0,6.4-age).toFixed(2)+'s');n.querySelector('.tcn').textContent=x.n>1?'×'+x.n:'';if(n.dataset.n!==String(x.n||1)){n.dataset.n=String(x.n||1);n.classList.remove('out');void n.offsetWidth}n.classList.add('out')}
+  for(const c of[...el.children])if(!keep.has(c.dataset.id))c.remove()}
 
 /* ============ v14: TRANSITIONS ============ */
 function xSnap(root){const m={};if(!root||!root.querySelectorAll)return m;const n={};
@@ -3995,6 +4043,7 @@ const fogs=(top,h)=>`<span class="scf" data-sk="fog" data-sig="fog${top}" aria-h
 function smk(x,y,W,H){return[0,1,2].map(n=>`<i class="smk" style="left:${(x/W*100).toFixed(2)}%;top:${(y/H*100).toFixed(2)}%;--o:${n}s" aria-hidden="true"></i>`).join('')}
 function bpopHTML(){const id=popB;if(!id)return'';let nm,lvl,d,btns='',extra='';
   if(id.startsWith('fl:'))return flPopHTML(id.slice(3));
+  if(id.startsWith('wk:')||id.startsWith('st:'))return roomPopHTML(id);
   if(id==='hearth'){const n=s.b.hearth||0,c=bCost(HEARTH);nm='Вогнище';lvl=n;d=`+${2*n} жару/с, спалює ${fr(0.12*n)} плавника/с.`;
     btns=`${btn('Підкинути дров','bld','hearth',{ok:()=>afford(c),cls:'main'})}<span class="ccs">${costChips(c)}</span>${btn(s.on.hearth===false?'Розпалити':'Пригасити','tog','hearth',{cls:'toggle'})}`}
   else{const b=BD.find(x=>x.id===id);if(!b)return'';const n=s.b[id]||0,w=(s.wk||{})[id]||0,mx=b.max&&n>=b.max,dm=(s.dmgB||{})[id];nm=b.n;lvl=n;d=typeof b.d==='function'?b.d():b.d||'';
@@ -4005,9 +4054,9 @@ function bpopHTML(){const id=popB;if(!id)return'';let nm,lvl,d,btns='',extra='';
       if(n&&n<5&&!b.max)extra+=`<p class="hand bph2">${n<3?'Ще трохи роботи — і будівля помітно розростеться.':'Ще кілька рівнів — і вона стане справжньою окрасою двору.'}</p>`}}
   const html=`<div class="bpop" role="dialog" aria-label="${nm}"><div class="bph"><b>${nm}</b>${lvl?`<span class="bplv">рівень ${lvl}</span>`:'<span class="bplv">ще не збудовано</span>'}<button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div><p class="m">${d}</p>${extra}<div class="act">${btns}</div></div>`;
   return html}
-function placePop(){try{let L=document.getElementById('popl');if(!popB||s.cb||(s.tab!=='home'&&s.tab!=='tower')||(s.tab==='tower')!==popB.startsWith('fl:')){if(L&&L.innerHTML){L.innerHTML='';L.dataset.sig=''}return}
+function placePop(){try{let L=document.getElementById('popl');if(!popB||s.cb){if(L&&L.innerHTML){L.innerHTML='';L.dataset.sig=''}return}
   if(!L){L=document.createElement('div');L.id='popl';document.body.appendChild(L)}
-  const el=document.querySelector(popB==='hearth'?'.scn [data-k="hearth"]':popB.startsWith('fl:')?`.scn [data-k="${popB}"]`:`.scn [data-k="b:${popB}"],.scn [data-k^="b:${popB}"]`);if(!el){L.innerHTML='';return}
+  const el=document.querySelector(popB==='hearth'?'.scn [data-k="hearth"]':/^(fl|wk|st):/.test(popB)?`#stage .scn [data-k="${popB}"]`:`.scn [data-k="b:${popB}"],.scn [data-k^="b:${popB}"]`);if(!el){L.innerHTML='';return}
   const html=bpopHTML(),sg=hsh(html);if(L.dataset.sig!==sg){L.innerHTML=html;L.dataset.sig=sg}const c=L.firstElementChild;if(!c)return;
   if(innerWidth<=560||(window.matchMedia&&matchMedia('(max-width:560px)').matches)){c.classList.add('sheet');return}c.classList.remove('sheet');
   const r=el.getBoundingClientRect(),cw=c.offsetWidth,ch=c.offsetHeight;let x=r.left+r.width/2+scrollX-cw/2;x=Math.max(8,Math.min(x,document.documentElement.clientWidth-cw-8));
@@ -4088,6 +4137,97 @@ function flPopHTML(id){const nm=FLN[id],built=floorBuilt(id),U2=FLU[id]||[],tr=f
     else if(nx)ex+=`<p class="hand bph2">${tr?'Згодом тут можна буде зробити ще краще.':'Згодом цей поверх можна буде облаштувати краще.'}</p>`;else ex+=`<p class="hand bph2">Поверх облаштовано повністю.</p>`;
     const tb=FLTAB[id];if(tb&&s.tabs[tb]&&tb!=='home')bt+=btn('Зайти','tab',tb,{cls:'toggle'})}
   return`<div class="bpop" role="dialog" aria-label="${nm}"><div class="bph"><b>${nm}</b><span class="bplv">${built?(tr?'облаштовано: '+tr:'відновлено'):'у руїнах'}</span><button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div><p class="m">${FLD[id]}</p>${ex}<div class="act">${bt}</div></div>`}
+/* ============ КІМНАТИ МАЯКА ЗБЛИЗЬКА: майстерня й кабінет ============
+   Кожна кімната — жива сцена: речі на сцені відкривають картки з тими самими діями, що й списки нижче.
+   Списки лишаються в «Усе списком» для тих, кому так зручніше. */
+const RMW=432,RMH=240;
+/* --- спільне: стіни, підлога, вікно, сходи, балки --- */
+function roomBase(b,o){const W=RMW,H=RMH,kk=b.k||1;
+  hiRect(b,0,0,W,200,(i,j,x,y)=>{const n=hh2(i>>1,j>>1);if(y<12)return(j%4===3)?'V':'W';if(y>=128){const p=Math.floor(x/18);return y<131?'X':(Math.floor(x)%18===0)?'x':hh2(p,j>>2)<.12?'W':'V'}
+    const e=Math.min(x,W-x,y*1.6)/60;if(e<1&&(1-e)*.7>bay(i,j))return n<.3?'D':'E';return n<.08?'L':n<.2?'b':'a'});
+  for(const bx of[0,96,192,288,384])prect(b,bx,0,10,14,'V');
+  hiRect(b,0,200,W,40,(i,j,x,y)=>{const row=Math.floor((y-200)/6),off=row%2?17:0;return(Math.floor(y)-200)%6===5||((Math.floor(x)+off)%34===0)?'V':hh2(i>>2,row)<.15?'Y':'X'});
+  prect(b,0,199,W,2,'W');
+  const wx=o.win[0],wy=o.win[1],ww=o.win[2],wh=o.win[3];prect(b,wx-3,wy-3,ww+6,wh+6,'D');prect(b,wx,wy,ww,wh,'B');prect(b,wx,wy+wh*0.62,ww,wh*0.38,'R');prect(b,wx,wy+wh*0.6,ww,1,'U');prect(b,wx+ww/2-1,wy,2,wh,'D');prect(b,wx,wy+wh/2-1,ww,2,'D');prect(b,wx-4,wy+wh+2,ww+8,3,'F');prect(b,wx-4,wy+wh+2,ww+8,1,'G');
+  if(GR==='n'){pset(b,wx+4,wy+5,'y');pset(b,wx+ww-6,wy+9,'6')}
+  /* сходи в кутку */
+  for(let i=0;i<16;i++){const sx=o.st>0?W-24-i*7:10+i*7,sy=200-(i+1)*11;if(sy<14)break;prect(b,sx,sy,18,3,'X');prect(b,sx,sy,18,1,'Y');prect(b,sx+(o.st>0?16:0),sy+3,2,8,'W')}
+}
+/* --- майстерня --- */
+function workRoom3(st){const b=pbuf(RMW,RMH),tr=st.tr||0;roomBase(b,{win:[196,40,40,52],st:1});
+  /* дошка креслень */
+  prect(b,246,26,112,108,'W');prect(b,250,30,104,100,'d');pnoise(b,250,30,104,100,'c',0.2,61);prect(b,246,26,112,2,'Y');
+  /* полиця з інструментами */
+  prect(b,46,70,128,6,'X');prect(b,46,70,128,1,'Y');const nt=tr>=1?11:5;for(let i=0;i<nt;i++){const tx=54+i*11,ln=14+(i%3)*5;prect(b,tx,76,2,ln,i%3?'G':'H');if(i%3===0)prect(b,tx-2,76+ln-4,6,4,'F');if(i%3===1)prect(b,tx-1,76+ln-2,4,2,'W')}
+  /* лампа */
+  prect(b,120,0,1,34,'z');prect(b,114,34,13,5,'z');prect(b,116,39,9,3,'F');
+  return b}
+function wkBench3(st){const b=pbuf(160,62),tr=st.tr||0;prect(b,0,20,160,6,'Y');prect(b,0,25,160,2,'X');prect(b,4,26,6,36,'W');prect(b,150,26,6,36,'W');prect(b,8,46,144,4,'X');
+  for(let i=0;i<4;i++){prect(b,18+i*30,36,20,10,i%2?'W':'X');prect(b,18+i*30,36,20,1,'Y')}
+  prect(b,20,14,14,6,'G');prect(b,20,14,14,1,'H');prect(b,44,12,4,8,'F');prect(b,52,16,22,4,'X');pset(b,60,15,'g');pset(b,66,15,'g');prect(b,90,10,30,10,'O');pline(b,92,13,116,13,'L');pline(b,92,16,110,16,'L');
+  const vw=tr>=3?18:11,vh=tr>=3?16:10;prect(b,160-vw-4,20-vh,vw,vh,'G');prect(b,160-vw-4,20-vh,vw,2,'H');prect(b,160-vw-10,20-vh/2,6,2,'z');return b}
+function wkNote3(icon,fresh){const b=pbuf(18,24);prect(b,1,2,16,21,'O');prect(b,1,2,16,1,'u');prect(b,17,3,1,20,'b');prect(b,2,23,16,1,'b');pnoise(b,1,3,16,20,'N',0.12,icon.length*7);
+  const R=ICO[icon]||ICO.crate;for(let y=0;y<12;y++)for(let x=0;x<12;x++){const c=(R[y]||'')[x]||'.';if(c!=='.')pset(b,3+x,7+y,c)}prect(b,8,0,2,3,fresh?'j':'t');pset(b,8,0,fresh?'h':'j');return b}
+function wkForge3(){const b=pbuf(70,52);prect(b,0,8,34,44,'F');prect(b,0,8,34,2,'G');for(let y=10;y<52;y+=5)prect(b,0,y,34,1,'D');prect(b,6,26,22,18,'x');prect(b,8,34,18,10,'K');prect(b,10,36,14,6,'J');prect(b,13,38,8,3,'I');prect(b,12,0,10,8,'E');
+  prect(b,42,36,26,5,'G');prect(b,42,36,26,1,'H');prect(b,38,37,5,3,'F');prect(b,48,41,14,5,'F');prect(b,44,46,22,6,'W');prect(b,44,46,22,1,'Y');return b}
+function wkScrap3(n){const b=pbuf(34,30);prect(b,0,8,34,22,'X');prect(b,0,8,34,2,'Y');for(let x=0;x<34;x+=6)prect(b,x,10,1,20,'W');prect(b,0,18,34,1,'W');
+  for(let i=0;i<Math.min(6,n);i++){prect(b,3+i*5,2+(i%2)*2,6,7,i%2?'G':'F');pset(b,4+i*5,3,'H')}return b}
+function wkGrind3(){const b=pbuf(32,40);prect(b,2,20,3,20,'W');prect(b,27,20,3,20,'W');prect(b,0,32,32,3,'X');polyFill(b,Array.from({length:16},(_,a)=>[16+Math.cos(a/16*6.283)*12,18+Math.sin(a/16*6.283)*12]),(x,y)=>pset(b,x,y,(x+y)%3?'F':'G'));prect(b,15,17,3,3,'D');return b}
+/* --- кабінет --- */
+function studyRoom3(st){const b=pbuf(RMW,RMH),tr=st.tr||0;roomBase(b,{win:[198,36,40,56],st:-1});
+  if(tr>=2){prect(b,256,44,84,56,'b');prect(b,258,46,80,52,'O');pnoise(b,258,46,80,52,'N',0.15,31);pline(b,264,82,290,62,'L');pline(b,290,62,312,74,'L');pline(b,312,74,332,56,'L');for(const[x,y]of[[274,74],[300,66],[326,60]])prect(b,x,y,2,2,'j');polyFill(b,[[262,96],[270,88],[282,96]],(x,y)=>pset(b,x,y,'S'))}
+  if(tr>=3){prect(b,150,150,34,50,'t');prect(b,154,154,26,26,'v');prect(b,150,178,34,10,'v');prect(b,150,178,34,1,'w');prect(b,148,170,6,30,'t');prect(b,180,170,6,30,'t');prect(b,152,198,4,2,'V');prect(b,178,198,4,2,'V')}
+  if(tr>=3){hiRect(b,150,206,170,26,(i,j,x,y)=>{const e=Math.min(x-150,320-x,y-206,232-y);return e<2?'g':e<4?'t':hh2(i>>2,j>>2)<.3?'v':'i'})}
+  return b}
+function stShelf3(n,tr){const w=tr>=1?100:52,b=pbuf(w,160);for(let k=0;k<(tr>=1?2:1);k++){const x0=k*50;prect(b,x0,0,48,160,'W');prect(b,x0+2,2,44,156,'V');for(let r=0;r<5;r++){const y=8+r*30;prect(b,x0+2,y+24,44,3,'X');prect(b,x0+2,y+24,44,1,'Y');
+    const cnt=Math.min(9,Math.max(0,n*2-(k*5+r)*2+(tr>=1?4:0)));for(let i=0;i<cnt;i++){const bh=14+((i*7+r)%3)*3,c=['i','k','e','o','t','d','Z','3'][(i+r*3+k)%8];prect(b,x0+4+i*5,y+24-bh,4,bh,c);prect(b,x0+4+i*5,y+24-bh+2,4,1,'g')}}}return b}
+function stDesk3(lit){const b=pbuf(110,62);prect(b,0,18,110,6,'X');prect(b,0,18,110,1,'Y');prect(b,4,24,6,38,'W');prect(b,100,24,6,38,'W');prect(b,10,30,40,20,'W');prect(b,10,30,40,1,'X');pset(b,30,40,'g');
+  prect(b,30,10,34,8,'u');prect(b,46,10,2,8,'b');for(let i=0;i<4;i++){pline(b,33,12+i*2,44,12+i*2,'a');pline(b,50,12+i*2,61,12+i*2,'a')}prect(b,70,12,6,6,'x');pline(b,73,12,80,2,'u');pline(b,74,12,81,2,'6');
+  prect(b,92,6,4,12,'u');prect(b,90,16,8,2,'G');if(lit){pset(b,93,4,'I');pset(b,94,4,'I');pset(b,93,3,'J');pset(b,94,2,'J')}else pset(b,93,5,'x');return b}
+function stChest3(open){const b=pbuf(52,34);if(open){polyFill(b,[[2,10],[8,0],[50,0],[44,10]],(x,y)=>pset(b,x,y,'W'))}else{prect(b,0,6,52,8,'X');prect(b,0,6,52,2,'Y')}
+  prect(b,0,14,52,20,'W');prect(b,0,14,52,1,'Y');for(const x of[6,44])prect(b,x,6,3,28,'z');prect(b,22,16,8,8,'G');for(let i=0;i<3;i++)prect(b,23+i*2,18,1,4,'H');if(open)prect(b,4,12,44,3,'x');return b}
+function stNotes3(n){const b=pbuf(60,70);for(let i=0;i<Math.min(9,n);i++){const x=2+(i%3)*19,y=2+Math.floor(i/3)*22;prect(b,x,y+2,16,18,'O');prect(b,x,y+2,16,1,'u');for(let l=0;l<4;l++)prect(b,x+2,y+6+l*3,11-(l%2)*3,1,'a');pset(b,x+7,y+1,'j')}return b}
+for(const f of['workRoom3','wkBench3','wkNote3','wkForge3','wkScrap3','wkGrind3','studyRoom3','stShelf3','stDesk3','stChest3','stNotes3'])globalThis[f]=HI(globalThis[f]);
+
+/* --- сцени --- */
+const NOTEXY=i=>[255+(i%5)*20,34+Math.floor(i/5)*32];
+function workScene(){const tr=floorBuilt('work')?fuL('work'):0,st={tr,ph:GR},W=RMW,H=RMH;let h=`<span data-sk="bg" data-sig="bg" class="scbg">${VH(()=>pimg(pxURL('wkr3:'+tr+GR,()=>workRoom3(st)),864,480,'scene','Майстерня'))}</span>`;
+  h+=ob('wk:bench','bpop','wk:bench',obURL('wkb3:'+tr,()=>wkBench3(st)),40,140,W,H,'Верстак','<b>Верстак</b><br>Тут роблять речі з креслень на дошці.',{});
+  const vis=RC.filter(rcVisible);vis.slice(0,15).forEach((rc,i)=>{const ik=rc.tool?(rc.id==='rod'?'rod':rc.id==='belt1'?'belt':'pack'):rc.out,fr=!prev9['r:'+rc.id],nm=rc.tool?rc.n:IT[rc.out].n,[x,y]=NOTEXY(i);
+    h+=ob('wk:r:'+rc.id,'bpop','wk:r:'+rc.id,obURL('wkn3:'+ik+(fr?1:0),()=>wkNote3(ik,fr)),x,y,W,H,nm,`<b>${nm}</b><br>Креслення. Натисни, щоб подивитися.`,{pulse:fr?1:0,always:fr?1:0})});
+  if(s.b.forge&&WEAP.some(has))h+=ob('wk:forge','bpop','wk:forge',obURL('wkf3',wkForge3),214,148,W,H,'Горн і ковадло','<b>Горн і ковадло</b><br>Тут удосконалюють зброю.',{});
+  const dl=Object.keys(s.inv).filter(canDism);if(dl.length)h+=ob('wk:scrap','bpop','wk:scrap',obURL('wks3:'+Math.min(6,dl.length),()=>wkScrap3(dl.length)),8,170,W,H,'Ящик для розбору','<b>Ящик для розбору</b><br>Непотрібне спорядження — на матеріали.',{});
+  if(tr>=2)h+=ob('wk:grind','','',obURL('wkg3',wkGrind3),300,160,W,H,'Точильний круг','<b>Точильний круг</b><br>Гострить леза: зброя служить довше.',{});
+  const L={fire:[],win:[{x:216,y:150,r:240,e:.6,c:WARM,a:.35},{x:120,y:44,r:110,e:.8,c:WARM,a:.85}]};if(s.b.forge)L.fire.push({x:231,y:186,r:80,e:.7,c:FIRE,n:4});
+  return`<div class="scn rm wk" data-scn="wk" style="${scnD()}">${h}${fxCanvas('wk',W,H)}${lightLayers(W,H,L)}</div>`}
+function studyScene(){const tr=floorBuilt('study')?fuL('study'):0,st={tr,ph:GR},W=RMW,H=RMH;let h=`<span data-sk="bg" data-sig="bg" class="scbg">${VH(()=>pimg(pxURL('str3:'+tr+GR,()=>studyRoom3(st)),864,480,'scene','Кабінет'))}</span>`;
+  const nb=s.books.length,av=RS.filter(r=>!s.rs[r.id]&&rsReady(r)).length;
+  h+=ob('st:shelf','bpop','st:shelf',obURL('sts3:'+Math.min(8,nb)+tr,()=>stShelf3(nb,tr)),22,40,W,H,'Книжкові полиці',`<b>Полиці</b><br>Книг: ${nb}. Кожна пришвидшує дослідження.`,{});
+  h+=ob('st:desk','bpop','st:desk',obURL('std3',()=>stDesk3(1)),246,140,W,H,'Стіл з рукописом',`<b>Стіл Остапа</b><br>${av?'Є що дослідити.':'Записи, чорнило, свічка.'}`,{pulse:av?1:0,always:av?1:0});
+  h+=ob('st:chest','bpop','st:chest',obURL('stc3:'+(s.f.chest?1:0),()=>stChest3(!!s.f.chest)),364,166,W,H,'Скриня Остапа','<b>Скриня</b><br>Кодовий замок із трьома коліщатами.',{});
+  if(s.pages.length)h+=ob('st:notes',s.tabs.journal?'tab':'','journal',obURL('stn3:'+Math.min(9,s.pages.length),()=>stNotes3(s.pages.length)),130,48,W,H,'Записки на стіні',`<b>Записки Остапа</b><br>${s.pages.length} сторінок.${s.tabs.journal?' Натисни, щоб перечитати в журналі.':''}`,{});
+  const L={fire:[{x:339,y:146,r:95,e:.8,c:WARM,n:4}],win:[{x:216,y:150,r:240,e:.6,c:WARM,a:.3},{x:216,y:70,r:40,c:PALE,a:GR==='y'?.5:.15}]};
+  return`<div class="scn rm st" data-scn="st" style="${scnD()}">${h}${fxCanvas('st',W,H)}${lightLayers(W,H,L)}</div>`}
+
+/* --- картки --- */
+function roomPopHTML(id){const card=(nm,lv,body,act)=>`<div class="bpop" role="dialog" aria-label="${nm}"><div class="bph"><b>${nm}</b>${lv?`<span class="bplv">${lv}</span>`:''}<button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div>${body}${act?`<div class="act">${act}</div>`:''}</div>`;
+  if(id.startsWith('wk:r:')){const rc=RC.find(r=>r.id===id.slice(5));if(!rc||!rcVisible(rc))return'';const c=rcCost(rc),nm=rc.tool?rc.n:IT[rc.out].n,d=rc.tool?rc.d:itemShort(rc.out),cr=rc.craft||0;
+    return card(nm,rc.multi&&has(rc.out)?'є '+s.inv[rc.out]:'',`<p class="m">${d}</p>${rc.src?`<p class="m src">${rc.src}</p>`:''}${cr?`<p class="m">${chk('craft',cr)}</p>`:''}`,`${btn('Зробити','craft',rc.id,{ok:()=>st('craft')>=cr&&afford(rcCost(rc),rc.it),cls:'main'})}<span class="ccs">${costChips(c,rc.it)}</span>`)}
+  if(id==='wk:bench'){const vis=RC.filter(rcVisible);return card('Верстак',fuL('work')?'облаштовано: '+fuL('work'):'',`<p class="m">${vis.length?`Креслень на дошці: ${vis.length}. Натискай на них, щоб зробити річ.`:'Поки що нічого нового. Шукай креслення й вивчай записи.'}</p>${vis.length>15?`<div class="rlist">${vis.slice(15).map(rc=>`<div class="row"><span>${rc.tool?rc.n:IT[rc.out].n}</span>${btn('Зробити','craft',rc.id,{ok:()=>st('craft')>=(rc.craft||0)&&afford(rcCost(rc),rc.it)})}</div>`).join('')}</div>`:''}`,'')}
+  if(id==='wk:forge'){const own=WEAP.filter(has);return card('Горн і ковадло','',`<p class="hand">Горн теплий. Була б тільки добра річ, щоб прикласти її до клинка.</p><div class="rlist">${own.map(w=>{const tier=wF(w),nx=WF[w][tier],rel=nx?REL[w][tier]:'',cst=nx?wfCost(tier):null,hr=rel&&has(rel),ml=nx&&wmLv(w)<WFM[tier],why=!nx?'':!hr?'бракує особливої знахідки':ml?`спершу майстерність ${WFM[tier]}`:'';
+      return`<div class="row"><span>${pimg(wIco(w),20,20)} ${wN(w)}${!nx?' <span class="done">краще не буде</span>':why?` <span class="m">— ${why}</span>`:''}</span>${nx&&!why?`${btn('Удосконалити','wup',w,{ok:()=>afford(cst)})}<span class="ccs">${costChips(cst)}</span>`:''}</div>`}).join('')}</div>`,'')}
+  if(id==='wk:scrap'){const dl=Object.keys(s.inv).filter(canDism);return card('Ящик для розбору','',`<p class="m">Те, що в руках, не чіпаємо.</p><div class="rlist">${dl.map(d=>{const v=dismVal(d);return v?`<div class="row"><span>${pimg(icoURL(d),20,20)} ${IT[d].n}${s.inv[d]>1?' × '+s.inv[d]:''} <span class="m">→ ${costTxt(v)}</span></span>${btn('Розібрати','dism',d)}</div>`:''}).join('')}</div>`,'')}
+  if(id==='st:shelf'){return card('Полиці',`книг: ${s.books.length}`,`<p class="m">Кожна знайдена книга пришвидшує дослідження. Розум теж допомагає.</p>${s.books.length?`<p class="m">${s.books.map(b=>I('«'+BK[b]+'»')).join(', ')}.</p>`:'<p class="hand">Порожньо. Книги ще чекають у шхерах.</p>'}`,'')}
+  if(id==='st:desk'){const av=RS.filter(r=>!s.rs[r.id]&&rsReady(r)&&!(r.kill&&!s.seenE[r.kill]));
+    return card('Стіл Остапа','',`<p>Знання: ${V(()=>fmt(s.r.lore))}, ${V(()=>'+'+fr(rates().lore))} за секунду.</p><div class="rlist">${av.length?av.map(r=>{const c=rsCost(r);return`<div class="row"><span><b>${U(r.n)}</b><br><span class="m">${U(r.d)}</span></span>${btn('Дослідити','rs',r.id,{ok:()=>s.r.lore>=c})}<span class="ccs">${R('lore',c)}</span></div>`}).join(''):'<p class="hand">Нових тем поки немає. Вони з’являться після нових досліджень і зустрічей.</p>'}</div>`,'')}
+  if(id==='st:chest'){if(s.f.chest)return card('Скриня Остапа','відчинена','<p class="m">Скриня відчинена й порожня.</p>','');
+    return card('Скриня Остапа','',`<p class="m">Кодовий замок із трьома коліщатами. На кришці вирізано:</p><p class="quote">Хто вертається з моря, спершу бачить камінь, тоді небо, а засинає в гавані.</p><div class="dials">${s.chest.map((v,k)=>`<div class="dial"><b>${CHEST[v]}</b>${btn('Крутити','dial',k)}</div>`).join('')}</div>${s.chestFail>=3?`<p class="hint">Ти згадуєш, як Остап казав: «Уночі першим із туману виринає не вогонь, а чорна тінь берега».</p>`:''}`,btn('Відкрити скриню','chestTry','',{cls:'main'}))}
+  return''}
+/* Наближення: з кімнати в розрізі маяка — у велику сцену кімнати */
+let zoomFrom=null;
+function zoomPrep(tab){try{const id={work:'work',study:'study'}[tab];if(!id||s.tab!=='tower')return;const el=document.querySelector(`.scn [data-k="fl:${id}"]`),st=document.getElementById('stage');if(!el||!st)return;zoomFrom={r:el.getBoundingClientRect(),s:st.getBoundingClientRect()}}catch(e){zoomFrom=null}}
+function zoomRun(){if(!zoomFrom)return;const z=zoomFrom;zoomFrom=null;try{const st=document.getElementById('stage');if(!st||!st.animate||RM())return;const n=st.getBoundingClientRect(),sc=Math.max(.15,z.r.width/n.width),dx=z.r.left-n.left,dy=z.r.top-n.top;
+  st.style.transformOrigin='0 0';st.animate([{transform:`translate(${dx}px,${dy}px) scale(${sc})`,opacity:.35},{transform:'none',opacity:1}],{duration:480,easing:'cubic-bezier(.2,.7,.3,1)'})}catch(e){}}
 /* ============ ЖИВИЙ СВІТ: частинки й анімації поверх сцени ============
    Один <canvas class="fx"> у сцені, малюємо в точній сітці (логічні координати × SK) через ImageData.
    Цикл ~30 кадрів/с; спить, коли сцени немає, вкладка схована або ввімкнено «менше руху». */
@@ -4110,7 +4250,7 @@ function fxReset(sc){FX.sc=sc;FX.ps=[];FX.walk=[];FX.crab=null;FX.ev={};FX.moth=
 function fxTick(ts){requestAnimationFrame(fxTick);if(typeof document==='undefined'||document.hidden)return;if(ts-FX.last<33)return;const dt=Math.min(.1,(ts-FX.last)/1000||.033);FX.last=ts;
   const cv=document.querySelector('#stage canvas.fx');if(!cv||RM()){if(FX.cv){FX.cv=null}return}
   if(cv!==FX.cv){FX.cv=cv;FX.g=cv.getContext('2d');FX.W=cv.width;FX.H=cv.height;FX.im=FX.g.createImageData(FX.W,FX.H);FX.u=new Uint32Array(FX.im.data.buffer);const sc=(cv.dataset.sig||'').slice(3);if(sc!==FX.sc)fxReset(sc)}
-  FX.t+=dt;FX.u.fill(0);try{if(FX.sc==='yd')fxYard(dt);else if(FX.sc==='sh')fxShore(dt);else if(FX.sc==='tw')fxTower(dt);fxParts(dt)}catch(e){}FX.g.putImageData(FX.im,0,0)}
+  FX.t+=dt;FX.u.fill(0);try{if(FX.sc==='yd')fxYard(dt);else if(FX.sc==='sh')fxShore(dt);else if(FX.sc==='tw')fxTower(dt);else if(FX.sc==='wk'||FX.sc==='st')fxRoom(dt);fxParts(dt)}catch(e){}FX.g.putImageData(FX.im,0,0)}
 /* Частинки: іскри, пил, бризки */
 function fxParts(dt){const out=[];for(const p of FX.ps){p.life+=dt;if(p.life>p.max)continue;p.vy+=(p.gr||0)*dt;p.vx*=1-.8*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;const f=p.life/p.max;
   if(p.kind==='flash'){const R=14*(1-f*.4),a=.55*(1-f);for(let j=-R;j<=R;j++)for(let i=-R;i<=R;i++){const d=Math.hypot(i,j)/R;if(d<1&&(1-d)*a>bay((p.x+i)|0,(p.y+j)|0))fxP(p.x+i,p.y+j,fxCol(d<.35?'I':'J',.5))}out.push(p);continue}
@@ -4207,6 +4347,12 @@ function fxTower(dt){const k=SK,W=TWW;fxStars(dt,170,W);fxShoot(dt,150,W);fxGull
     for(let i=0;i<L*k;i++){const lx=x0*k+side*i,cy=(y0-(i/k)*.12)*k,hw=(2+(i/k)*.07)*k,ai=br*Math.pow(1-i/(L*k),.7);if(lx<0||lx>=FX.W)break;for(let yy=-hw;yy<=hw;yy++){const e=1-Math.abs(yy)/hw,a=Math.min(.9,ai*(.3+e)*1.1),q=Math.round(a*5)/5;if(q>0)fxP(lx,cy+yy,fxCol(i<50&&e>.5?'I':'h',q))}}}
   if((s.f.won||floorBuilt('lantern'))&&GR!=='y')for(const m of FX.moth){const a=FX.t*m.w+m.ph;fxP((TCX+Math.cos(a)*(m.r+30))*k,(44+Math.sin(a*1.3)*m.r*.7)*k,fxCol('u',.7))}
   fxWisps(dt,240,292,W)}
+/* ---------- Кімнати зблизька ---------- */
+function fxRoom(dt){const k=SK;FX.mote=FX.mote||[];if(FX.mote.length<55&&Math.random()<dt*10)FX.mote.push({x:fxR(20,412),y:fxR(20,196),vx:fxR(-1.2,1.2),vy:fxR(-1.2,.4),l:0,m:fxR(4,9)});
+  FX.mote=FX.mote.filter(m=>(m.l+=dt)<m.m);for(const m of FX.mote){m.x+=m.vx*dt;m.y+=m.vy*dt;const lx=FX.sc==='wk'?120:339,ly=FX.sc==='wk'?44:146,near=Math.max(0,1-Math.hypot(m.x-lx,(m.y-ly)*1.3)/140);fxP(m.x*k,m.y*k,fxCol('h',Math.sin(m.l/m.m*Math.PI)*(.15+.55*near)))}
+  if(FX.sc==='wk'&&s.b.forge&&Math.random()<dt*3)FX.ps.push({x:(231+fxR(-6,6))*k,y:181*k,vx:fxR(-8,8),vy:fxR(-30,-14),gr:-4,life:0,max:fxR(.5,1.2),kind:'spark'});
+  if(FX.sc==='wk'&&floorBuilt('work')&&fuL('work')>=2&&Math.random()<dt*.5)fxBurst('wk',316,170,'spark',6);
+  if(FX.sc==='st'){const f=.5+.5*Math.sin(FX.t*7)*Math.sin(FX.t*3.1);fxP(339*k,141*k,fxCol('I',.4+.5*f));fxP(339*k+1,141*k-1,fxCol('J',.3*f))}}
 if(typeof requestAnimationFrame==='function')requestAnimationFrame(fxTick);
 /* ============ ВКЛАДКА «МАЯК»: розріз маяка як жива сцена ============
    Тло (небо, море, острів, кам'яна оболонка вежі, перекриття, балкон, ліхтарня) — одна картинка.

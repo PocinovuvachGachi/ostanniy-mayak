@@ -119,7 +119,23 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await p.close();
   }
 
-  // 6. Дзвіночок
+  // 6. Майстерня й кабінет: речі в кімнаті відкривають картки з діями
+  {
+    const p = await page(1100, 1000);
+    await p.evaluate(() => { window.dlg = () => {}; storyCheck = () => {}; s.f.looked = 1; s.b.hearth = 3; s.floors = { work: 1, gallery: 1, study: 1 }; for (const k of RES) s.r[k] = 5000; s.tabs = { home: 1, tower: 1, work: 1, study: 1 }; s.dlg = []; s.tab = 'work'; render(); });
+    await p.waitForTimeout(300);
+    const n = await p.$('.scn [data-k^="wk:r:"]');
+    A(!!n, 'креслення на дошці в майстерні');
+    if (n) { await n.click(); await p.waitForTimeout(300); A(!!await p.$('#popl [data-a="craft"]'), 'картка креслення з кнопкою «Зробити»'); }
+    await p.evaluate(() => { popB = ''; s.tab = 'study'; render(); });
+    await p.waitForTimeout(300);
+    const d = await p.$('.scn [data-k="st:desk"]');
+    if (d) { await d.click(); await p.waitForTimeout(300); }
+    A(!!await p.$('#popl .bpop'), 'картка столу в кабінеті');
+    await p.close();
+  }
+
+  // 7. Дзвіночок
   {
     const p = await page(390, 844);
     const r = await p.evaluate(() => {

@@ -517,6 +517,8 @@ function texBuf(k){const S=32,b=pbuf(S,S);
   if(k==='stone'){prect(b,0,0,S,S,'0');for(let r=0;r<4;r++){const y=r*8,off=(r%2)*8;for(let x=-16;x<S+16;x+=16){prect(b,x+off,y,15,7,'1');pnoise(b,x+off,y+1,15,6,'2',0.1,r*7+x+40);for(let i=0;i<15;i+=3)pset(b,x+off+i,y,'2')}}}
   else if(k==='sand'){prect(b,0,0,S,S,'b');pnoise(b,0,0,S,S,'a',0.13,11);pnoise(b,0,0,S,S,'6',0.025,12);pnoise(b,0,0,S,S,'e',0.012,13)}
   else if(k==='plank'){prect(b,0,0,S,S,'c');for(let r=0;r<4;r++){const y=r*8;prect(b,0,y+7,S,1,'8');const R=rng(30+r);for(let i=0;i<3;i++){const x=Math.floor(R()*S),w=4+Math.floor(R()*8);prect(b,x,y+2+Math.floor(R()*4),w,1,'8')}pset(b,(r*13+4)%S,y+3,'9')}}
+  else if(k==='paper'){prect(b,0,0,S,S,'O');pnoise(b,0,0,S,S,'b',0.07,71);pnoise(b,0,0,S,S,'N',0.12,72);pnoise(b,0,0,S,S,'u',0.03,73);for(let i=0;i<3;i++){const R=rng(80+i),y=Math.floor(R()*S),x=Math.floor(R()*S);prect(b,x,y,5+Math.floor(R()*7),1,'N')}}
+  else if(k==='slate'){prect(b,0,0,S,S,'1');pnoise(b,0,0,S,S,'0',0.12,91);pnoise(b,0,0,S,S,'2',0.06,92)}
   else if(k==='board'){prect(b,0,0,S,S,'6');for(let r=0;r<4;r++){const y=r*8;prect(b,0,y+7,S,1,'5');const R=rng(60+r);for(let i=0;i<3;i++){const x=Math.floor(R()*S),w=4+Math.floor(R()*9);prect(b,x,y+2+Math.floor(R()*4),w,1,'5')}pset(b,(r*11+6)%S,y+3,'p')}}
   return b}
 function flameStrip(){const b=pbuf(21,9);for(let k=0;k<3;k++){const R=rng(90+k);for(let y=0;y<9;y++){const w=Math.max(1,Math.min(7,Math.round(1+y*0.8+(R()-.5)*1.4))),sh=y<5?Math.round((R()-.5)*1.6):0,x0=k*7+3-Math.floor(w/2)+sh;
@@ -525,3 +527,12 @@ function logBuf(){const b=pbuf(10,4);prect(b,1,0,8,4,'d');prect(b,1,0,8,1,'e');p
 /* Дзвіночок сповіщень, 12×12 */
 function bellBuf(){const b=pbuf(12,12),R=['....00......','...0gh0.....','..0ghhg0....','..0ggge0....','.0gggfe0....','.0ggffe0....','.0gfffe0....','0gfffeee0...','00000000000.','....0dd0....','.....00.....','............'];
   R.forEach((r,y)=>{for(let x=0;x<r.length;x++)pset(b,x+1,y,r[x])});return b}
+/* Піксельні значки для сповіщень і діалогів, 9×9 */
+const TAGI={info:['....J....','...JKJ...','...JIJ...','..JIhIJ..','..KIhIK..','..KJIJK..','...KKK...','..DDDDD..','.........'],
+  find:['.........','..XXXXX..','.XYYYYYX.','.XXXgXXX.','.WWWgWWW.','.WWWWWWW.','.WWWWWWW.','.VVVVVVV.','.........'],
+  fight:['H.......H','.H.....H.','..H...H..','...H.H...','....H....','...H.H...','.dH...Hd.','dd.....dd','.........'],
+  story:['.........','.uuu.uuu.','.uOu.uOu.','.uOubuOu.','.uOubuOu.','.uuubuuu.','.dddbddd.','....d....','.........'],
+  lvl:['....g....','....g....','...ghg...','gggghgggg','.gghhhgg.','..ghhhg..','.gg...gg.','.g.....g.','.........'],
+  world:['.........','.........','..UU.....','.U..U..UU','U....UU..','.........','..TT.....','.T..T..TT','T....TT..'],
+  plan:['.........','.OOOOOOO.','.O33333O.','.O3...3O.','.O3...3O.','.O33333O.','.OOOOOOO.','......dd.','.....dd..']};
+const tagURL=k=>pxURL('tag:'+k,()=>{const R=TAGI[k]||TAGI.info,b=pbuf(9,9);R.forEach((r,y)=>{for(let x=0;x<9;x++)pset(b,x,y,r[x])});return b});
