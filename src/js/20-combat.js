@@ -249,7 +249,7 @@ function roleAct(c,u){const T=EN[u.t];const structs=c.u.filter(v=>v.hp>0&&EN[v.t
   fxP({t:'bump',x0:u.x,y0:u.y,x1:tg.x,y1:tg.y},110);
   if(u.role==='thief'){u.loot=1;cbLog(`${E(T.n)} хапає припаси зі складу! Не дай йому дійти до води.`);return true}
   const d=Math.round((4+s.h.lvl*0.5)*DIFF_DMG);tg.hp-=d;fxP({t:'txt',x:tg.x,y:tg.y,v:'−'+d,k:'hit'},120);cbLog(`${E(T.n)} ламає: ${tg.nm||EN[tg.t].n} −${d}.`);if(tg.hp<=0)kill(tg);return true}
-function enemyAct(c,u){const T=EN[u.t];if(T.obj)return;if(u.t==='wolfpet'){wolfAct(c,u);return}if(T.ally){allyAct(c,u);return}
+function enemyAct(c,u){const T=EN[u.t];if(T.obj)return;if(T.boss)gnatPhase(c,u);if(u.t==='wolfpet'){wolfAct(c,u);return}if(T.ally){allyAct(c,u);return}
   if(u.hid){if(dist(u.x,u.y,c.hx,c.hy)<=2||Math.random()<0.35){u.hid=0;cbLog(`${E(T.n)} вискакує з засідки!`);fxP({t:'appear',x:u.x,y:u.y},140)}else{u.step++;return}}
   if(u.burn>0){u.burn--;u.hp-=3;cbLog(`${E(T.n)} горить: −3.`);fxP({t:'txt',x:u.x,y:u.y,v:'−3',k:'hit'},90);if(u.hp<=0){kill(u);return}}
   if(u.bleed>0){u.bleed--;const bd=u.bleedD||2;u.hp-=bd;cbLog(`${E(T.n)} стікає кров’ю: −${bd}.`);fxP({t:'txt',x:u.x,y:u.y,v:'−'+bd,k:'hit'},90);if(u.hp<=0){kill(u);return}}
@@ -272,6 +272,7 @@ function enemyAct(c,u){const T=EN[u.t];if(T.obj)return;if(u.t==='wolfpet'){wolfA
   else if(k==='hook'){const d0=dist(u.x,u.y,c.hx,c.hy);if(d0>1&&d0<=rg&&los(c,u.x,u.y,c.hx,c.hy)){fxP({t:'shot',x0:u.x,y0:u.y,x1:c.hx,y1:c.hy},150);const nx=u.x+sgn(c.hx-u.x),ny=u.y+sgn(c.hy-u.y);
       if(canStand(c,nx,ny,'walk')&&!unitAt(c,nx,ny)){fxP({t:'mv',x0:c.hx,y0:c.hy,x1:nx,y1:ny,d:200},180);c.hx=nx;c.hy=ny;const x=hurtHero(4);cbLog(`${E(T.n)}: гарпун чіпляє тебе й підтягує впритул, −${x}.`)}else{const x=hurtHero(6);cbLog(`${E(T.n)}: гарпун, −${x}.`)}}
     else if(near()){strike(7)}else{moveUnit(c,u,'ranged',rg);cbLog(`${E(T.n)} заходить збоку.`)}}
+  else if(k==='horn')hornAct(c,u);
   else if(k==='ward'){const tg=c.u.filter(v=>v!==u&&v.hp>0&&!isObj(v)&&!EN[v.t].ally).sort((a,b)=>a.hp/a.max-b.hp/b.max)[0];if(tg){tg.ward=1;cbLog(`${E(T.n)} прикриває щитом: ${E(EN[tg.t].n)} +2 броні.`)}else cbLog(`${E(T.n)} чекає.`)}
   else if(k==='call2'){const n=c.u.filter(v=>v.hp>0&&v.t==='gull').length;if(n<3){const q=freeNear(c,u.x,u.y);if(q){const nu=mkUnit('gull',q[0],q[1],c.mult||1);c.u.push(nu);s.seenE.gull=1;fxP({t:'appear',x:q[0],y:q[1]},160);cbLog(`${E(T.n)} скликає зграю: прилітає ${E('чайка')}.`)}}else cbLog(`${E(T.n)} кружляє над зграєю.`)}
   else if(k==='hit'||k==='cold'||k==='wrap'){if(!near())moveUnit(c,u,'melee');if(u.hp<=0)return;

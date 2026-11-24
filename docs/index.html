@@ -2497,7 +2497,7 @@ const ENC={
   wraith:{a:'cave',h:[1,3],e:[['wraith',8,2],['wraith',9,5]]},
   fortpier:{a:'fort',h:[1,3],e:[['scout',8,2],['scout',8,4],['barrel',6,4]]},
   fortyard:{a:'fort',h:[1,3],e:[['brute',8,3],['barrel',6,2]]},
-  gnat:{a:'tower',h:[5,5],e:[['gnat',5,1],['scout',2,1],['barrel',5,3],['barrel',8,4]],boss:1,noElite:1,mult:0.92},
+  gnat:{a:'tower',h:[5,5],e:[['gnat',5,1],['scout',2,1],['barrel',5,3],['barrel',8,4]],boss:1,noElite:1,mult:1.2},
   whyard:{a:'store',h:[1,3],e:[['hound',8,3],['rat',8,1],['rat',9,5]]},
   whhall:{a:'store',h:[1,3],e:[['smuggler',9,1],['smuggler',9,5],['barrel',6,3]],waves:[[3,[['hound',9,3]]]]},
   bogfight:{a:'bog',h:[1,3],e:[['drowned',8,1],['toad',9,4],['leech',6,3]]},
@@ -3224,7 +3224,7 @@ function checks(){const F=s.f;novTick();mgHelpCheck();if(!s.tabs.chron&&s.chs.le
     else s.popT=0}
   if(!s.disc.heart&&has('mlens')&&has('gkey')){reveal('heart');dlg({k:'story',title:'Острів, якого немає',img:{t:'face',id:'marta'},body:`<p>Крізь Лінзу Мли видно те, чого не видно оком: на півночі з води б’є стовп туману. ${P('Марта')}: ${Q('Ось воно. Ключ вартових відімкне шлях. Пливімо')}.</p>`})}
   if(s.tabs.hero&&!s.h.bg&&(s.nv||{}).grow)offerBg();
-  shoreTick();shfTick();beamTick();folkTick();wolfTick();kitTick();rsiegeTick();curTick();
+  shoreTick();shfTick();beamTick();folkTick();wolfTick();kitTick();rsiegeTick();curTick();stage3Tick();
   s.bdSeen=s.bdSeen||{};{const nb=BD.filter(b=>!s.bdSeen[b.id]&&b.show());if(nb.length){nb.forEach(b=>s.bdSeen[b.id]=1);bpDlg(nb)}}
   s.rcSeen=s.rcSeen||{};if(s.floors.work){const nw=[];for(const rc of RC)if(!s.rcSeen[rc.id]&&rcVisible(rc)){s.rcSeen[rc.id]=1;nw.push(rc)}if(nw.length)rcDlg(nw)}
   if(F.crabWarn&&!F.crab1&&!s.cb&&!(s.dlg||[]).some(d=>d.crabw))crabWarn();
@@ -3482,7 +3482,7 @@ function roleAct(c,u){const T=EN[u.t];const structs=c.u.filter(v=>v.hp>0&&EN[v.t
   fxP({t:'bump',x0:u.x,y0:u.y,x1:tg.x,y1:tg.y},110);
   if(u.role==='thief'){u.loot=1;cbLog(`${E(T.n)} хапає припаси зі складу! Не дай йому дійти до води.`);return true}
   const d=Math.round((4+s.h.lvl*0.5)*DIFF_DMG);tg.hp-=d;fxP({t:'txt',x:tg.x,y:tg.y,v:'−'+d,k:'hit'},120);cbLog(`${E(T.n)} ламає: ${tg.nm||EN[tg.t].n} −${d}.`);if(tg.hp<=0)kill(tg);return true}
-function enemyAct(c,u){const T=EN[u.t];if(T.obj)return;if(u.t==='wolfpet'){wolfAct(c,u);return}if(T.ally){allyAct(c,u);return}
+function enemyAct(c,u){const T=EN[u.t];if(T.obj)return;if(T.boss)gnatPhase(c,u);if(u.t==='wolfpet'){wolfAct(c,u);return}if(T.ally){allyAct(c,u);return}
   if(u.hid){if(dist(u.x,u.y,c.hx,c.hy)<=2||Math.random()<0.35){u.hid=0;cbLog(`${E(T.n)} вискакує з засідки!`);fxP({t:'appear',x:u.x,y:u.y},140)}else{u.step++;return}}
   if(u.burn>0){u.burn--;u.hp-=3;cbLog(`${E(T.n)} горить: −3.`);fxP({t:'txt',x:u.x,y:u.y,v:'−3',k:'hit'},90);if(u.hp<=0){kill(u);return}}
   if(u.bleed>0){u.bleed--;const bd=u.bleedD||2;u.hp-=bd;cbLog(`${E(T.n)} стікає кров’ю: −${bd}.`);fxP({t:'txt',x:u.x,y:u.y,v:'−'+bd,k:'hit'},90);if(u.hp<=0){kill(u);return}}
@@ -3505,6 +3505,7 @@ function enemyAct(c,u){const T=EN[u.t];if(T.obj)return;if(u.t==='wolfpet'){wolfA
   else if(k==='hook'){const d0=dist(u.x,u.y,c.hx,c.hy);if(d0>1&&d0<=rg&&los(c,u.x,u.y,c.hx,c.hy)){fxP({t:'shot',x0:u.x,y0:u.y,x1:c.hx,y1:c.hy},150);const nx=u.x+sgn(c.hx-u.x),ny=u.y+sgn(c.hy-u.y);
       if(canStand(c,nx,ny,'walk')&&!unitAt(c,nx,ny)){fxP({t:'mv',x0:c.hx,y0:c.hy,x1:nx,y1:ny,d:200},180);c.hx=nx;c.hy=ny;const x=hurtHero(4);cbLog(`${E(T.n)}: гарпун чіпляє тебе й підтягує впритул, −${x}.`)}else{const x=hurtHero(6);cbLog(`${E(T.n)}: гарпун, −${x}.`)}}
     else if(near()){strike(7)}else{moveUnit(c,u,'ranged',rg);cbLog(`${E(T.n)} заходить збоку.`)}}
+  else if(k==='horn')hornAct(c,u);
   else if(k==='ward'){const tg=c.u.filter(v=>v!==u&&v.hp>0&&!isObj(v)&&!EN[v.t].ally).sort((a,b)=>a.hp/a.max-b.hp/b.max)[0];if(tg){tg.ward=1;cbLog(`${E(T.n)} прикриває щитом: ${E(EN[tg.t].n)} +2 броні.`)}else cbLog(`${E(T.n)} чекає.`)}
   else if(k==='call2'){const n=c.u.filter(v=>v.hp>0&&v.t==='gull').length;if(n<3){const q=freeNear(c,u.x,u.y);if(q){const nu=mkUnit('gull',q[0],q[1],c.mult||1);c.u.push(nu);s.seenE.gull=1;fxP({t:'appear',x:q[0],y:q[1]},160);cbLog(`${E(T.n)} скликає зграю: прилітає ${E('чайка')}.`)}}else cbLog(`${E(T.n)} кружляє над зграєю.`)}
   else if(k==='hit'||k==='cold'||k==='wrap'){if(!near())moveUnit(c,u,'melee');if(u.hp<=0)return;
@@ -4237,6 +4238,52 @@ function curTick(){if(!curOn()||away())return;s.cur=s.cur||{on:{},t:0,gain:0};co
   if(got){add('coin',got);s.cur.gain+=got;say(`Тиміш збігав до Яреми: ${costTxt(sold)} → ${R('coin',got)}.`,'find')}}
 function curHTML(){if(!curOn()||!s.f.curMet)return'';const on=(s.cur||{}).on||{};
   return`<div class="freq"><b>Посилки Тиміша</b><br><span class="m">Тиміш раз на кілька хвилин носить Яремі те, що ти відклав. Риби й провізії лишає половину комори, решти — по 50.</span><div class="act">${CUR.filter(k=>s.seen[k]).map(k=>btn(`${RN[k]}${on[k]?' ✓':''}`,'curt',k,{cls:on[k]?'on':''})).join('')}</div>${s.cur&&s.cur.gain?`<span class="m">Уже приніс: ${R('coin',s.cur.gain)}.</span>`:''}</div>`}
+/* ============ ЕТАП III: ФОРТ, ЗОШИТ ОСТАПА, ТРИ МАЯКИ, РЕЛІКВІЇ ============
+   - Бої з ролями (#20): сигнальник на пристані сурмить — якщо не прибрати, прийде підмога; у дворі громила, гарпунник
+     і знахар; Гнат Сірий на половині сил кличе своїх.
+   - Зошит Остапа: аркуші 6–9 — у скрині кабінету, у склепі під дзвіницею, у хаті Устини, у копальні.
+   - Секрет «Три маяки»: розповідь про три маяки, зоряна мапа з хибного вогню й аркуші зошита складаються в одне.
+   - Четвертий набір: «Реліквії Мовчунів» (+1 очко вмінь).
+   - Кінець етапу: Остап у кабінеті розгортає креслення великої лінзи — «Тепер — світло». */
+EN.signal={n:'Мовчун-сигнальник',ch:'с',hp:22,arm:0,eva:15,mv:3,xp:20,d:'Тримає ріг. Якщо засурмить двічі — з форту прибіжить підмога. Прибери його першим.',p:[['hit',5,'Ніж'],['horn',0,'Сурмить у ріг'],['hit',5,'Ніж'],['horn',0,'Сурмить у ріг']]};
+SPR.signal=SPR.scout;
+Object.assign(ENC,{fortpier:{a:'fort',h:[1,3],e:[['scout',8,2],['scout',8,4],['signal',10,3],['barrel',6,4]]},
+  fortyard:{a:'fort',h:[1,3],e:[['brute',8,3],['harpooner',9,1],['medic',10,4],['barrel',6,2]]}});
+/* ріг: друге сурмління — підмога (не більше двох на бій) */
+function hornAct(c,u){u.horn=(u.horn||0)+1;if(u.horn<2){cbLog(`${E(EN[u.t].n)} сурмить у ріг! Ще раз — і прибіжить підмога.`);return}
+  if((c.reinf||0)>=2){cbLog(`${E(EN[u.t].n)} сурмить, але ніхто вже не біжить.`);return}c.reinf=(c.reinf||0)+1;u.horn=0;const q=freeNear(c,GW-1,u.y);if(!q){cbLog('Ріг лунає, та підмоги не видно.');return}
+  const v=mkUnit('scout',q[0],q[1],c.mult||1);c.u.push(v);fxP({t:'appear',x:v.x,y:v.y},140);cbLog(`На поклик рогу прибігає ${E(EN.scout.n)}!`)}
+/* Гнат на половині сил кличе своїх (раз) */
+function gnatPhase(c,u){if(u.t!=='gnat'||u.ph||u.hp>u.max/2)return;u.ph=1;cbLog(`${E(EN.gnat.n)} реве: «До мене, мовчуни!»`);
+  for(const[x,y]of[[GW-2,1],[GW-2,GH-2]]){const q=freeNear(c,x,y);if(!q)continue;const v=mkUnit('scout',q[0],q[1],c.mult||1);c.u.push(v);fxP({t:'appear',x:v.x,y:v.y},140)}}
+/* Зошит Остапа */
+Object.assign(PG,{
+  6:'Мовчуни взяли не мене — вони взяли лінзу. Я розколов її на три частини, і тепер вони думають, що мене можна змусити її скласти. Хай думають. — О.',
+  7:'Дзвони під дзвіницею відповідають морю: високий — приплив, низький — відплив, середній — коли вода стоїть. Склеп відчиняється тим, хто слухає. — О.',
+  8:'Устина каже, що туман на болоті стоїть навіть удень, бо там його ніхто не кличе — і ніхто не жене. Мла не зла. Вона — як вода: тече туди, де нижче. — О.',
+  9:'Маяків було три. Наш, на Мисі — і третій, на півночі. Третій не світить кораблям: він світить у воду. Звідти й іде туман. Я бачив його лише раз. Більше не піду сам. — О.'});
+const ostapPg=()=>[6,7,8,9].filter(n=>s.pages.includes(n)).length;
+function pgFind(n,where){if(s.pages.includes(n))return'';page(n);xp(20);return` Між ${where} — аркуш із зошита Остапа.`}
+{const S=LOC.reef.spots.find(x=>x.id==='crypt');S.acts.push({id:'page',t:'Оглянути склеп при світлі',once:1,run(){return'Склеп тихий і сухий.'+pgFind(7,'кам’яних плит')}})}
+{const S=LOC.bog.spots.find(x=>x.id==='hut');S.acts.push({id:'page',t:'Подивитися на полиці Устини',once:1,show:()=>!!(s.mst||{}).ustyna,run(){return'На полиці — сушені гриби, пучки трав і кілька старих листів.'+pgFind(8,'листів')}})}
+{const S=LOC.mine.spots[LOC.mine.spots.length-1];S.acts.push({id:'page',t:'Обшукати куток коваля',once:1,show:()=>!!(s.mst||{}).kindrat,run(){odd('mknife');setCheck('mknife');return'У кутку, де спав Кіндрат, — ніж, викуваний для Мовчунів, і зім’ятий аркуш.'+pgFind(9,'речей')}})}
+/* Реліквії Мовчунів */
+Object.assign(OD,{
+  mhorn:{n:'Ріг сигнальника',d:'Бичачий ріг із вирізаною чайкою. Двічі — «на поміч», тричі — «тікайте».',set:'silent'},
+  mbadge:{n:'Кістяна бляха Мовчунів',d:'Без слів, без імені: лише знак — закрите око. Її носив Гнат.',set:'silent'},
+  mknife:{n:'Ніж із копальні',d:'Викуваний Кіндратом під примусом. На лезі він таємно вибив маленький маяк.',set:'silent'}});
+Object.assign(ODI,{mhorn:'feather',mbadge:'coin',mknife:'knife'});
+OSET.silent={n:'Реліквії Мовчунів',gain:()=>{s.h.sp=(s.h.sp||0)+1},gt:'+1 очко вмінь'};
+{const S=LOC.fort.spots.find(x=>x.id==='pier');const F=S.acts.find(a=>a.id==='fight'),w0=F.win;F.win=function(){const r=w0&&w0();odd('mhorn');setCheck('mhorn');return r||'Вартові лежать. Один із них впустив ріг.'}}
+{const S=LOC.fort.spots.find(x=>x.id==='tower');for(const id of['fight','talk']){const A=S.acts.find(a=>a.id===id);if(!A)continue;const k=A.win?'win':'run',f0=A[k];A[k]=function(){const r=f0.apply(this,arguments);odd('mbadge');setCheck('mbadge');return r}}}
+/* Три маяки: розповідь, зоряна мапа й аркуші зошита */
+const threeReady=()=>(s.c.tale||0)>=2&&!!s.odd.star&&ostapPg()>=3;
+function threeLights(){if(!threeReady()||s.f.three)return;s.f.three=1;xp(60);
+  dlg({k:'story',title:'Три маяки',img:{t:'icon',id:'o_star'},body:`<p>Ти розкладаєш на столі Остапа зоряну мапу з хибного вогню, його аркуші й згадуєш розповідь старого Луки. Три вогні: ваш маяк, Вітряний Мис — і третій, далеко на півночі, позначений не зіркою, а колом із крапкою посередині.</p><p>Остап казав: третій світить не кораблям, а у воду. Туман іде звідти. Якщо колись погасити Млу — то там.</p>`,gains:['Таємниця трьох маяків']})}
+/* кінець етапу: креслення лінзи */
+function lightPlan(){if(!s.f.ostap||s.f.lightPlan||!s.floors.study)return;s.f.lightPlan=1;
+  dlg({k:'story',title:'Тепер — світло',img:{t:'face',id:'ostap'},body:`<p>Остап сидить у своєму кабінеті так, ніби ніколи його не покидав. Він розгортає на столі пожовклий аркуш — креслення великої лінзи, три уламки й ліхтарню над ними.</p><p>${Q('Ти запалив вогонь. Люди повірили. Мовчуни більше не тримають ні мене, ні лінзу. Тепер — світло')}.</p>`,gains:['Креслення великої лінзи']})}
+function stage3Tick(){lightPlan()}
 /* ============ ЕТАП II: ЖИТТЯ ПРИЧАЛУ ============
    - Вечір у корчмі: щоразу нова розповідь — про Остапа, Мовчунів, старі маяки, Млу, «Чайку». Інформація приходить
      вчасно й голосом світу (постулат 5): люди знають шматки, гравець складає ціле.
@@ -4310,6 +4357,7 @@ function act0(a,i){
   case 'wname':wolfName(i||null);break;
   case 'wlearn':wLearn(i);break;
   case 'wlesson':wLesson();break;
+  case 'three':threeLights();break;
   case 'cache':cacheOpen();break;
   case 'scrapw':if(F.wreck&&!onCd('scrapw')){setCd('scrapw',2);s.c.scrap=(s.c.scrap||0)+1;add('scrap',1+(s.rs.metal?1:0)+(s.h.ft.thrifty?1:0)+(has('rake')?1:0))}break;
   case 'fishing':if(F.rod&&!onCd('fishing')){setCd('fishing',3);if(!s.bite&&s.c.fish>=6&&F.crab1&&Date.now()-(s.bigT||0)>240000&&Math.random()<1/6){s.bigT=Date.now();if(mgHabit('fish')||s.quickMG){s.c.fish++;mgRun('fish',mgFish,fishEnd);break}s.bite={until:Date.now()+30000};say('Вудка вигнулася дугою: щось велике тягне линву!','find');break}add('fish',wolf());s.c.fish++;
@@ -4372,7 +4420,7 @@ function act0(a,i){
   case 'stone':if(!F.stones){const n=+i;s.stones[n]=(s.stones[n]+1)%4}break;
   case 'stonesTry':if(!F.stones){if(s.stones.every(d=>d===2)){F.stones=1;odd('holestone');book('stones');add('herb',8);xp(30);dlg({k:'find',title:'Камені-сторожі',img:{t:'scene',id:'cliffs'},body:'<p>Три стрілки дивляться на маяк. Камені глухо гудуть, і з-під найбільшого викочується камінь із діркою.</p>',gains:['Книга «Пісні каменярів»','+8 трав']});say(`Камені глухо гудуть, і з-під найбільшого викочується ${I('камінь із діркою')}. Під ним — книга ${I('«Пісні каменярів»')} і сухий пучок трав (${R('herb',8)}).`,'find')}else{s.stoneFail++;say('Нічого. Камені мовчать.')}}break;
   case 'dial':{const n=+i;s.chest[n]=(s.chest[n]+1)%CHEST.length;break}
-  case 'chestTry':if(!F.chest){if(s.chest.every((v,k)=>v===CHESTCODE[k])){F.chest=1;F.bpCrossbow=1;odd('pipe');xp(30);dlg({k:'find',title:'Скриня Остапа відчинилася',img:{t:'icon',id:'crossbow'},body:`<p>Замок клацає. У скрині — креслення арбалета, люлька й лист: ${Q('Хто розгадав мою скриню, той упорається й з маяком. — О.')}</p>`,gains:['Рецепт арбалета в майстерні']});say(`Замок клацає. У скрині — креслення ${I('арбалета')}, люлька й лист: ${Q('Хто розгадав мою скриню, той упорається й з маяком. — О.')}`,'find')}else{s.chestFail++;say('Коліщата зупиняються, але кришка не піддається.')}}break;
+  case 'chestTry':if(!F.chest){if(s.chest.every((v,k)=>v===CHESTCODE[k])){F.chest=1;F.bpCrossbow=1;odd('pipe');xp(30);if(!s.pages.includes(6))page(6);dlg({k:'find',title:'Скриня Остапа відчинилася',img:{t:'icon',id:'crossbow'},body:`<p>Замок клацає. У скрині — креслення арбалета, люлька й лист: ${Q('Хто розгадав мою скриню, той упорається й з маяком. — О.')}</p>`,gains:['Рецепт арбалета в майстерні']});say(`Замок клацає. У скрині — креслення ${I('арбалета')}, люлька й лист: ${Q('Хто розгадав мою скриню, той упорається й з маяком. — О.')}`,'find')}else{s.chestFail++;say('Коліщата зупиняються, але кришка не піддається.')}}break;
   case 'buy':{const it=SHOP.find(x=>x.id===i),p=price(it.p);if(s.r.coin<p||(it.show&&!it.show()))break;s.r.coin-=p;
     if(it.res)for(const k in it.res)add(k,it.res[k]);else if(it.book)book(it.book);else if(it.reveal)reveal(it.reveal);else giveI(i);say(`Куплено: ${I(it.n)}.`,'find');break}
   case 'tog':s.on[i]=s.on[i]===false;break;
@@ -5643,7 +5691,7 @@ function roomPopHTML(id){const card=(nm,lv,body,act)=>`<div class="bpop" role="d
   if(id==='st:shelf'){return card('Полиці',`книг: ${s.books.length}`,`<p class="m">Кожна знайдена книга пришвидшує дослідження. Розум теж допомагає.</p>${s.books.length?`<p class="m">${s.books.map(b=>I('«'+BK[b]+'»')).join(', ')}.</p>`:'<p class="hand">Порожньо. Книги ще чекають у шхерах.</p>'}`,'')}
   if(id==='st:tree')return treePopHTML();
   if(id==='st:desk'){const av=RS.filter(r=>!s.rs[r.id]&&rsReady(r)&&!(r.kill&&!s.seenE[r.kill]));
-    return card('Стіл Остапа','',`<p>Знання: ${V(()=>fmt(s.r.lore))}, ${V(()=>'+'+fr(rates().lore))} за секунду.</p>${btn('Дерево знань','bpop','st:tree',{cls:'toggle'})}<div class="rlist">${av.length?av.map(r=>{const c=rsCost(r);return`<div class="row"><span><b>${U(r.n)}</b><br><span class="m">${U(r.d)}</span></span>${btn('Дослідити','rs',r.id,{ok:()=>s.r.lore>=c})}<span class="ccs">${R('lore',c)}</span></div>`}).join(''):'<p class="hand">Нових тем поки немає. Вони з’являться після нових досліджень і зустрічей.</p>'}</div>`,'')}
+    return card('Стіл Остапа','',`<p>Знання: ${V(()=>fmt(s.r.lore))}, ${V(()=>'+'+fr(rates().lore))} за секунду.</p>${btn('Дерево знань','bpop','st:tree',{cls:'toggle'})}${threeReady()&&!s.f.three?`<div class="act">${btn('Розкласти зоряну мапу й аркуші','three','',{cls:'main'})}</div>`:''}<div class="rlist">${av.length?av.map(r=>{const c=rsCost(r);return`<div class="row"><span><b>${U(r.n)}</b><br><span class="m">${U(r.d)}</span></span>${btn('Дослідити','rs',r.id,{ok:()=>s.r.lore>=c})}<span class="ccs">${R('lore',c)}</span></div>`}).join(''):'<p class="hand">Нових тем поки немає. Вони з’являться після нових досліджень і зустрічей.</p>'}</div>`,'')}
   if(id==='st:chest'){if(s.f.chest)return card('Скриня Остапа','відчинена','<p class="m">Скриня відчинена й порожня.</p>','');
     return card('Скриня Остапа','',`<p class="m">Кодовий замок із трьома коліщатами. На кришці вирізано:</p><p class="quote">Хто вертається з моря, спершу бачить камінь, тоді небо, а засинає в гавані.</p><div class="dials">${s.chest.map((v,k)=>`<div class="dial"><b>${CHEST[v]}</b>${btn('Крутити','dial',k)}</div>`).join('')}</div>${s.chestFail>=3?`<p class="hint">Ти згадуєш, як Остап казав: «Уночі першим із туману виринає не вогонь, а чорна тінь берега».</p>`:''}`,btn('Відкрити скриню','chestTry','',{cls:'main'}))}
   return''}

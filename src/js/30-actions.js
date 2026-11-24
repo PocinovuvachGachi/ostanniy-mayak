@@ -37,6 +37,7 @@ function act0(a,i){
   case 'wname':wolfName(i||null);break;
   case 'wlearn':wLearn(i);break;
   case 'wlesson':wLesson();break;
+  case 'three':threeLights();break;
   case 'cache':cacheOpen();break;
   case 'scrapw':if(F.wreck&&!onCd('scrapw')){setCd('scrapw',2);s.c.scrap=(s.c.scrap||0)+1;add('scrap',1+(s.rs.metal?1:0)+(s.h.ft.thrifty?1:0)+(has('rake')?1:0))}break;
   case 'fishing':if(F.rod&&!onCd('fishing')){setCd('fishing',3);if(!s.bite&&s.c.fish>=6&&F.crab1&&Date.now()-(s.bigT||0)>240000&&Math.random()<1/6){s.bigT=Date.now();if(mgHabit('fish')||s.quickMG){s.c.fish++;mgRun('fish',mgFish,fishEnd);break}s.bite={until:Date.now()+30000};say('Вудка вигнулася дугою: щось велике тягне линву!','find');break}add('fish',wolf());s.c.fish++;
@@ -99,7 +100,7 @@ function act0(a,i){
   case 'stone':if(!F.stones){const n=+i;s.stones[n]=(s.stones[n]+1)%4}break;
   case 'stonesTry':if(!F.stones){if(s.stones.every(d=>d===2)){F.stones=1;odd('holestone');book('stones');add('herb',8);xp(30);dlg({k:'find',title:'Камені-сторожі',img:{t:'scene',id:'cliffs'},body:'<p>Три стрілки дивляться на маяк. Камені глухо гудуть, і з-під найбільшого викочується камінь із діркою.</p>',gains:['Книга «Пісні каменярів»','+8 трав']});say(`Камені глухо гудуть, і з-під найбільшого викочується ${I('камінь із діркою')}. Під ним — книга ${I('«Пісні каменярів»')} і сухий пучок трав (${R('herb',8)}).`,'find')}else{s.stoneFail++;say('Нічого. Камені мовчать.')}}break;
   case 'dial':{const n=+i;s.chest[n]=(s.chest[n]+1)%CHEST.length;break}
-  case 'chestTry':if(!F.chest){if(s.chest.every((v,k)=>v===CHESTCODE[k])){F.chest=1;F.bpCrossbow=1;odd('pipe');xp(30);dlg({k:'find',title:'Скриня Остапа відчинилася',img:{t:'icon',id:'crossbow'},body:`<p>Замок клацає. У скрині — креслення арбалета, люлька й лист: ${Q('Хто розгадав мою скриню, той упорається й з маяком. — О.')}</p>`,gains:['Рецепт арбалета в майстерні']});say(`Замок клацає. У скрині — креслення ${I('арбалета')}, люлька й лист: ${Q('Хто розгадав мою скриню, той упорається й з маяком. — О.')}`,'find')}else{s.chestFail++;say('Коліщата зупиняються, але кришка не піддається.')}}break;
+  case 'chestTry':if(!F.chest){if(s.chest.every((v,k)=>v===CHESTCODE[k])){F.chest=1;F.bpCrossbow=1;odd('pipe');xp(30);if(!s.pages.includes(6))page(6);dlg({k:'find',title:'Скриня Остапа відчинилася',img:{t:'icon',id:'crossbow'},body:`<p>Замок клацає. У скрині — креслення арбалета, люлька й лист: ${Q('Хто розгадав мою скриню, той упорається й з маяком. — О.')}</p>`,gains:['Рецепт арбалета в майстерні']});say(`Замок клацає. У скрині — креслення ${I('арбалета')}, люлька й лист: ${Q('Хто розгадав мою скриню, той упорається й з маяком. — О.')}`,'find')}else{s.chestFail++;say('Коліщата зупиняються, але кришка не піддається.')}}break;
   case 'buy':{const it=SHOP.find(x=>x.id===i),p=price(it.p);if(s.r.coin<p||(it.show&&!it.show()))break;s.r.coin-=p;
     if(it.res)for(const k in it.res)add(k,it.res[k]);else if(it.book)book(it.book);else if(it.reveal)reveal(it.reveal);else giveI(i);say(`Куплено: ${I(it.n)}.`,'find');break}
   case 'tog':s.on[i]=s.on[i]===false;break;

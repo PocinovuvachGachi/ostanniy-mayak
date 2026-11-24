@@ -1,5 +1,5 @@
 require('../harness.js')(`
-FOEST.fill(1);ENC.heart.mult=1.4;/* проходження перевіряє сюжетний перебіг, не баланс */
+FOEST.fill(1);ENC.heart.mult=1.4;ENC.gnat.mult=.92;/* проходження перевіряє сюжетний перебіг, не баланс */
 const rsNow=r=>{act('rs',r);if(s.rd===r)rsDone(r)};let fails=0;function A(c,m){if(!c){fails++;console.log('FAIL',m)}}
 function T(n){for(let i=0;i<n;i++){produce(1);checks()}}
 function allTabs(){const t0=s.tab;for(const t in s.tabs){s.tab=t;render()}s.tab=t0;render()}
@@ -50,7 +50,7 @@ act('leave');act('go','cliffs');render();s.cd={};s.h.hp=maxHP();checks();A(quick
 act('leave');act('go','village');act('la','village.shop.crate');A(s.f.crateDone,'crate');act('tab','trade');render();act('buy','tales');
 act('leave');s.r.prov=0;A(!canGo('reef')[0],'need prov');s.r.prov+=10;act('go','reef');A(s.r.prov===8,'prov spent');act('bell',2);act('bell',2);render();[0,1,0,1].forEach(b=>act('bell',b));A(s.f.crypt,'crypt');act('la','reef.crypt.wick');A(has('wick'),'wick');
 els['rd-reef-grave-riddle']={value:'луна'};act('riddle','reef.grave.riddle');A(s.f.riddle2&&has('shell'),'riddle2');
-act('leave');const tdb=s.dbgTide;s.dbgTide='low';act('go','fort');s.dbgTide=tdb;act('la','fort.pier.pass');s.h.hp=maxHP();act('la','fort.yard.fight');botFight();A(s.f.yard,'yard');
+act('leave');const tdb=s.dbgTide;s.dbgTide='low';act('go','fort');s.dbgTide=tdb;act('la','fort.pier.pass');s.h.hp=maxHP();act('la','fort.yard.fight');A(s.cb,'бій у дворі '+JSON.stringify([s.f.fortIn,s.at,canGo('fort')]));if(s.cb)for(const u of s.cb.u)if(!EN[u.t].ally&&!EN[u.t].obj)u.hp=1;botFight();A(s.f.yard,'yard');
 act('la','fort.prison.key');A(s.f.ostap,'ostap');s.r.lore+=300;['optics','beacon'].forEach(rsNow);A(s.rs.beacon,'оптика й маякова справа');act('unequip','ranged');act('packRem','harpoon');act('packRem','crossbow');giveI('mail');act('equip','mail');giveI('potion',6);s.belt=['potion','bandage'];s.h.a.con=10;s.h.hp=maxHP();act('la','fort.tower.fight');A(s.cb&&s.cb.boss,'boss');botFight(800);A(s.f.gnat&&shards()===3,'gnat');act('la','fort.tower.fire');
 act('leave');s.r.ember+=2000;act('signal');A(s.sig===1,'signal');giveI('knife');act('tab','work');render();act('dism','knife');A(!has('knife'),'dism');act('craft','lens');A(has('lens'),'lens');
 s.r.wood+=500;s.r.scrap+=300;s.r.oil+=200;s.r.ember+=7000;s.r.iron+=60;s.r.tar+=30;act('floor','lantern');A(s.floors.lantern,'lantern');render();

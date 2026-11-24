@@ -422,7 +422,7 @@ const ENC={
   wraith:{a:'cave',h:[1,3],e:[['wraith',8,2],['wraith',9,5]]},
   fortpier:{a:'fort',h:[1,3],e:[['scout',8,2],['scout',8,4],['barrel',6,4]]},
   fortyard:{a:'fort',h:[1,3],e:[['brute',8,3],['barrel',6,2]]},
-  gnat:{a:'tower',h:[5,5],e:[['gnat',5,1],['scout',2,1],['barrel',5,3],['barrel',8,4]],boss:1,noElite:1,mult:0.92},
+  gnat:{a:'tower',h:[5,5],e:[['gnat',5,1],['scout',2,1],['barrel',5,3],['barrel',8,4]],boss:1,noElite:1,mult:1.2},
   whyard:{a:'store',h:[1,3],e:[['hound',8,3],['rat',8,1],['rat',9,5]]},
   whhall:{a:'store',h:[1,3],e:[['smuggler',9,1],['smuggler',9,5],['barrel',6,3]],waves:[[3,[['hound',9,3]]]]},
   bogfight:{a:'bog',h:[1,3],e:[['drowned',8,1],['toad',9,4],['leech',6,3]]},
