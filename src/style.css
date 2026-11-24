@@ -931,3 +931,13 @@ body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .
 .foes li.on .fimg{box-shadow:0 0 0 2px var(--bad)}
 .fxq{position:absolute;left:0;top:0;pointer-events:none;box-shadow:0 0 0 1px rgba(11,20,24,.55)}
 @media (max-width:560px){.arf{margin-left:-10px;margin-right:-10px;width:calc(100% + 20px);max-width:none!important}}
+/* кухня: міні-гра біля казана */
+.mgcook{position:relative;display:flex;gap:18px;align-items:flex-end;justify-content:center;height:150px;padding:10px;background:#1d140d}
+.mgcp{--h:.3;position:relative;width:120px;height:90px;border-radius:0 0 60px 60px;background:#2c2a27;box-shadow:inset 0 6px 0 #4d4a44,0 calc(10px + var(--h)*14px) calc(10px + var(--h)*24px) rgba(255,150,40,calc(.2 + var(--h)*.6))}
+.mgcp i{position:absolute;top:4px;width:10px;height:10px;border-radius:50%;background:#e3ebe6;opacity:calc(var(--h)*1.2 - .3);animation:bub 1s ease-in infinite}
+.mgcp .b1{left:30px}.mgcp .b2{left:60px;animation-delay:.33s}.mgcp .b3{left:86px;animation-delay:.66s}
+@keyframes bub{0%{transform:translateY(8px) scale(.4)}100%{transform:translateY(-14px) scale(1)}}
+.mgct{position:relative;width:18px;height:130px;background:#16252e;border:2px solid #0b1418}
+.mgct .z{position:absolute;left:0;right:0;background:rgba(165,217,142,.45)}
+.mgct .n{position:absolute;left:-6px;right:-6px;height:4px;margin-bottom:-2px;background:#f0b84a;box-shadow:0 0 6px #f0b84a}
+@media (prefers-reduced-motion:reduce){.mgcp i{animation:none}}
