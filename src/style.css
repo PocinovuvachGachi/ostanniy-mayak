@@ -355,7 +355,7 @@ button.ob:hover:not(:disabled),button.ob:focus-visible{background:transparent;ou
 .ob:hover .obw,.ob:focus-visible .obw{transform:translateY(-2px)}
 .ob:hover .obi,.ob:focus-visible .obi,.zone:hover .obi{filter:brightness(1.18)}
 .ob.no:hover .obo{filter:grayscale(1) brightness(.8)}
-.ob .gl,.dlw .gl{position:absolute;pointer-events:none;-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;background:linear-gradient(100deg,transparent 38%,rgba(255,246,205,.95) 50%,transparent 62%) no-repeat;background-size:260% 100%;animation:glint 5s linear infinite;animation-delay:var(--d)}
+.ob .gl,.dlw .gl{border:0;cursor:inherit;position:absolute;pointer-events:none;-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;background:linear-gradient(100deg,transparent 38%,rgba(255,246,205,.95) 50%,transparent 62%) no-repeat;background-size:260% 100%;animation:glint 5s linear infinite;animation-delay:var(--d)}
 .ob[data-cd] .gl,.zone .gl{opacity:calc(1 - min(1,var(--p,0)*100))}
 .ob:not(.nw):not([data-cd]) .gl{display:none}
 @keyframes glint{0%,70%{background-position:140% 0}100%{background-position:-40% 0}}
@@ -744,11 +744,12 @@ button.hs.zone:hover,button.hs.zone:focus-visible{background:transparent;border:
 #dbg .dbgl{margin:6px 0 0;color:#b3c5c4}
 #dbg details:not([open]){width:auto}
 /* Світло й видима Мла */
-.scn .lt{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:950;mix-blend-mode:screen;image-rendering:pixelated;opacity:.95}
+.scn{--night:1}
+.scn .lt{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:950;mix-blend-mode:screen;image-rendering:pixelated;opacity:calc(.95 * var(--night));transition:opacity 3s}
 .scn .ltf{animation:ltf 2.6s steps(1,end) infinite;animation-delay:var(--d)}
-@keyframes ltf{0%{opacity:.95;transform:scale(1)}13%{opacity:.82;transform:scale(.985)}27%{opacity:1;transform:scale(1.012)}41%{opacity:.88;transform:scale(.995)}58%{opacity:.97;transform:scale(1.008)}72%{opacity:.8;transform:scale(.98)}86%{opacity:.93;transform:scale(1.004)}}
+@keyframes ltf{0%{filter:brightness(1);transform:scale(1)}13%{filter:brightness(.82);transform:scale(.985)}27%{filter:brightness(1.08);transform:scale(1.012)}41%{filter:brightness(.88);transform:scale(.995)}58%{filter:brightness(.97);transform:scale(1.008)}72%{filter:brightness(.8);transform:scale(.98)}86%{filter:brightness(.93);transform:scale(1.004)}}
 .scn .lt:not(.ltf){animation:ltw 7s ease-in-out infinite alternate;animation-delay:var(--d)}
-@keyframes ltw{from{opacity:.8}to{opacity:1}}
+@keyframes ltw{from{filter:brightness(.85)}to{filter:brightness(1.05)}}
 .scn{--mla:0}
 .scm{position:absolute;inset:0;pointer-events:none;z-index:940;overflow:hidden}
 .mla{position:absolute;left:0;width:200%;top:var(--t);height:var(--h);background-repeat:repeat-x;background-size:50% 100%;image-rendering:pixelated;opacity:calc(var(--mla) * .7);transform:translateY(calc((1 - var(--mla)) * 30%));transition:opacity 4s ease,transform 6s ease;animation:fogm 160s linear infinite;animation-delay:var(--d2)}
@@ -771,3 +772,10 @@ button.hs.zone:hover,button.hs.zone:focus-visible{background:transparent;border:
 @keyframes fgh{0%,100%{transform:rotate(-40deg)}55%{transform:rotate(-40deg)}75%{transform:rotate(6deg)}}
 @keyframes fgs{0%,72%{opacity:0;transform:translate(0,0)}75%{opacity:1}100%{opacity:0;transform:translate(var(--dx),var(--dy))}}
 @media (prefers-reduced-motion:reduce){.fgx .fgh,.fgx b{animation:none}}
+/* Місце для вогнища: блідий контур, що засвічується, коли дров досить */
+.ob.ghost.ready .obi{opacity:.75;filter:grayscale(.2) brightness(1.25) drop-shadow(0 0 3px rgba(255,190,90,.7))}
+.ob.ghost.ready .obo{opacity:.8;animation:ghr 1.8s ease-in-out infinite}
+@keyframes ghr{50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.ob.ghost.ready .obo{animation:none}}
+/* Шар частинок: іскри, промінь, піна, птахи, перехожі */
+.scn canvas.fx{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:945;image-rendering:pixelated}

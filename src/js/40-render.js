@@ -83,8 +83,8 @@ function homeText(){const F=s.f;
   return'Темрява. У долонях тліє остання жарина з великого вогню маяка. Поки ти дихаєш на неї, вона не згасне.'}
 
 function yardSt2(){return{looked:s.f.looked,lk:s.f.lk,hearth:s.b.hearth,won:s.f.won,floors:s.floors,b:s.b,wood:s.r.wood,boat:s.f.boat,schooner:s.f.schooner,pop:s.pop||0}}
-function yardBgImg(){const sig=[s.f.looked?1:0,s.f.lk?1:0,s.b.hearth?1:0,s.f.won?1:0,s.f.boat?1:0,s.f.schooner?1:0,Math.min(8,s.pop||0),Math.min(12,1+Math.floor(s.r.wood/20))].join('');
-  return pimgA('y3:'+sig,()=>yardBg3(yardSt2()),864,480,'yard','Маяк і двір',120,WATER3)}
+function yardBgImg(){const sig=[s.f.looked?1:0,s.f.lk?1:0,s.b.hearth?1:0,s.f.won?1:0,s.f.boat?1:0,s.f.schooner?1:0,Math.min(8,s.pop||0),Math.min(12,1+Math.floor(s.r.wood/20))].join('')+GR;
+  return pimgA('y3:'+sig+(RM()?'r':''),()=>yardBg3(Object.assign(yardSt2(),{ph:GR,rm:RM()})),864,480,'yard','Маяк і двір',120,WATER3)}
 function yardImg(){const F=s.floors,L=s.b;const sig=[s.f.looked?1:0,s.f.lk?1:0,L.hearth?1:0,F.work?1:0,F.gallery?1:0,F.study?1:0,F.lantern?1:0,s.f.won?1:0,s.f.boat?1:0,s.f.schooner?1:0,Math.min(8,s.pop||0),Math.min(12,1+Math.floor(s.r.wood/20)),Math.min(4,L.house||0),...Object.keys(BANC).map(k=>L[k]?stageOf(L[k]):0)].join('');
   return pimgA('f3:'+sig,()=>yardFull3(yardSt2()),864,480,'yard','Маяк і двір',120,WATER3)}
 const SKU={melee:['влучність у ближньому бою','шанс контрудару, коли ворог промахнувся впритул'],mech:['замки й механізми в локаціях','сила твоїх капканів','ремонт укріплень під час набігу'],
@@ -127,8 +127,8 @@ function rHome(){let h=`<div>`;
     h+=s.f.schooner?`<p>Шхуна «Остап» стоїть біля причалу. На ній можна плисти до північних островів.</p>`:`<div class="row"><div><b>Шхуна</b><br><span class="m">Двощогловий корабель, що пройде крізь північні тумани. Сталь на обшивку, скло на ліхтарі.</span></div>${btn(`Збудувати (${costTxt(SCHOONER)})`,'schooner','',{ok:()=>afford(SCHOONER),cls:'main'})}</div>`;
     h+=`</section>`}
   return h+`</div>`}
-function shoreImg(){const sig=[Math.min(12,Math.ceil(s.r.wood/12)),s.seen.scrap?Math.min(6,Math.ceil(s.r.scrap/10)):0,s.seen.fish&&s.r.fish>=1?Math.min(5,Math.ceil(s.r.fish/8)):0,Math.min(3,s.b.pot||0)].join('');
-  return pimgA('s3:'+sig,()=>shoreBg3({wood:s.r.wood,scrapSeen:s.seen.scrap,scrap:s.r.scrap,fishSeen:s.seen.fish,fish:s.r.fish,pot:s.b.pot}),864,360,'scene','Берег',21,WATER3)}
+function shoreImg(){const sig=[Math.min(12,Math.ceil(s.r.wood/12)),s.seen.scrap?Math.min(6,Math.ceil(s.r.scrap/10)):0,s.seen.fish&&s.r.fish>=1?Math.min(5,Math.ceil(s.r.fish/8)):0,Math.min(3,s.b.pot||0)].join('')+GR;
+  return pimgA('s3:'+sig,()=>shoreBg3({ph:GR,wood:s.r.wood,scrapSeen:s.seen.scrap,scrap:s.r.scrap,fishSeen:s.seen.fish,fish:s.r.fish,pot:s.b.pot}),864,360,'scene','Берег',21,WATER3)}
 function rShore(){let h=`<section><h2>Берег під маяком</h2><p>Мокрий пісок, водорості й плавник, викинутий прибоєм. Туман ховає обрій.</p>`;
   let al=`<div class="act">${btn('Збирати плавник','gather','',{cd:'gather',cs:1})}</div>`;
   if(s.f.wreck)al+=`<div class="act">${btn('Розбирати уламки човна','scrapw','',{cd:'scrapw',cs:2})}</div>`;
@@ -529,7 +529,7 @@ function refresh(){
   document.querySelectorAll('[data-w]').forEach(el=>{const f=B[el.dataset.w];if(f)el.style.width=f()+'%'});
   const now=Date.now();
   document.querySelectorAll('[data-cd]').forEach(el=>{const left=(s.cd[el.dataset.cd]||0)-now;el.style.setProperty('--p',left>0?String(left/(+el.dataset.cs*1000)):'0')});
-  {const m=mlaV().toFixed(2);document.querySelectorAll('.scn').forEach(el=>{if(el.style&&el.style.getPropertyValue('--mla')!==m)el.style.setProperty('--mla',m)})}
+  {const g=dayPh();if(g!==GR){GR=g;dirty=1}const m=mlaV().toFixed(2),nt=String({n:1,d:.65,y:.3}[GR]);document.querySelectorAll('.scn').forEach(el=>{if(!el.style)return;if(el.style.getPropertyValue('--mla')!==m)el.style.setProperty('--mla',m);if(el.style.getPropertyValue('--night')!==nt)el.style.setProperty('--night',nt)})}
   rTop();rToast();animTick();if((bdg9=(bdg9+1)%4)===0)badges9()}
 let bdg9=0;function badges9(){const el=$('tabs');if(!el||!el.querySelectorAll)return;el.querySelectorAll('button[data-i]').forEach(b=>{const t=b.dataset.i,n=s.tab!==t&&isNew(t);if(b.classList.contains('new')!==n)b.classList.toggle('new',n)})}
 function dlgImg(m){if(!m)return'';if(m.t==='scene')return sceneImg(m.id);if(m.t==='yard')return yardImg();

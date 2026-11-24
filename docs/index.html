@@ -369,7 +369,7 @@ button.ob:hover:not(:disabled),button.ob:focus-visible{background:transparent;ou
 .ob:hover .obw,.ob:focus-visible .obw{transform:translateY(-2px)}
 .ob:hover .obi,.ob:focus-visible .obi,.zone:hover .obi{filter:brightness(1.18)}
 .ob.no:hover .obo{filter:grayscale(1) brightness(.8)}
-.ob .gl,.dlw .gl{position:absolute;pointer-events:none;-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;background:linear-gradient(100deg,transparent 38%,rgba(255,246,205,.95) 50%,transparent 62%) no-repeat;background-size:260% 100%;animation:glint 5s linear infinite;animation-delay:var(--d)}
+.ob .gl,.dlw .gl{border:0;cursor:inherit;position:absolute;pointer-events:none;-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;background:linear-gradient(100deg,transparent 38%,rgba(255,246,205,.95) 50%,transparent 62%) no-repeat;background-size:260% 100%;animation:glint 5s linear infinite;animation-delay:var(--d)}
 .ob[data-cd] .gl,.zone .gl{opacity:calc(1 - min(1,var(--p,0)*100))}
 .ob:not(.nw):not([data-cd]) .gl{display:none}
 @keyframes glint{0%,70%{background-position:140% 0}100%{background-position:-40% 0}}
@@ -758,11 +758,12 @@ button.hs.zone:hover,button.hs.zone:focus-visible{background:transparent;border:
 #dbg .dbgl{margin:6px 0 0;color:#b3c5c4}
 #dbg details:not([open]){width:auto}
 /* Світло й видима Мла */
-.scn .lt{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:950;mix-blend-mode:screen;image-rendering:pixelated;opacity:.95}
+.scn{--night:1}
+.scn .lt{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:950;mix-blend-mode:screen;image-rendering:pixelated;opacity:calc(.95 * var(--night));transition:opacity 3s}
 .scn .ltf{animation:ltf 2.6s steps(1,end) infinite;animation-delay:var(--d)}
-@keyframes ltf{0%{opacity:.95;transform:scale(1)}13%{opacity:.82;transform:scale(.985)}27%{opacity:1;transform:scale(1.012)}41%{opacity:.88;transform:scale(.995)}58%{opacity:.97;transform:scale(1.008)}72%{opacity:.8;transform:scale(.98)}86%{opacity:.93;transform:scale(1.004)}}
+@keyframes ltf{0%{filter:brightness(1);transform:scale(1)}13%{filter:brightness(.82);transform:scale(.985)}27%{filter:brightness(1.08);transform:scale(1.012)}41%{filter:brightness(.88);transform:scale(.995)}58%{filter:brightness(.97);transform:scale(1.008)}72%{filter:brightness(.8);transform:scale(.98)}86%{filter:brightness(.93);transform:scale(1.004)}}
 .scn .lt:not(.ltf){animation:ltw 7s ease-in-out infinite alternate;animation-delay:var(--d)}
-@keyframes ltw{from{opacity:.8}to{opacity:1}}
+@keyframes ltw{from{filter:brightness(.85)}to{filter:brightness(1.05)}}
 .scn{--mla:0}
 .scm{position:absolute;inset:0;pointer-events:none;z-index:940;overflow:hidden}
 .mla{position:absolute;left:0;width:200%;top:var(--t);height:var(--h);background-repeat:repeat-x;background-size:50% 100%;image-rendering:pixelated;opacity:calc(var(--mla) * .7);transform:translateY(calc((1 - var(--mla)) * 30%));transition:opacity 4s ease,transform 6s ease;animation:fogm 160s linear infinite;animation-delay:var(--d2)}
@@ -785,6 +786,13 @@ button.hs.zone:hover,button.hs.zone:focus-visible{background:transparent;border:
 @keyframes fgh{0%,100%{transform:rotate(-40deg)}55%{transform:rotate(-40deg)}75%{transform:rotate(6deg)}}
 @keyframes fgs{0%,72%{opacity:0;transform:translate(0,0)}75%{opacity:1}100%{opacity:0;transform:translate(var(--dx),var(--dy))}}
 @media (prefers-reduced-motion:reduce){.fgx .fgh,.fgx b{animation:none}}
+/* Місце для вогнища: блідий контур, що засвічується, коли дров досить */
+.ob.ghost.ready .obi{opacity:.75;filter:grayscale(.2) brightness(1.25) drop-shadow(0 0 3px rgba(255,190,90,.7))}
+.ob.ghost.ready .obo{opacity:.8;animation:ghr 1.8s ease-in-out infinite}
+@keyframes ghr{50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.ob.ghost.ready .obo{animation:none}}
+/* Шар частинок: іскри, промінь, піна, птахи, перехожі */
+.scn canvas.fx{position:absolute;left:0;top:0;width:100%;height:100%;pointer-events:none;z-index:945;image-rendering:pixelated}
 </style>
 </head>
 <body>
@@ -1166,11 +1174,18 @@ function towerCut(st,k){const W=96,H=128,b=pbuf(W,H),F=st.floors||{},lit=!!st.wo
   return b}
 /* to data URL (browser), cached */
 const PXC={},PXK={};
-function pxURL(key,make){if(PXC[key])return PXC[key];const b=make();let u='';
-  try{const cv=document.createElement('canvas');if(cv&&cv.getContext){cv.width=b.W||b.w;cv.height=b.H||b.h;const g=cv.getContext('2d');const im=g.createImageData(cv.width,cv.height);
-    for(let i=0;i<b.p.length;i++){const c=b.p[i];if(c==='.')continue;const hex=PAL[c];im.data[i*4]=parseInt(hex.slice(1,3),16);im.data[i*4+1]=parseInt(hex.slice(3,5),16);im.data[i*4+2]=parseInt(hex.slice(5,7),16);im.data[i*4+3]=255}
+/* Колірна градація сцен за порою доби: усе тоне в нічній синяві, а вогонь і світло лишаються яскравими.
+   GR: 'n' ніч, 'd' сутінки, 'y' похмурий день. Застосовується лише до буферів сцен (k = SK). */
+let GR='n';const SCK=new Set(),GRC={},EMIT='IJKhygf';
+function gradeRGB(c,ph){const hex=PAL[c];let r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);if(EMIT.includes(c))return[r,g,b];
+  const T={n:{ds:.25,m:[7,12,22],a:.5,k:[.88,.95,1.08]},d:{ds:.12,m:[38,26,46],a:.3,k:[1.05,.93,.92]},y:{ds:.45,m:[108,114,120],a:.28,k:[.9,.91,.93]}}[ph];if(!T)return[r,g,b];
+  const l=.3*r+.59*g+.11*b;r+=(l-r)*T.ds;g+=(l-g)*T.ds;b+=(l-b)*T.ds;r+=(T.m[0]-r)*T.a;g+=(T.m[1]-g)*T.a;b+=(T.m[2]-b)*T.a;const cl=v=>Math.max(0,Math.min(255,Math.round(v)));return[cl(r*T.k[0]),cl(g*T.k[1]),cl(b*T.k[2])]}
+function dayPh(){if(typeof s!=='undefined'&&s.dbgPh)return s.dbgPh;const d=new Date(),h=d.getHours()+d.getMinutes()/60;return h>=8&&h<18?'y':(h>=6&&h<8)||(h>=18&&h<20.5)?'d':'n'}
+function pxURL(key,make){const sk=SCK.has(key),ck=sk?key+'|'+GR:key;if(PXC[ck])return PXC[ck];const b=make();const sc=b.k===SK;if(sc&&!sk){SCK.add(key);if(PXC[key+'|'+GR])return PXC[key+'|'+GR]}const fk=sc?key+'|'+GR:key;let u='';
+  try{const cv=document.createElement('canvas');if(cv&&cv.getContext){cv.width=b.W||b.w;cv.height=b.H||b.h;const g=cv.getContext('2d');const im=g.createImageData(cv.width,cv.height),cc={};
+    for(let i=0;i<b.p.length;i++){const c=b.p[i];if(c==='.')continue;const rgb=cc[c]||(cc[c]=sc?gradeRGB(c,GR):gradeRGB(c,''));im.data[i*4]=rgb[0];im.data[i*4+1]=rgb[1];im.data[i*4+2]=rgb[2];im.data[i*4+3]=255}
     g.putImageData(im,0,0);u=cv.toDataURL('image/png')}}catch(e){u=''}
-  if(u)PXK[u]=key;return PXC[key]=u}
+  if(u)PXK[u]=key;return PXC[fk]=u}
 function sprBuf(rows,w,h){const b=pbuf(w,h);pblit(b,rows,0,0);return b}
 const icoURL=id=>pxURL('i:'+id,()=>sprBuf(ICO[id]||ICO.crate,12,12));
 function outline(b){const o=b.p.slice();for(let y=0;y<b.h;y++)for(let x=0;x<b.w;x++){if(b.p[y*b.w+x]!=='.')continue;for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){const v=pget(b,x+dx,y+dy);if(v!=='.'&&v!=='0'){o[y*b.w+x]='0';break}}}b.p=o;return b}
@@ -1540,28 +1555,28 @@ const BLD3={
     if(g>2){prect(b,62,0,2,22,'X');pline(b,62,1,50,8,'X');pline(b,50,8,50,16,'H');prect(b,48,16,5,3,'X')}return b},
   house:g=>hut(26,13,10,{wall:['V','W','X'],roof:['t','v','w'],door:1,dw:5,dh:8,win:[18],lit:1,chim:1,chimX:5})};
 /* bottom-center anchors on the 432x240 yard */
-const BANC={forge:[174,146],smoke:[232,154],kiln:[270,158],dummy:[150,186],winch:[318,150],boom:[372,188],traps:[372,214],pot:[322,224],render:[204,186],steel:[302,140],coalpit:[262,196],glass:[340,168],apoth:[240,222],garden:[100,236],sandpit:[296,224],shipyard:[380,160]};
+const BANC={forge:[174,146],smoke:[232,154],kiln:[270,158],dummy:[150,186],winch:[318,152],boom:[402,186],traps:[410,236],pot:[322,224],render:[204,186],steel:[290,142],coalpit:[262,196],glass:[334,172],apoth:[240,222],garden:[100,236],sandpit:[296,224],shipyard:[364,186]};
 const HOUSES=[[20,186],[46,164],[16,232],[60,218]];
 const BSMK3={forge:'chim',smoke:'chim',kiln:'top',steel:'chim',coalpit:'top',house:'chim',render:'top'};
 function yardBg3(st){const W=YW,H=YH,b=pbuf(W,H);
   if(!st.looked){prect(b,0,0,W,H,'x');if(st.lk){for(let i=0;i<7;i++)prect(b,126+i*9,192-i*6,9,1,'B')}return b}
-  rampV(b,0,0,W,120,st.won?['B','C','1','2','3']:['A','B','C','1','2']);
-  const R=rng(7),kk=b.k||1;for(let i=0;i<260;i++){const x=Math.floor(R()*W*kk),y=Math.floor(R()*92*kk),c=R()<.1?'y':R()<.45?'6':'5';phx(b,x,y,c);if(c==='y'&&R()<.5){phx(b,x+1,y,'5');phx(b,x-1,y,'5');phx(b,x,y-1,'5');phx(b,x,y+1,'5')}}
+  const ph=st.ph||'n';rampV(b,0,0,W,120,ph==='y'?['4','5','5','6','6']:ph==='d'?['C','o','3','4','5']:st.won?['B','C','1','2','3']:['A','B','C','1','2']);
+  const R=rng(7),kk=b.k||1;for(let i=0;i<(ph==='n'?260:ph==='d'?60:0);i++){const x=Math.floor(R()*W*kk),y=Math.floor(R()*92*kk),c=R()<.1?'y':R()<.45?'6':'5';phx(b,x,y,c);if(c==='y'&&R()<.5){phx(b,x+1,y,'5');phx(b,x-1,y,'5');phx(b,x,y-1,'5');phx(b,x,y+1,'5')}}
   polyFill(b,[[220,120],[248,106],[276,110],[300,120]],(x,y)=>pset(b,x,y,'1'));polyFill(b,[[326,120],[352,104],[378,100],[402,110],[432,106],[432,120]],(x,y)=>pset(b,x,y,'1'));
   for(let x=250;x<276;x+=3)pset(b,x,108,'2');for(let x=354;x<398;x+=3)pset(b,x,103,'2');
   rampV(b,0,120,W,120,['T','S','R','Q','P']);const R2=rng(9);
   {const kk=b.k||1;for(let i=0;i<520;i++){const x=Math.floor(R2()*W*kk),y=Math.floor((122+R2()*116)*kk),l=Math.round((2+R2()*7)*kk*(0.6+0.4*(y/kk-120)/120));for(let q=0;q<l;q++)phx(b,x+q,y,y/kk<150?'U':'T')}}
-  const land=[[0,240],[0,162],[33,150],[60,144],[144,150],[210,156],[285,165],[321,180],[348,204],[369,240]];
-  polyFill(b,land,(x,y)=>pset(b,x,y,y<160?'N':'M'));ditherBlend(b,0,144,375,96,'L',0.16);pnoise(b,0,144,375,96,'O',0.05,21);pnoise(b,0,144,375,96,'L',0.07,22);
+  const land=[[0,240],[0,160],[30,148],[60,140],[110,134],[170,130],[230,130],[285,132],[318,137],[342,146],[356,158],[366,176],[374,200],[380,240]];
+  polyFill(b,land,(x,y)=>{const n=hh2(EXX,EXY);pset(b,x,y,n<.05?'O':n<.12||.16>bay(EXX,EXY)?'L':y<160?'N':'M')});
   polyFill(b,[[21,240],[27,192],[45,177],[135,174],[156,192],[165,240]],(x,y)=>pset(b,x,y,(x+y*3)%11<2?'D':((x*7+y)%9<4?'E':'F')));stones(b,24,180,141,60,31);
   const R3=rng(12);for(let i=0;i<110;i++){const x=Math.floor(R3()*300)+6,y=150+Math.floor(R3()*80);const c=pget(b,x,y);if(c==='M'||c==='N'||c==='L'){pset(b,x,y,'r');pset(b,x+1,y-1,'Z');pset(b,x-1,y-1,'r');if(i%3===0)pset(b,x,y-2,'Z')}}
-  for(let i=0;i<land.length-1;i++){const[a,c]=[land[i],land[i+1]];if(a[0]<210)continue;const n=Math.max(Math.abs(c[0]-a[0]),Math.abs(c[1]-a[1]));for(let k=0;k<=n;k++){const x=Math.round(a[0]+(c[0]-a[0])*k/n),y=Math.round(a[1]+(c[1]-a[1])*k/n);pset(b,x+1,y,'u');pset(b,x+2,y,'U');if(k%3===0)pset(b,x+3,y,'u');if(k%5===0)pset(b,x+5,y,'U')}}
+  for(let i=0;i<land.length-1;i++){const[a,c]=[land[i],land[i+1]];if(a[0]<300)continue;const n=Math.max(Math.abs(c[0]-a[0]),Math.abs(c[1]-a[1]));for(let k=0;k<=n;k++){const x=Math.round(a[0]+(c[0]-a[0])*k/n),y=Math.round(a[1]+(c[1]-a[1])*k/n);pset(b,x+1,y,'u');pset(b,x+2,y,'U');if(k%3===0)pset(b,x+3,y,'u');if(k%5===0)pset(b,x+5,y,'U')}}
   for(let k=0;k<=90;k++){const x=Math.round(156+k*1.75),y=Math.round(201+k*0.42);prect(b,x,y,2,1,'O');pset(b,x,y+1,'N');if(k%4===0)pset(b,x+2,y+1,'O');if(k%7===0)pset(b,x-1,y-1,'N')}
   if(st.hearth)logs2(b,150,226,Math.min(12,1+Math.floor((st.wood||0)/20)));
-  if(st.won){const kk=b.k||1;for(let hx=Math.round(108*kk);hx<Math.round(318*kk);hx++){const i=hx/kk-108,y0=39-i*0.22,hw=1.2+i*0.06,a=Math.max(.18,.75-i/320);for(let hy=Math.floor((y0-hw)*kk);hy<=(y0+hw)*kk;hy++){const e=1-Math.abs(hy/kk-y0)/hw;if(hy>=0&&e>0&&a*(.45+e)>bay(hx,hy))phx(b,hx,hy,i<70&&e>.5?'I':'h')}}
-    for(let hx=Math.round(72*kk);hx>=0;hx--){const i=72-hx/kk,y0=39-i*0.22,hw=1.1+i*0.03,a=Math.max(.15,.55-i/200);for(let hy=Math.floor((y0-hw)*kk);hy<=(y0+hw)*kk;hy++){const e=1-Math.abs(hy/kk-y0)/hw;if(hy>=0&&e>0&&a*(.4+e)>bay(hx,hy))phx(b,hx,hy,'h')}}}
-  if(st.boat){prect(b,306,192,33,6,'W');prect(b,309,198,27,3,'V');prect(b,306,192,33,1,'Y');prect(b,321,168,3,24,'X');polyFill(b,[[324,168],[339,189],[324,189]],(x,y)=>pset(b,x,y,(x+y)%5?'6':'5'))}
-  if(st.schooner){const x=336,y=144;polyFill(b,[[x,y],[x+69,y],[x+60,y+12],[x+9,y+12]],(px,py)=>pset(b,px,py,py<y+3?'Y':'W'));prect(b,x+24,y-42,3,42,'X');prect(b,x+45,y-36,3,36,'X');
+  if(st.won&&ph!=='y'&&st.rm){const kk=b.k||1;for(let hx=Math.round(68*kk);hx<Math.round(278*kk);hx++){const i=hx/kk-68,y0=33-i*0.22,hw=1.2+i*0.06,a=Math.max(.18,.75-i/320);for(let hy=Math.floor((y0-hw)*kk);hy<=(y0+hw)*kk;hy++){const e=1-Math.abs(hy/kk-y0)/hw;if(hy>=0&&e>0&&a*(.45+e)>bay(hx,hy))phx(b,hx,hy,i<70&&e>.5?'I':'h')}}
+    for(let hx=Math.round(42*kk);hx>=0;hx--){const i=42-hx/kk,y0=33-i*0.22,hw=1.1+i*0.03,a=Math.max(.15,.55-i/200);for(let hy=Math.floor((y0-hw)*kk);hy<=(y0+hw)*kk;hy++){const e=1-Math.abs(hy/kk-y0)/hw;if(hy>=0&&e>0&&a*(.4+e)>bay(hx,hy))phx(b,hx,hy,'h')}}}
+  if(st.boat){prect(b,388,212,33,6,'W');prect(b,391,218,27,3,'V');prect(b,388,212,33,1,'Y');prect(b,403,188,3,24,'X');polyFill(b,[[406,188],[421,209],[406,209]],(x,y)=>pset(b,x,y,(x+y)%5?'6':'5'))}
+  if(st.schooner){const x=360,y=130;polyFill(b,[[x,y],[x+69,y],[x+60,y+12],[x+9,y+12]],(px,py)=>pset(b,px,py,py<y+3?'Y':'W'));prect(b,x+24,y-42,3,42,'X');prect(b,x+45,y-36,3,36,'X');
     polyFill(b,[[x+27,y-39],[x+42,y-6],[x+27,y-6]],(px,py)=>pset(b,px,py,(px+py)%6?'u':'6'));polyFill(b,[[x+48,y-33],[x+63,y-6],[x+48,y-6]],(px,py)=>pset(b,px,py,(px+py)%6?'6':'5'));pset(b,x+25,y-45,'g')}
   for(let i=0;i<Math.min(8,st.pop||0);i++){const x=176+i*16,y=232-(i%2)*4;prect(b,x,y-9,3,3,'m');prect(b,x-1,y-6,5,4,['X','S','r','v','Y','T','w','Z'][i]);prect(b,x,y-2,1,2,'x');prect(b,x+2,y-2,1,2,'x')}
   return b}
@@ -1581,7 +1596,7 @@ function towerObj3(st){const W=74,H=192,b=pbuf(W,H),F=st.floors||{},cx=37,hwAt=y
 function towerSil3(st){const t=towerObj3(Object.assign({},st,{hearth:0,won:0,floors:{}}));const b=pbuf(t.w,t.h),g=(x,y)=>x>=0&&y>=0&&x<t.W&&y<t.H?t.p[y*t.W+x]:'.';for(let y=0;y<t.H;y++)for(let x=0;x<t.W;x++)if(g(x,y)!=='.'){const e=g(x-1,y)==='.'||g(x+1,y)==='.'||g(x,y-1)==='.'||g(x,y+1)==='.';b.p[y*b.W+x]=e?'4':(x+y)%7===0?'2':'1'}return b}
 function hearthObj3(st){const b=pbuf(38,18);if(!st.hearth){prect(b,13,11,12,4,'D');pset(b,18,11,'K');pset(b,19,11,'J');pset(b,19,10,'I');pset(b,18,10,'J');prect(b,11,14,16,2,'E');return b}
   for(let i=0;i<9;i++){const x=1+i*4;prect(b,x,12,4,5,i%2?'F':'G');prect(b,x,12,4,1,'H');prect(b,x+3,13,1,4,'D')}
-  prect(b,9,7,20,4,'W');prect(b,9,7,20,1,'X');prect(b,12,4,14,3,'X');prect(b,12,4,14,1,'Y');prect(b,6,10,26,2,'K');pset(b,10,9,'J');pset(b,26,9,'J');pset(b,19,11,'I');return b}
+  prect(b,9,7,20,4,'W');prect(b,9,7,20,1,'X');prect(b,12,4,14,3,'X');prect(b,12,4,14,1,'Y');if(st.plan)return b;prect(b,6,10,26,2,'K');pset(b,10,9,'J');pset(b,26,9,'J');pset(b,19,11,'I');return b}
 function emberObj3(){const b=pbuf(14,9);prect(b,4,5,6,3,'D');pset(b,6,5,'K');pset(b,7,5,'J');pset(b,7,4,'I');pset(b,6,4,'J');prect(b,3,8,8,1,'E');return b}
 function flame3Strip(){const b=pbuf(54,27);for(let k=0;k<3;k++){const R=rng(290+k);for(let y=0;y<27;y++){const t=y/26,w=Math.max(1,Math.min(18,Math.round(1+t*15+(R()-.5)*3))),sh=y<15?Math.round((R()-.5)*3.4*(1-t)):0,x0=k*18+9-Math.floor(w/2)+sh;
   for(let x=0;x<w;x++){const e=x===0||x===w-1,c=y<4?'K':e?'K':y>14&&x>2&&x<w-3?(y>20&&x>4&&x<w-5?'y':'I'):'J';pset(b,x0+x,y,c)}}for(let s=0;s<4;s++){pset(b,k*18+3+Math.floor(R()*12),Math.floor(R()*8),'J')}}return b}
@@ -1594,7 +1609,7 @@ function yardFull3(st){const b=yardBg3(st);if(!st.looked)return b;const L=st.b||
   const tw=towerObj3(st);items.push([tw,18,8]);const hr=hearthObj3(st);items.push([hr,124,206]);
   items.sort((p,q)=>(p[2]+p[0].h)-(q[2]+q[0].h));for(const[o,x,y]of items)blitTo(b,o,Math.round(x),Math.round(y));return b}
 /* ---------- SHORE 288x120 ---------- */
-function shoreBg3(st){const W=SW,H=SH,b=pbuf(W,H);rampV(b,0,0,W,24,['C','1','2','4']);
+function shoreBg3(st){const W=SW,H=SH,b=pbuf(W,H),ph=st.ph||'n';rampV(b,0,0,W,24,ph==='y'?['5','6','6','5']:ph==='d'?['o','3','4','5']:['C','1','2','4']);
   rampV(b,0,21,W,60,['T','S','R','Q','R']);const R=rng(41),kk=b.k||1;for(let i=0;i<420;i++){const x=Math.floor(R()*W*kk),y=Math.floor((24+R()*54)*kk),l=Math.round((2+R()*8)*kk*(0.5+0.5*(y/kk-24)/54)),c=y/kk<36?'U':(R()<.5?'T':'S');for(let q=0;q<l;q++)phx(b,x+q,y,c)}
   for(const[yy,c]of[[66,'u'],[72,'U'],[76,'u']]){for(let hx=0;hx<W*kk;hx++){const x=hx/kk,y=Math.round((yy+Math.sin(x/12+yy)*1.6)*kk);phx(b,hx,y,c);if(hx%5)phx(b,hx,y+1,c==='u'?'U':'T');if(hx%9===0)phx(b,hx,y-1,'U');if(c==='u'&&hh2(hx,yy)<.25)phx(b,hx,y+2,'U')}}
   rampV(b,0,78,W,12,['M','L','M']);rampV(b,0,87,W,33,['N','N','O']);pnoise(b,0,87,W,33,'M',0.1,44);pnoise(b,0,87,W,33,'L',0.04,45);pnoise(b,0,78,W,12,'T',0.06,46);
@@ -3419,8 +3434,8 @@ function homeText(){const F=s.f;
   return'Темрява. У долонях тліє остання жарина з великого вогню маяка. Поки ти дихаєш на неї, вона не згасне.'}
 
 function yardSt2(){return{looked:s.f.looked,lk:s.f.lk,hearth:s.b.hearth,won:s.f.won,floors:s.floors,b:s.b,wood:s.r.wood,boat:s.f.boat,schooner:s.f.schooner,pop:s.pop||0}}
-function yardBgImg(){const sig=[s.f.looked?1:0,s.f.lk?1:0,s.b.hearth?1:0,s.f.won?1:0,s.f.boat?1:0,s.f.schooner?1:0,Math.min(8,s.pop||0),Math.min(12,1+Math.floor(s.r.wood/20))].join('');
-  return pimgA('y3:'+sig,()=>yardBg3(yardSt2()),864,480,'yard','Маяк і двір',120,WATER3)}
+function yardBgImg(){const sig=[s.f.looked?1:0,s.f.lk?1:0,s.b.hearth?1:0,s.f.won?1:0,s.f.boat?1:0,s.f.schooner?1:0,Math.min(8,s.pop||0),Math.min(12,1+Math.floor(s.r.wood/20))].join('')+GR;
+  return pimgA('y3:'+sig+(RM()?'r':''),()=>yardBg3(Object.assign(yardSt2(),{ph:GR,rm:RM()})),864,480,'yard','Маяк і двір',120,WATER3)}
 function yardImg(){const F=s.floors,L=s.b;const sig=[s.f.looked?1:0,s.f.lk?1:0,L.hearth?1:0,F.work?1:0,F.gallery?1:0,F.study?1:0,F.lantern?1:0,s.f.won?1:0,s.f.boat?1:0,s.f.schooner?1:0,Math.min(8,s.pop||0),Math.min(12,1+Math.floor(s.r.wood/20)),Math.min(4,L.house||0),...Object.keys(BANC).map(k=>L[k]?stageOf(L[k]):0)].join('');
   return pimgA('f3:'+sig,()=>yardFull3(yardSt2()),864,480,'yard','Маяк і двір',120,WATER3)}
 const SKU={melee:['влучність у ближньому бою','шанс контрудару, коли ворог промахнувся впритул'],mech:['замки й механізми в локаціях','сила твоїх капканів','ремонт укріплень під час набігу'],
@@ -3463,8 +3478,8 @@ function rHome(){let h=`<div>`;
     h+=s.f.schooner?`<p>Шхуна «Остап» стоїть біля причалу. На ній можна плисти до північних островів.</p>`:`<div class="row"><div><b>Шхуна</b><br><span class="m">Двощогловий корабель, що пройде крізь північні тумани. Сталь на обшивку, скло на ліхтарі.</span></div>${btn(`Збудувати (${costTxt(SCHOONER)})`,'schooner','',{ok:()=>afford(SCHOONER),cls:'main'})}</div>`;
     h+=`</section>`}
   return h+`</div>`}
-function shoreImg(){const sig=[Math.min(12,Math.ceil(s.r.wood/12)),s.seen.scrap?Math.min(6,Math.ceil(s.r.scrap/10)):0,s.seen.fish&&s.r.fish>=1?Math.min(5,Math.ceil(s.r.fish/8)):0,Math.min(3,s.b.pot||0)].join('');
-  return pimgA('s3:'+sig,()=>shoreBg3({wood:s.r.wood,scrapSeen:s.seen.scrap,scrap:s.r.scrap,fishSeen:s.seen.fish,fish:s.r.fish,pot:s.b.pot}),864,360,'scene','Берег',21,WATER3)}
+function shoreImg(){const sig=[Math.min(12,Math.ceil(s.r.wood/12)),s.seen.scrap?Math.min(6,Math.ceil(s.r.scrap/10)):0,s.seen.fish&&s.r.fish>=1?Math.min(5,Math.ceil(s.r.fish/8)):0,Math.min(3,s.b.pot||0)].join('')+GR;
+  return pimgA('s3:'+sig,()=>shoreBg3({ph:GR,wood:s.r.wood,scrapSeen:s.seen.scrap,scrap:s.r.scrap,fishSeen:s.seen.fish,fish:s.r.fish,pot:s.b.pot}),864,360,'scene','Берег',21,WATER3)}
 function rShore(){let h=`<section><h2>Берег під маяком</h2><p>Мокрий пісок, водорості й плавник, викинутий прибоєм. Туман ховає обрій.</p>`;
   let al=`<div class="act">${btn('Збирати плавник','gather','',{cd:'gather',cs:1})}</div>`;
   if(s.f.wreck)al+=`<div class="act">${btn('Розбирати уламки човна','scrapw','',{cd:'scrapw',cs:2})}</div>`;
@@ -3865,7 +3880,7 @@ function refresh(){
   document.querySelectorAll('[data-w]').forEach(el=>{const f=B[el.dataset.w];if(f)el.style.width=f()+'%'});
   const now=Date.now();
   document.querySelectorAll('[data-cd]').forEach(el=>{const left=(s.cd[el.dataset.cd]||0)-now;el.style.setProperty('--p',left>0?String(left/(+el.dataset.cs*1000)):'0')});
-  {const m=mlaV().toFixed(2);document.querySelectorAll('.scn').forEach(el=>{if(el.style&&el.style.getPropertyValue('--mla')!==m)el.style.setProperty('--mla',m)})}
+  {const g=dayPh();if(g!==GR){GR=g;dirty=1}const m=mlaV().toFixed(2),nt=String({n:1,d:.65,y:.3}[GR]);document.querySelectorAll('.scn').forEach(el=>{if(!el.style)return;if(el.style.getPropertyValue('--mla')!==m)el.style.setProperty('--mla',m);if(el.style.getPropertyValue('--night')!==nt)el.style.setProperty('--night',nt)})}
   rTop();rToast();animTick();if((bdg9=(bdg9+1)%4)===0)badges9()}
 let bdg9=0;function badges9(){const el=$('tabs');if(!el||!el.querySelectorAll)return;el.querySelectorAll('button[data-i]').forEach(b=>{const t=b.dataset.i,n=s.tab!==t&&isNew(t);if(b.classList.contains('new')!==n)b.classList.toggle('new',n)})}
 function dlgImg(m){if(!m)return'';if(m.t==='scene')return sceneImg(m.id);if(m.t==='yard')return yardImg();
@@ -3969,7 +3984,7 @@ function yardLights(){const fire=[],win=[];if(!s.f.looked)return{fire,win};const
   const F=s.floors||{};if(hs){win.push({x:55,y:188,r:22,e:.8,c:WARM,a:.8})}
   for(const[k,y]of[['gallery',74],['study',113],['work',149]])if(F[k])win.push({x:55,y,r:15,c:WARM,a:.7});
   if(s.f.won)win.push({x:55,y:30,r:46,c:PALE,a:.9});
-  for(const id in BANC){const lv=s.b[id]||0;if(!lv||(s.dmgB||{})[id]||s.on[id]===false)continue;const g=stageOf(lv),strong=['forge','steel','glass','kiln','render'].includes(id);
+  for(const id in BANC){const lv=s.b[id]||0,B=BD.find(x=>x.id===id);if(!lv||!B||!B.show()||(s.dmgB||{})[id]||s.on[id]===false)continue;const g=stageOf(lv),strong=['forge','steel','glass','kiln','render'].includes(id);
     if(!strong&&!['smoke','apoth','house'].includes(id))continue;win.push({x:BANC[id][0],y:BANC[id][1]-8-4*g,r:(strong?18:12)+5*g,e:.8,c:strong?FIRE:WARM,a:strong?.8:.55})}
   for(let i=0;i<Math.min(4,s.b.house||0);i++)win.push({x:HOUSES[i][0]+5,y:HOUSES[i][1]-10,r:13,e:.8,c:WARM,a:.55});
   return{fire,win}}
@@ -4006,7 +4021,7 @@ function placePop(){try{let L=document.getElementById('popl');if(!popB||s.cb||s.
 function homeHS(){const W=YW,H=YH;let h='';const st=yardSt2();
   if(!s.f.looked){const e=obURL('ember3',emberObj3);h+=ob('ember','blow','',e,84,206,W,H,'Подмухати на жарину','<b>Жарина</b><br>Подмухай, і вона спалахне яскравіше: +3 жару.',{pulse:1,cd:'blow',cs:2,inner:'<i class="emb"></i>'});
     if(s.f.lk)h+=ob('look','look','',obURL('tsil3',()=>towerSil3(st)),18,8,W,H,'Роззирнутися','<b>Роззирнутися</b><br>Очі звикли до темряви. У ній проступають обриси стін і сходів.',{pulse:1});return h}
-  h+=fogs(42,14)+mlaLayer(36,36)+lightLayers(W,H,yardLights());
+  h+=fogs(42,14)+mlaLayer(36,36)+fxCanvas('yd',W,H)+lightLayers(W,H,yardLights());
   const tk='tw3:'+[st.floors.work,st.floors.gallery,st.floors.study,st.floors.lantern,st.hearth,st.won].map(v=>v?1:0).join('');
   h+=ob('tower',s.tabs.tower?'tab':'','tower',obURL(tk,()=>towerObj3(st)),18,8,W,H,'Нагору, до поверхів','<b>Маяк</b><br>Сходи ведуть угору, до поверхів.',{pulse:1});
   if(s.f.won)h+=`<i class="lglow" data-sk="lglow" data-sig="1" style="${PCT(28,0,54,52,W,H)};z-index:5" aria-hidden="true"></i>`;
@@ -4023,15 +4038,16 @@ function homeHS(){const W=YW,H=YH;let h='';const st=yardSt2();
   if(s.b.forge){const c={scrap:4,ember:2},n=smithN();h+=s.hot?ob('anvil','smithhot','',obURL('anvil3h',()=>anvilObj3(1)),180,150,W,H,'Бити по заготовці','<b>Заготовка розжарилася!</b><br>Влуч молотом у слушну мить, і вийде більше заліза. Можна й не чіпати: метал охолоне, нічого не втратиш.',{cls:'bite',inner:'<i class="bang">!</i>'})
     :ob('anvil','smith','',obURL('anvil3',()=>anvilObj3(0)),180,150,W,H,'Кувати',`<b>Ковадло</b><br>Перекувати брухт на залізо: ${costTxt(c)} → ${R('iron',n)}.`,{pulse:1,cd:'smith',cs:4})}
   const hx=124,hy=206;
-  if(!s.b.hearth){const c=bCost(HEARTH),ok=s.seen.wood&&afford(c);const sp=obURL('hearth3a',()=>hearthObj3({}));
-    h+=ok?ob('hearth0','bld','hearth',sp,hx,hy,W,H,'Скласти вогнище',`<b>Скласти вогнище</b><br>${costTxt(c)}`,{pulse:1,always:1,inner:'<i class="emb"></i>'})
-      :ob('ember2','blow','',sp,hx,hy,W,H,'Подмухати на жарину',`<b>Жарина</b><br>Подмухай: +3 жару.${s.seen.wood?`<br>Для вогнища треба ${costTxt(c)}.`:''}`,{pulse:1,cd:'blow',cs:2,inner:'<i class="emb"></i>'})}
+  if(!s.b.hearth){const c=bCost(HEARTH),ok=afford(c);
+    /* Жарина завжди лишається жариною; вогнище — окремий контур-креслення поруч */
+    h+=ob('ember2','blow','',obURL('ember3',emberObj3),hx-16,hy+7,W,H,'Подмухати на жарину',`<b>Жарина</b><br>Подмухай, і вона спалахне яскравіше: +3 жару.`,{pulse:1,cd:'blow',cs:2,inner:'<i class="emb"></i>'});
+    if(s.seen.wood)h+=ob('hearth0',ok?'bld':'','hearth',obURL('hearth3g',()=>hearthObj3({hearth:1,plan:1})),hx+4,hy,W,H,ok?'Скласти вогнище':'Місце для вогнища',ok?`<b>Скласти вогнище</b><br>Обкласти жарину камінням і підкинути дров: ${costTxt(c)}.<br>Вогнище горітиме саме й даватиме жар.`:`<b>Місце для вогнища</b><br>Тут можна скласти вогнище, коли буде ${costTxt(c)}.`,{pulse:ok?1:0,always:1,cls:'ghost'+(ok?' ready':'')})}
   else{const n=s.b.hearth,lit=s.on.hearth!==false,sp=obURL('hearth3b',()=>hearthObj3({hearth:1})),[,,hw,hh]=sp;
     const fl=lit?innerAt(10,-22,18,27,hw,hh,'flm'+(n>=4?' big':''),`background-image:url(${flameURL()})`):'';
     h+=ob('hearth','bpop','hearth',sp,hx,hy,W,H,'Вогнище',`<b>Вогнище, рівень ${n}</b><br>Натисни, щоб підкинути дров чи пригасити.`,{inner:fl+(upT.hearth&&Date.now()-upT.hearth<1600?`<i class="upfx" aria-hidden="true"><b>Рівень ${n}</b></i>`:''),cls:popB==='hearth'?'sel':''})}
   if(s.tabs.shore)h+=ob('toshore','tab','shore',obURL('sign3',signObj3),196,196,W,H,'До берега','<b>Стежка до берега</b><br>Плавник, уламки й риба.',{pulse:1});
   return h}
-function shoreHS(){const W=SW,H=SH,S=(x,y,w,h)=>PCT(x,y,w,h,W,H);let h=fogs(8,22)+mlaLayer(6,62);
+function shoreHS(){const W=SW,H=SH,S=(x,y,w,h)=>PCT(x,y,w,h,W,H);let h=fogs(8,22)+mlaLayer(6,62)+fxCanvas('sh',W,H);
   h+=ob('home','tab','home',obURL('door3',doorObj3),6,51,W,H,'До маяка','<b>Двері маяка</b><br>Назад, до вогнища.');
   if(s.ship)h+=ob('ship','hsgo','ship',obURL('ship3',shipObj3),168,0,W,H,'Торговий когг','<b>Торговий когг</b><br>Подивитися обміни.',{pulse:1,always:1,idle:'i-bob'});
   if(s.f.boat)h+=ob('pier','hsgo','pier',obURL('pier3'+((s.exp||[]).length?'o':''),()=>pierObj3({boatOut:!!(s.exp||[]).length})),231,48,W,H,'Пристань','<b>Пристань</b><br>Виходи в море й кораблі.');
@@ -4057,6 +4073,106 @@ function hsPop(el,e,r0){try{const out=[];for(const k in s.r){const d=(s.r[k]||0)
   const box=el.getBoundingClientRect(),x=box.left+box.width/2+scrollX,y=box.top+scrollY-4;
   out.slice(0,2).forEach(([k,d],ix)=>{const p=document.createElement('div');p.className='fpop';p.style.left=x+'px';p.style.top=(y-ix*18)+'px';p.innerHTML=`${pimg(icoURL(k),16,16,'')}+${fmt(d)}`;document.body.appendChild(p);setTimeout(()=>p.remove(),1150)})}catch(err){}}
 
+/* ============ ЖИВИЙ СВІТ: частинки й анімації поверх сцени ============
+   Один <canvas class="fx"> у сцені, малюємо в точній сітці (логічні координати × SK) через ImageData.
+   Цикл ~30 кадрів/с; спить, коли сцени немає, вкладка схована або ввімкнено «менше руху». */
+const FX={cv:null,g:null,im:null,u:null,W:0,H:0,sc:'',ps:[],t:0,last:0,on:0,ev:{},walk:[],crab:null,weed:[],moth:[],wisp:[],stars:[]};
+const fxCanvas=(sc,W,H)=>`<canvas class="fx" data-sk="fx" data-sig="fx-${sc}" width="${Math.round(W*SK)}" height="${Math.round(H*SK)}" aria-hidden="true"></canvas>`;
+const FXC={};
+function fxCol(c,a){const k=c+(a*20|0);if(FXC[k]!==undefined)return FXC[k];const hex=PAL[c]||'#ffffff',r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16),A=Math.max(0,Math.min(255,Math.round(a*255)));
+  return FXC[k]=((A<<24)|(b<<16)|(g<<8)|r)>>>0}
+function fxP(x,y,col){x=x|0;y=y|0;if(x<0||y<0||x>=FX.W||y>=FX.H)return;FX.u[y*FX.W+x]=col}
+/* логічний «піксель» (k×k) — для фігурок */
+function fxB(x,y,col){const k=SK,x0=Math.round(x*k),y0=Math.round(y*k),x1=Math.round((x+1)*k),y1=Math.round((y+1)*k);for(let j=y0;j<y1;j++)for(let i=x0;i<x1;i++)fxP(i,j,col)}
+const fxR=(a,b)=>a+Math.random()*(b-a);
+/* Сплеск частинок — для реакцій на дії: kind = 'spark' | 'dust' | 'splash' | 'chip' */
+function fxBurst(sc,x,y,kind,n){if(FX.sc!==sc&&sc!=='*')return;const k=SK;for(let i=0;i<(n||10);i++){const P={x:x*k+fxR(-3,3),y:y*k+fxR(-2,2),life:0,max:fxR(.4,.9),kind};
+  if(kind==='spark'){P.vx=fxR(-60,60);P.vy=fxR(-90,-30);P.gr=140}else if(kind==='splash'){P.vx=fxR(-35,35);P.vy=fxR(-80,-40);P.gr=220}else if(kind==='chip'){P.vx=fxR(-40,40);P.vy=fxR(-50,-15);P.gr=160}else{P.vx=fxR(-18,18);P.vy=fxR(-14,-4);P.gr=-4;P.max=fxR(.6,1.2)}
+  FX.ps.push(P)}}
+function fxReset(sc){FX.sc=sc;FX.ps=[];FX.walk=[];FX.crab=null;FX.ev={};FX.moth=Array.from({length:5},()=>({r:fxR(6,15),w:fxR(1.5,3),ph:fxR(0,6.3)}));
+  FX.wisp=Array.from({length:7},()=>({x:fxR(0,1),y:fxR(0,1),r:fxR(10,22),v:fxR(2,5)}));FX.weed=Array.from({length:4},()=>({x:fxR(40,280),ph:fxR(0,6.3)}))}
+function fxTick(ts){requestAnimationFrame(fxTick);if(typeof document==='undefined'||document.hidden)return;if(ts-FX.last<33)return;const dt=Math.min(.1,(ts-FX.last)/1000||.033);FX.last=ts;
+  const cv=document.querySelector('#stage canvas.fx');if(!cv||RM()){if(FX.cv){FX.cv=null}return}
+  if(cv!==FX.cv){FX.cv=cv;FX.g=cv.getContext('2d');FX.W=cv.width;FX.H=cv.height;FX.im=FX.g.createImageData(FX.W,FX.H);FX.u=new Uint32Array(FX.im.data.buffer);const sc=(cv.dataset.sig||'').slice(3);if(sc!==FX.sc)fxReset(sc)}
+  FX.t+=dt;FX.u.fill(0);try{if(FX.sc==='yd')fxYard(dt);else if(FX.sc==='sh')fxShore(dt);fxParts(dt)}catch(e){}FX.g.putImageData(FX.im,0,0)}
+/* Частинки: іскри, пил, бризки */
+function fxParts(dt){const out=[];for(const p of FX.ps){p.life+=dt;if(p.life>p.max)continue;p.vy+=(p.gr||0)*dt;p.vx*=1-.8*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;const f=p.life/p.max;
+  let c;if(p.kind==='spark'){c=f<.25?fxCol('I',1):f<.55?fxCol('J',.95):fxCol('K',.9*(1-f)+.1);if(Math.random()<.15)continue}
+  else if(p.kind==='splash')c=fxCol(f<.5?'u':'U',.9*(1-f)+.1);else if(p.kind==='chip')c=fxCol(f<.5?'Y':'X',1-f*.6);else c=fxCol('6',.45*(1-f));
+  fxP(p.x,p.y,c);if(p.kind==='spark'&&f<.3)fxP(p.x,p.y+1,fxCol('K',.6));out.push(p)}FX.ps=out.length>600?out.slice(-600):out}
+const fxNight=()=>GR==='n'?1:GR==='d'?.6:.25;
+function fxEvery(id,a,b){const t=FX.t,e=FX.ev;if(e[id]===undefined){e[id]=t+fxR(a*.3,b*.6);return false}if(t>=e[id]){e[id]=t+fxR(a,b);return true}return false}
+/* Чайка: летить через небо, махає крилами */
+function fxGulls(dt,yMin,yMax,W){const nt=fxNight();if(!FX.gull&&fxEvery('gull',GR==='n'?70:18,GR==='n'?140:45)){const d=Math.random()<.5?1:-1;FX.gull={x:d>0?-6:W+6,y:fxR(yMin,yMax),d,v:fxR(16,26),ph:0}}
+  const G=FX.gull;if(!G)return;G.x+=G.d*G.v*dt;G.ph+=dt*7;G.y+=Math.sin(FX.t*1.3)*dt*2;if(G.x<-10||G.x>W+10){FX.gull=null;return}
+  const c=fxCol(GR==='y'?'9':'5',GR==='n'?.7:.95),up=Math.sin(G.ph)>0,k=SK,cx=G.x*k,cy=G.y*k;fxP(cx,cy,c);fxP(cx+1,cy,c);
+  for(let i=1;i<=3;i++){const yy=up?cy-i*.7:cy+(i>1?-1:0);fxP(cx-i,yy,c);fxP(cx+1+i,yy,c)}}
+/* Падаюча зоря — лише вночі */
+function fxShoot(dt,yMax,W){if(GR!=='n')return;if(!FX.shoot&&fxEvery('shoot',35,90))FX.shoot={x:fxR(W*.3,W)*SK,y:fxR(2,yMax*.5)*SK,l:0};const S=FX.shoot;if(!S)return;S.l+=dt;S.x-=210*dt;S.y+=70*dt;
+  for(let i=0;i<16;i++)fxP(S.x+i*3/1.0,S.y-i,fxCol(i<3?'y':'6',Math.max(0,(1-i/16)*(1-S.l/.8))));if(S.l>.8)FX.shoot=null}
+/* Мерехтіння зір */
+function fxStars(dt,yMax,W){if(GR==='y')return;if(Math.random()<dt*4)FX.stars.push({x:fxR(0,W)*SK,y:fxR(0,yMax)*SK,l:0,m:fxR(.6,1.4)});FX.stars=FX.stars.filter(st=>(st.l+=dt)<st.m);
+  for(const st of FX.stars){const a=Math.sin(st.l/st.m*Math.PI)*fxNight();fxP(st.x,st.y,fxCol('y',a));if(a>.6){fxP(st.x+1,st.y,fxCol('6',a*.5));fxP(st.x-1,st.y,fxCol('6',a*.5));fxP(st.x,st.y-1,fxCol('6',a*.5));fxP(st.x,st.y+1,fxCol('6',a*.5))}}}
+/* Відблиски на воді; inSea(x,y) — логічні координати */
+function fxGlints(dt,n,area,inSea){for(let i=0;i<n*dt*30;i++){if(Math.random()>.5)continue;const x=fxR(area[0],area[2]),y=fxR(area[1],area[3]);if(!inSea(x,y))continue;const a=fxR(.35,.9)*(GR==='y'?.8:.6);fxP(x*SK,y*SK,fxCol(Math.random()<.3?'u':'U',a));if(Math.random()<.3)fxP(x*SK+1,y*SK,fxCol('U',a*.6))}}
+/* Пасма Мли біля землі */
+function fxWisps(dt,y0,y1,W){const m=mlaV();if(m<.3)return;const a=(m-.3)/.7;for(const w of FX.wisp){w.x-=w.v*dt/W;if(w.x<-.2)w.x=1.2;const cx=w.x*W*SK,cy=(y0+w.y*(y1-y0))*SK,rx=w.r*SK,ry=rx*.28;
+  for(let j=-ry;j<=ry;j+=1)for(let i=-rx;i<=rx;i+=1){const d=(i*i)/(rx*rx)+(j*j)/(ry*ry);if(d>=1)continue;const x=cx+i,y=cy+j;if((1-d)*a*.9>bay(x|0,y|0))fxP(x,y,fxCol(d<.4?'6':'o',.35*a))}}}
+
+/* ---------- Двір ---------- */
+const YARD_COAST=[[285,132],[318,137],[342,146],[356,158],[366,176],[374,200],[380,240]];
+function yardSea(x,y){if(y<120)return false;if(y<130)return true;if(x<30)return y<160-(x/30)*12;for(let i=0;i<YARD_COAST.length-1;i++){const[a,c]=[YARD_COAST[i],YARD_COAST[i+1]];if(y>=a[1]&&y<=c[1]){const ex=a[0]+(y-a[1])*(c[0]-a[0])/(c[1]-a[1]);return x>ex+2}}return false}
+function fxYard(dt){const k=SK,W=YW,nt=fxNight(),hl=s.b.hearth||0,lit=hl&&s.on.hearth!==false;
+  fxStars(dt,95,W);fxShoot(dt,90,W);fxGulls(dt,30,95,W);
+  /* іскри вогнища, кузні, жарини */
+  if(lit&&Math.random()<dt*(2+hl*1.2))FX.ps.push({x:fxR(137,149)*k,y:fxR(196,202)*k,vx:fxR(-8,8)+Math.sin(FX.t*.4)*10,vy:fxR(-45,-22),gr:-6,life:0,max:fxR(.8,2.2),kind:'spark'});
+  if(!hl&&s.f.looked&&Math.random()<dt*.8)FX.ps.push({x:fxR(129,133)*k,y:217*k,vx:fxR(-4,4),vy:fxR(-14,-6),gr:-2,life:0,max:fxR(.6,1.4),kind:'spark'});
+  const fB=BD.find(b=>b.id==='forge');if(s.b.forge&&fB&&fB.show()&&s.on.forge!==false&&Math.random()<dt*1.4){const[bx,by]=BANC.forge;FX.ps.push({x:(bx+fxR(-4,4))*k,y:(by-10)*k,vx:fxR(-10,10),vy:fxR(-30,-12),gr:-4,life:0,max:fxR(.5,1.2),kind:'spark'})}
+  /* промінь маяка обертається: до глядача — коротший і яскравіший, убік — довгий і блідий */
+  if(s.f.won)fxBeam(dt);
+  /* мошкара біля ліхтаря */
+  if((s.f.won||(s.floors||{}).lantern)&&GR!=='y')for(const m of FX.moth){const a=FX.t*m.w+m.ph;fxP((55+Math.cos(a)*m.r)*k,(30+Math.sin(a*1.3)*m.r*.55)*k,fxCol('u',.75))}
+  /* піна біля берега й відблиски */
+  fxCoast(dt);fxGlints(dt,GR==='n'?1:2,[0,121,W,240],yardSea);
+  fxWalkers(dt);fxWisps(dt,150,232,W)}
+function fxBeam(dt){const k=SK,th=FX.t*.42,c=Math.cos(th),sn=Math.sin(th),side=c>=0?1:-1,L=(20+(side>0?240:60)*Math.abs(c)),br=(.16+.55*Math.max(0,sn))*(GR==='y'?.3:1);
+  const x0=55+side*12,y0=33;for(let i=0;i<L*k;i++){const lx=x0*k+side*i,cy=(y0-(i/k)*.22)*k,hw=(1.2+(i/k)*.06)*k,ai=br*Math.pow(1-i/(L*k),.7);if(lx<0||lx>=FX.W)break;
+    for(let yy=-hw;yy<=hw;yy++){const e=1-Math.abs(yy)/hw,a=ai*(.4+e);if(a>bay(lx|0,(cy+yy)|0))fxP(lx,cy+yy,fxCol(i<60&&e>.5?'I':'h',.85))}}
+  const halo=(3+10*Math.pow(Math.max(0,sn),3))*k;if(halo>4)for(let j=-halo;j<=halo;j++)for(let i=-halo;i<=halo;i++){const d=Math.hypot(i,j)/halo;if(d<1&&(1-d)*.7*Math.max(0,sn)>bay((55*k+i)|0,(31*k+j)|0))fxP(55*k+i,31*k+j,fxCol('h',.55))}}
+function fxCoast(dt){const k=SK,t=FX.t;let s0=0;for(let i=0;i<YARD_COAST.length-1;i++){const[a,c]=[YARD_COAST[i],YARD_COAST[i+1]],len=Math.hypot(c[0]-a[0],c[1]-a[1]),nx=(c[1]-a[1])/len,ny=-(c[0]-a[0])/len;
+  for(let q=0;q<len*k;q+=1){const u=q/(len*k),x=a[0]+(c[0]-a[0])*u,y=a[1]+(c[1]-a[1])*u,sp=s0+q/k,d=1.2+1.4*(.5+.5*Math.sin(t*1.1-sp*.07)),h=hh2(q|0,i);if(h<.25)continue;
+    fxP((x+nx*d)*k,(y+ny*d)*k,fxCol('u',.75));if(h>.7)fxP((x+nx*(d+1.2))*k,(y+ny*(d+1.2))*k,fxCol('U',.5))}s0+=len}}
+/* Поселенці ходять стежкою між вогнищем і берегом; уночі — з ліхтариком */
+const WALK_PATH=t=>[156+t*1.75*90,201+t*.42*90-1];
+function fxWalkers(dt){const n=Math.min(2,Math.floor((s.pop||0)/2));while(FX.walk.length<n)FX.walk.push({t:Math.random(),d:Math.random()<.5?1:-1,wait:fxR(0,4),c:['X','S','r','v','T'][FX.walk.length%5]});FX.walk.length=n;
+  for(const w of FX.walk){if(w.wait>0)w.wait-=dt;else{w.t+=w.d*dt/18;if(w.t>1||w.t<0){w.t=Math.max(0,Math.min(1,w.t));w.d*=-1;w.wait=fxR(3,8)}}
+    const[x,y]=WALK_PATH(w.t),step=w.wait>0?0:Math.floor(FX.t*5)%2,X=Math.round(x),Y=Math.round(y);const dim=GR==='n'?.85:1;
+    fxB(X,Y-8,fxCol('m',dim));fxB(X-1,Y-7,fxCol(w.c,dim));fxB(X,Y-7,fxCol(w.c,dim));fxB(X+1,Y-7,fxCol(w.c,dim));fxB(X-1,Y-6,fxCol(w.c,dim));fxB(X,Y-6,fxCol(w.c,dim));fxB(X+1,Y-6,fxCol(w.c,dim));
+    fxB(X,Y-5,fxCol(w.c,dim));fxB(X-1+step,Y-4,fxCol('x',1));fxB(X+1-step,Y-4,fxCol('x',1));
+    if(GR!=='y'){const lx=X+(w.d>0?2:-2),ly=Y-6,fl=.75+.25*Math.sin(FX.t*9+w.t*40);fxB(lx,ly,fxCol('J',1));for(let j=-4;j<=4;j++)for(let i=-4;i<=4;i++){const d=Math.hypot(i,j)/4.5;if(d<1&&d>.25&&(1-d)*.55*fl>bay((lx*SK+i)|0,(ly*SK+j)|0))fxP(lx*SK+i+1,ly*SK+j+1,fxCol('J',.35))}}}}
+
+/* ---------- Берег ---------- */
+function shoreSea(x,y){return y>=24&&y<78}
+function fxShore(dt){const k=SK,W=SW,t=FX.t;fxStars(dt,20,W);fxShoot(dt,20,W);fxGulls(dt,4,22,W);fxGlints(dt,GR==='n'?1.2:2.4,[34,24,W,77],shoreSea);
+  /* накат: піна набігає на пісок і відкочується, лишаючи мокру смугу */
+  const P=7.5,ph=(t%P)/P,run=ph<.32?Math.sin(ph/.32*Math.PI/2):Math.pow(1-(ph-.32)/.68,1.6),reach=77.5+6*run;
+  if(fxEvery('peak',P,P)){for(let i=0;i<14;i++)FX.ps.push({x:fxR(196,232)*k,y:fxR(72,76)*k,vx:fxR(-25,25),vy:fxR(-70,-30),gr:200,life:0,max:fxR(.5,.9),kind:'splash'})}
+  for(let hx=Math.round(34*k);hx<W*k;hx++){const x=hx/k,yf=reach+1.1*Math.sin(x/13+t*.6)+.6*Math.sin(x/5.3-t*.9),wet=78+6.5+1.1*Math.sin(x/13);
+    for(let hy=Math.round(78*k);hy<wet*k;hy++){const y=hy/k;if(y<yf){if(.32>bay(hx,hy))fxP(hx,hy,fxCol('T',.45))}else if(.22*(1-run*.6)>bay(hx,hy))fxP(hx,hy,fxCol('L',.55))}
+    const fy=Math.round(yf*k);if(hh2(hx,Math.floor(t*2))>.12){fxP(hx,fy,fxCol('u',.95));if(hh2(hx+7,fy)>.4)fxP(hx,fy-1,fxCol('U',.8))}
+    if(run<.5&&hh2(hx,Math.floor(t*3))<.04)fxP(hx,Math.round((wet-fxR(0,5))*k),fxCol('u',.7))}
+  /* водорості гойдаються на мілині */
+  for(const w of FX.weed){const x=w.x+Math.sin(t*.3+w.ph)*3,y=74.5+run*2+Math.sin(t*1.1+w.ph)*.6;for(let i=0;i<5;i++){fxB(x+i,y+(i%2)*.5,fxCol(i%2?'s':'Z',.9))}}
+  /* краб: вибігає, бігає боком, зупиняється, ховається */
+  if(!FX.crab&&fxEvery('crab',20,50))FX.crab={x:fxR(60,250),y:fxR(94,112),d:Math.random()<.5?1:-1,go:fxR(1,2.5),stop:0,l:0,n:0};
+  const C=FX.crab;if(C){C.l+=dt;if(C.stop>0){C.stop-=dt;if(C.stop<=0){C.go=fxR(.8,2);C.d=Math.random()<.5?1:-1;C.n++}}else{C.x+=C.d*22*dt;C.go-=dt;if(C.go<=0)C.stop=fxR(.8,2.5)}
+    if(C.n>3||C.x<40||C.x>W-4){C.fade=(C.fade||0)+dt;if(C.fade>1){FX.crab=null}}
+    if(FX.crab){const a=1-(C.fade||0),X=Math.round(C.x),Y=Math.round(C.y),st=C.stop>0?0:Math.floor(t*12)%2;fxB(X,Y,fxCol('j',a));fxB(X+1,Y,fxCol('j',a));fxB(X+2,Y,fxCol('j',a));fxB(X+1,Y-1,fxCol('i',a));
+      fxB(X-1,Y+st,fxCol('i',a));fxB(X+3,Y+1-st,fxCol('i',a));fxB(X,Y-1,fxCol('u',a));fxB(X+2,Y-1,fxCol('u',a))}}
+  /* промінь маяка (сам маяк за кадром) ковзає по воді: смуга теплих відблисків біжить морем */
+  if(s.f.won&&GR!=='y'){const th=FX.t*.42,c=Math.cos(th),sn=Math.sin(th);if(c>0){const bx=34+(1-sn)*.5*(W-34);for(let i=0;i<40*dt*30;i++){const x=bx+fxR(-14,14),y=fxR(26,76);if(Math.abs(x-bx)<14*(1-(y-26)/80))fxP(x*k,y*k,fxCol(Math.random()<.4?'h':'U',.8*c))}}}
+  fxWisps(dt,40,100,W)}
+if(typeof requestAnimationFrame==='function')requestAnimationFrame(fxTick);
 /* ============ v19: MINIGAMES ============ */
 let MG=null;
 const mgOk=()=>typeof requestAnimationFrame==='function'&&typeof document!=='undefined'&&!!document.body&&typeof document.body.appendChild==='function'&&!document.getElementById('mg');
@@ -4367,7 +4483,7 @@ const DBG=[
   ['Знахідка в прибої',()=>{s.floors.gallery=1;const ks=['crate','barrel','cargo','bottle','survivor'];s.flot={k:ks[Math.floor(Math.random()*ks.length)],until:Date.now()+180000};s.tab='shore'}],
   ['Мла +25',()=>{s.threat=Math.min(100,(s.threat||0)+25)}],
   ['Набіг зараз',()=>{s.f.siege1=1;s.threat=100;s.lastAct=Date.now();raidCheck()}],
-  ['+10 хв',()=>dbgSkip(600)],['+1 год',()=>dbgSkip(3600)],
+  ['Ніч',()=>{s.dbgPh='n'}],['Сутінки',()=>{s.dbgPh='d'}],['День',()=>{s.dbgPh='y'}],['Справжній час',()=>{s.dbgPh=''}],['+10 хв',()=>dbgSkip(600)],['+1 год',()=>dbgSkip(3600)],
   ['Події в дзвіночок',()=>{dlg({k:'info',title:'Перевірка дзвіночка',body:'<p>Перша подія.</p>'});dlg({k:'world',title:'Ще одна подія',body:'<p>Друга.</p>'});s.bellHold=1}],
   ['Скинути звички',()=>{s.mgW={};s.mgUn={};s.mgHab={};s.mgSeen={}}],
 ];

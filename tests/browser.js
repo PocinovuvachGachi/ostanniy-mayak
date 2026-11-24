@@ -93,7 +93,19 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await p.close();
   }
 
-  // 4. Дзвіночок
+  // 4. Жарина й місце для вогнища — різні об'єкти з різними діями
+  {
+    const p = await page(1100, 900);
+    const r = await p.evaluate(() => {
+      s.f.looked = 1; s.b.hearth = 0; s.seen.wood = 1; s.r.wood = 500; s.r.ember = 500; s.tabs = { home: 1 }; s.dlg = []; s.tab = 'home'; render();
+      const e = document.querySelector('.scn [data-k="ember2"]'), h = document.querySelector('.scn [data-k="hearth0"]');
+      return [e && e.dataset.a, h && h.dataset.a, e && h && e.style.left !== h.style.left];
+    });
+    A(r[0] === 'blow' && r[1] === 'bld' && r[2], 'жарина й вогнище: ' + JSON.stringify(r));
+    await p.close();
+  }
+
+  // 5. Дзвіночок
   {
     const p = await page(390, 844);
     const r = await p.evaluate(() => {

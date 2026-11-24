@@ -34,7 +34,7 @@ function yardLights(){const fire=[],win=[];if(!s.f.looked)return{fire,win};const
   const F=s.floors||{};if(hs){win.push({x:55,y:188,r:22,e:.8,c:WARM,a:.8})}
   for(const[k,y]of[['gallery',74],['study',113],['work',149]])if(F[k])win.push({x:55,y,r:15,c:WARM,a:.7});
   if(s.f.won)win.push({x:55,y:30,r:46,c:PALE,a:.9});
-  for(const id in BANC){const lv=s.b[id]||0;if(!lv||(s.dmgB||{})[id]||s.on[id]===false)continue;const g=stageOf(lv),strong=['forge','steel','glass','kiln','render'].includes(id);
+  for(const id in BANC){const lv=s.b[id]||0,B=BD.find(x=>x.id===id);if(!lv||!B||!B.show()||(s.dmgB||{})[id]||s.on[id]===false)continue;const g=stageOf(lv),strong=['forge','steel','glass','kiln','render'].includes(id);
     if(!strong&&!['smoke','apoth','house'].includes(id))continue;win.push({x:BANC[id][0],y:BANC[id][1]-8-4*g,r:(strong?18:12)+5*g,e:.8,c:strong?FIRE:WARM,a:strong?.8:.55})}
   for(let i=0;i<Math.min(4,s.b.house||0);i++)win.push({x:HOUSES[i][0]+5,y:HOUSES[i][1]-10,r:13,e:.8,c:WARM,a:.55});
   return{fire,win}}
@@ -71,7 +71,7 @@ function placePop(){try{let L=document.getElementById('popl');if(!popB||s.cb||s.
 function homeHS(){const W=YW,H=YH;let h='';const st=yardSt2();
   if(!s.f.looked){const e=obURL('ember3',emberObj3);h+=ob('ember','blow','',e,84,206,W,H,'Подмухати на жарину','<b>Жарина</b><br>Подмухай, і вона спалахне яскравіше: +3 жару.',{pulse:1,cd:'blow',cs:2,inner:'<i class="emb"></i>'});
     if(s.f.lk)h+=ob('look','look','',obURL('tsil3',()=>towerSil3(st)),18,8,W,H,'Роззирнутися','<b>Роззирнутися</b><br>Очі звикли до темряви. У ній проступають обриси стін і сходів.',{pulse:1});return h}
-  h+=fogs(42,14)+mlaLayer(36,36)+lightLayers(W,H,yardLights());
+  h+=fogs(42,14)+mlaLayer(36,36)+fxCanvas('yd',W,H)+lightLayers(W,H,yardLights());
   const tk='tw3:'+[st.floors.work,st.floors.gallery,st.floors.study,st.floors.lantern,st.hearth,st.won].map(v=>v?1:0).join('');
   h+=ob('tower',s.tabs.tower?'tab':'','tower',obURL(tk,()=>towerObj3(st)),18,8,W,H,'Нагору, до поверхів','<b>Маяк</b><br>Сходи ведуть угору, до поверхів.',{pulse:1});
   if(s.f.won)h+=`<i class="lglow" data-sk="lglow" data-sig="1" style="${PCT(28,0,54,52,W,H)};z-index:5" aria-hidden="true"></i>`;
@@ -88,15 +88,16 @@ function homeHS(){const W=YW,H=YH;let h='';const st=yardSt2();
   if(s.b.forge){const c={scrap:4,ember:2},n=smithN();h+=s.hot?ob('anvil','smithhot','',obURL('anvil3h',()=>anvilObj3(1)),180,150,W,H,'Бити по заготовці','<b>Заготовка розжарилася!</b><br>Влуч молотом у слушну мить, і вийде більше заліза. Можна й не чіпати: метал охолоне, нічого не втратиш.',{cls:'bite',inner:'<i class="bang">!</i>'})
     :ob('anvil','smith','',obURL('anvil3',()=>anvilObj3(0)),180,150,W,H,'Кувати',`<b>Ковадло</b><br>Перекувати брухт на залізо: ${costTxt(c)} → ${R('iron',n)}.`,{pulse:1,cd:'smith',cs:4})}
   const hx=124,hy=206;
-  if(!s.b.hearth){const c=bCost(HEARTH),ok=s.seen.wood&&afford(c);const sp=obURL('hearth3a',()=>hearthObj3({}));
-    h+=ok?ob('hearth0','bld','hearth',sp,hx,hy,W,H,'Скласти вогнище',`<b>Скласти вогнище</b><br>${costTxt(c)}`,{pulse:1,always:1,inner:'<i class="emb"></i>'})
-      :ob('ember2','blow','',sp,hx,hy,W,H,'Подмухати на жарину',`<b>Жарина</b><br>Подмухай: +3 жару.${s.seen.wood?`<br>Для вогнища треба ${costTxt(c)}.`:''}`,{pulse:1,cd:'blow',cs:2,inner:'<i class="emb"></i>'})}
+  if(!s.b.hearth){const c=bCost(HEARTH),ok=afford(c);
+    /* Жарина завжди лишається жариною; вогнище — окремий контур-креслення поруч */
+    h+=ob('ember2','blow','',obURL('ember3',emberObj3),hx-16,hy+7,W,H,'Подмухати на жарину',`<b>Жарина</b><br>Подмухай, і вона спалахне яскравіше: +3 жару.`,{pulse:1,cd:'blow',cs:2,inner:'<i class="emb"></i>'});
+    if(s.seen.wood)h+=ob('hearth0',ok?'bld':'','hearth',obURL('hearth3g',()=>hearthObj3({hearth:1,plan:1})),hx+4,hy,W,H,ok?'Скласти вогнище':'Місце для вогнища',ok?`<b>Скласти вогнище</b><br>Обкласти жарину камінням і підкинути дров: ${costTxt(c)}.<br>Вогнище горітиме саме й даватиме жар.`:`<b>Місце для вогнища</b><br>Тут можна скласти вогнище, коли буде ${costTxt(c)}.`,{pulse:ok?1:0,always:1,cls:'ghost'+(ok?' ready':'')})}
   else{const n=s.b.hearth,lit=s.on.hearth!==false,sp=obURL('hearth3b',()=>hearthObj3({hearth:1})),[,,hw,hh]=sp;
     const fl=lit?innerAt(10,-22,18,27,hw,hh,'flm'+(n>=4?' big':''),`background-image:url(${flameURL()})`):'';
     h+=ob('hearth','bpop','hearth',sp,hx,hy,W,H,'Вогнище',`<b>Вогнище, рівень ${n}</b><br>Натисни, щоб підкинути дров чи пригасити.`,{inner:fl+(upT.hearth&&Date.now()-upT.hearth<1600?`<i class="upfx" aria-hidden="true"><b>Рівень ${n}</b></i>`:''),cls:popB==='hearth'?'sel':''})}
   if(s.tabs.shore)h+=ob('toshore','tab','shore',obURL('sign3',signObj3),196,196,W,H,'До берега','<b>Стежка до берега</b><br>Плавник, уламки й риба.',{pulse:1});
   return h}
-function shoreHS(){const W=SW,H=SH,S=(x,y,w,h)=>PCT(x,y,w,h,W,H);let h=fogs(8,22)+mlaLayer(6,62);
+function shoreHS(){const W=SW,H=SH,S=(x,y,w,h)=>PCT(x,y,w,h,W,H);let h=fogs(8,22)+mlaLayer(6,62)+fxCanvas('sh',W,H);
   h+=ob('home','tab','home',obURL('door3',doorObj3),6,51,W,H,'До маяка','<b>Двері маяка</b><br>Назад, до вогнища.');
   if(s.ship)h+=ob('ship','hsgo','ship',obURL('ship3',shipObj3),168,0,W,H,'Торговий когг','<b>Торговий когг</b><br>Подивитися обміни.',{pulse:1,always:1,idle:'i-bob'});
   if(s.f.boat)h+=ob('pier','hsgo','pier',obURL('pier3'+((s.exp||[]).length?'o':''),()=>pierObj3({boatOut:!!(s.exp||[]).length})),231,48,W,H,'Пристань','<b>Пристань</b><br>Виходи в море й кораблі.');
