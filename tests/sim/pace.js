@@ -32,7 +32,7 @@ function dialogs(){let g=0;while((s.dlg||[]).length&&g++<30){const d=s.dlg[0];wa
   if(d.bgsel){act('bg',Object.keys(BGS)[0]);continue}
   const b=d.btns&&d.btns[0];if(b){acts++;act(b[1],b[2]);if(s.cb)fight();continue}act('dlgok')}}
 let fightActs=0;const _act=act;act=(a,i)=>{if(s.cb)fightActs++;return _act(a,i)};
-function fight(){fightActs=0;botFight(800);wait(fightActs*P.fightStep+10);mark('fight:'+(s.c.wins||0),'перемог у боях: '+(s.c.wins||0),0)}
+function fight(){if(${!!process.env.SIMSNAP}&&s.cb)console.log('SNAP '+JSON.stringify({t:T,enc:s.cb.enc,s}));fightActs=0;botFight(800);wait(fightActs*P.fightStep+10);mark('fight:'+(s.c.wins||0),'перемог у боях: '+(s.c.wins||0),0)}
 /* герой: очки характеристик, умінь, таланти; спорядження */
 function hero(){let g=0;while(s.h.pts>0&&g++<20){const k=Object.keys(s.h.a).sort((a,b)=>s.h.a[a]-s.h.a[b])[0];A('attr',k,1)}
   g=0;while(s.h.sp>0&&g++<20){const k=Object.keys(s.h.k).filter(k=>s.h.k[k]<skillCap()).sort((a,b)=>s.h.k[a]-s.h.k[b])[0];if(!k)break;A('skill',k,1)}
