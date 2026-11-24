@@ -17,7 +17,7 @@ Object.assign(OD,{keeperkey:{n:'Ключ хранителя',d:'Важкий, з
 if(typeof BK!=='undefined')BK.keeper='Зошит хранителя';
 function rune3(){const b=pbuf(16,10);polyFill(b,[[1,9],[2,3],[6,1],[12,2],[15,6],[14,9]],(x,y)=>pset(b,x,y,y<4?'G':x>11?'E':'F'));for(const x of[5,8,11])prect(b,x,4,1,3,'D');return b}
 globalThis.rune3=HI(rune3);
-function shoreRuneHS(W,H){let h='';const P={a:[244,96],b:[170,66],c:[34,100]};for(const k in RUNE){if((s.runes||{})[k]||!RUNE[k].ok())continue;const[x,y]=P[k];
+function shoreRuneHS(W,H){let h='';const P={a:[244,96],b:[84,70],c:[34,100]};for(const k in RUNE){if((s.runes||{})[k]||!RUNE[k].ok())continue;const[x,y]=P[k];
     h+=ob('rune:'+k,'rune',k,obURL('rune3',rune3),x,y,W,H,'Камінь із написом',`<b>Камінь</b><br>На ньому щось вибито.`,{pulse:1})}return h}
 function hallCacheHS(W,H){if(!runesAll()||s.f.cache||!s.b.hearth)return'';const[x,y,w,h]=twBox('hall');
   return ob('cl:cache','cache','',obURL('rune3',rune3),x+w/2-20,y+h-16,W,H,'Плита під вогнищем','<b>Плита біля вогнища</b><br>«Під вогнем».',{pulse:1,always:1})}
