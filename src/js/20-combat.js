@@ -44,7 +44,7 @@ function startFight(encId,win){const E0=ENC[encId];
   const foes=u.filter(x=>!EN[x.t].obj&&!EN[x.t].ally);
   s.cb={enc:encId,a:E0.a,map:ARENA[E0.a].slice(),round:0,fire:[],fx:[],fxt:0,hx:E0.h[0],hy:E0.h[1],u,ap:maxAP()+(s.h.ft.shadow?2:0),guard:0,sand:0,wrap:0,breath:0,sel:u.indexOf(foes[0]),win,boss:!!E0.boss,cds:{},traps:[],mode:'',mult,sn,wmg:{},
     title:win==='raid'?'Набіг Мли':win==='crab1'?'Перша сутичка':win&&win.indexOf('S:')===0?SHF[win.slice(2)].n:(win&&win.indexOf('L:')===0?(()=>{const id=win.slice(2);return`${LOC[id.split('.')[0]].n}`})():'Бій'),
-    log:[`${foes.filter(x=>!x.hid).map(x=>E(EN[x.t].n)).join(', ')} — бій починається!${s.h.ft.shadow?' Ти діяв першим: +2 ОД.':''}${E0.waves?' Схоже, вони тут не самі.':''}${E0.tide?' Вода прибуває.':''}${foes.some(x=>x.el)?' Серед них є ветерани.':''}`]};setGrid(s.cb);
+    log:[`${foes.filter(x=>!x.hid).map(x=>E(EN[x.t].n)).join(', ')} — бій починається!${s.h.ft.shadow?' Ти діяв першим: +2 ОД.':''}${E0.waves?' Схоже, вони тут не самі.':''}${E0.tide?' Вода прибуває.':''}${foes.some(x=>x.el)?' Серед них є ветерани.':''}`]};setGrid(s.cb);wolfJoin(s.cb);
   if(E0.palis)s.cb.map=s.cb.map.map((r,y)=>r.split('').map((ch,x)=>E0.palis.some(q=>q[0]===x&&q[1]===y)&&ch==='.'?'+':ch).join(''));
   if(E0.traps)s.cb.traps=E0.traps.map(([x,y])=>({x,y}));if(E0.bell)s.cb.ap+=2;
   if(st('stealth')>=2&&Math.random()<0.06*st('stealth')){s.cb.hidden=1;cbLog('Ти підкрався непомітно: вороги тебе ще не бачать, а перший удар буде критичним.')}
@@ -93,7 +93,7 @@ function dmgTo(u,base,mult,pierce,src){const T=EN[u.t],c=s.cb;let d=base+(famRs(
   cbLog(`${crit?'Критичний удар! ':''}${E(T.n)}: −${d} здоров’я.`);fxP({t:'txt',x:u.x,y:u.y,v:'−'+d+(crit?'!':''),k:crit?'crit':'hit'},130);
   if(u.hp<=0){kill(u);if(w==='sabre'&&src==='m'&&wmLv('sabre')>=5&&!T.obj){c.ap+=2;cbLog('Танець клинка: +2 ОД.')}}
   if(w&&!T.obj)wmGain(w,u.hp<=0?3:1);return d}
-function kill(u){const T=EN[u.t],c=s.cb;u.hp=0;fxP({t:'die',x:u.x,y:u.y,spr:u.t},0);if(T.struct){cbLog(`${E(u.nm||T.n)} зламано!`);if(u.bid&&c){c.broken=c.broken||[];c.broken.push(u.bid)}return}if(T.ally){cbLog('Ополченець падає. Він виживе, але цей бій для нього скінчився.');return}if(T.obj){explode(u);return}
+function kill(u){const T=EN[u.t],c=s.cb;u.hp=0;if(T.ally)wolfDown(u);fxP({t:'die',x:u.x,y:u.y,spr:u.t},0);if(T.struct){cbLog(`${E(u.nm||T.n)} зламано!`);if(u.bid&&c){c.broken=c.broken||[];c.broken.push(u.bid)}return}if(T.ally){cbLog('Ополченець падає. Він виживе, але цей бій для нього скінчився.');return}if(T.obj){explode(u);return}
   if(u.loot&&c){c.recov=(c.recov||0)+1;cbLog('Награбоване повернуто!')}
   if(T.burst&&c&&dist(u.x,u.y,c.hx,c.hy)<=1){const x=Math.max(1,Math.round(6*DIFF_DMG)-armor());s.h.hp-=x;fxP({t:'boom',x:u.x,y:u.y,cold:1},100);fxP({t:'txt',x:c.hx,y:c.hy,v:'−'+x,k:'hurt'},80);cbLog(`${E(T.n)} розсипається крижаним вибухом: −${x} здоров’я.`)}
   s.kills[u.t]=(s.kills[u.t]||0)+1;if(HUMAN[u.t]&&fac('silent')>-90)s.fac=Object.assign(s.fac||{},{silent:fac('silent')-1});if(T.loot)T.loot();if(u.el)add('coin',10);const gx=Math.round(T.xp*((s.cb&&s.cb.mult)||1)*(u.el?1.6:1)*((s.cb&&ENC[s.cb.enc]&&ENC[s.cb.enc].xpm)||1));xp(gx);cbLog(`${E(T.n)} переможено. +${gx} досвіду.`)}
@@ -234,8 +234,8 @@ function moveTo(c,u,tx,ty){if(u.pin>0)return;const T=EN[u.t],mode=T.fly?'fly':T.
   if(best&&(best[0]!==u.x||best[1]!==u.y)){fxP({t:'mv',x0:u.x,y0:u.y,x1:best[0],y1:best[1],d:240},240);u.x=best[0];u.y=best[1];trapCheck(u)}}
 function allyAct(c,u){const foes=alive(c).filter(v=>!v.hid);if(!foes.length)return;let tg=foes.reduce((a,b)=>dist(u.x,u.y,a.x,a.y)<=dist(u.x,u.y,b.x,b.y)?a:b);
   if(dist(u.x,u.y,tg.x,tg.y)>1)moveTo(c,u,tg.x,tg.y);if(dist(u.x,u.y,tg.x,tg.y)>1)return;
-  fxP({t:'bump',x0:u.x,y0:u.y,x1:tg.x,y1:tg.y},110);if(Math.random()<0.25+0.05*0){cbLog(`${E(EN[u.t].n)} промахується.`);return}
-  const d=Math.max(1,Math.round(((EN[u.t].p&&EN[u.t].p[0]?EN[u.t].p[0][1]:6)+s.h.lvl*0.5)*(s.h.ft.leader?1.5:1))-uArm(tg));tg.hp-=d;fxP({t:'txt',x:tg.x,y:tg.y,v:'−'+d,k:'hit'},130);cbLog(`${E(EN[u.t].n)} б’є: ${E(EN[tg.t].n)} −${d}.`);if(tg.hp<=0)kill(tg)}
+  fxP({t:'bump',x0:u.x,y0:u.y,x1:tg.x,y1:tg.y},110);if(Math.random()<0.25+0.05*0){cbLog(`${E(u.nm||EN[u.t].n)} промахується.`);return}
+  const d=Math.max(1,Math.round(((u.p0||(EN[u.t].p&&EN[u.t].p[0]?EN[u.t].p[0][1]:6))+s.h.lvl*0.5)*(s.h.ft.leader?1.5:1))-uArm(tg));tg.hp-=d;fxP({t:'txt',x:tg.x,y:tg.y,v:'−'+d,k:'hit'},130);cbLog(`${E(u.nm||EN[u.t].n)} б’є: ${E(EN[tg.t].n)} −${d}.`);if(tg.hp<=0)kill(tg)}
 function roleAct(c,u){const T=EN[u.t];const structs=c.u.filter(v=>v.hp>0&&EN[v.t].struct);
   if(u.role==='thief'&&u.loot){if(u.x>=GW-1){u.hp=0;u.gone=1;const g={};for(const k of['wood','fish','prov','scrap']){const v=Math.floor(s.r[k]*0.1);if(v>0){s.r[k]-=v;g[k]=v}}c.stolen=Object.assign(c.stolen||{},g);cbLog(`${E(T.n)} тікає в туман із награбованим: ${costTxt(g)||'нічого цінного'}.`);fxP({t:'die',x:u.x,y:u.y,spr:u.t},0);return true}
     moveTo(c,u,GW-1,u.y);cbLog(`${E(T.n)} тягне награбоване до води.`);return true}

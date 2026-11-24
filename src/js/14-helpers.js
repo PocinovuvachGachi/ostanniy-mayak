@@ -119,7 +119,7 @@ function checks(){const F=s.f;novTick();mgHelpCheck();if(!s.tabs.chron&&s.chs.le
     else s.popT=0}
   if(!s.disc.heart&&has('mlens')&&has('gkey')){reveal('heart');dlg({k:'story',title:'Острів, якого немає',img:{t:'face',id:'marta'},body:`<p>Крізь Лінзу Мли видно те, чого не видно оком: на півночі з води б’є стовп туману. ${P('Марта')}: ${Q('Ось воно. Ключ вартових відімкне шлях. Пливімо')}.</p>`})}
   if(s.tabs.hero&&!s.h.bg&&(s.nv||{}).grow)offerBg();
-  shoreTick();shfTick();beamTick();folkTick();
+  shoreTick();shfTick();beamTick();folkTick();wolfTick();
   s.bdSeen=s.bdSeen||{};{const nb=BD.filter(b=>!s.bdSeen[b.id]&&b.show());if(nb.length){nb.forEach(b=>s.bdSeen[b.id]=1);bpDlg(nb)}}
   s.rcSeen=s.rcSeen||{};if(s.floors.work){const nw=[];for(const rc of RC)if(!s.rcSeen[rc.id]&&rcVisible(rc)){s.rcSeen[rc.id]=1;nw.push(rc)}if(nw.length)rcDlg(nw)}
   if(F.crabWarn&&!F.crab1&&!s.cb&&!(s.dlg||[]).some(d=>d.crabw))crabWarn();

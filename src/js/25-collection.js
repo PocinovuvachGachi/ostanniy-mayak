@@ -19,7 +19,7 @@ function shelf3(n){const b=pbuf(40,26);prect(b,0,0,40,26,'V');prect(b,1,1,38,24,
   for(let k=0;k<Math.min(8,n);k++){const x=3+(k%4)*9,y=k<4?4:17;prect(b,x,y+3,5,4,['O','N','e','H','6','T','b','g'][k%8]);prect(b,x+1,y+2,3,1,'u')}return b}
 globalThis.shelf3=HI(shelf3);
 function shelfHS(W,H){const n=Object.keys(s.odd).length;if(!s.b.hearth||!n)return'';const[x,y,w,h]=twBox('hall');
-  return ob('cl:shelf','bpop','cl:shelf',obURL('shelf3:'+Math.min(8,n),()=>shelf3(n)),x+w-48,y+14,W,H,'Полиця хранителя','<b>Полиця хранителя</b><br>Дивини, які дало море.',{pulse:(s.oddNew||0)>0?1:0})}
+  return ob('cl:shelf','bpop','cl:shelf',obURL('shelf3:'+Math.min(8,n),()=>shelf3(n)),x+w-48,y+14,W,H,'Полиця хранителя','<b>Полиця хранителя</b><br>Дивини, які дало море.',{pulse:(s.oddNew||0)>0?1:0,z:290})}
 function shelfPopHTML(){s.oddNew=0;const got=Object.keys(OD).filter(k=>s.odd[k]),sets=Object.keys(OSET).filter(st=>got.some(k=>OD[k].set===st));
   return`<div class="bpop wide" role="dialog" aria-label="Полиця хранителя"><div class="bph"><b>Полиця хранителя</b><button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div>
   <div class="ogrid">${got.map(k=>`<div class="ocard">${pimg(icoURL(ODI[k]),40,40,'',OD[k].n)}<b class="itm">${OD[k].n}</b><br><span class="m">${OD[k].d}</span></div>`).join('')}<div class="ocard empty" aria-hidden="true"></div><div class="ocard empty" aria-hidden="true"></div></div>

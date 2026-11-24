@@ -57,6 +57,7 @@ function bpopHTML(){const id=popB;if(!id)return'';let nm,lvl,d,btns='',extra='';
   if(id.startsWith('lc:'))return locPopHTML(id);
   if(id==='sh:ford')return fordPopHTML();
   if(id==='cl:shelf')return shelfPopHTML();
+  if(id==='cl:wolf')return wolfPopHTML();
   if(id.startsWith('hr:'))return heroPopHTML(id);
   if(id.startsWith('fk:')||id.startsWith('tr:'))return villagePopHTML(id);
   if(id==='hearth'){const n=s.b.hearth||0,c=bCost(HEARTH);nm='Вогнище';lvl=n;d=`+${2*n} жару/с, спалює ${fr(0.12*n)} плавника/с.`;

@@ -116,7 +116,7 @@ function towerHS(){const W=TWW,H=TWH;let h=fogs(60,14)+mlaLayer(62,30);const nx=
   for(const id of TORDER){const st=twRoomSt(id),[x,y]=twBox(id),key='tw:'+id+[st.built?1:0,st.tr,st.lit?1:0,st.ember?1:0,st.won?1:0,st.wood].join('');
     const lq=id==='lantern'&&st.built&&(!s.f.won||!!s.lost),sp=obURL(key,()=>twRoom(id,st)),built=st.built,can=nx&&nx.id===id&&(!nx.req||nx.req())&&afford(nx.c,nx.it);
     h+=ob('fl:'+id,'bpop','fl:'+id,sp,x,y,W,H,FLN[id],`<b>${FLN[id]}</b><br>${built?'Відновлено. Натисни, щоб подивитися.':id==='hall'?'Тут має горіти вогнище.':nx&&nx.id===id?'Можна відбудувати.':'Ще в руїнах.'}`,{pulse:can||lq?1:0,always:can||lq?1:0,cls:(popB==='fl:'+id?'sel':'')+(built?'':' ruin')+(id==='lantern'&&s.lost?' bite':''),inner:id==='lantern'&&s.lost?'<i class="bang">!</i>':''})}
-  h+=shelfHS(W,H)+hallCacheHS(W,H);
+  h+=shelfHS(W,H)+hallCacheHS(W,H)+wolfHS(W,H);
   return h+fxCanvas('tw',W,H)+lightLayers(W,H,towerLights())}
 function towerLights(){const fire=[],win=[];const rc=id=>{const[x,y,w,hh]=twBox(id);return[x+w/2,y+hh/2]};
   if(floorBuilt('hall')&&s.on.hearth!==false){const[x0,y0,w,hh]=twBox('hall'),fw=fuL('hall')>=1?34:26;fire.push({x:x0+6+fw/2,y:y0+hh-6,r:46,e:.7,c:FIRE,n:4})}
