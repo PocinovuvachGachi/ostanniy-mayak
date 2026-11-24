@@ -908,3 +908,26 @@ body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .
 .dial.px .wedge{mix-blend-mode:screen}
 
 .ocard.empty{border:1px dashed rgba(200,180,140,.35);background:transparent;min-height:60px}
+/* v33: арена бою як сцена */
+.arf{border:12px solid transparent;border-image:var(--fr-stone) 4 / 12px round;box-shadow:0 6px 0 rgba(0,0,0,.4);background:#0b1418;width:100%;box-sizing:border-box}
+.arf.in{border-image:var(--fr-wood) 4 / 12px round}
+.arf .gwrap{max-width:none}
+.gwrap .arbg{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;z-index:0;max-width:none}
+.gwrap .hlt{position:absolute;z-index:1;aspect-ratio:1;transform:translate(-50%,-50%);pointer-events:none;border-radius:50%;background:radial-gradient(circle,rgba(255,206,120,.30),rgba(255,170,80,.12) 38%,rgba(255,150,60,0) 70%);mix-blend-mode:screen;transition:left .25s,top .25s}
+.grid.ar{gap:0;position:relative;z-index:2}
+.grid.ar button{position:relative;background:transparent!important;border:0;color:transparent}
+.grid.ar button.re{background:rgba(240,184,74,.05)!important;box-shadow:inset 0 0 0 1px rgba(240,184,74,.22)}
+.grid.ar button:hover:not(:disabled),.grid.ar button:focus-visible{filter:none;background:rgba(255,240,176,.16)!important;box-shadow:inset 0 0 0 2px #f0b84a;outline:none}
+.grid.ar .me,.grid.ar .fo,.grid.ar .al,.grid.ar .ob{border:0}
+.grid.ar .sel{outline:0}
+.grid.ar button img{scale:1.2;translate:0 -10%;z-index:2}
+.grid.ar .me::before,.grid.ar .fo::before,.grid.ar .al::before{content:"";position:absolute;left:20%;right:20%;bottom:4%;height:15%;border-radius:50%;background:rgba(0,0,0,.42);z-index:1;pointer-events:none}
+.grid.ar .me::before{background:rgba(240,184,74,.28);box-shadow:0 0 0 1px rgba(240,184,74,.75)}
+.grid.ar .sel::before{background:rgba(201,88,74,.35);box-shadow:0 0 0 2px #e06a5a}
+.grid.ar .eli::before{box-shadow:0 0 0 1px #f0b84a}
+.foes li{display:flex;gap:8px;align-items:flex-start}
+.foes li>div{min-width:0;flex:1}
+.foes .fimg{width:40px;height:40px;flex:none;image-rendering:pixelated;background:#16252e;border:2px solid #0b1418;box-shadow:0 0 0 1px var(--rule)}
+.foes li.on .fimg{box-shadow:0 0 0 2px var(--bad)}
+.fxq{position:absolute;left:0;top:0;pointer-events:none;box-shadow:0 0 0 1px rgba(11,20,24,.55)}
+@media (max-width:560px){.arf{margin-left:-10px;margin-right:-10px;width:calc(100% + 20px);max-width:none!important}}

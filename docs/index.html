@@ -922,6 +922,29 @@ body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .
 .dial.px .wedge{mix-blend-mode:screen}
 
 .ocard.empty{border:1px dashed rgba(200,180,140,.35);background:transparent;min-height:60px}
+/* v33: арена бою як сцена */
+.arf{border:12px solid transparent;border-image:var(--fr-stone) 4 / 12px round;box-shadow:0 6px 0 rgba(0,0,0,.4);background:#0b1418;width:100%;box-sizing:border-box}
+.arf.in{border-image:var(--fr-wood) 4 / 12px round}
+.arf .gwrap{max-width:none}
+.gwrap .arbg{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges;z-index:0;max-width:none}
+.gwrap .hlt{position:absolute;z-index:1;aspect-ratio:1;transform:translate(-50%,-50%);pointer-events:none;border-radius:50%;background:radial-gradient(circle,rgba(255,206,120,.30),rgba(255,170,80,.12) 38%,rgba(255,150,60,0) 70%);mix-blend-mode:screen;transition:left .25s,top .25s}
+.grid.ar{gap:0;position:relative;z-index:2}
+.grid.ar button{position:relative;background:transparent!important;border:0;color:transparent}
+.grid.ar button.re{background:rgba(240,184,74,.05)!important;box-shadow:inset 0 0 0 1px rgba(240,184,74,.22)}
+.grid.ar button:hover:not(:disabled),.grid.ar button:focus-visible{filter:none;background:rgba(255,240,176,.16)!important;box-shadow:inset 0 0 0 2px #f0b84a;outline:none}
+.grid.ar .me,.grid.ar .fo,.grid.ar .al,.grid.ar .ob{border:0}
+.grid.ar .sel{outline:0}
+.grid.ar button img{scale:1.2;translate:0 -10%;z-index:2}
+.grid.ar .me::before,.grid.ar .fo::before,.grid.ar .al::before{content:"";position:absolute;left:20%;right:20%;bottom:4%;height:15%;border-radius:50%;background:rgba(0,0,0,.42);z-index:1;pointer-events:none}
+.grid.ar .me::before{background:rgba(240,184,74,.28);box-shadow:0 0 0 1px rgba(240,184,74,.75)}
+.grid.ar .sel::before{background:rgba(201,88,74,.35);box-shadow:0 0 0 2px #e06a5a}
+.grid.ar .eli::before{box-shadow:0 0 0 1px #f0b84a}
+.foes li{display:flex;gap:8px;align-items:flex-start}
+.foes li>div{min-width:0;flex:1}
+.foes .fimg{width:40px;height:40px;flex:none;image-rendering:pixelated;background:#16252e;border:2px solid #0b1418;box-shadow:0 0 0 1px var(--rule)}
+.foes li.on .fimg{box-shadow:0 0 0 2px var(--bad)}
+.fxq{position:absolute;left:0;top:0;pointer-events:none;box-shadow:0 0 0 1px rgba(11,20,24,.55)}
+@media (max-width:560px){.arf{margin-left:-10px;margin-right:-10px;width:calc(100% + 20px);max-width:none!important}}
 </style>
 </head>
 <body>
@@ -3937,15 +3960,20 @@ function playFx(list){const wrap=$('gwrap'),lay=$('fxl');if(!wrap||!lay||!wrap.g
   const cell=(x,y)=>{const b=wrap.querySelector(`button[data-i="${x},${y}"]`);if(!b)return null;const r=b.getBoundingClientRect();return{b,x:r.left-wr.left+r.width/2,y:r.top-wr.top+r.height/2,w:r.width}};
   const tot=list.reduce((m,e)=>Math.max(m,e.at+(e.d||200)),0),k=tot>3200?3200/tot:1;
   const mk=(cls,html)=>{const el=document.createElement('div');el.className=cls;if(html)el.textContent=html;lay.appendChild(el);return el};
+  /* піксельні частинки: іскри від удару, кров героя, пил від промаху й смерті */
+  const burst=(c1,at,cols,n,sp,up)=>{const sz=Math.max(3,Math.round(c1.w/9));for(let i=0;i<n;i++){const el=mk('fxq');el.style.width=el.style.height=sz+'px';el.style.background=cols[i%cols.length];el.style.opacity='0';
+    const an=Math.random()*Math.PI*2,r=c1.w*(sp*.5+Math.random()*sp),dx=Math.cos(an)*r,dy=Math.sin(an)*r*.7-(up?c1.w*.25:0),x0=c1.x,y0=c1.y-c1.w*.15;
+    const a=el.animate([{opacity:1,transform:`translate(${x0}px,${y0}px)`},{opacity:1,transform:`translate(${x0+dx*.7}px,${y0+dy*.7}px)`,offset:.45},{opacity:0,transform:`translate(${x0+dx}px,${y0+dy+c1.w*.3}px)`}],{duration:380+Math.random()*220,delay:at,fill:'both',easing:'ease-out'});a.onfinish=()=>el.remove()}};
   for(const e of list){const at=e.at*k;
     if(e.t==='mv'){const c1=cell(e.x1,e.y1),c0=cell(e.x0,e.y0);if(!c1||!c0)continue;const im=c1.b.querySelector('img');if(im&&im.animate)im.animate([{transform:`translate(${c0.x-c1.x}px,${c0.y-c1.y}px)`},{transform:'none'}],{duration:(e.d||220)*k,delay:at,fill:'backwards',easing:'ease-in-out'})}
     else if(e.t==='bump'){const c0=cell(e.x0,e.y0),c1=cell(e.x1,e.y1);if(!c0||!c1)continue;const im=c0.b.querySelector('img');const dx=(c1.x-c0.x)*0.35,dy=(c1.y-c0.y)*0.35;if(im&&im.animate)im.animate([{transform:'none'},{transform:`translate(${dx}px,${dy}px)`},{transform:'none'}],{duration:200,delay:at,easing:'ease-out'})}
     else if(e.t==='txt'){const c1=cell(e.x,e.y);if(!c1)continue;const el=mk('fxn '+(e.k||''),e.v);el.style.opacity='0';const a=el.animate([{opacity:0,transform:`translate(${c1.x}px,${c1.y-c1.w*0.1}px) translate(-50%,-50%) scale(.7)`},{opacity:1,transform:`translate(${c1.x}px,${c1.y-c1.w*0.35}px) translate(-50%,-50%) scale(1.1)`,offset:.2},{opacity:0,transform:`translate(${c1.x}px,${c1.y-c1.w*1.1}px) translate(-50%,-50%)`}],{duration:950,delay:at,fill:'both'});a.onfinish=()=>el.remove();
+      if(e.k==='hurt')burst(c1,at,['#c9584a','#8f2f2b','#e3ebe6'],7,.45);else if(e.k==='hit')burst(c1,at,['#fff0b0','#f0b84a','#e3ebe6'],6,.45);else if(e.k==='crit')burst(c1,at,['#fff0b0','#ffa640','#e5662a','#ffffff'],11,.7);else if(e.k==='miss')burst(c1,at,['#b8ab8a','#968a6e'],4,.3,1);
       if(e.k==='hit'||e.k==='crit'||e.k==='hurt'){const im=c1.b.querySelector('img');if(im&&im.animate)im.animate([{transform:'none',filter:'brightness(2.4) saturate(.2)'},{transform:'translateX(-3px)',filter:'brightness(1.6)'},{transform:'translateX(3px)'},{transform:'none',filter:'none'}],{duration:260,delay:at})}}
     else if(e.t==='shot'){const c0=cell(e.x0,e.y0),c1=cell(e.x1,e.y1);if(!c0||!c1)continue;const el=mk('fxp'+(e.cold?' cold':''));el.style.opacity='0';const a=el.animate([{opacity:1,transform:`translate(${c0.x}px,${c0.y}px)`},{opacity:1,transform:`translate(${c1.x}px,${c1.y}px)`}],{duration:(e.d||170)*k,delay:at,fill:'backwards'});a.onfinish=()=>el.remove()}
     else if(e.t==='boom'){const c1=cell(e.x,e.y);if(!c1)continue;const r=c1.w*((e.r||1)+0.6)*2;const el=mk('fxb'+(e.cold?' cold':''));el.style.width=el.style.height=r+'px';el.style.opacity='0';
       const a=el.animate([{opacity:1,transform:`translate(${c1.x-r/2}px,${c1.y-r/2}px) scale(.15)`},{opacity:.9,transform:`translate(${c1.x-r/2}px,${c1.y-r/2}px) scale(.85)`,offset:.5},{opacity:0,transform:`translate(${c1.x-r/2}px,${c1.y-r/2}px) scale(1.05)`}],{duration:480,delay:at,fill:'both'});a.onfinish=()=>el.remove()}
-    else if(e.t==='die'){const c1=cell(e.x,e.y);if(!c1||c1.b.querySelector('img'))continue;const el=document.createElement('img');el.className='fxg';el.src=sprURL(e.spr);el.style.width=el.style.height=c1.w+'px';el.style.opacity='0';lay.appendChild(el);
+    else if(e.t==='die'){const c1=cell(e.x,e.y);if(!c1)continue;burst(c1,at+120,['#8c9097','#666a71','#b8ab8a','#4a4d54'],10,.55,1);if(c1.b.querySelector('img'))continue;const el=document.createElement('img');el.className='fxg';el.src=sprURL(e.spr);el.style.width=el.style.height=c1.w+'px';el.style.opacity='0';lay.appendChild(el);
       const a=el.animate([{opacity:1,transform:`translate(${c1.x-c1.w/2}px,${c1.y-c1.w/2}px)`},{opacity:1,transform:`translate(${c1.x-c1.w/2}px,${c1.y-c1.w/2}px) rotate(-8deg)`,offset:.3},{opacity:0,transform:`translate(${c1.x-c1.w/2}px,${c1.y-c1.w/2+8}px) rotate(-90deg) scale(.6)`}],{duration:620,delay:at+120,fill:'both'});a.onfinish=()=>el.remove()}
     else if(e.t==='appear'){const c1=cell(e.x,e.y);if(!c1)continue;const im=c1.b.querySelector('img');if(im&&im.animate)im.animate([{opacity:0,transform:'translateY(6px) scale(.7)'},{opacity:1,transform:'none'}],{duration:380,delay:at,fill:'backwards'})}}}
 let B={},bn=0;
@@ -4296,7 +4324,7 @@ function rCombat(){const c=s.cb;setGrid(c);const u0=selU(),hv=heavyAP(),fl=AFL[c
       return`<b>${T.n}</b><br>Здоров’я ${u.hp}/${u.max}, броня ${Math.max(0,uArm(u)-(u.armDown||0))}, ухилення ${evaOf(u)}%${u.el?`<br><b>Ветеран: ${ELITE[u.el].n}</b> (${ELITE[u.el].d})`:''}${u.role?`<br>${u.role==='thief'?(u.loot?'Несе награбоване!':'Лізе до складу по припаси.'):'Хоче ламати будівлі.'}`:''}${T.thorns?'<br>Колючий: удар упритул ранить і тебе.':''}${T.burst?'<br>Помираючи, вибухає холодом.':''}${T.fly?', літає':''}${T.swim?', плаває':''}.<br>${intentTxt(u)}.<br>Відстань ${d}. ${inReach(u)?`Удар влучить на ${meleeCh(u)}%`:'Задалеко для удару'}${s.eq.ranged?(canShoot(u)?`, постріл — на ${shotCh(u)}%`:', пострілом не дістати'):''}.${sts.length?`<br>Стан: ${sts.join(', ')}.`:''}`}
     const cvx=shooters.length&&!solid(t)?coverAt(x,y):-2;
     return(TT[t]||TT['.'])+(c.fire&&c.fire.some(q=>q.x===x&&q.y===y)?'<br><b>Горить!</b> Хто стоїть тут наприкінці ходу ворогів, отримує 3 урону.':'')+(cvx===-1?'<br>Звідси тебе не побачить жоден стрілець: огляд закриває перешкода.':cvx===-3?'<br>Стрільці сюди не дістануть.':cvx>0?`<br>Укриття від стрільців: −${cvx}%.`:cvx===0?'<br>Тут ти відкритий для пострілу.':'')+(c.traps.some(q=>q.x===x&&q.y===y)?'<br>Тут твій капкан.':'')+(solid(t)?'':D[y][x]<=c.ap?`<br>Дійдеш за ${D[y][x]} ОД.`:'<br>Цього ходу не дійдеш.')};
-  const reachMap=costMap(c,c.hx,c.hy,'walk');const isTrap=(x,y)=>c.traps.some(t=>t.x===x&&t.y===y);let g='';const usePx=!!tileURL('floor',fl);
+  const reachMap=costMap(c,c.hx,c.hy,'walk');const isTrap=(x,y)=>c.traps.some(t=>t.x===x&&t.y===y);let g='';const usePx=!!tileURL('floor',fl),arU=usePx?arenaURL(c):'';
   for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){const t=tileAt(c.a,x,y),u=unitAt(c,x,y),me=c.hx===x&&c.hy===y;let ch='·',cls='',lab='',spr='';
     if(me){ch='@';cls='me'+(c.hidden?' hidme':'');lab='Ти';spr='hero'}
     else if(u&&u.hid){}
@@ -4307,7 +4335,7 @@ function rCombat(){const c=s.cb;setGrid(c);const u0=selU(),hv=heavyAP(),fl=AFL[c
     else if(t==='E'){ch='<';cls='ex';lab='Вихід'}
     if(t==='f')cls+=' fogc';if(c.fire&&c.fire.some(q=>q.x===x&&q.y===y))cls+=' firec';if(me&&c.smoke)cls+=' smk';
     if(c.mode){if(cellOk(c.mode,x,y))cls+=' re'}else if(!u&&!me&&!solid(t)&&reachMap[y][x]<=c.ap)cls+=' re';if(!u&&!me&&isTrap(x,y)){spr='trap';if(!usePx)ch='^'}
-    const tk=t==='#'&&INDOOR[c.a]?'wall':(TK[t]||'floor');const bg=usePx?` style="background-image:url(${tileURL(tk,fl)})"`:'';
+    const tk=t==='#'&&INDOOR[c.a]?'wall':(TK[t]||'floor');const bg=usePx&&!arU?` style="background-image:url(${tileURL(tk,fl)})"`:'';
     const inner=usePx?(spr?`<img class="px" src="${spr==='hero'?heroURL(s.eq):sprURL(spr)}" alt="">`:''):esc(ch);
     g+=`<button type="button" class="${cls.trim()}" data-a="c_cell" data-i="${x},${y}" aria-label="${lab||'Клітинка'} ${x+1}, ${y+1}" ${TA(cellTip(x,y,t,u,me,reachMap))}${bg}>${inner}</button>`}
   const pad=[[-1,-1,'↖'],[0,-1,'↑'],[1,-1,'↗'],[-1,0,'←'],[0,0,''],[1,0,'→'],[-1,1,'↙'],[0,1,'↓'],[1,1,'↘']].map(([dx,dy,a])=>dx||dy?btn(a,'c_mv',`${dx},${dy}`,{lab:'Крок'}):btn('кінець','c_end','',{lab:'Завершити хід',cls:'toggle'})).join('');
@@ -4324,15 +4352,15 @@ const inR=u0&&inReach(u0),cv=u0?cover(c,c.hx,c.hy,u0.x,u0.y):0;
   for(const u of c.u){if(u.hp<=0||isObj(u)||u.hid||EN[u.t].ally)continue;const L=[];if(u.ward)L.push('stance');if(uStance(u))L.push('stance');if(u.stun)L.push('stun');if(u.bleed)L.push('bleed');if(u.burn)L.push('burn');if(u.pin)L.push('pin');if(u.weak)L.push('weak');if(u.wind)L.push('wind');if(u.aimed)L.push('aim');if(u.veil)L.push('veil');if(u.armDown)L.push('armd');
     if(L.length)marks+=`<span class="stis" style="left:${u.x/GW*100}%;top:${u.y/GH*100}%;width:${100/GW}%">${L.slice(0,4).map(k=>`<img src="${stiURL(k)}" alt="">`).join('')}</span>`}
   const gst=`grid-template-columns:repeat(${GW},minmax(0,1fr))`,gw=Math.round(38.2*GW);
-  let h=`<section><h2>Бій${c.round?` <span class="m">· хід ${c.round+1}</span>`:''}</h2><div class="tac${GW>11?' wide':''}"><div><div class="gwrap" id="gwrap" style="max-width:${gw}px"><div class="grid${usePx?' px':''}" style="${gst}">${g}</div><svg class="gfx" viewBox="0 0 ${GW*10} ${GH*10}" preserveAspectRatio="none" aria-hidden="true">${lines}</svg>${marks}<div class="fxl" id="fxl"></div></div>
-  ${s.legOpen?`<p class="legend">Червона лінія — хто вистрілить у тебе наприкінці ходу, жовта — хто цілиться, зелена — твій постріл. Щити на клітинках: зелений — там тебе не побачить жоден стрілець, жовтий — укриття. Синій щит на тобі — захисна стійка. Туман закриває огляд, вогонь обпікає. Наведи курсор на клітинку чи ворога (на телефоні — затримай палець), щоб побачити підказку. Скеля ховає повністю; ящики дають пів-укриття; вода — крок за 2 ОД; стрілки зліва — вихід. Бочка з олією вибухає від удару. Жовта рамка: куди дійдеш цього ходу. Дії — іконки праворуч: наведи на іконку (на телефоні затримай палець), щоб прочитати, що вона робить і скільки коштує.</p>`:''}<div class="pad" aria-label="Рух">${pad}</div>
+  let h=`<section><h2>Бій${c.round?` <span class="m">· хід ${c.round+1}</span>`:''}</h2><div class="tac${GW>11?' wide':''}"><div><div class="arf${arenaIn(c.a)?' in':''}" style="max-width:${gw+24}px"><div class="gwrap" id="gwrap">${arU?`<img class="arbg" src="${arU}" alt=""><div class="hlt" style="${PP(c.hx,c.hy)};width:${(arenaIn(c.a)||GR!=='y'?560:300)/GW}%"></div>`:''}<div class="grid${usePx?' px':''}${arU?' ar':''}" style="${gst}">${g}</div><svg class="gfx" viewBox="0 0 ${GW*10} ${GH*10}" preserveAspectRatio="none" aria-hidden="true">${lines}</svg>${marks}<div class="fxl" id="fxl"></div></div></div>
+  ${s.legOpen?`<p class="legend">Червона лінія — хто вистрілить у тебе наприкінці ходу, жовта — хто цілиться, зелена — твій постріл. Щити на клітинках: зелений — там тебе не побачить жоден стрілець, жовтий — укриття. Синій щит на тобі — захисна стійка. Туман закриває огляд, вогонь обпікає. Наведи курсор на клітинку чи ворога (на телефоні — затримай палець), щоб побачити підказку. Скеля ховає повністю; ящики дають пів-укриття; вода — крок за 2 ОД; стрілки зліва — вихід. Бочка з олією вибухає від удару. Жовта рамка: куди дійдеш цього ходу. Дії — іконки праворуч: наведи на іконку (на телефоні затримай палець), щоб прочитати, що вона робить і скільки коштує.</p>`:''}${arU?'':`<div class="pad" aria-label="Рух">${pad}</div>`}
   <ul class="clog" aria-live="polite">${c.log.map(x=>`<li>${x}</li>`).join('')}</ul></div><div>
   <p class="m">Здоров’я ${Math.max(0,Math.ceil(s.h.hp))} / ${maxHP()}, броня ${armor()}</p><div class="bar"><i style="width:${Math.max(0,s.h.hp/maxHP()*100)}%"></i></div>
   <p class="ap" aria-label="Очки дії: ${c.ap}">${'●'.repeat(c.ap)}${'○'.repeat(Math.max(0,maxAP()-c.ap))}</p>
   ${c.win==='raid'?'<p class="m"><b>Оборона маяка.</b> Захисти склад і будівлі: злодії тягнуть припаси до води праворуч, руйнівники ламають будівлі. Поруч із пошкодженою будівлею її можна полагодити.</p>':''}
   ${c.u.some(u=>EN[u.t].ally&&u.hp>0)?`<p class="m">Союзники: ${c.u.filter(u=>EN[u.t].ally&&u.hp>0).map(u=>`ополченець ${u.hp}/${u.max}`).join(', ')}.</p>`:''}
   <p class="m">${[c.hidden?'<b>Ти в тіні:</b> тебе не бачать, наступний удар критичний.':'',c.poison?`Отруєний: −2 здоров’я ще ${c.poison} х.`:'',c.smoke?'У диму: постріли ворогів мимо.':'',c.guard?`Захисна стійка: зблизька −${guardPct(1)}%, здалеку −${guardPct(0)}%.`:'',c.sand?'Засліплений: влучність −30%.':'',cv?`Укриття від цілі: її постріли −${cv}%.`:''].filter(Boolean).join(' ')||'Натисни на ворога, щоб вибрати ціль, і ще раз, щоб атакувати. На клітинку — щоб піти туди.'}</p>
-  <ul class="foes">${c.u.map((u,ix)=>u.hp>0&&!isObj(u)&&!EN[u.t].ally&&!u.hid?`<li ${TA(`<b>${EN[u.t].n}</b><br>${EN[u.t].d}`)}>${btn(EN[u.t].n+(u.el?' ★':''),'c_sel',ix,{cls:u===u0?'on':''})}${u.el?`<span class="elchip">${ELITE[u.el].n}</span>`:''}${u.role?`<span class="habit">${u.role==='thief'?(u.loot?'несе здобич':'злодій'):'руйнівник'}</span>`:''}<span class="m">${u.hp}/${u.max}</span>${[u.armDown?`броня −${u.armDown}`:'',u.burn?'горить':'',u.bleed?'кровотеча':'',u.stun?'оглушений':'',u.pin?'притиснутий':'',u.weak?'вагається':'',u.wind?'замахнувся':'',u.veil?'у тумані':'',u.ward?'під щитом':''].filter(Boolean).map(x=>`<span class="habit">${x}</span>`).join('')}<br><span class="m">${intentTxt(u)}</span></li>`:'').join('')}</ul>`;
+  <ul class="foes">${c.u.map((u,ix)=>u.hp>0&&!isObj(u)&&!EN[u.t].ally&&!u.hid?`<li class="${u===u0?'on':''}" ${TA(`<b>${EN[u.t].n}</b><br>${EN[u.t].d}`)}>${usePx?`<img class="fimg" src="${sprURL(u.t)}" alt="">`:''}<div>${btn(EN[u.t].n+(u.el?' ★':''),'c_sel',ix,{cls:u===u0?'on':''})}${u.el?`<span class="elchip">${ELITE[u.el].n}</span>`:''}${u.role?`<span class="habit">${u.role==='thief'?(u.loot?'несе здобич':'злодій'):'руйнівник'}</span>`:''}<span class="m">${u.hp}/${u.max}</span>${[u.armDown?`броня −${u.armDown}`:'',u.burn?'горить':'',u.bleed?'кровотеча':'',u.stun?'оглушений':'',u.pin?'притиснутий':'',u.weak?'вагається':'',u.wind?'замахнувся':'',u.veil?'у тумані':'',u.ward?'під щитом':''].filter(Boolean).map(x=>`<span class="habit">${x}</span>`).join('')}<br><span class="m">${intentTxt(u)}</span></div></li>`:'').join('')}</ul>`;
   const trs=w=>w&&WT[w]?U([WT[w].tr,...WF[w].slice(0,wF(w)).map(f=>f.tr)].join(' ')):'';
   const tip=(n,ap,L,w)=>`<b>${n}</b>${ap?` <span class="tap">· ${ap} ОД</span>`:''}${L.filter(Boolean).map(x=>'<br>'+x).join('')}${w?`<span class="twhy">${w}</span>`:''}`;
   const d0=u0?dist(c.hx,c.hy,u0.x,u0.y):0,noT='Спершу обери ціль: натисни на ворога на полі.',noAP='Не вистачає очок дії.';
@@ -4396,7 +4424,7 @@ function render(){B={};bn=0;
     if(s.tab==='map')markSeen('map',s.at?'a:'+s.at+'.':'L:');else if(s.tab!=='hero')markSeen(s.tab);if(s.newTab[s.tab])delete s.newTab[s.tab]}
   try{if(!texInit){texInit=1;const rs=document.documentElement.style;for(const k of['stone','sand','plank','board','paper','slate','ruled','roll']){const u=pxURL('tx:'+k,()=>texBuf(k));if(u)rs.setProperty('--tx-'+k,`url(${u})`)}}
     if(!texInit2){texInit2=1;const rs=document.documentElement.style;for(const k of['wood','drift','stone','paper','slate']){const u=pxURL('fr:'+k,()=>frameBuf(k));if(u)rs.setProperty('--fr-'+k,`url(${u})`)}}
-    const th=s.cb?'':['home','tower','work','study','hero','folk','trade','chron','journal'].includes(s.tab)||s.tab==='map'?'th-home':s.tab==='shore'?'th-shore':'';document.body.classList.toggle('th-home',th==='th-home');document.body.classList.toggle('th-shore',th==='th-shore')}catch(e){}
+    const th=s.cb?'th-home':['home','tower','work','study','hero','folk','trade','chron','journal'].includes(s.tab)||s.tab==='map'?'th-home':s.tab==='shore'?'th-shore':'';document.body.classList.toggle('th-home',th==='th-home');document.body.classList.toggle('th-shore',th==='th-shore')}catch(e){}
   hideTip();const mn=$('main');const vw0=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:''),same0=vw0===lastView&&!s.cb,xs=same0?xSnap(mn):null,as0=same0?aSnap(mn):null;let tlx=null;try{const q=same0&&mn.querySelector('.chr-tl');if(q)tlx=q.scrollLeft>=q.scrollWidth-q.clientWidth-4?-1:q.scrollLeft}catch(e){}patchStage(s.cb?'':s.tab==='home'?homeScene():s.tab==='shore'?shoreScene():s.tab==='tower'?towerScene():s.tab==='work'?workScene():s.tab==='study'?studyScene():s.tab==='map'?(s.at?locScene():mapScene()):s.tab==='hero'?heroScene():s.tab==='folk'?folkScene():s.tab==='trade'?tradeScene():'');zoomRun();mn.innerHTML=h;if(tlx!==null){try{const q=mn.querySelector('.chr-tl');if(q)q.scrollLeft=tlx<0?q.scrollWidth:tlx}catch(e){}}glossify(mn);rDlg();if(xs)xFade(mn,xs,1);if(as0)aMark(mn,as0);
   const view=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:'');const prevView=lastView;if(view!==lastView&&mn.classList&&!RM()){for(const e of[mn,$('stage')]){if(!e||!e.classList)continue;e.classList.remove('tin');void e.offsetWidth;e.classList.add('tin')}}lastView=view;
   placePop();
@@ -4488,6 +4516,74 @@ function bpDlg(L){dlg({k:'plan',title:L.length>1?'Нові креслення':`
   body:L.map(b=>`<div class="bp"><div class="bp-i">${pimg(icoURL(BIC[b.id]||'crate'),64,64,'')}</div><div class="bp-t"><span class="bpn">${b.n}</span><p>${BSRC[b.id]||''}</p><span class="ccs" ${TA(typeof b.d==='function'?b.d():b.d||'')}>${costChips(bCost(b))}</span></div></div>`).join(''),
   btns:[['До вогнища','dlggo','home'],['Згорнути','dlgok']]})}
 
+/* ============ АРЕНА БОЮ ЯК СЦЕНА ============
+   Замість сітки однакових кахлів — одна картинка місця в стилі сцен: пісок плямами, дошки трюму, плити,
+   валуни з тінню, вода з глибиною й піною, рамка й притемнені краї. Клітинки поверх неї прозорі:
+   видно лише, куди можна піти й кого вдарити. Надворі арена тоне в синяві ночі, як і сцени (градація GR);
+   усередині (трюм, печера) — завжди напівтемрява, а світло несе герой. */
+const ARK={shore:{fl:'sand'},pools:{fl:'sand'},rack:{fl:'sand'},shoal:{fl:'sand'},spit:{fl:'sand',lt:1},isle:{fl:'sand'},shoreL:{fl:'sand'},
+  yardA:{fl:'sand',col0:'brick'},bay:{fl:'mud'},hold:{fl:'plank',wall:'hull',in:1},store:{fl:'plank',wall:'barn',in:1},
+  cave:{fl:'rock',wall:'cave',in:1},mine:{fl:'rock',wall:'cave',in:1},tower:{fl:'flag',wall:'brick',in:1},
+  monastery:{fl:'flag',wall:'arch'},guard:{fl:'flag'},cliff:{fl:'heath'},fort:{fl:'heath'},bog:{fl:'bog'},heartL:{fl:'ice'},heartA:{fl:'ice'}};
+const ARDK={N:'M',M:'L',L:'D',O:'N',u:'U',U:'T',T:'S',S:'R',R:'Q',Q:'P',P:'B',H:'G',G:'F',F:'E',E:'D',D:'x',Z:'s',r:'Z',s:'x',k:'s',l:'k',
+  Y:'X',X:'W',W:'V',V:'x',o:'(',')':'o','(':'x',q:'p',p:'z',z:'D',C:'B',B:'A',A:'x',x:'x',8:'x',9:'8',a:'9',b:'a',c:'V',d:'c',e:'d',i:'t',t:'x',w:'v',v:'t'};
+const arLt=c=>({M:'N',N:'O',L:'M',D:'E',E:'F',F:'G',G:'H',s:'Z',Z:'r',V:'W',W:'X',X:'Y',k:'l',p:'q',q:'H'}[c]||c);
+const arDk=(c,n)=>{for(let k=0;k<(n||1);k++)c=ARDK[c]||c;return c};
+/* підлога: колір у точці (x,y) арени */
+function arFloor(fl,x,y,wet){
+  if(fl==='sand'||fl==='mud'){const c=sandC(x,y,fl==='mud'?'L':wet?'M':'N');if(fl==='mud'){const v=vnz(x,y,9,41);if(v>.66)return v>.76?'D':'L'}return c}
+  if(fl==='plank'){const row=Math.floor(y/5),sx=(row*37)%23,jt=((x+sx)%29===0);if(y%5===4||jt)return'V';if(jt||((x+sx)%29===1&&y%5===1))return'x';return woodC(x,y,WD,.44+(hh2(row,Math.floor((x+sx)/29))-.5)*.16,row)}
+  if(fl==='rock'){const v=vnz(x,y,7,13)*.7+vnz(x,y,3,5)*.3;if(hh2(x,y)<.02)return'G';return v<.35?'D':v<.62?'E':'F'}
+  if(fl==='flag'){const r=Math.floor(y/7),ox=(r%2)*5,cx=Math.floor((x+ox)/10);if(y%7===6||(x+ox)%10===9)return'D';const t=hh2(cx,r);if(hh2(x,y)<.04)return'E';return t<.3?'E':t<.8?'F':'G'}
+  if(fl==='heath'){const v=vnz(x,y,8,7);if(v>.72)return hh2(x,y)<.35?')':'o';if(hh2(x,y)<.03)return'F';return v<.3?'s':v<.55?'Z':'r'}
+  if(fl==='bog'){const v=vnz(x,y,6,17);if(v>.74)return hh2(x,y)<.4?'Q':'P';return v<.35?'s':v<.6?'Z':hh2(x,y)<.15?'l':'k'}
+  if(fl==='ice'){const v=vnz(x,y,10,29);if(hh2(x>>1,y)<.012)return'F';return v<.3?'p':v<.65?'q':'H'}
+  return'N'}
+/* відстань від клітинки до суходолу (для глибини води) */
+function arDepth(m){const H=m.length,W=m[0].length,D=m.map(r=>[...r].map(t=>t==='~'?99:0));let ch=1;while(ch){ch=0;for(let y=0;y<H;y++)for(let x=0;x<W;x++){if(D[y][x]===0)continue;let v=99;
+  for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){const yy=y+dy,xx=x+dx;if(yy<0||yy>=H||xx<0||xx>=W)continue;v=Math.min(v,D[yy][xx]+1)}if(v<D[y][x]){D[y][x]=v;ch=1}}}return D}
+function arenaBuf(a,m){const K=ARK[a]||{fl:AFL[a]||'sand'},H=m.length,W=m[0].length,C=16,b=pbuf(W*C,H*C),PW=W*C,PH=H*C,fl=K.fl,ind=!!K.in;
+  const T=(x,y)=>x<0||y<0||x>=W||y>=H?'#':m[y][x],DP=arDepth(m),wallish=(x,y)=>T(x,y)==='#'&&ind&&(x===0||y===0||x===W-1||y===H-1);
+  /* 1. підлога й вода */
+  for(let y=0;y<PH;y++)for(let x=0;x<PW;x++){const cx=Math.floor(x/C),cy=Math.floor(y/C),t=T(cx,cy);
+    if(t==='~'){const fx=x%C,fy=y%C;let near=99;for(const[dx,dy,dd]of[[1,0,C-fx],[-1,0,fx+1],[0,1,C-fy],[0,-1,fy+1]]){const n=T(cx+dx,cy+dy);if(n!=='~'&&n!=='#'||(n==='#'&&!ind&&cx+dx>=0&&cy+dy>=0&&cx+dx<W&&cy+dy<H))near=Math.min(near,dd)}
+      const dep=Math.min(3,DP[cy][cx]-1+(near<99?0:.5)),R=fl==='ice'?['C','B','A','A']:['S','R','Q','P'],w=vnz(x,y*2.2,9,3);
+      let c=R[Math.max(0,Math.min(3,Math.floor(dep+(w-.5)*.8)))];if(near<=2&&hh2(x,y)<.7-near*.25)c='u';else if(near<=4&&bay(x,y)<.35)c=fl==='ice'?'G':'T';
+      else if(w>.7&&(y%4===0)&&hh2(x>>2,y)<.5)c=fl==='ice'?'C':'T';pset(b,x,y,c);continue}
+    let wet=0;if(fl==='sand'){for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]])if(T(cx+dx,cy+dy)==='~'){const fx=x%C,fy=y%C,dd=dx>0?C-fx:dx<0?fx+1:dy>0?C-fy:fy+1;if(dd<=5)wet=1}}
+    pset(b,x,y,arFloor(fl,x,y,wet))}
+  /* 2. вихід: стежка й світлі стрілки */
+  for(let cy=0;cy<H;cy++)for(let cx=0;cx<W;cx++)if(T(cx,cy)==='E'){const x0=cx*C,y0=cy*C;for(let y=2;y<C-2;y++)for(let x=0;x<C;x++)if(hh2(x0+x,y0+y)<.45)pset(b,x0+x,y0+y,arLt(pget(b,x0+x,y0+y)));
+    for(const o of[3,8])for(let i=0;i<4;i++){pset(b,x0+o+i,y0+4+i,'u');pset(b,x0+o+i,y0+11-i,'u')}}
+  /* 3. тіні від валунів і ящиків */
+  for(let cy=0;cy<H;cy++)for(let cx=0;cx<W;cx++){const t=T(cx,cy);if((t!=='#'||wallish(cx,cy))&&t!=='+')continue;const x0=cx*C+4,y0=cy*C+9;
+    for(let y=0;y<10;y++)for(let x=0;x<16;x++){if(((x-8)/8)**2+((y-5)/4.2)**2>1)continue;const px=x0+x,py=y0+y;if(px>=PW||py>=PH)continue;const tt=T(Math.floor(px/C),Math.floor(py/C));if(tt==='~'||tt==='#')continue;if(bay(px,py)<.7)pset(b,px,py,arDk(pget(b,px,py)))}}
+  /* 4. стіни, валуни, колони, ящики */
+  for(let cy=0;cy<H;cy++)for(let cx=0;cx<W;cx++){const t=T(cx,cy),x0=cx*C,y0=cy*C;
+    if(t==='#'&&(wallish(cx,cy)||(K.col0&&cx===0))){const wt=K.col0&&cx===0?K.col0:K.wall;const lip=T(cx,cy+1)!=='#'&&cy<H-1;
+      for(let y=0;y<C;y++)for(let x=0;x<C;x++){const X=x0+x,Y=y0+y;let c;
+        if(wt==='hull'){c=(Y%5===4)?'x':woodC(X,Y,WD,.28+(hh2(Math.floor(Y/5),Math.floor(X/23))-.5)*.14,7);const rb=X%16;if(rb>=6&&rb<9)c=rb===6?'X':rb===8?'x':'W'}
+        else if(wt==='barn'){const k=X%7;c=k===6?'V':k===0?'Y':hh2(X>>1,Y>>2)<.04?'W':'X';if(Y%24===20||Y%24===21)c=Y%24===20?'Y':'V'}
+        else if(wt==='brick'){const r=Math.floor(Y/5),o=(r%2)*4;c=(Y%5===4||(X+o)%8===7)?'D':hh2(Math.floor((X+o)/8),r)<.5?'E':'F'}
+        else{const v=vnz(X*.7,Y*1.5,5,23)*.65+vnz(X,Y,1.8,11)*.35;c=v<.28?'x':v<.62?'D':v<.8?'E':'F'}
+        if(lip&&y>=C-3)c=y===C-1?'x':(wt==='hull'||wt==='barn'?(y===C-3?'Y':'X'):wt==='brick'?'F':hh2(X,Y)<.5?'E':'F');
+        pset(b,X,Y,c)}continue}
+    if(t==='#'){const pillar=ind||K.wall==='arch';const rk=fl==='rock'||fl==='flag'||fl==='ice'?'G':'H';
+      if(pillar&&(K.wall==='hull'||K.wall==='barn')){prect(b,x0+5,y0,6,C,'W');prect(b,x0+5,y0,2,C,'X');prect(b,x0+10,y0,1,C,'V');prect(b,x0+3,y0+C-3,10,3,'V');continue}
+      if(pillar&&K.wall==='arch'){prect(b,x0+3,y0+1,10,C-1,'F');prect(b,x0+3,y0+1,3,C-1,'G');prect(b,x0+11,y0+1,2,C-1,'E');prect(b,x0+2,y0,12,2,'G');prect(b,x0+2,y0+C-2,12,2,'E');continue}
+      for(let y=-4;y<C;y++)for(let x=0;x<C;x++){const X=x0+x,Y=y0+y;if(Y<0)continue;const nx=(x-7.5)/7.4,ny=(y-7)/(8.2+hh2(cx,cy)*1.5),r=nx*nx+ny*ny+(vnz(X,Y,3,cx*7+cy)-.5)*.35;if(r>1)continue;
+        const l=-nx*.6-ny*.8+(vnz(X,Y,2,51)-.5)*.5;let c=l>.55?rk:l>.05?'F':l>-.45?'E':'D';if(r>.86)c='x';else if(fl==='heath'&&ny<-.3&&vnz(X,Y,2.5,3)>.62)c=hh2(X,Y)<.5?'r':'Z';else if(fl==='sand'&&ny>.35&&hh2(X,Y)<.08)c='u';pset(b,X,Y,c)}continue}
+    if(t==='+'){const kind=ind||fl==='sand'||fl==='mud'?(hh2(cx,cy)<.5?'crate':'barrel'):fl==='bog'?'stump':'pile';
+      if(kind==='crate'){for(let y=0;y<C;y++)for(let x=1;x<C-1;x++){const X=x0+x,Y=y0+y;let c=y<5?(hh2(X,Y)<.15?'X':'Y'):(y%4===1?'W':'X');if(x===1||x===C-2||y===0||y===C-1)c='x';else if(y===5)c='V';else if(y>5&&(x===2||x===C-3))c='W';else if(y>5&&(x===7||x===8))c='V';pset(b,X,Y,c)}pset(b,x0+3,y0+7,'G');pset(b,x0+12,y0+7,'G')}
+      else if(kind==='barrel'){for(let y=0;y<C;y++)for(let x=2;x<C-2;x++){const X=x0+x,Y=y0+y,nx=(x-7.5)/5.4,lim=1-(y<2||y>C-3?.22:0);if(Math.abs(nx)>lim)continue;let c=Math.abs(nx)>lim-.2||y===0||y===C-1?'x':y<4?(Math.abs(nx)<.55?'X':'W'):nx<-.45?'Y':nx<.35?'X':'W';if((y===5||y===C-4)&&c!=='x')c='G';pset(b,X,Y,c)}}
+      else if(kind==='stump'){for(let y=3;y<C-1;y++)for(let x=3;x<C-3;x++){const nx=(x-7.5)/4.5;if(Math.abs(nx)>1)continue;pset(b,x0+x,y0+y,y<6?(Math.hypot(x-7.5,y-4.5)<1.5?'X':'Y'):nx<0?'W':'V')}pline(b,x0+2,y0+C-2,x0+13,y0+C-2,'Z')}
+      else for(const[ox,oy,r]of[[5,10,4],[11,10,3.6],[8,6,3.6]])for(let y=-4;y<5;y++)for(let x=-5;x<5;x++){if((x/r)**2+(y/(r*.8))**2>1)continue;const l=-x*.5-y*.8;pset(b,x0+ox+x,y0+oy+y,l>1.5?'G':l>-1?'F':'E')}}}
+  /* 5. притемнені краї (усередині — сильніше) */
+  for(let y=0;y<PH;y++)for(let x=0;x<PW;x++){if(wallish(Math.floor(x/C),Math.floor(y/C)))continue;const e=Math.min(x,y,PW-1-x,PH-1-y)-(ind?C:0),R=ind?14:12;if(e>=R)continue;const f=Math.max(0,1-Math.max(0,e)/R)*(ind?.8:.7);
+    if(bay(x,y)<f)pset(b,x,y,arDk(pget(b,x,y),f>.75?2:1))}
+  if(ind)b.ng=1;else b.k=SK;return b}
+const arenaURL=c=>{const m=(c&&c.map)||ARENA[c.a];return pxURL('ar3:'+c.a+':'+m.join('/'),()=>arenaBuf(c.a,m))};
+const arenaIn=a=>!!(ARK[a]&&ARK[a].in);
 /* ============ ГЕРОЙ: розворот щоденника хранителя ============
    Ліва сторінка — портрет і вбрання на ляльці (слоти — об'єкти з картками). Права — записи: рівень, здоров'я, досвід,
    удар, броня; унизу мотузка з вузлами-талантами. На столі — свічка й миска з їжею. */

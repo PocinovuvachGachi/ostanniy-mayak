@@ -224,6 +224,19 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await p.close();
   }
 
+  // 13. Бій: арена — одна картинка-сцена, клітинки прозорі, хід натисканням, без горизонтальної прокрутки
+  for (const w of [390, 900]) {
+    const p = await page(w, 844);
+    const r = await p.evaluate(() => {
+      s.f.looked = 1; s.dlg = []; s.tabs.hero = 1; s.h.on = 1; s.eq.weapon = 'oar'; startFight('hold', 'x'); s.cb.intro = 0; render();
+      const bg = document.querySelector('.arf .arbg'), x0 = s.cb.hx, y0 = s.cb.hy;
+      act('c_cell', (x0 + 1) + ',' + y0); render();
+      return [!!(bg && bg.src.startsWith('data:image')), !document.querySelector('.pad'), s.cb.hx === x0 + 1, document.documentElement.scrollWidth - innerWidth];
+    });
+    A(r[0] && r[1] && r[2] && r[3] <= 0, 'арена бою ' + w + ': ' + JSON.stringify(r));
+    await p.close();
+  }
+
   for (const e of errs) A(0, 'помилка в консолі: ' + e);
   await b.close();
   console.log('fails', fails);
