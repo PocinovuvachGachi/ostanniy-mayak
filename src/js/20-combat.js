@@ -44,7 +44,7 @@ function startFight(encId,win){const E0=ENC[encId];
   const foes=u.filter(x=>!EN[x.t].obj&&!EN[x.t].ally);
   s.cb={enc:encId,a:E0.a,map:ARENA[E0.a].slice(),round:0,fire:[],fx:[],fxt:0,hx:E0.h[0],hy:E0.h[1],u,ap:maxAP()+(s.h.ft.shadow?2:0),guard:0,sand:0,wrap:0,breath:0,sel:u.indexOf(foes[0]),win,boss:!!E0.boss,cds:{},traps:[],mode:'',mult,sn,wmg:{},
     title:win==='raid'?'Набіг Мли':win==='crab1'?'Перша сутичка':win&&win.indexOf('S:')===0?SHF[win.slice(2)].n:(win&&win.indexOf('L:')===0?(()=>{const id=win.slice(2);return`${LOC[id.split('.')[0]].n}`})():'Бій'),
-    log:[`${foes.filter(x=>!x.hid).map(x=>E(EN[x.t].n)).join(', ')} — бій починається!${s.h.ft.shadow?' Ти діяв першим: +2 ОД.':''}${E0.waves?' Схоже, вони тут не самі.':''}${E0.tide?' Вода прибуває.':''}${foes.some(x=>x.el)?' Серед них є ветерани.':''}`]};setGrid(s.cb);wolfJoin(s.cb);
+    log:[`${foes.filter(x=>!x.hid).map(x=>E(EN[x.t].n)).join(', ')} — бій починається!${s.h.ft.shadow?' Ти діяв першим: +2 ОД.':''}${E0.waves?' Схоже, вони тут не самі.':''}${E0.tide?' Вода прибуває.':''}${foes.some(x=>x.el)?' Серед них є ветерани.':''}`]};setGrid(s.cb);wolfJoin(s.cb);if((s.h.buf||{}).full>0){s.h.buf.full--;s.cb.ap++;s.cb.log.push('Ти ситий: +1 очко дії.')}
   if(E0.palis)s.cb.map=s.cb.map.map((r,y)=>r.split('').map((ch,x)=>E0.palis.some(q=>q[0]===x&&q[1]===y)&&ch==='.'?'+':ch).join(''));
   if(E0.traps)s.cb.traps=E0.traps.map(([x,y])=>({x,y}));if(E0.bell)s.cb.ap+=2;
   if(st('stealth')>=2&&Math.random()<0.06*st('stealth')){s.cb.hidden=1;cbLog('Ти підкрався непомітно: вороги тебе ще не бачать, а перший удар буде критичним.')}
@@ -215,7 +215,7 @@ function cAct(a,i){const c=s.cb;if(!c)return;setGrid(c);c.fx=[];c.fxt=0;
   else if(a==='c_bomb'){const u=selU();if(u)heroBomb(u)}
   else if(a==='c_guard'&&c.ap>=1&&!c.guard){c.guard=c.ap;c.ap=0;cbLog(`Ти стаєш у захисну стійку: удари зблизька −${guardPct(1)}%, постріли й чари −${guardPct(0)}%.`);endTurn();dirty=1;return}
   else if(a==='c_sw'){const it=IT[i];if(it&&packHas(i)&&has(i)&&c.ap>=1&&s.eq[it.slot]!==i){c.ap-=1;s.eq[it.slot]=i;c.mode='';cbLog(`Ти береш у руки: ${I(wN(i))}.`)}}
-  else if(a==='c_item'&&c.ap>=1&&beltHas(i)&&IT[i].use==='heal'){c.ap-=1;s.inv[i]--;s.h.hp=Math.min(maxHP(),s.h.hp+IT[i].v);fxP({t:'txt',x:c.hx,y:c.hy,v:'+'+IT[i].v,k:'heal'},0);cbLog(`${IT[i].n}: +${IT[i].v} здоров’я.`)}
+  else if(a==='c_item'&&c.ap>=1&&beltHas(i)&&IT[i].use==='heal'){c.ap-=1;s.inv[i]--;s.h.hp=Math.min(maxHP(),s.h.hp+IT[i].v);dishEffect(i);fxP({t:'txt',x:c.hx,y:c.hy,v:'+'+IT[i].v,k:'heal'},0);cbLog(`${IT[i].n}: +${IT[i].v} здоров’я.`)}
   else if(a==='c_net'&&c.ap>=1&&beltHas('net')){const u=selU();if(u&&!isObj(u)&&dist(c.hx,c.hy,u.x,u.y)<=3&&los(c,c.hx,c.hy,u.x,u.y)){c.ap-=1;s.inv.net--;u.pin=2;cbLog(`Сітка накриває ворога «${EN[u.t].n}»: 2 ходи не рухається й не ухиляється.`)}}
   else if(a==='c_smoke'&&c.ap>=1&&beltHas('smoke')){c.ap-=1;s.inv.smoke--;c.smoke=1;for(const v of c.u)v.aimed=0;cbLog('Густий дим огортає тебе: здалеку не влучать до твого наступного ходу.')}
   else if(a==='c_breath'&&s.h.ft.breath&&!c.breath){c.breath=1;const v=Math.round(maxHP()*.3);s.h.hp=Math.min(maxHP(),s.h.hp+v);cbLog(`Друге дихання: +${v} здоров’я.`)}

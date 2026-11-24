@@ -54,7 +54,7 @@ let bellK='';function rBell(){const el=$('bell');if(!el)return;const n=s.bellHol
 function rTop(){rBell();const el=$('top');if(!el)return;const items=[];
   if(s.cb){items.push(['cb','foe','','бій'],['hp','','',`здоров’я <b>${Math.max(0,Math.ceil(s.h.hp))}/${maxHP()}</b>`],['ap','','',`очки дії <b>${s.cb.ap}</b>`])}
   else{const r=rates();
-    for(const k of RES)if(s.seen[k]){const rt=r[k]||0;items.push(['r:'+k,`rs rs-${k}`,`<b>${RN[k].charAt(0).toUpperCase()+RN[k].slice(1)}</b><br>${RD[k]||''}`,`${pimg(icoURL(k),16,16,'ri')}<span class="rn">${RN[k]} </span><b>${fmt(s.r[k])}</b>${Math.abs(rt)>=0.005?` <small>${rt>0?'+':''}${fr(rt)}/с</small>`:''}`])}
+    for(const k of RES)if(s.seen[k]){const rt=r[k]||0;items.push(['r:'+k,`rs rs-${k}`,`<b>${RN[k].charAt(0).toUpperCase()+RN[k].slice(1)}</b><br>${RD[k]||''}`,`${pimg(icoURL(k),16,16,'ri')}<span class="rn">${RN[k]} </span><b>${fmt(s.r[k])}</b>${(k==='fish'||k==='prov')&&typeof capOf==='function'?`<small>/${capOf(k)}</small>`:''}${Math.abs(rt)>=0.005?` <small>${rt>0?'+':''}${fr(rt)}/с</small>`:''}`])}
     if(s.tabs.hero)items.push(['hp','','',`здоров’я <b>${Math.ceil(s.h.hp)}/${maxHP()}</b>`]);
     if(thrOn()){const v=Math.floor(s.threat||0);items.push(['thr',`thr${v>=75?' hi':''}`,`<b>Загроза Мли</b><br>Коли шкала дійде до 100, почнеться набіг. Мла збирається на метушню: збирання, будівництво, ремесло. Поки ти відпочиваєш, вона дрімає, а набіги чекають на тебе. Виграні бої її знижують, жаровні приглушують.`,`Мла <b>${v}%</b><span class="tb"><i style="width:${v}%"></i></span>`])}}
   const keys=items.map(x=>x[0]).join(',');

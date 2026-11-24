@@ -9,7 +9,7 @@ const setCd=(k,sec)=>{s.cd[k]=Date.now()+sec*1000};
 function fr(n){return String(Math.round(n*100)/100).replace('.',',')}
 function fmt(n){n=Math.floor(n+1e-9);return n>=10000?String(Math.round(n/100)/10).replace('.',',')+'к':String(n)}
 function say(m,t='info'){if(!m)return;const L0=s.log[0],now=Date.now();if(L0&&L0.m===m&&L0.t===t&&now-L0.at<9000){L0.n=(L0.n||1)+1;L0.at=now;dirty=1;return}s.log.unshift({m,t,at:now});if(s.log.length>60)s.log.length=60;dirty=1}
-function add(k,v){s.r[k]+=v;if(v>0){if(!s.seen[k]){s.seen[k]=1;dirty=1}if(s.tot[k]!==undefined)s.tot[k]+=v}}
+function add(k,v){s.r[k]+=v;if(v>0&&(k==='fish'||k==='prov')&&typeof capOf==='function'){const cp=capOf(k);if(s.r[k]>cp){s.r[k]=Math.max(cp,s.r[k]-v);if(!s.f.capHit&&k==='fish'){s.f.capHit=1;say('Кошик із рибою повний — більше не влазить. Можна закоптити зайве або збудувати комору.','world')}}}if(v>0){if(!s.seen[k]){s.seen[k]=1;dirty=1}if(s.tot[k]!==undefined)s.tot[k]+=v}}
 function giveI(id,n=1){s.inv[id]=(s.inv[id]||0)+n;s.seenI=s.seenI||{};s.seenI[id]=1;const it=IT[id];s.pack=s.pack||[];s.belt=s.belt||[];
   if(it.slot==='weapon'||it.slot==='ranged'){if(!s.pack.includes(id)&&s.pack.length<packSlots())s.pack.push(id);if(!s.eq[it.slot]&&s.pack.includes(id))s.eq[it.slot]=id}
   else if(it.slot&&!s.eq[it.slot])s.eq[it.slot]=id;
@@ -90,13 +90,14 @@ function flow(dt,dry){const L=s.b,d={};for(const k of RES)d[k]=0;const av=k=>s.r
   const hn=L.hearth||0;if(hn&&s.on.hearth!==false){const need=0.12*hn*dt*(fuL('hall')>=2?0.7:1),ratio=Math.min(1,Math.max(0,av('wood'))/need);d.wood-=need*ratio;d.ember+=2*hn*dt*ratio*(fuL('hall')>=1?1.25:1)}
   for(const id in CONV){const n=E(id)*((id==='smoke'||id==='render')&&s.rs.a_eel?1.5:1)*(id==='smoke'&&fac('cape')>=50?1.25:1)*(id==='smoke'&&(s.mst||{}).zinovii?2:1)*(id==='glass'&&s.rs.a_shark?1.25:1);if(!n||s.on[id]===false)continue;const C=CONV[id];let ratio=1;
     for(const k in C.in)ratio=Math.min(ratio,Math.max(0,av(k))/(C.in[k]*n*dt));
+    if(typeof capOf==='function')for(const k in C.out)if(s.r[k]>=capOf(k))ratio=0;
     if(!(ratio>0))continue;for(const k in C.in)d[k]-=C.in[k]*n*dt*ratio;for(const k in C.out)d[k]+=C.out[k]*n*dt*ratio}
   if(!dry)for(const k of RES)if(d[k]){add(k,d[k]);if(s.r[k]<0)s.r[k]=0}
   return d}
 function rates(){const d=flow(1,true);d.xp=(s.b.dummy||0)*0.08;return d}
 function produce(dt){s.play=(s.play||0)+dt;flow(dt);const L=s.b;
   if(L.dummy)xp(L.dummy*0.08*dt);
-  if(!s.cb)s.h.hp=Math.min(maxHP(),s.h.hp+(0.3+0.1*(L.hearth||0))*dt);
+  if(!s.cb)s.h.hp=Math.min(maxHP(),s.h.hp+regenRate()*dt);
 }
 /* progression */
 function storyCheck(quiet){s.bts=s.bts||{};

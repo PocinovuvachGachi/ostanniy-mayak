@@ -13,5 +13,5 @@ s.r.steel=50;s.r.coal=50;s.r.iron=50;s.floors.work=1;giveI('oar');s.wm={oar:200}
 /* Велика риба: рідко і лише за бажанням */
 s.f.rod=1;s.f.crab1=1;s.c.fish=10;s.bigT=0;s.bite=null;let bites=0,casts=0;for(let n=0;n<600;n++){s.cd={};act('fishing');casts++;if(s.bite){bites++;s.bite=null}}
 console.log('bites in',casts,'casts:',bites);A(bites>=1,'big fish bites at all');A(bites<=casts/40,'big fish is rare');
-s.bigT=0;for(let n=0;n<400&&!s.bite;n++){s.cd={};s.bigT=0;act('fishing')}A(!!s.bite,'bite appears');const f0=s.r.fish;act('bigfish');A(!s.bite&&s.r.fish>f0,'bigfish resolves');
+s.bigT=0;for(let n=0;n<400&&!s.bite;n++){s.cd={};s.bigT=0;act('fishing')}A(!!s.bite,'bite appears');s.r.fish=0;const f0=s.r.fish;act('bigfish');A(!s.bite&&s.r.fish>f0,'bigfish resolves');
 console.log('fails',fails)`);

@@ -3090,7 +3090,7 @@ const setCd=(k,sec)=>{s.cd[k]=Date.now()+sec*1000};
 function fr(n){return String(Math.round(n*100)/100).replace('.',',')}
 function fmt(n){n=Math.floor(n+1e-9);return n>=10000?String(Math.round(n/100)/10).replace('.',',')+'к':String(n)}
 function say(m,t='info'){if(!m)return;const L0=s.log[0],now=Date.now();if(L0&&L0.m===m&&L0.t===t&&now-L0.at<9000){L0.n=(L0.n||1)+1;L0.at=now;dirty=1;return}s.log.unshift({m,t,at:now});if(s.log.length>60)s.log.length=60;dirty=1}
-function add(k,v){s.r[k]+=v;if(v>0){if(!s.seen[k]){s.seen[k]=1;dirty=1}if(s.tot[k]!==undefined)s.tot[k]+=v}}
+function add(k,v){s.r[k]+=v;if(v>0&&(k==='fish'||k==='prov')&&typeof capOf==='function'){const cp=capOf(k);if(s.r[k]>cp){s.r[k]=Math.max(cp,s.r[k]-v);if(!s.f.capHit&&k==='fish'){s.f.capHit=1;say('Кошик із рибою повний — більше не влазить. Можна закоптити зайве або збудувати комору.','world')}}}if(v>0){if(!s.seen[k]){s.seen[k]=1;dirty=1}if(s.tot[k]!==undefined)s.tot[k]+=v}}
 function giveI(id,n=1){s.inv[id]=(s.inv[id]||0)+n;s.seenI=s.seenI||{};s.seenI[id]=1;const it=IT[id];s.pack=s.pack||[];s.belt=s.belt||[];
   if(it.slot==='weapon'||it.slot==='ranged'){if(!s.pack.includes(id)&&s.pack.length<packSlots())s.pack.push(id);if(!s.eq[it.slot]&&s.pack.includes(id))s.eq[it.slot]=id}
   else if(it.slot&&!s.eq[it.slot])s.eq[it.slot]=id;
@@ -3171,13 +3171,14 @@ function flow(dt,dry){const L=s.b,d={};for(const k of RES)d[k]=0;const av=k=>s.r
   const hn=L.hearth||0;if(hn&&s.on.hearth!==false){const need=0.12*hn*dt*(fuL('hall')>=2?0.7:1),ratio=Math.min(1,Math.max(0,av('wood'))/need);d.wood-=need*ratio;d.ember+=2*hn*dt*ratio*(fuL('hall')>=1?1.25:1)}
   for(const id in CONV){const n=E(id)*((id==='smoke'||id==='render')&&s.rs.a_eel?1.5:1)*(id==='smoke'&&fac('cape')>=50?1.25:1)*(id==='smoke'&&(s.mst||{}).zinovii?2:1)*(id==='glass'&&s.rs.a_shark?1.25:1);if(!n||s.on[id]===false)continue;const C=CONV[id];let ratio=1;
     for(const k in C.in)ratio=Math.min(ratio,Math.max(0,av(k))/(C.in[k]*n*dt));
+    if(typeof capOf==='function')for(const k in C.out)if(s.r[k]>=capOf(k))ratio=0;
     if(!(ratio>0))continue;for(const k in C.in)d[k]-=C.in[k]*n*dt*ratio;for(const k in C.out)d[k]+=C.out[k]*n*dt*ratio}
   if(!dry)for(const k of RES)if(d[k]){add(k,d[k]);if(s.r[k]<0)s.r[k]=0}
   return d}
 function rates(){const d=flow(1,true);d.xp=(s.b.dummy||0)*0.08;return d}
 function produce(dt){s.play=(s.play||0)+dt;flow(dt);const L=s.b;
   if(L.dummy)xp(L.dummy*0.08*dt);
-  if(!s.cb)s.h.hp=Math.min(maxHP(),s.h.hp+(0.3+0.1*(L.hearth||0))*dt);
+  if(!s.cb)s.h.hp=Math.min(maxHP(),s.h.hp+regenRate()*dt);
 }
 /* progression */
 function storyCheck(quiet){s.bts=s.bts||{};
@@ -3253,7 +3254,7 @@ function startFight(encId,win){const E0=ENC[encId];
   const foes=u.filter(x=>!EN[x.t].obj&&!EN[x.t].ally);
   s.cb={enc:encId,a:E0.a,map:ARENA[E0.a].slice(),round:0,fire:[],fx:[],fxt:0,hx:E0.h[0],hy:E0.h[1],u,ap:maxAP()+(s.h.ft.shadow?2:0),guard:0,sand:0,wrap:0,breath:0,sel:u.indexOf(foes[0]),win,boss:!!E0.boss,cds:{},traps:[],mode:'',mult,sn,wmg:{},
     title:win==='raid'?'Набіг Мли':win==='crab1'?'Перша сутичка':win&&win.indexOf('S:')===0?SHF[win.slice(2)].n:(win&&win.indexOf('L:')===0?(()=>{const id=win.slice(2);return`${LOC[id.split('.')[0]].n}`})():'Бій'),
-    log:[`${foes.filter(x=>!x.hid).map(x=>E(EN[x.t].n)).join(', ')} — бій починається!${s.h.ft.shadow?' Ти діяв першим: +2 ОД.':''}${E0.waves?' Схоже, вони тут не самі.':''}${E0.tide?' Вода прибуває.':''}${foes.some(x=>x.el)?' Серед них є ветерани.':''}`]};setGrid(s.cb);wolfJoin(s.cb);
+    log:[`${foes.filter(x=>!x.hid).map(x=>E(EN[x.t].n)).join(', ')} — бій починається!${s.h.ft.shadow?' Ти діяв першим: +2 ОД.':''}${E0.waves?' Схоже, вони тут не самі.':''}${E0.tide?' Вода прибуває.':''}${foes.some(x=>x.el)?' Серед них є ветерани.':''}`]};setGrid(s.cb);wolfJoin(s.cb);if((s.h.buf||{}).full>0){s.h.buf.full--;s.cb.ap++;s.cb.log.push('Ти ситий: +1 очко дії.')}
   if(E0.palis)s.cb.map=s.cb.map.map((r,y)=>r.split('').map((ch,x)=>E0.palis.some(q=>q[0]===x&&q[1]===y)&&ch==='.'?'+':ch).join(''));
   if(E0.traps)s.cb.traps=E0.traps.map(([x,y])=>({x,y}));if(E0.bell)s.cb.ap+=2;
   if(st('stealth')>=2&&Math.random()<0.06*st('stealth')){s.cb.hidden=1;cbLog('Ти підкрався непомітно: вороги тебе ще не бачать, а перший удар буде критичним.')}
@@ -3424,7 +3425,7 @@ function cAct(a,i){const c=s.cb;if(!c)return;setGrid(c);c.fx=[];c.fxt=0;
   else if(a==='c_bomb'){const u=selU();if(u)heroBomb(u)}
   else if(a==='c_guard'&&c.ap>=1&&!c.guard){c.guard=c.ap;c.ap=0;cbLog(`Ти стаєш у захисну стійку: удари зблизька −${guardPct(1)}%, постріли й чари −${guardPct(0)}%.`);endTurn();dirty=1;return}
   else if(a==='c_sw'){const it=IT[i];if(it&&packHas(i)&&has(i)&&c.ap>=1&&s.eq[it.slot]!==i){c.ap-=1;s.eq[it.slot]=i;c.mode='';cbLog(`Ти береш у руки: ${I(wN(i))}.`)}}
-  else if(a==='c_item'&&c.ap>=1&&beltHas(i)&&IT[i].use==='heal'){c.ap-=1;s.inv[i]--;s.h.hp=Math.min(maxHP(),s.h.hp+IT[i].v);fxP({t:'txt',x:c.hx,y:c.hy,v:'+'+IT[i].v,k:'heal'},0);cbLog(`${IT[i].n}: +${IT[i].v} здоров’я.`)}
+  else if(a==='c_item'&&c.ap>=1&&beltHas(i)&&IT[i].use==='heal'){c.ap-=1;s.inv[i]--;s.h.hp=Math.min(maxHP(),s.h.hp+IT[i].v);dishEffect(i);fxP({t:'txt',x:c.hx,y:c.hy,v:'+'+IT[i].v,k:'heal'},0);cbLog(`${IT[i].n}: +${IT[i].v} здоров’я.`)}
   else if(a==='c_net'&&c.ap>=1&&beltHas('net')){const u=selU();if(u&&!isObj(u)&&dist(c.hx,c.hy,u.x,u.y)<=3&&los(c,c.hx,c.hy,u.x,u.y)){c.ap-=1;s.inv.net--;u.pin=2;cbLog(`Сітка накриває ворога «${EN[u.t].n}»: 2 ходи не рухається й не ухиляється.`)}}
   else if(a==='c_smoke'&&c.ap>=1&&beltHas('smoke')){c.ap-=1;s.inv.smoke--;c.smoke=1;for(const v of c.u)v.aimed=0;cbLog('Густий дим огортає тебе: здалеку не влучать до твого наступного ходу.')}
   else if(a==='c_breath'&&s.h.ft.breath&&!c.breath){c.breath=1;const v=Math.round(maxHP()*.3);s.h.hp=Math.min(maxHP(),s.h.hp+v);cbLog(`Друге дихання: +${v} здоров’я.`)}
@@ -3758,7 +3759,6 @@ function hallCacheHS(W,H){if(!runesAll()||s.f.cache||!s.b.hearth)return'';const[
 IT.soup={n:'Юшка Зиновія',ic:'(~)',use:'heal',v:15,d:'Відновлює 15 здоров’я. У бою з поясу за 1 ОД.'};
 ILD.soup='Гаряча рибна юшка. Лікує 15 здоров’я. Поза боєм — з торби, у бою — лише з поясу, за 1 ОД.';
 ICO.soup=['............','............','..7.7.7.....','...7.7.7....','............','.dddddddddd.','.dHHHHHHHHd.','..dHHHHHHd..','..ddddddddd.','...dddddd...','....dddd....','............'];
-RC.push({id:'soup',src:'Зиновій: «Як прийдуть — тобі знадобиться сила. Приноси рибу, зварю юшку, що на ноги ставить».',out:'soup',c:{fish:8,prov:2},req:()=>!!s.f.tracks,multi:1});
 
 /* Речі з «Мартина»: журнал із трюму та три речі, які приносить тюлень */
 Object.assign(OD,{
@@ -3776,7 +3776,7 @@ Object.assign(SHF,{
     d:'Від самої води до маяка тягнуться сліди босих ніг.',once:1,
     ok:()=>!!s.f.rats&&Date.now()-(s.ratsT||0)>5*60000,
     go(){s.f.tracks=1;s.tracksT=Date.now();xp(10);
-      dlg({k:'story',title:'Сліди з моря',img:{t:'face',id:'zinovii'},body:`<p>Сліди босих ніг виходять із води, обходять маяк колом — і повертаються в море. Пісок у них холодний, мов зимовий.</p><p>Зиновій блідне. ${Q('Так було й на «Мартині». Спершу мокрі сліди на палубі. Потім — вони самі. Не підходь до них близько, хранителю: хто дасть себе схопити, того тягнуть у воду')}.</p><p>${Q('Як прийдуть — тобі знадобиться сила. Приноси рибу — зварю юшку')}.</p>`,gains:['Відкрилося: юшка в Майстерні']})},
+      dlg({k:'story',title:'Сліди з моря',img:{t:'face',id:'zinovii'},body:`<p>Сліди босих ніг виходять із води, обходять маяк колом — і повертаються в море. Пісок у них холодний, мов зимовий.</p><p>Зиновій блідне. ${Q('Так було й на «Мартині». Спершу мокрі сліди на палубі. Потім — вони самі. Не підходь до них близько, хранителю: хто дасть себе схопити, того тягнуть у воду')}.</p><p>${Q('Як прийдуть — тобі знадобиться сила. Приноси рибу — зварю юшку')}.</p>`,gains:['Відкрилося: казан Зиновія']})},
     art(b){for(let k=0;k<6;k++){const x=3+k*4.4,y=17-k*2.2+(k%2?2:0);hiRect(b,x,y,3,4,(i,j,px,py)=>((px-x-1.5)/1.2)**2+((py-y-2)/1.8)**2<=1?'D':'')}}},
   seal:{n:'Тюлень на камені',npc:1,tip:'Натисни, щоб покласти йому риби (5).',pos:[226,46],
     d:'На мокрому камені вигрівається тюлень. Дивиться на тебе, на рибу — і знову на тебе.',once:1,gap:180,
@@ -3992,6 +3992,45 @@ LOC.bay.spots.push({id:'pile',n:'Третя паля',show:()=>stashReady()&&!s.
 /* Тиміш дарує монету тому, кого Причал вважає сусідом */
 LOC.village.spots.find(S=>S.id==='boy').acts.push({id:'coin',t:'Сісти поруч на пірсі',once:1,show:()=>rotRank()>=4&&!!s.met.tymish,run(){odd('fishcoin');setCheck('fishcoin');xp(10);
   return `${P('Тиміш')} довго мовчить, а тоді розтискає кулак: на долоні — тонка монетка з рибою. ${Q('Знайшов у піску, коли вода спала. Тримай. Дід казав, хранителям щастить на такі')}.`}});
+/* ============ ЇЖА: ЛІКУВАННЯ, КОМОРА Й КУХНЯ ============
+   - Біля вогнища здоров'я вертається лише повільно (до повного — близько чверті години); швидко лікує їжа:
+     риба (+8), провізія (+15), страви. «Поїсти» з'їдає рівно стільки, скільки бракує (спершу рибу).
+   - Комора: сирої риби влазить мало (кошик, згодом льох), провізії — більше. Що не влазить — не ловиться;
+     наявне не псується й не зникає. Причина коптити й будувати льох.
+   - Кухня Зиновія: казан біля вогнища в нижній залі. Страви лікують більше й дають силу:
+     тепло (здоров'я вертається втричі швидше) чи ситість (+1 очко дії на початку кількох боїв). */
+const FOODHP={fish:8,prov:15};
+const capOf=k=>k==='fish'?40+60*(s.b.cellar||0):k==='prov'?100+150*(s.b.cellar||0):Infinity;
+function regenRate(){const hn=s.b.hearth||0;return(0.04+0.01*Math.min(6,hn))*(Date.now()<((s.h.buf||{}).warm||0)?3:1)}
+function eatFull(){let g=0,ate={};while(s.h.hp<maxHP()&&g++<200){const k=s.r.fish>=1?'fish':s.r.prov>=1?'prov':'';if(!k)break;
+    s.r[k]--;ate[k]=(ate[k]||0)+1;s.h.hp=Math.min(maxHP(),s.h.hp+FOODHP[k])}
+  if(Object.keys(ate).length)say(`Ти їси біля вогню: ${costTxt(ate)}. Сили повертаються.`,'info');else say('Їсти нічого: ні риби, ні провізії.','info');dirty=1}
+/* Комора — будівля з рівнями */
+BD.push({id:'cellar',n:'Комора',d:()=>`Риби влазить ${capOf('fish')} (+60 за рівень), провізії — ${capOf('prov')} (+150 за рівень). Що не влазить — не ловиться, наявне не псується.`,base:{wood:30,scrap:10},mult:1.6,show:()=>!!s.f.capHit||!!s.b.cellar});
+BANC.cellar=[182,228];
+BLD3.cellar=HI(function(g){const w=[26,32,40][g-1],h=[13,15,18][g-1],b=pbuf(w+4,h+2);
+  polyFill(b,[[0,h+1],[3,h*.35],[w*.5,0],[w-2,h*.3],[w+3,h+1]],(x,y)=>pset(b,x,y,vnz(EXX,EXY,3,7)>.62?'r':y<h*.4?'Z':'s'));
+  hiRect(b,w*.5-5,h*.35,10,h*.65+1,(i,j,x,y)=>{const u=x-(w*.5-5);if(u<1||u>9)return'E';if(y<h*.35+1.2)return'F';return u<5?'W':'X'});prect(b,w*.5-.5,h*.45,1,h*.55,'V');pset(b,w*.5+2.5,h*.7,'g');
+  if(g>=2)for(const[x,c]of[[3,'X'],[w-4,'W']]){prect(b,x,h-4,4,5,c);prect(b,x,h-3,4,1,'D');prect(b,x,h,4,1,'D')}
+  if(g>=3){prect(b,w*.5-9,h*.25,2,h*.8,'F');prect(b,w*.5+7,h*.25,2,h*.8,'F');prect(b,w*.5-9,h*.2,18,2,'G')}return b});
+/* Кухня Зиновія */
+Object.assign(IT,{
+  soupherb:{n:'Юшка з травами',ic:'(~)',use:'heal',v:20,warm:1,d:'Лікує 20 здоров’я і зігріває: десять хвилин здоров’я вертається втричі швидше.'},
+  pie:{n:'Рибний пиріг',ic:'(~)',use:'heal',v:25,full:3,d:'Лікує 25 здоров’я. Ситість: +1 очко дії на початку трьох наступних боїв.'}});
+ICO.soupherb=ICO.soup;ICO.pie=['............','............','....8888....','..8ffffff8..','.8fgfgfgff8.','.8ffffffff8.','.8eeeeeeee8.','..8eeeeee8..','...888888...','............','............','............'];
+ILD.soupherb=IT.soupherb.d;ILD.pie=IT.pie.d;
+const DISH=[{id:'soup',c:{fish:8,prov:2},t:'Риба, провізія — і довго на вогні.'},{id:'soupherb',c:{fish:6,herb:2},t:'Ганнині трави дають юшці тепло.',req:()=>!!s.seen.herb},
+  {id:'pie',c:{fish:5,prov:4,wood:2},t:'Тісто з товченої провізії, риба всередині, жар знизу й зверху.',req:()=>!!s.f.cookPie}];
+const dishOk=D=>(!D.req||D.req())&&afford(D.c);
+function cook(id){const D=DISH.find(x=>x.id===id);if(!D||!s.mst.zinovii||!s.f.tracks||!dishOk(D))return;pay(D.c);giveI(id);s.c.cook=(s.c.cook||0)+1;if(s.c.cook>=5&&!s.f.cookPie){s.f.cookPie=1;say('Зиновій витирає руки: «Ти вже вмієш тримати вогонь під казаном. Завтра навчу пиріг пекти».','info')}
+  say(`${IT[id].n}: готово. Пахне на весь маяк.`,'build');dirty=1}
+function dishEffect(id){const T=IT[id];if(!T)return;s.h.buf=s.h.buf||{};if(T.warm)s.h.buf.warm=Date.now()+10*60000;if(T.full)s.h.buf.full=(s.h.buf.full||0)+T.full}
+function potHS(W,H){if(!s.mst.zinovii||!s.f.tracks||!s.b.hearth)return'';const[x,y,w,h]=twBox('hall');
+  return ob('cl:pot','bpop','cl:pot',obURL('pot3',pot3),x+4,y+h-20,W,H,'Казан Зиновія','<b>Казан Зиновія</b><br>Тут вариться юшка й печеться пиріг.',{z:293,pulse:(s.c.cook||0)?0:1})}
+const pot3=HI(function(){const b=pbuf(16,14);prect(b,2,0,1,6,'D');prect(b,13,0,1,6,'D');prect(b,2,0,12,1,'D');hiRect(b,3,5,10,8,(i,j,x,y)=>((x-8)/5)**2+((y-8)/4.5)**2<=1?(y<6.3?'u':x<6.5?'F':'D'):'');prect(b,4,12,8,2,'J');pset(b,6,13,'I');pset(b,9,13,'I');return b});
+function potPopHTML(){return`<div class="bpop" role="dialog" aria-label="Казан"><div class="bph"><b>Казан Зиновія</b><button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div>
+  <p class="m">Зиновій мішає в казані: ${Q('Голодний хранитель — поганий хранитель')}.</p><div class="rlist">${DISH.filter(D=>!D.req||D.req()).map(D=>`<div class="row"><span><b>${IT[D.id].n}</b><br><span class="m">${IT[D.id].d}</span></span>${btn('Зварити','cook',D.id,{ok:()=>dishOk(D)})}<span class="ccs">${costTxt(D.c)}</span></div>`).join('')}</div>
+  <p class="hint">Страви лягають у торбу; у бою — з поясу, за 1 очко дії.</p></div>`}
 /* ============ ACTIONS ============ */
 function act0(a,i){
   if(a.indexOf('c_')===0){cAct(a,i);return}
@@ -4067,7 +4106,9 @@ function act0(a,i){
     if(o[1]){s.bog=(s.bog||0)+1;if(s.bog>=BOGP.length){F.bogPath=1;s.bog=0;xp(30);dlg({k:'find',title:'Шлях через болото',img:{t:'scene',id:'bog'},body:'<p>Остання кочка пружинить під ногою, і ти стоїш на сухому порозі хати Устини.</p>',gains:['Хата Устини тепер доступна']})}else say(`${o[0]} тримає. Ступаєш далі.`)}
     else{s.bog=0;s.bogFail=(s.bogFail||0)+1;s.h.hp=Math.max(1,s.h.hp-4);say('Нога провалюється в чорну воду. Ти ледве вибираєшся назад на край болота: −4 здоров’я.')}}break;
   case 'unequip':s.eq[i]='';s.h.hp=Math.min(s.h.hp,maxHP());break;
-  case 'use':if(has(i)&&IT[i].use==='heal'&&s.h.hp<maxHP()){s.inv[i]--;s.h.hp=Math.min(maxHP(),s.h.hp+IT[i].v)}break;
+  case 'use':if(has(i)&&IT[i].use==='heal'&&s.h.hp<maxHP()){s.inv[i]--;s.h.hp=Math.min(maxHP(),s.h.hp+IT[i].v);dishEffect(i)}break;
+  case 'eatfull':eatFull();break;
+  case 'cook':cook(i);break;
   case 'eat':if(s.r.fish>=1&&s.h.hp<maxHP()){s.r.fish--;s.h.hp=Math.min(maxHP(),s.h.hp+8)}break;
   case 'eatp':if(s.r.prov>=1&&s.h.hp<maxHP()){s.r.prov--;s.h.hp=Math.min(maxHP(),s.h.hp+15)}break;
   case 'scan':{const nx=SCAN.find(x=>!s.disc[x]);if(nx&&s.tabs.map&&s.r.ember>=scanCost()){s.r.ember-=scanCost();s.scans++;reveal(nx);say(SCANMSG[nx]+' Місце з’явилося на мапі.','world')}break}
@@ -4188,7 +4229,7 @@ let bellK='';function rBell(){const el=$('bell');if(!el)return;const n=s.bellHol
 function rTop(){rBell();const el=$('top');if(!el)return;const items=[];
   if(s.cb){items.push(['cb','foe','','бій'],['hp','','',`здоров’я <b>${Math.max(0,Math.ceil(s.h.hp))}/${maxHP()}</b>`],['ap','','',`очки дії <b>${s.cb.ap}</b>`])}
   else{const r=rates();
-    for(const k of RES)if(s.seen[k]){const rt=r[k]||0;items.push(['r:'+k,`rs rs-${k}`,`<b>${RN[k].charAt(0).toUpperCase()+RN[k].slice(1)}</b><br>${RD[k]||''}`,`${pimg(icoURL(k),16,16,'ri')}<span class="rn">${RN[k]} </span><b>${fmt(s.r[k])}</b>${Math.abs(rt)>=0.005?` <small>${rt>0?'+':''}${fr(rt)}/с</small>`:''}`])}
+    for(const k of RES)if(s.seen[k]){const rt=r[k]||0;items.push(['r:'+k,`rs rs-${k}`,`<b>${RN[k].charAt(0).toUpperCase()+RN[k].slice(1)}</b><br>${RD[k]||''}`,`${pimg(icoURL(k),16,16,'ri')}<span class="rn">${RN[k]} </span><b>${fmt(s.r[k])}</b>${(k==='fish'||k==='prov')&&typeof capOf==='function'?`<small>/${capOf(k)}</small>`:''}${Math.abs(rt)>=0.005?` <small>${rt>0?'+':''}${fr(rt)}/с</small>`:''}`])}
     if(s.tabs.hero)items.push(['hp','','',`здоров’я <b>${Math.ceil(s.h.hp)}/${maxHP()}</b>`]);
     if(thrOn()){const v=Math.floor(s.threat||0);items.push(['thr',`thr${v>=75?' hi':''}`,`<b>Загроза Мли</b><br>Коли шкала дійде до 100, почнеться набіг. Мла збирається на метушню: збирання, будівництво, ремесло. Поки ти відпочиваєш, вона дрімає, а набіги чекають на тебе. Виграні бої її знижують, жаровні приглушують.`,`Мла <b>${v}%</b><span class="tb"><i style="width:${v}%"></i></span>`])}}
   const keys=items.map(x=>x[0]).join(',');
@@ -4824,8 +4865,8 @@ function heroScene(){const H=s.h,WW=HRW,HH=HRH;let h=`<span data-sk="bg" data-si
   const L={fire:[],win:[{x:216,y:120,r:240,e:.55,c:WARM,a:.35}]};
   return`<div class="scn hr" data-scn="hr" style="${scnD()}">${h}${fxCanvas('hr',WW,HH)}${lightLayers(WW,HH,L)}</div>`}
 function heroPopHTML(id){const card=(nm,lv,body,act)=>`<div class="bpop" role="dialog" aria-label="${nm}"><div class="bph"><b>${nm}</b>${lv?`<span class="bplv">${lv}</span>`:''}<button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div>${body}${act?`<div class="act">${act}</div>`:''}</div>`;
-  if(id==='hr:food'){const b=[];if(s.seen.fish)b.push(btn('З’їсти рибу (+8)','eat','',{ok:()=>s.r.fish>=1&&s.h.hp<maxHP()}));if(s.seen.prov)b.push(btn('З’їсти провізію (+15)','eatp','',{ok:()=>s.r.prov>=1&&s.h.hp<maxHP()}));if(s.mst.olesya)b.push(btn('Перев’язка в Олесі','olheal','',{cd:'olheal',cs:120,ok:()=>s.h.hp<maxHP()}));
-    return card('Їжа','',`<p class="m">Здоров’я ${V(()=>Math.ceil(s.h.hp)+' / '+maxHP())}.</p>`,b.join(''))}
+  if(id==='hr:food'){const b=[];if(s.seen.fish||s.seen.prov)b.push(btn('Поїсти досхочу','eatfull','',{ok:()=>(s.r.fish>=1||s.r.prov>=1)&&s.h.hp<maxHP()}));if(s.seen.fish)b.push(btn('З’їсти рибу (+8)','eat','',{ok:()=>s.r.fish>=1&&s.h.hp<maxHP()}));if(s.seen.prov)b.push(btn('З’їсти провізію (+15)','eatp','',{ok:()=>s.r.prov>=1&&s.h.hp<maxHP()}));if(s.mst.olesya)b.push(btn('Перев’язка в Олесі','olheal','',{cd:'olheal',cs:120,ok:()=>s.h.hp<maxHP()}));
+    return card('Їжа','',`<p class="m">Здоров’я ${V(()=>Math.ceil(s.h.hp)+' / '+maxHP())}. Біля вогнища сили вертаються повільно${Date.now()<((s.h.buf||{}).warm||0)?' (зараз — утричі швидше: тепло юшки)':''}; їжа лікує одразу.</p>`,b.join(''))}
   if(id.startsWith('hr:s:')){const sl=id.slice(5),cur=s.eq[sl],alt=Object.keys(s.inv).filter(k=>s.inv[k]>0&&IT[k]&&IT[k].slot===sl&&k!==cur),nm=k=>WT[k]?wN(k):IT[k].n;
     return card(SLOT[sl],cur?'вдягнено':'порожньо',`${cur?`<div class="row"><span>${pimg(WT[cur]?wIco(cur):icoURL(cur),24,24)} <b>${nm(cur)}</b><br><span class="m">${itemShort(cur)}</span></span></div>`:'<p class="m">Тут поки нічого.</p>'}
       ${alt.length?`<p class="jh">Можна взяти</p><div class="rlist">${alt.map(k=>`<div class="row"><span>${pimg(WT[k]?wIco(k):icoURL(k),20,20)} ${nm(k)}</span>${btn('Взяти','equip',k)}</div>`).join('')}</div>`:''}`,cur&&!['weapon','ranged'].includes(sl)?btn('Зняти','unequip',sl,{cls:'toggle'}):'')}
@@ -4928,6 +4969,7 @@ function bpopHTML(){const id=popB;if(!id)return'';let nm,lvl,d,btns='',extra='';
   if(id==='sh:ford')return fordPopHTML();
   if(id==='cl:shelf')return shelfPopHTML();
   if(id==='cl:wolf')return wolfPopHTML();
+  if(id==='cl:pot')return potPopHTML();
   if(id.startsWith('hr:'))return heroPopHTML(id);
   if(id.startsWith('fk:')||id.startsWith('tr:'))return villagePopHTML(id);
   if(id==='hearth'){const n=s.b.hearth||0,c=bCost(HEARTH);nm='Вогнище';lvl=n;d=`+${2*n} жару/с, спалює ${fr(0.12*n)} плавника/с.`;
@@ -5656,7 +5698,7 @@ function towerHS(){const W=TWW,H=TWH;let h=fogs(60,14)+mlaLayer(62,30);const nx=
   for(const id of TORDER){const st=twRoomSt(id),[x,y]=twBox(id),key='tw:'+id+[st.built?1:0,st.tr,st.lit?1:0,st.ember?1:0,st.won?1:0,st.wood].join('');
     const lq=id==='lantern'&&st.built&&(!s.f.won||!!s.lost),sp=obURL(key,()=>twRoom(id,st)),built=st.built,can=nx&&nx.id===id&&(!nx.req||nx.req())&&afford(nx.c,nx.it);
     h+=ob('fl:'+id,'bpop','fl:'+id,sp,x,y,W,H,FLN[id],`<b>${FLN[id]}</b><br>${built?'Відновлено. Натисни, щоб подивитися.':id==='hall'?'Тут має горіти вогнище.':nx&&nx.id===id?'Можна відбудувати.':'Ще в руїнах.'}`,{pulse:can||lq?1:0,always:can||lq?1:0,cls:(popB==='fl:'+id?'sel':'')+(built?'':' ruin')+(id==='lantern'&&s.lost?' bite':''),inner:id==='lantern'&&s.lost?'<i class="bang">!</i>':''})}
-  h+=shelfHS(W,H)+hallCacheHS(W,H)+wolfHS(W,H);
+  h+=shelfHS(W,H)+hallCacheHS(W,H)+wolfHS(W,H)+potHS(W,H);
   return h+fxCanvas('tw',W,H)+lightLayers(W,H,towerLights())}
 function towerLights(){const fire=[],win=[];const rc=id=>{const[x,y,w,hh]=twBox(id);return[x+w/2,y+hh/2]};
   if(floorBuilt('hall')&&s.on.hearth!==false){const[x0,y0,w,hh]=twBox('hall'),fw=fuL('hall')>=1?34:26;fire.push({x:x0+6+fw/2,y:y0+hh-6,r:46,e:.7,c:FIRE,n:4})}

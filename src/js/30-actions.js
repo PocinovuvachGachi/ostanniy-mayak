@@ -73,7 +73,9 @@ function act0(a,i){
     if(o[1]){s.bog=(s.bog||0)+1;if(s.bog>=BOGP.length){F.bogPath=1;s.bog=0;xp(30);dlg({k:'find',title:'Шлях через болото',img:{t:'scene',id:'bog'},body:'<p>Остання кочка пружинить під ногою, і ти стоїш на сухому порозі хати Устини.</p>',gains:['Хата Устини тепер доступна']})}else say(`${o[0]} тримає. Ступаєш далі.`)}
     else{s.bog=0;s.bogFail=(s.bogFail||0)+1;s.h.hp=Math.max(1,s.h.hp-4);say('Нога провалюється в чорну воду. Ти ледве вибираєшся назад на край болота: −4 здоров’я.')}}break;
   case 'unequip':s.eq[i]='';s.h.hp=Math.min(s.h.hp,maxHP());break;
-  case 'use':if(has(i)&&IT[i].use==='heal'&&s.h.hp<maxHP()){s.inv[i]--;s.h.hp=Math.min(maxHP(),s.h.hp+IT[i].v)}break;
+  case 'use':if(has(i)&&IT[i].use==='heal'&&s.h.hp<maxHP()){s.inv[i]--;s.h.hp=Math.min(maxHP(),s.h.hp+IT[i].v);dishEffect(i)}break;
+  case 'eatfull':eatFull();break;
+  case 'cook':cook(i);break;
   case 'eat':if(s.r.fish>=1&&s.h.hp<maxHP()){s.r.fish--;s.h.hp=Math.min(maxHP(),s.h.hp+8)}break;
   case 'eatp':if(s.r.prov>=1&&s.h.hp<maxHP()){s.r.prov--;s.h.hp=Math.min(maxHP(),s.h.hp+15)}break;
   case 'scan':{const nx=SCAN.find(x=>!s.disc[x]);if(nx&&s.tabs.map&&s.r.ember>=scanCost()){s.r.ember-=scanCost();s.scans++;reveal(nx);say(SCANMSG[nx]+' Місце з’явилося на мапі.','world')}break}
