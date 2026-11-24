@@ -367,6 +367,10 @@ const AFL={pierv:'sand',pierfog:'plank',yardA:'sand',shoreL:'sand',heartL:'stone
 const TK={'#':'rock','+':'crate','~':'water','E':'exit','f':'floor'};
 const INDOOR={hold:1,cave:1,tower:1,store:1,mine:1,monastery:1};
 /* шанс влучити — на самій цілі, коли її можна вдарити чи підстрелити */
+/* над постаттю: смужка здоров'я й намір ворога (#43) */
+function uBar(hp,mx,k){const p=Math.max(0,Math.min(100,hp/mx*100));return`<i class="uhp ${k}${p<34?' lo':''}"><b style="width:${p.toFixed(0)}%"></b></i>`}
+function uIntentChip(u){if(u.stun)return'';const[k,v]=uIntent(u);if(STANCE[k])return'';const ic=k==='shoot'||k==='aim'?'ishoot':k==='heal'?'iheal':['hit','cold','wrap'].includes(k)?'ihit':'';if(!ic)return'';
+  const n=['hit','cold','wrap'].includes(k)?v*(u.wind?2:1):k==='shoot'||k==='heal'?v:'';return`<i class="uin k-${ic}"><img src="${stiURL(ic)}" alt="">${n}</i>`}
 function chBadge(c,u){const d=dist(c.hx,c.hy,u.x,u.y);const ch=d<=1?meleeCh(u):canShoot(u)?shotCh(u):null;if(ch==null)return'';return`<i class="chb${ch>=75?' hi':ch<50?' lo':''}">${Math.round(ch)}%</i>`}
 function rCombat(){const c=s.cb;setGrid(c);const u0=selU(),hv=heavyAP(),fl=AFL[c.a]||'sand';
   const intentTxt=u=>{const[k,v,nm,rg]=uIntent(u);if(STANCE[k])return`зараз: ${nm.toLowerCase()} (${U(STANCE[k])})`;
@@ -398,7 +402,7 @@ function rCombat(){const c=s.cb;setGrid(c);const u0=selU(),hv=heavyAP(),fl=AFL[c
     if(t==='f')cls+=' fogc';if(c.fire&&c.fire.some(q=>q.x===x&&q.y===y))cls+=' firec';if(me&&c.smoke)cls+=' smk';
     if(c.mode){if(cellOk(c.mode,x,y))cls+=' re'}else if(!u&&!me&&!solid(t)&&reachMap[y][x]<=c.ap)cls+=' re';if(!u&&!me&&isTrap(x,y)){spr='trap';if(!usePx)ch='^'}
     const tk=t==='#'&&INDOOR[c.a]?'wall':(TK[t]||'floor');const bg=usePx&&!arU?` style="background-image:url(${tileURL(tk,fl)})"`:'';
-    const inner=(usePx?(spr?`<img class="px" src="${spr==='hero'?heroURL(s.eq):sprURL(spr)}" alt="">`:''):esc(ch))+(u&&!me&&!EN[u.t].ally&&!isObj(u)&&u.hp>0&&!u.hid?chBadge(c,u):'');
+    const inner=(usePx?(spr?`<img class="px" src="${spr==='hero'?heroURL(s.eq):sprURL(spr)}" alt="">`:''):esc(ch))+(u&&!me&&!EN[u.t].ally&&!isObj(u)&&u.hp>0&&!u.hid?chBadge(c,u)+uIntentChip(u)+uBar(u.hp,u.max,'fo'):'')+(u&&!me&&EN[u.t].ally&&u.hp>0&&!u.hid?uBar(u.hp,u.max,'al'):'')+(me?uBar(s.h.hp,maxHP(),'me'):'');
     g+=`<button type="button" class="${cls.trim()}" data-a="c_cell" data-i="${x},${y}" aria-label="${lab||'Клітинка'} ${x+1}, ${y+1}" ${TA(cellTip(x,y,t,u,me,reachMap))}${bg}>${inner}</button>`}
   const pad=[[-1,-1,'↖'],[0,-1,'↑'],[1,-1,'↗'],[-1,0,'←'],[0,0,''],[1,0,'→'],[-1,1,'↙'],[0,1,'↓'],[1,1,'↘']].map(([dx,dy,a])=>dx||dy?btn(a,'c_mv',`${dx},${dy}`,{lab:'Крок'}):btn('кінець','c_end','',{lab:'Завершити хід',cls:'toggle'})).join('');
 const inR=u0&&inReach(u0),cv=u0?cover(c,c.hx,c.hy,u0.x,u0.y):0;
@@ -412,8 +416,8 @@ const inR=u0&&inReach(u0),cv=u0?cover(c,c.hx,c.hy,u0.x,u0.y):0;
     if(cv===-1||cv>0)marks+=`<span class="gm" style="${PP(x+0.3,y-0.3)};width:${30/GW}%">${SH(cv===-1?'#7fe08c':cv>=40?'#f0b84a':'#e7d6a0')}</span>`}
   if(c.guard)marks+=`<span class="gm" style="${PP(c.hx-0.28,c.hy+0.25)};width:${42/GW}%">${SH('#7fb8e0')}</span>`;
   for(const u of c.u){if(u.hp<=0||isObj(u)||u.hid||EN[u.t].ally)continue;const L=[];if(u.ward)L.push('stance');if(uStance(u))L.push('stance');if(u.stun)L.push('stun');if(u.bleed)L.push('bleed');if(u.burn)L.push('burn');if(u.pin)L.push('pin');if(u.weak)L.push('weak');if(u.wind)L.push('wind');if(u.aimed)L.push('aim');if(u.veil)L.push('veil');if(u.armDown)L.push('armd');
-    if(L.length)marks+=`<span class="stis" style="left:${u.x/GW*100}%;top:${u.y/GH*100}%;width:${100/GW}%">${L.slice(0,4).map(k=>`<img src="${stiURL(k)}" alt="">`).join('')}</span>`}
-  const gst=`grid-template-columns:repeat(${GW},minmax(0,1fr))`,gw=Math.round(38.2*GW);
+    if(L.length)marks+=`<span class="stis" style="left:${u.x/GW*100}%;top:${(u.y+.62)/GH*100}%;width:${100/GW}%">${L.slice(0,4).map(k=>`<img src="${stiURL(k)}" alt="">`).join('')}</span>`}
+  const gst=`grid-template-columns:repeat(${GW},minmax(0,1fr))`,gw=Math.round(60*GW);
   let h=`<section><h2>Бій${c.round?` <span class="m">· хід ${c.round+1}</span>`:''}</h2><div class="tac${GW>11?' wide':''}"><div><div class="arf${arenaIn(c.a)?' in':''}" style="max-width:${gw+24}px"><div class="gwrap" id="gwrap">${arU?`<img class="arbg" src="${arU}" alt=""><div class="hlt" style="${PP(c.hx,c.hy)};width:${(arenaIn(c.a)||GR!=='y'?560:300)/GW}%"></div>`:''}<div class="grid${usePx?' px':''}${arU?' ar':''}" style="${gst}">${g}</div><svg class="gfx" viewBox="0 0 ${GW*10} ${GH*10}" preserveAspectRatio="none" aria-hidden="true">${lines}</svg>${marks}<div class="fxl" id="fxl"></div></div></div>
   ${s.legOpen?`<p class="legend">Червона лінія — хто вистрілить у тебе наприкінці ходу, жовта — хто цілиться, зелена — твій постріл. Щити на клітинках: зелений — там тебе не побачить жоден стрілець, жовтий — укриття. Синій щит на тобі — захисна стійка. Туман закриває огляд, вогонь обпікає. Наведи курсор на клітинку чи ворога (на телефоні — затримай палець), щоб побачити підказку. Скеля ховає повністю; ящики дають пів-укриття; вода — крок за 2 ОД; стрілки зліва — вихід. Бочка з олією вибухає від удару. Жовта рамка: куди дійдеш цього ходу. Дії — іконки праворуч: наведи на іконку (на телефоні затримай палець), щоб прочитати, що вона робить і скільки коштує.</p>`:''}${arU?'':`<div class="pad" aria-label="Рух">${pad}</div>`}
   <ul class="clog" aria-live="polite">${c.log.map(x=>`<li>${x}</li>`).join('')}</ul></div><div>

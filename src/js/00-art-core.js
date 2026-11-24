@@ -374,7 +374,7 @@ function pxURL(key,make){const sk=SCK.has(key),ck=sk?key+'|'+GR:key;if(ck in PXC
 function sprBuf(rows,w,h){const b=pbuf(w,h);pblit(b,rows,0,0);return b}
 const icoURL=id=>pxURL('i:'+id,()=>sprBuf(ICO[id]||ICO.crate,12,12));
 function outline(b){const o=b.p.slice();for(let y=0;y<b.h;y++)for(let x=0;x<b.w;x++){if(b.p[y*b.w+x]!=='.')continue;for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){const v=pget(b,x+dx,y+dy);if(v!=='.'&&v!=='0'){o[y*b.w+x]='0';break}}}b.p=o;return b}
-const sprURL=id=>pxURL('s:'+id,()=>outline(sprBuf(SPR[id],16,16)));
+const sprURL=id=>pxURL('s:'+id,()=>SPR24[id]?outline(sprBuf(SPR24[id],24,24)):outline(sprBuf(SPR[id],16,16)));
 const faceURL=id=>pxURL('f:'+id,()=>FACES[id]());
 const tileURL=(k,fl)=>pxURL('t:'+k+fl,()=>tile(k,fl));
 const sceneURL=n=>pxURL('sc:'+n+(n==='bayLow'&&SCENEOPT.bayOpen?'o':''),()=>scene(n));
@@ -446,20 +446,25 @@ function studyBuf(st){const b=pbuf(96,40);prect(b,0,0,96,40,'8');const total=Mat
   if(st.ostap){prect(b,86,26,6,8,'2');prect(b,87,22,4,4,'m');prect(b,87,25,4,2,'7');prect(b,87,21,4,1,'6');pset(b,88,23,'0');pset(b,90,23,'0')}
   return b}
 function chestBuf(open){const b=scene('chest');if(open){prect(b,24,16,48,8,'1');ppoly(b,[[22,14],[26,0],[70,0],[74,14]],'8');ppoly(b,[[24,13],[28,2],[68,2],[72,13]],'d');prect(b,40,18,16,3,'e')}return b}
-function heroBuf(eq){const rows=SPR.hero.map(r=>r.split(''));
-  if(!eq.light)for(let y=8;y<=10;y++)for(let x=11;x<16;x++)rows[y][x]='.';
+/* Герой і ранні вороги — у 24 px (#43): дрібніший піксель, як у сценах. Решта ворогів поки 16 px. */
+const SPR24={"hero": ["........................", ".........00000..........", "........0111110.........", ".......011111110........", ".......011111110........", ".....0011111111100......", ".......nmmmmmmmn........", ".......mm0mmm0mm........", ".......mmmmmmmmm........", "........mmmnnmm.........", ".........nmmmn..........", "......22222222222.......", ".....2222233322222..9...", "....222222333222222.9...", "....m22222333222m2.fgf..", "....m22222333222.m.fhg..", "....mm2222333222.mmfgf..", "......22222222222.......", "......222222222222......", "......1111....1111......", "......1111....1111......", "......1111....1111......", ".....11111....11111.....", ".....00000....00000....."],
+ "crab": ["........................", "........................", "........................", "..jj................jj..", ".jjjj..............jjjj.", ".jj.jj............jj.jj.", ".jjjjj............jjjjj.", "..jjjj....7..7....jjjj..", "...jjj....0..0....jjj...", "....jj....j..j....jj....", ".....jjjjjjjjjjjjjj.....", "....jjjjjj7jjjjjjjjj....", "...jjjjjjjjjjjjjjjjjj...", "..jjiijjjjjjjjjjjjiijj..", "..jiiiijjjjjjjjjjiiiij..", "...jiiiiiiiiiiiiiiiij...", "....iiiiiiiiiiiiiiii....", "...i.i.i........i.i.i...", "..i..i..i......i..i..i..", ".i..i...i......i...i..i.", "........................", "........................", "........................", "........................"],
+ "rat": ["........................", "........................", "........................", "........................", "........................", "........................", "........................", "........................", "......99................", ".....9mn9...............", "....9aaaa99999999.......", "...9a0aaaaaaaaaaa99.....", "..9aaaaaaaaaaaaaaaa9....", ".jaaaaaaaaaaaaaaaaaa9...", "..99aabbaaaaaaaaaaaa9...", "...999bbbbaaaaaaaaa9....", ".....9aa999aaa99aa9.nn..", ".....9a9..9a9..9a9...nn.", ".....99...99...99.....n.", "......................n.", ".....................nn.", "........................", "........................", "........................"],
+ "gull": ["........................", "........................", "........................", ".66..................66.", ".776................677.", "..7776............6777..", "...777776......677777...", "....77777766667777777...", ".....77777777777777.....", ".......77777777777777...", ".......5777777777707gg..", "........557777777777g...", ".........5557777777.....", "..........55555555......", "...........555555.......", "............f..f........", "............f..f........", "...........ff.ff........", "........................", "........................", "........................", "........................", "........................", "........................"]};
+function heroBuf(eq){const rows=SPR24.hero.map(r=>r.split(''));
+  if(!eq.light)for(let y=11;y<=16;y++)for(let x=18;x<24;x++)rows[y][x]='.';
   const map={cloak:{'2':'1','3':'2'},jacket:{'2':'d','3':'e'},mail:{'2':'p','3':'q'},steelmail:{'2':'4','3':'5'},bracers:{}}[eq.armor]||{};
-  const b=pbuf(16,16);rows.forEach((r,y)=>r.forEach((c,x)=>pset(b,x,y,map[c]||c)));
-  if(eq.armor==='bracers'){pset(b,3,8,'j');pset(b,3,9,'j');pset(b,9,8,'j');pset(b,9,9,'j')}
-  if(eq.light==='storm'){prect(b,12,8,3,3,'9');pset(b,13,9,'h')}
+  const b=pbuf(24,24);rows.forEach((r,y)=>r.forEach((c,x)=>pset(b,x,y,map[c]||c)));
+  if(eq.armor==='bracers'){for(const y of[13,14]){pset(b,4,y,'j');pset(b,16,y,'j')}}
+  if(eq.light==='storm'){prect(b,18,13,3,4,'9');pset(b,19,14,'h');pset(b,19,15,'g')}
   const w=eq.weapon;
-  if(w==='oar'){pline(b,1,2,2,10,'d');prect(b,0,11,2,3,'e')}
-  else if(w==='knife'){pset(b,1,8,'q');pset(b,1,7,'q');pset(b,2,9,'c')}
-  else if(w==='harpoon'){pline(b,2,1,2,13,'d');pset(b,2,0,'q');pset(b,1,1,'q');pset(b,3,1,'q')}
-  else if(w==='cleaver'){prect(b,0,5,3,3,'p');pset(b,2,8,'c');pset(b,2,9,'c')}
-  else if(w==='sabre'){pline(b,0,3,2,9,'q');pset(b,2,9,'f')}
-  if(eq.ranged){pline(b,10,5,13,5,'d');pset(b,11,4,'d')}
-  if(eq.charm)pset(b,6,8,'g');
+  if(w==='oar'){pline(b,2,1,3,15,'d');pline(b,3,1,4,15,'e');prect(b,1,16,3,6,'e');pline(b,1,16,1,21,'d')}
+  else if(w==='knife'){pline(b,3,10,3,13,'q');pset(b,4,11,'p');pset(b,3,14,'c');pset(b,3,15,'c')}
+  else if(w==='harpoon'){pline(b,3,2,3,22,'d');pset(b,3,0,'q');pset(b,3,1,'q');pset(b,2,1,'q');pset(b,4,1,'q');pset(b,2,2,'p');pset(b,4,2,'p')}
+  else if(w==='cleaver'){prect(b,0,8,4,5,'p');pline(b,0,8,0,12,'q');pset(b,3,13,'c');pset(b,3,14,'c')}
+  else if(w==='sabre'){pline(b,0,4,3,13,'q');pline(b,1,4,4,13,'p');pset(b,2,14,'f');pset(b,4,14,'f');pset(b,3,15,'c')}
+  if(eq.ranged){pline(b,7,11,14,17,'d');pset(b,15,17,'c')}
+  if(eq.charm)pset(b,10,12,'g');
   return outline(b)}
 const heroURL=eq=>pxURL('h:'+[eq.weapon,eq.armor,eq.light,eq.charm,eq.ranged].join(','),()=>heroBuf(eq));
 /* ---- pixel map of the skerries (160x108) ---- */
