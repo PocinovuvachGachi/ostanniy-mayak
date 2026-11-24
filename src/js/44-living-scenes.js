@@ -149,4 +149,5 @@ function flPopHTML(id){const nm=FLN[id],built=floorBuilt(id),U2=FLU[id]||[],tr=f
     if(nx&&nx.req()){ex+=`<p class="m"><b>${nx.n}.</b> ${nx.d}</p>`;bt+=`${btn('Збудувати','flu',id,{ok:()=>afford(nx.c),cls:'main'})}<span class="ccs">${costChips(nx.c)}</span>`}
     else if(nx)ex+=`<p class="hand bph2">${tr?'Згодом тут можна буде зробити ще краще.':'Згодом цей поверх можна буде облаштувати краще.'}</p>`;else ex+=`<p class="hand bph2">Поверх облаштовано повністю.</p>`;
     const tb=FLTAB[id];if(tb&&s.tabs[tb]&&tb!=='home')bt+=btn('Зайти','tab',tb,{cls:'toggle'})}
-  return`<div class="bpop" role="dialog" aria-label="${nm}"><div class="bph"><b>${nm}</b><span class="bplv">${built?(tr?'облаштовано: '+tr:'відновлено'):'у руїнах'}</span><button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div><p class="m">${FLD[id]}</p>${ex}<div class="act">${bt}</div></div>`}
+  const lp=id==='lantern'?lanternPart():'';
+  return`<div class="bpop${lp?' wide':''}" role="dialog" aria-label="${nm}"><div class="bph"><b>${nm}</b><span class="bplv">${built?(tr?'облаштовано: '+tr:'відновлено'):'у руїнах'}</span><button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div><p class="m">${FLD[id]}</p>${lp}${ex}<div class="act">${bt}</div></div>`}

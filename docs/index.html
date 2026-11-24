@@ -909,6 +909,17 @@ body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .
 .scn.lcd::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 12% 85%,transparent 0 12%,rgba(2,4,8,.92) 38%);pointer-events:none;z-index:900}
 .lcpf{display:flex;gap:10px;align-items:flex-start}.lcpf>div{min-width:0;flex:1}.lcpf img.face{flex:none;border:1px solid #3a2718;background:#16252e}
 @media (max-width:560px){.ob.lcp .mpl{font-size:10px}}
+/* Ліхтарня: план із дзеркалами й морська карта променя */
+.lensb{position:relative;width:100%;max-width:520px;margin:8px auto 4px;border:2px solid #3a2718;background:#0a0c10}
+.lensb>img.scene{display:block;width:100%;height:100%;image-rendering:pixelated}
+.lmir{position:absolute;margin:0;padding:0;border:0;background:none;cursor:pointer;min-height:0}
+.lmir img{display:block;width:100%;height:100%;image-rendering:pixelated;transition:transform .25s}
+.lmir:hover img,.lmir:focus-visible img{filter:drop-shadow(0 0 3px #ffe08a)}
+.lmir:active img{transform:scale(.88)}
+.lmir:disabled{cursor:default}
+.dial.px{background:#0a0c10;border:2px solid #3a2718;overflow:visible}
+.dial.px .bch{position:absolute;inset:0;width:100%;height:100%;border-radius:50%;image-rendering:pixelated}
+.dial.px .wedge{mix-blend-mode:screen}
 </style>
 </head>
 <body>
@@ -3581,13 +3592,13 @@ function doLA(id,quick){const A=findA(id),S=findS(id);if(!laOk(id))return;
 /* ============ LENS PUZZLE ============ */
 function beam(){const g=LENSMAP;const M=s.mirrors;const pos={};
   for(let y=0;y<g.length;y++)for(let x=0;x<g[y].length;x++)if('ABCD'.includes(g[y][x]))pos[x+','+y]=g[y][x];
-  let x=1,y=1,dx=1,dy=0;const path={};let out=false;
-  for(let i=0;i<80;i++){x+=dx;y+=dy;const k=x+','+y;
+  let x=1,y=1,dx=1,dy=0;const path={},seq=[[1,1]];let out=false;
+  for(let i=0;i<80;i++){x+=dx;y+=dy;const k=x+','+y;seq.push([x,y]);
     if(y<0||y>=g.length||x<0||x>=g[0].length)break;
     if(g[y][x]==='#'){if(y===0&&x===7&&dy===-1)out=true;break}
     const m=pos[k];if(m){if(M[m]==='/'){const t=dx;dx=-dy;dy=-t}else{const t=dx;dx=dy;dy=t}path[k]='m';continue}
     path[k]=dx?'-':'|'}
-  return{path,out,pos}}
+  return{path,out,pos,seq}}
 
 /* ============ ACTIONS ============ */
 function act0(a,i){
@@ -3875,7 +3886,8 @@ function towerImg(){const F=s.floors,st={floors:F,hearth:s.b.hearth,forge:s.b.fo
 function floorBuilt(id){return id==='hall'?!!s.b.hearth:!!s.floors[id]}
 function rTower(){let h=`<section><h2>Маяк</h2><p class="m">Натискай на поверхи, щоб зазирнути всередину.</p>`;
   const nx=FL.find((f,ix)=>!s.floors[f.id]&&(ix===0||s.floors[FL[ix-1].id]));if(nx&&s.b.hearth)h+=`<p class="m">Далі можна відбудувати: <b>${nx.n}</b>.</p>`;
-  h+=`</section>`;if(s.floors.lantern&&!s.f.won)h+=rLens();if(s.f.won)h+=rBeam();return h}
+  if(s.floors.lantern&&!s.f.won)h+=`<p class="m">Світло в ліхтарні ще б’ється об стіни. Зазирни нагору.</p>`;if(s.lost)h+=`<p class="foe">Ріжок у тумані! Поверни промінь у ліхтарні.</p>`;
+  if(s.floors.lantern)h+=`<details class="ledg"${s.ldOpen?' open':''}><summary>Усе списком</summary>${s.f.won?rBeam():rLens()}</details>`;return h+`</section>`}
 function rBeam(){const L=s.lost,tele=fuL('gallery')>=1,cur=s.beam||0;
   let w=`<div class="wedge" style="background:conic-gradient(from ${cur*60-30}deg,rgba(240,184,74,.55) 0 60deg,transparent 60deg 360deg)"></div><div class="core"></div>`;
   SECT.forEach((n,i)=>{const a=(i*60-90)*Math.PI/180,x=50+Math.cos(a)*40,y=50+Math.sin(a)*40;w+=`<button type="button" class="${cur===i?'on':''}${L&&tele&&L.sec===i?' lost':''}" style="left:${x}%;top:${y}%" data-a="beam" data-i="${i}">${n}</button>`});
@@ -4346,6 +4358,44 @@ function heroPopHTML(id){const card=(nm,lv,body,act)=>`<div class="bpop" role="d
     return card(SLOT[sl],cur?'вдягнено':'порожньо',`${cur?`<div class="row"><span>${pimg(WT[cur]?wIco(cur):icoURL(cur),24,24)} <b>${nm(cur)}</b><br><span class="m">${itemShort(cur)}</span></span></div>`:'<p class="m">Тут поки нічого.</p>'}
       ${alt.length?`<p class="jh">Можна взяти</p><div class="rlist">${alt.map(k=>`<div class="row"><span>${pimg(WT[k]?wIco(k):icoURL(k),20,20)} ${nm(k)}</span>${btn('Взяти','equip',k)}</div>`).join('')}</div>`:''}`,cur&&!['weapon','ranged'].includes(sl)?btn('Зняти','unequip',sl,{cls:'toggle'}):'')}
   return''}
+/* ============ ЛІХТАРНЯ: дзеркала й промінь у картці поверху ============
+   Поки маяк не горить — план ліхтарні згори: жаровня, дзеркала-кнопки, світло, що б'ється об стіни, вікно на море.
+   Коли горить — морська карта навколо маяка з шістьма секторами: промінь повертається туди, де лунає ріжок. */
+const LNC=16;
+function lensBoard3(seqKey,out){const G=LENSMAP,Wc=G[0].length,Hc=G.length,b=pbuf(Wc*LNC,Hc*LNC);b.ng=1;const{seq}=beam();
+  /* підлога: темні плити */
+  hiRect(b,0,0,Wc*LNC,Hc*LNC,(i,j,x,y)=>{const cx=Math.floor(x/8),cy=Math.floor(y/8),ex=x%8,ey=y%8;if(ex<.7||ey<.7)return'x';const n=hh2(cx,cy);return n<.25?'x':n<.8?'D':'E'});
+  /* світло: від жаровні до стіни чи вікна */
+  const C=([x,y])=>[x*LNC+LNC/2,y*LNC+LNC/2];
+  for(let n=0;n+1<seq.length;n++){const[a,c]=[C(seq[n]),C(seq[n+1])];const last=n+2===seq.length,ex=last?a[0]+(c[0]-a[0])*.5:c[0],ey=last?a[1]+(c[1]-a[1])*.5:c[1];
+    hiRect(b,Math.min(a[0],ex)-4,Math.min(a[1],ey)-4,Math.abs(ex-a[0])+8,Math.abs(ey-a[1])+8,(i,j,x,y)=>{const d=a[0]===ex?Math.abs(x-a[0]):Math.abs(y-a[1]);if(d<1)return'y';if(d<1.8)return'h';if(d<3.4&&(3.4-d)/2.4>bay(i,j))return'I'})}
+  /* стіни й вікно */
+  for(let y=0;y<Hc;y++)for(let x=0;x<Wc;x++){if(G[y][x]!=='#')continue;const win=y===0&&x===7,X=x*LNC,Y=y*LNC;
+    if(win){hiRect(b,X,Y,LNC,LNC,(i,j,px,py)=>{const u=px-X,v=py-Y;if(u<2||u>LNC-2||v<2)return'z';if(Math.abs(u-LNC/2)<.6)return'z';return out?(v<8?'h':'I'):(hh2(i,j)<.1?'T':v<6?'R':'Q')});continue}
+    hiRect(b,X,Y,LNC,LNC,(i,j,px,py)=>{const u=px-X,v=py-Y,row=Math.floor(v/5),off=row%2?4:0,mort=v%5<.7||(u+off)%8<.7;if(mort)return'x';const n=hh2(Math.floor((u+off)/8)+x*3,row+y*5);return n<.15?'D':n>.85?'G':'F'})}
+  /* жаровня */
+  {const[cx,cy]=C([1,1]);hiRect(b,cx-6,cy-6,12,12,(i,j,x,y)=>{const d=Math.hypot(x-cx,y-cy);if(d>5.6)return;if(d>4.4)return'D';const f=hh2(i,j);return d<1.6?'y':d<3?(f<.5?'I':'h'):f<.4?'K':'J'})}
+  return b}
+function mirror3(d){const b=pbuf(LNC,LNC);b.ng=1;hiRect(b,1,1,14,14,(i,j,x,y)=>{const d0=Math.hypot(x-8,y-8);if(d0>6.6)return;if(d0>5.4)return x+y<15?'e':'X';
+    const t=d==='/'?(x+y-16):(x-y);if(Math.abs(t)<1.1)return t<0?'u':'U';if(Math.abs(t)<1.9)return'z';return'V'});return b}
+function beamChart3(){const R=60,b=pbuf(2*R,2*R);b.ng=1;hiRect(b,0,0,2*R,2*R,(i,j,x,y)=>{const dx=x-R,dy=y-R,d=Math.hypot(dx,dy);if(d>R)return;if(d>R-1.2)return'X';
+    const an=Math.atan2(dy,dx),sec=Math.abs(((an*180/Math.PI+90+30)%60+60)%60);if(sec<.9&&d>8&&(Math.floor(d)%3))return'S';
+    const isl=hh2(Math.floor((x+7)/10),Math.floor((y+3)/8))<.07&&d>20&&d<R-6;if(isl)return hh2(i>>1,j>>1)<.3?'E':'D';
+    if(Math.floor(d)%14===0&&d>10)return'Q';return hh2(i>>1,j)<.04?'R':'P'});
+  hiRect(b,R-3,R-3,6,6,(i,j,x,y)=>Math.hypot(x-R,y-R)<2.6?'G':'');return b}
+for(const f of['lensBoard3','mirror3','beamChart3'])globalThis[f]=HI(globalThis[f]);
+function lensHTML(){const{pos,out}=beam(),G=LENSMAP,Wc=G[0].length,Hc=G.length,key=Object.keys(s.mirrors).sort().map(k=>s.mirrors[k]).join('');
+  let h=`<div class="lensb" style="aspect-ratio:${Wc}/${Hc}">${pimg(pxURL('lens3:'+key+(out?1:0),()=>lensBoard3(key,out)),Wc*LNC*2,Hc*LNC*2,'scene','План ліхтарні')}`;
+  for(const k in pos){const[x,y]=k.split(',').map(Number),m=pos[k],d=s.mirrors[m];
+    h+=`<button type="button" class="lmir" style="left:${x/Wc*100}%;top:${y/Hc*100}%;width:${100/Wc}%;height:${100/Hc}%" data-a="mirror" data-i="${m}" aria-label="Дзеркало ${m}: повернути"${s.f.won?' disabled':''}><img src="${pxURL('mir3:'+(d==='/'?'a':'b'),()=>mirror3(d))}" alt=""></button>`}
+  return h+'</div>'}
+function beamHTML(){const L=s.lost,tele=fuL('gallery')>=1,cur=s.beam||0;
+  let w=`<img class="bch" src="${pxURL('bch3',beamChart3)}" alt=""><div class="wedge" style="background:conic-gradient(from ${cur*60-30}deg,rgba(255,224,138,.5) 0 60deg,transparent 60deg 360deg)"></div><div class="core"></div>`;
+  SECT.forEach((n,i)=>{const a=(i*60-90)*Math.PI/180,x=50+Math.cos(a)*40,y=50+Math.sin(a)*40;w+=`<button type="button" class="${cur===i?'on':''}${L&&tele&&L.sec===i?' lost':''}" style="left:${x}%;top:${y}%" data-a="beam" data-i="${i}">${n}</button>`});
+  return`<p class="m">Коли почуєш ріжок, поверни промінь туди, звідки він лунає. Поворот коштує ${R('oil',3)}.</p><div class="dial px">${w}</div>
+  <p style="text-align:center">${L?`<b class="foe">${VH(()=>s.lost?`Ріжок лунає ${s.lost.hint}! Лишилося ${Math.max(0,Math.ceil((s.lost.until-Date.now())/1000))} с.`:'')}</b>`:'<span class="m">Море тихе. Промінь світить на '+SECT[cur]+'.</span>'}</p><p class="m" style="text-align:center">Кораблів урятовано: ${s.saved||0}.</p>`}
+function lanternPart(){if(!floorBuilt('lantern'))return'';if(s.f.won)return`<h3 class="bph2">Промінь над морем</h3>${beamHTML()}`;
+  return`<h3 class="bph2">Дзеркала</h3><p class="m">Вогонь горить, але світло б’ється об стіни. Натискай на дзеркала, щоб повернути їх, і виведи світло у вікно на море.</p>${s.f.ostap?`<p class="hint">${P('Остап')}: ${Q('Світло біжить прямо, доки дзеркало не поверне його. Не всі дзеркала стоять на його шляху')}.</p>`:''}${lensHTML()}`}
 /* ============ v17: LIVING SCENES ============ */
 const PCT=(x,y,w,h,W,H)=>`left:${(x/W*100).toFixed(2)}%;top:${(y/H*100).toFixed(2)}%;width:${(w/W*100).toFixed(2)}%;height:${(h/H*100).toFixed(2)}%`;
 function hs(k,a,i,box,lab,tip,o={}){const pulse=o.pulse&&(o.always||!(s.hsU||{})[k]);
@@ -4497,7 +4547,8 @@ function flPopHTML(id){const nm=FLN[id],built=floorBuilt(id),U2=FLU[id]||[],tr=f
     if(nx&&nx.req()){ex+=`<p class="m"><b>${nx.n}.</b> ${nx.d}</p>`;bt+=`${btn('Збудувати','flu',id,{ok:()=>afford(nx.c),cls:'main'})}<span class="ccs">${costChips(nx.c)}</span>`}
     else if(nx)ex+=`<p class="hand bph2">${tr?'Згодом тут можна буде зробити ще краще.':'Згодом цей поверх можна буде облаштувати краще.'}</p>`;else ex+=`<p class="hand bph2">Поверх облаштовано повністю.</p>`;
     const tb=FLTAB[id];if(tb&&s.tabs[tb]&&tb!=='home')bt+=btn('Зайти','tab',tb,{cls:'toggle'})}
-  return`<div class="bpop" role="dialog" aria-label="${nm}"><div class="bph"><b>${nm}</b><span class="bplv">${built?(tr?'облаштовано: '+tr:'відновлено'):'у руїнах'}</span><button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div><p class="m">${FLD[id]}</p>${ex}<div class="act">${bt}</div></div>`}
+  const lp=id==='lantern'?lanternPart():'';
+  return`<div class="bpop${lp?' wide':''}" role="dialog" aria-label="${nm}"><div class="bph"><b>${nm}</b><span class="bplv">${built?(tr?'облаштовано: '+tr:'відновлено'):'у руїнах'}</span><button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div><p class="m">${FLD[id]}</p>${lp}${ex}<div class="act">${bt}</div></div>`}
 /* ============ МІСЦЕ НА МАПІ: сцена локації ============
    Кожна локація — власне тло 432×240 (1,5×), складене з деталей (`lk*`): небо, море, земля, хати, башти, скелі.
    Місця локації (spots) — ліхтарі на кілках або портрет людини на дошці; картка `lc:<місце>` з описом і діями.
@@ -5066,8 +5117,8 @@ function twRoomSt(id){const built=floorBuilt(id),on=id==='hall'?s.on.hearth!==fa
 function towerScene(){return`<div class="scn tw" data-scn="tw" style="${scnD()}"><span data-sk="bg" data-sig="bg" class="scbg">${VH(towerBgImg)}</span>${towerHS()}</div>`}
 function towerHS(){const W=TWW,H=TWH;let h=fogs(60,14)+mlaLayer(62,30);const nx=FL.find((f,ix)=>!s.floors[f.id]&&(ix===0||s.floors[FL[ix-1].id]));
   for(const id of TORDER){const st=twRoomSt(id),[x,y]=twBox(id),key='tw:'+id+[st.built?1:0,st.tr,st.lit?1:0,st.ember?1:0,st.won?1:0,st.wood].join('');
-    const sp=obURL(key,()=>twRoom(id,st)),built=st.built,can=nx&&nx.id===id&&(!nx.req||nx.req())&&afford(nx.c,nx.it);
-    h+=ob('fl:'+id,'bpop','fl:'+id,sp,x,y,W,H,FLN[id],`<b>${FLN[id]}</b><br>${built?'Відновлено. Натисни, щоб подивитися.':id==='hall'?'Тут має горіти вогнище.':nx&&nx.id===id?'Можна відбудувати.':'Ще в руїнах.'}`,{pulse:can?1:0,always:can?1:0,cls:(popB==='fl:'+id?'sel':'')+(built?'':' ruin')})}
+    const lq=id==='lantern'&&st.built&&(!s.f.won||!!s.lost),sp=obURL(key,()=>twRoom(id,st)),built=st.built,can=nx&&nx.id===id&&(!nx.req||nx.req())&&afford(nx.c,nx.it);
+    h+=ob('fl:'+id,'bpop','fl:'+id,sp,x,y,W,H,FLN[id],`<b>${FLN[id]}</b><br>${built?'Відновлено. Натисни, щоб подивитися.':id==='hall'?'Тут має горіти вогнище.':nx&&nx.id===id?'Можна відбудувати.':'Ще в руїнах.'}`,{pulse:can||lq?1:0,always:can||lq?1:0,cls:(popB==='fl:'+id?'sel':'')+(built?'':' ruin')+(id==='lantern'&&s.lost?' bite':''),inner:id==='lantern'&&s.lost?'<i class="bang">!</i>':''})}
   return h+fxCanvas('tw',W,H)+lightLayers(W,H,towerLights())}
 function towerLights(){const fire=[],win=[];const rc=id=>{const[x,y,w,hh]=twBox(id);return[x+w/2,y+hh/2]};
   if(floorBuilt('hall')&&s.on.hearth!==false){const[x0,y0,w,hh]=twBox('hall'),fw=fuL('hall')>=1?34:26;fire.push({x:x0+6+fw/2,y:y0+hh-6,r:46,e:.7,c:FIRE,n:4})}

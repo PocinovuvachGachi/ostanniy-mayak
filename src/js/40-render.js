@@ -151,7 +151,8 @@ function towerImg(){const F=s.floors,st={floors:F,hearth:s.b.hearth,forge:s.b.fo
 function floorBuilt(id){return id==='hall'?!!s.b.hearth:!!s.floors[id]}
 function rTower(){let h=`<section><h2>Маяк</h2><p class="m">Натискай на поверхи, щоб зазирнути всередину.</p>`;
   const nx=FL.find((f,ix)=>!s.floors[f.id]&&(ix===0||s.floors[FL[ix-1].id]));if(nx&&s.b.hearth)h+=`<p class="m">Далі можна відбудувати: <b>${nx.n}</b>.</p>`;
-  h+=`</section>`;if(s.floors.lantern&&!s.f.won)h+=rLens();if(s.f.won)h+=rBeam();return h}
+  if(s.floors.lantern&&!s.f.won)h+=`<p class="m">Світло в ліхтарні ще б’ється об стіни. Зазирни нагору.</p>`;if(s.lost)h+=`<p class="foe">Ріжок у тумані! Поверни промінь у ліхтарні.</p>`;
+  if(s.floors.lantern)h+=`<details class="ledg"${s.ldOpen?' open':''}><summary>Усе списком</summary>${s.f.won?rBeam():rLens()}</details>`;return h+`</section>`}
 function rBeam(){const L=s.lost,tele=fuL('gallery')>=1,cur=s.beam||0;
   let w=`<div class="wedge" style="background:conic-gradient(from ${cur*60-30}deg,rgba(240,184,74,.55) 0 60deg,transparent 60deg 360deg)"></div><div class="core"></div>`;
   SECT.forEach((n,i)=>{const a=(i*60-90)*Math.PI/180,x=50+Math.cos(a)*40,y=50+Math.sin(a)*40;w+=`<button type="button" class="${cur===i?'on':''}${L&&tele&&L.sec===i?' lost':''}" style="left:${x}%;top:${y}%" data-a="beam" data-i="${i}">${n}</button>`});

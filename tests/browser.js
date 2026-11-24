@@ -199,6 +199,19 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await p.close();
   }
 
+  // 12. Ліхтарня: дзеркало в картці поверху повертається
+  {
+    const p = await page(1100, 1000);
+    await p.evaluate(() => { window.dlg = () => {}; storyCheck = () => {}; s.f.looked = 1; s.b.hearth = 3; s.floors = { work: 1, gallery: 1, study: 1, lantern: 1 }; s.tabs = { home: 1, tower: 1 }; s.dlg = []; s.tab = 'tower'; render(); });
+    await p.waitForTimeout(300);
+    const el = await p.$('.scn [data-k="fl:lantern"]');
+    if (el) { await el.click(); await p.waitForTimeout(300); }
+    const m = await p.$('#popl .lmir');
+    A(!!m, 'дзеркала в картці ліхтарні');
+    if (m) { const id = await m.getAttribute('data-i'), d0 = await p.evaluate(i => s.mirrors[i], id); await m.click(); await p.waitForTimeout(200); A(await p.evaluate(([i, d]) => s.mirrors[i] !== d, [id, d0]), 'дзеркало повернулося'); }
+    await p.close();
+  }
+
   // 10. Дзвіночок
   {
     const p = await page(390, 844);

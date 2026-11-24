@@ -895,3 +895,14 @@ body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .
 .scn.lcd::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 12% 85%,transparent 0 12%,rgba(2,4,8,.92) 38%);pointer-events:none;z-index:900}
 .lcpf{display:flex;gap:10px;align-items:flex-start}.lcpf>div{min-width:0;flex:1}.lcpf img.face{flex:none;border:1px solid #3a2718;background:#16252e}
 @media (max-width:560px){.ob.lcp .mpl{font-size:10px}}
+/* Ліхтарня: план із дзеркалами й морська карта променя */
+.lensb{position:relative;width:100%;max-width:520px;margin:8px auto 4px;border:2px solid #3a2718;background:#0a0c10}
+.lensb>img.scene{display:block;width:100%;height:100%;image-rendering:pixelated}
+.lmir{position:absolute;margin:0;padding:0;border:0;background:none;cursor:pointer;min-height:0}
+.lmir img{display:block;width:100%;height:100%;image-rendering:pixelated;transition:transform .25s}
+.lmir:hover img,.lmir:focus-visible img{filter:drop-shadow(0 0 3px #ffe08a)}
+.lmir:active img{transform:scale(.88)}
+.lmir:disabled{cursor:default}
+.dial.px{background:#0a0c10;border:2px solid #3a2718;overflow:visible}
+.dial.px .bch{position:absolute;inset:0;width:100%;height:100%;border-radius:50%;image-rendering:pixelated}
+.dial.px .wedge{mix-blend-mode:screen}
