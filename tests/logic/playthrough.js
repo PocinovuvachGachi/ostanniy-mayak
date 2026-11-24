@@ -1,5 +1,5 @@
 require('../harness.js')(`
-FOEST.fill(1);/* проходження перевіряє сюжетний перебіг, не баланс */
+FOEST.fill(1);ENC.heart.mult=1.4;/* проходження перевіряє сюжетний перебіг, не баланс */
 let fails=0;function A(c,m){if(!c){fails++;console.log('FAIL',m)}}
 function T(n){for(let i=0;i<n;i++){produce(1);checks()}}
 function allTabs(){const t0=s.tab;for(const t in s.tabs){s.tab=t;render()}s.tab=t0;render()}
