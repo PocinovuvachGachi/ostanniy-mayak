@@ -151,7 +151,18 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await p.close();
   }
 
-  // 8. Дзвіночок
+  // 8. Герой: слот на ляльці відкриває картку
+  {
+    const p = await page(1100, 1000);
+    await p.evaluate(() => { window.dlg = () => {}; storyCheck = () => {}; s.f.looked = 1; s.h.bg = Object.keys(BGS)[0]; giveI('oar'); giveI('knife'); s.tabs = { home: 1, hero: 1 }; s.dlg = []; s.tab = 'hero'; render(); s.dlg = []; render(); });
+    await p.waitForTimeout(300);
+    const sl = await p.$('.scn [data-k="hr:s:weapon"]');
+    if (sl) { await sl.click(); await p.waitForTimeout(300); }
+    A(!!await p.$('#popl [data-a="equip"]'), 'картка зброї на ляльці');
+    await p.close();
+  }
+
+  // 9. Дзвіночок
   {
     const p = await page(390, 844);
     const r = await p.evaluate(() => {

@@ -837,3 +837,20 @@ button.hs.zone:hover,button.hs.zone:focus-visible{background:transparent;border:
 .ob.mpk.far .mpl{color:#6b5a44}
 .ob.mpk.new .mpl{color:#7a2e22}
 @media (max-width:560px){.ob.mpk .mpl{font-size:10px}}
+/* Щоденник хранителя */
+.scn.hr{container-type:inline-size}
+.scn.hr .scene{aspect-ratio:432/240}
+.scn .hrdoll{position:absolute;image-rendering:pixelated;pointer-events:none;z-index:60;filter:drop-shadow(0 2px 0 rgba(58,39,24,.35))}
+.ob.hrsl .hrwi{position:absolute;left:12%;top:12%;width:76%;height:76%;image-rendering:pixelated;pointer-events:none}
+.scn .hrtxt,.scn .hrttl{position:absolute;z-index:70;color:#2b1d12;line-height:1.25;font-family:var(--serif);pointer-events:none}
+.scn .hrtxt{font-size:clamp(9px,2.1cqw,15px)}
+.scn .hrtxt h3{margin:0 0 .2em;font-size:1.35em;font-style:italic}
+.scn .hrtxt h3 small{font-size:.62em;font-style:normal;color:#7a3f04;margin-left:.4em;font-family:var(--mono)}
+.scn .hrtxt p{margin:.25em 0 .1em}
+.scn .hrtxt .hrbg{font-style:italic;color:#5a4630}
+.scn .hrbar{height:.55em;border:1px solid #5a4630;background:rgba(122,63,4,.08)}
+.scn .hrbar i{display:block;height:100%;background:#8f2f2b}
+.scn .hrbar.xp i{background:#3d5a34}
+.scn .hrch{display:grid;grid-template-columns:1fr 1fr;gap:.2em .6em;margin-top:.6em;font-size:.92em}
+.scn .hrch i{color:#5a4630}
+.scn .hrttl{font-size:clamp(10px,2.4cqw,17px);font-style:italic;text-align:center}

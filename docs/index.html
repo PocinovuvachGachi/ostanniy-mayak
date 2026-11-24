@@ -851,6 +851,23 @@ button.hs.zone:hover,button.hs.zone:focus-visible{background:transparent;border:
 .ob.mpk.far .mpl{color:#6b5a44}
 .ob.mpk.new .mpl{color:#7a2e22}
 @media (max-width:560px){.ob.mpk .mpl{font-size:10px}}
+/* Щоденник хранителя */
+.scn.hr{container-type:inline-size}
+.scn.hr .scene{aspect-ratio:432/240}
+.scn .hrdoll{position:absolute;image-rendering:pixelated;pointer-events:none;z-index:60;filter:drop-shadow(0 2px 0 rgba(58,39,24,.35))}
+.ob.hrsl .hrwi{position:absolute;left:12%;top:12%;width:76%;height:76%;image-rendering:pixelated;pointer-events:none}
+.scn .hrtxt,.scn .hrttl{position:absolute;z-index:70;color:#2b1d12;line-height:1.25;font-family:var(--serif);pointer-events:none}
+.scn .hrtxt{font-size:clamp(9px,2.1cqw,15px)}
+.scn .hrtxt h3{margin:0 0 .2em;font-size:1.35em;font-style:italic}
+.scn .hrtxt h3 small{font-size:.62em;font-style:normal;color:#7a3f04;margin-left:.4em;font-family:var(--mono)}
+.scn .hrtxt p{margin:.25em 0 .1em}
+.scn .hrtxt .hrbg{font-style:italic;color:#5a4630}
+.scn .hrbar{height:.55em;border:1px solid #5a4630;background:rgba(122,63,4,.08)}
+.scn .hrbar i{display:block;height:100%;background:#8f2f2b}
+.scn .hrbar.xp i{background:#3d5a34}
+.scn .hrch{display:grid;grid-template-columns:1fr 1fr;gap:.2em .6em;margin-top:.6em;font-size:.92em}
+.scn .hrch i{color:#5a4630}
+.scn .hrttl{font-size:clamp(10px,2.4cqw,17px);font-style:italic;text-align:center}
 </style>
 </head>
 <body>
@@ -3635,16 +3652,8 @@ function rHero(){const H=s.h;
   const sub=[['gear','Спорядження','pack',0],['arms','Зброя','cleaver',0],['bag','Торба','crate',0],['grow','Розвиток','lore',H.pts+H.sp>0],['talents','Таланти','shard',H.fp>0&&FT.some(f=>tVis(f)&&featOk(f))]];
   const NVK={arms:'arms',bag:'bag',grow:'grow',talents:'tal'};const subv=sub.filter(x=>x[0]==='gear'||s.nv[NVK[x[0]]]).map(x=>[x[0],x[1],x[2],x[3]||(x[0]!=='gear'&&!s.nvU[x[0]])]);if(!subv.some(x=>x[0]===s.ht))s.ht='gear';s.nvU[s.ht]=1;
   let h=`<div class="sub2" role="tablist">${subv.map(x=>btn(`${pimg(icoURL(x[2]),18,18)}${x[1]}${x[3]?'<span class="dot"></span>':''}`,'ht',x[0],{cls:s.ht===x[0]?'on':''})).join('')}</div>`;
-  const chip=(n,v)=>`<div class="schip"><span>${n}</span><b>${v}</b></div>`;
-  h+=`<section><div class="hcard"><div class="hport">${rDoll()}</div><div><div class="hname"><h2>Хранитель</h2><span class="lvl">рівень ${H.lvl}</span>${H.bg&&BGS[H.bg]?`<span class="m">колись — ${BGS[H.bg].n.toLowerCase()}</span>`:''}</div>
-  <p class="m" style="margin:0">Здоров’я ${V(()=>Math.ceil(s.h.hp)+' / '+maxHP())}</p><div class="bar">${W(()=>Math.max(0,s.h.hp/maxHP()*100))}</div>
-  <p class="m" style="margin:0">Досвід ${V(()=>Math.floor(s.h.xp)+' / '+need(s.h.lvl))}</p><div class="bar xp">${W(()=>s.h.xp/need(s.h.lvl)*100)}</div></div></div>
-  <div class="schips">${chip('удар',`${wDmg()+H.a.str-1}–${wDmg()+H.a.str}`)}${chip('ціна удару',wAP()+' ОД')}${chip('очки дії',maxAP())}${chip('броня',armor())}${chip('критичний',critCh()+'%')}${s.eq.ranged?chip('постріл',`${rangedDmg()} · ${rngOf()} кл.`):''}${reach()>1?chip('досяг',reach()+' кл.'):''}</div>`;
-  const food=[];if(s.seen.fish)food.push(btn('З’їсти рибу (+8)','eat','',{ok:()=>s.r.fish>=1&&s.h.hp<maxHP()}));if(s.seen.prov)food.push(btn('З’їсти провізію (+15)','eatp','',{ok:()=>s.r.prov>=1&&s.h.hp<maxHP()}));if(s.mst.olesya)food.push(btn('Перев’язка в Олесі','olheal','',{cd:'olheal',cs:120,ok:()=>s.h.hp<maxHP()}));
-  if(food.length)h+=`<div class="act">${food.join('')}</div>`;h+=`</section>`;
   if(s.ht==='gear'){const ld=carried(),cap=loadCap(),pen=overPen();
     const ds=sl=>{const id=s.eq[sl];return`<div class="dslot${id?'':' e'}" ${id?itemTip(id):''}><div class="ib">${id?pimg(WT[id]?wIco(id):icoURL(id),30,30):''}</div><div style="min-width:0"><small>${SLOT[sl]}</small>${id?`<b>${WT[id]?wN(id):IT[id].n}</b>`:'<span class="m">порожньо</span>'}</div></div>`};
-    h+=`<section><h2>На хранителі</h2><div class="doll"><div class="col">${ds('weapon')}${ds('ranged')}</div><div class="dcen">${pimg(heroURL(s.eq),112,112,'','Хранитель')}</div><div class="col">${ds('armor')}${ds('light')}${ds('charm')}</div></div></section>`;
     if(s.nv.bag){if(pen||ld/cap>0.6)h+=`<section><h2>Вантаж</h2><p class="m">Несеш ${ld} з ${cap}. Вантажопідйомність росте із Силою та кращим ранцем.${pen?` <b class="foe">Перевантаження: −${pen} ОД у бою.</b>`:''}</p><div class="bar xp"><i style="width:${Math.min(100,ld/cap*100)}%;${pen?'background:var(--bad)':''}"></i></div></section>`;
     h+=`<section><h2>Рюкзак: ${s.pack.length} з ${packSlots()}${ih(`У бій береш лише зброю з рюкзака. Перемкнути зброю в бою коштує 1 ОД.`)}</h2><div class="bag">`;
     for(const id of s.pack){const it=IT[id],on=s.eq[it.slot]===id;h+=`<div class="cell${on?' oncell':''}" ${itemTip(id)}><div class="ic" aria-hidden="true">${pimg(wIco(id),36,36)}</div><b>${wN(id)}</b><span class="m">${itemShort(id)}</span><div class="act">${on?'<span class="done">у руках</span>':btn('Взяти в руки','equip',id)}${btn('Викласти','packRem',id,{cls:'toggle'})}</div></div>`}
@@ -3921,8 +3930,8 @@ function render(){B={};bn=0;
     if(s.tab==='map')markSeen('map',s.at?'a:'+s.at+'.':'L:');else if(s.tab!=='hero')markSeen(s.tab);if(s.newTab[s.tab])delete s.newTab[s.tab]}
   try{if(!texInit){texInit=1;const rs=document.documentElement.style;for(const k of['stone','sand','plank','board','paper','slate']){const u=pxURL('tx:'+k,()=>texBuf(k));if(u)rs.setProperty('--tx-'+k,`url(${u})`)}}
     if(!texInit2){texInit2=1;const rs=document.documentElement.style;for(const k of['wood','drift','stone','paper','slate']){const u=pxURL('fr:'+k,()=>frameBuf(k));if(u)rs.setProperty('--fr-'+k,`url(${u})`)}}
-    const th=s.cb?'':['home','tower','work','study'].includes(s.tab)||(s.tab==='map'&&!s.at)?'th-home':s.tab==='shore'?'th-shore':'';document.body.classList.toggle('th-home',th==='th-home');document.body.classList.toggle('th-shore',th==='th-shore')}catch(e){}
-  hideTip();const mn=$('main');const vw0=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:''),same0=vw0===lastView&&!s.cb,xs=same0?xSnap(mn):null,as0=same0?aSnap(mn):null;let tlx=null;try{const q=same0&&mn.querySelector('.chr-tl');if(q)tlx=q.scrollLeft>=q.scrollWidth-q.clientWidth-4?-1:q.scrollLeft}catch(e){}patchStage(s.cb?'':s.tab==='home'?homeScene():s.tab==='shore'?shoreScene():s.tab==='tower'?towerScene():s.tab==='work'?workScene():s.tab==='study'?studyScene():s.tab==='map'&&!s.at?mapScene():'');zoomRun();mn.innerHTML=h;if(tlx!==null){try{const q=mn.querySelector('.chr-tl');if(q)q.scrollLeft=tlx<0?q.scrollWidth:tlx}catch(e){}}glossify(mn);rDlg();if(xs)xFade(mn,xs,1);if(as0)aMark(mn,as0);
+    const th=s.cb?'':['home','tower','work','study','hero'].includes(s.tab)||(s.tab==='map'&&!s.at)?'th-home':s.tab==='shore'?'th-shore':'';document.body.classList.toggle('th-home',th==='th-home');document.body.classList.toggle('th-shore',th==='th-shore')}catch(e){}
+  hideTip();const mn=$('main');const vw0=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:''),same0=vw0===lastView&&!s.cb,xs=same0?xSnap(mn):null,as0=same0?aSnap(mn):null;let tlx=null;try{const q=same0&&mn.querySelector('.chr-tl');if(q)tlx=q.scrollLeft>=q.scrollWidth-q.clientWidth-4?-1:q.scrollLeft}catch(e){}patchStage(s.cb?'':s.tab==='home'?homeScene():s.tab==='shore'?shoreScene():s.tab==='tower'?towerScene():s.tab==='work'?workScene():s.tab==='study'?studyScene():s.tab==='map'&&!s.at?mapScene():s.tab==='hero'?heroScene():'');zoomRun();mn.innerHTML=h;if(tlx!==null){try{const q=mn.querySelector('.chr-tl');if(q)q.scrollLeft=tlx<0?q.scrollWidth:tlx}catch(e){}}glossify(mn);rDlg();if(xs)xFade(mn,xs,1);if(as0)aMark(mn,as0);
   const view=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:'');const prevView=lastView;if(view!==lastView&&mn.classList&&!RM()){for(const e of[mn,$('stage')]){if(!e||!e.classList)continue;e.classList.remove('tin');void e.offsetWidth;e.classList.add('tin')}}lastView=view;
   placePop();
   if(hlT){const tg=hlT;hlT=null;try{const el=document.getElementById(tg);if(el){el.scrollIntoView({block:'center',behavior:RM()?'auto':'smooth'});el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash')}}catch(e){}}
@@ -4013,6 +4022,58 @@ function bpDlg(L){dlg({k:'plan',title:L.length>1?'Нові креслення':`
   body:L.map(b=>`<div class="bp"><div class="bp-i">${pimg(icoURL(BIC[b.id]||'crate'),64,64,'')}</div><div class="bp-t"><span class="bpn">${b.n}</span><p>${BSRC[b.id]||''}</p><span class="ccs" ${TA(typeof b.d==='function'?b.d():b.d||'')}>${costChips(bCost(b))}</span></div></div>`).join(''),
   btns:[['До вогнища','dlggo','home'],['Згорнути','dlgok']]})}
 
+/* ============ ГЕРОЙ: розворот щоденника хранителя ============
+   Ліва сторінка — портрет і вбрання на ляльці (слоти — об'єкти з картками). Права — записи: рівень, здоров'я, досвід,
+   удар, броня; унизу мотузка з вузлами-талантами. На столі — свічка й миска з їжею. */
+const HRW=432,HRH=240;
+const HSLOT={weapon:[40,66],ranged:[40,118],armor:[168,56],light:[168,108],charm:[168,160]};
+function heroDesk3(){const b=pbuf(HRW,HRH);b.ng=1;
+  hiRect(b,0,0,HRW,HRH,(i,j,x,y)=>{const row=Math.floor(y/20);return(Math.floor(y)%20===19)?'V':hh2(i>>3,row)<.1?'X':hh2(i>>1,j)<.05?'V':'W'});
+  /* книга: обкладинка, сторінки, корінець */
+  prect(b,18,10,396,222,'V');prect(b,20,12,392,218,'c');
+  for(const[x0,x1]of[[26,214],[218,406]]){hiRect(b,x0,14,x1-x0,210,(i,j,x,y)=>{const e=Math.min(x-x0,x1-x,y-14,224-y);if(e<1.2)return'b';const n=hh2(i,j);if((Math.floor(y)-30)%12===0&&y>30&&y<210&&n>.3)return'N';return n<.06?'N':n<.09?'b':'O'})}
+  for(let i=0;i<4;i++){prect(b,26+i,224+i*.5,188-i*2,1,'b');prect(b,218+i,224+i*.5,188-i*2,1,'b')}
+  hiRect(b,208,14,16,210,(i,j,x)=>{const d=Math.abs(x-216)/8;return d<.15?'a':d<.5?'b':null});
+  /* рамки слотів чорнилом */
+  for(const sl in HSLOT){const[x,y]=HSLOT[sl];for(let t=0;t<30;t+=2){pset(b,x-1+t,y-1,'a');pset(b,x-1+t,y+29,'a');pset(b,x-1,y-1+t,'a');pset(b,x+29,y-1+t,'a')}}
+  /* стрічка-закладка */
+  prect(b,392,0,6,30,'i');polyFill(b,[[392,30],[395,26],[398,30],[398,34],[392,34]],(x,y)=>pset(b,x,y,'i'));
+  /* мотузка для вузлів-талантів */
+  for(let x=230;x<396;x++){const y=204+Math.sin(x/9)*1.2;pset(b,x,y,(x>>1)%2?'d':'e');pset(b,x,y+1,'c')}
+  return b}
+function heroSlot3(icon,wico){const b=pbuf(28,28);b.ng=1;if(!icon)return b;const R=wico?null:(ICO[icon]||null);
+  if(R){for(let y=0;y<12;y++)for(let x=0;x<12;x++){const c=(R[y]||'')[x]||'.';if(c!=='.')prect(b,2+x*2,2+y*2,2,2,c)}}else{prect(b,4,4,20,20,'N')}return b}
+function heroBowl3(n){const b=pbuf(30,20);polyFill(b,[[1,8],[29,8],[24,19],[6,19]],(x,y)=>pset(b,x,y,(x+y)%5?'X':'W'));prect(b,1,7,28,2,'Y');for(let i=0;i<Math.min(3,n);i++){prect(b,5+i*7,3,7,4,i%2?'T':'S');pset(b,5+i*7,4,'U')}return b}
+function heroKnot3(st){const b=pbuf(10,12);polyFill(b,Array.from({length:10},(_,a)=>[5+Math.cos(a/10*6.283)*4,6+Math.sin(a/10*6.283)*4.5]),(x,y)=>pset(b,x,y,st==='avail'?((EXX+EXY)%3?'g':'h'):st==='taken'?((EXX+EXY)%2?'d':'e'):'b'));return b}
+for(const f of['heroDesk3','heroSlot3','heroBowl3','heroKnot3'])globalThis[f]=HI(globalThis[f]);
+
+function heroScene(){const H=s.h,WW=HRW,HH=HRH;let h=`<span data-sk="bg" data-sig="bg" class="scbg">${VH(()=>pimg(pxURL('hrd4',heroDesk3),864,480,'scene','Щоденник хранителя'))}</span>`;
+  /* лялька: існуючий піксельний хранитель у вбранні */
+  h+=`<img class="hrdoll" data-sk="doll" data-sig="${hsh(heroURL(s.eq))}" src="${heroURL(s.eq)}" alt="Хранитель" style="${PCT(76,52,84,84,WW,HH)}">`;
+  for(const sl in HSLOT){const id=s.eq[sl],[x,y]=HSLOT[sl],alt=Object.keys(s.inv).some(k=>s.inv[k]>0&&IT[k]&&IT[k].slot===sl&&k!==id);if(!id&&!alt&&sl!=='weapon')continue;
+    const ic=id?(WT[id]?null:id):null;h+=ob('hr:s:'+sl,'bpop','hr:s:'+sl,obURL('hrs3:'+(id||'-'),()=>heroSlot3(ic,!!(id&&WT[id]))),x,y,WW,HH,SLOT[sl],`<b>${SLOT[sl]}</b><br>${id?(WT[id]?wN(id):IT[id].n):'порожньо'}`,{cls:'hrsl',inner:id&&WT[id]?`<img class="hrwi" src="${wIco(id)}" alt="">`:''})}
+  /* миска з їжею */
+  const food=(s.seen.fish?Math.min(3,Math.floor(s.r.fish)):0);if(s.seen.fish||s.seen.prov)h+=ob('hr:food','bpop','hr:food',obURL('hrb3:'+food,()=>heroBowl3(food)),2,212,WW,HH,'Миска','<b>Їжа</b><br>Підкріпитися й загоїти рани.',{pulse:s.h.hp<maxHP()*.5?1:0,always:s.h.hp<maxHP()*.5?1:0});
+  /* вузли талантів на мотузці */
+  const tk=FT.filter(f=>H.ft[f.id]).length,av=H.fp>0&&FT.some(f=>tVis(f)&&featOk(f));const nk=Math.min(14,tk+(av?1:0));
+  for(let i=0;i<nk;i++){const stt=i<tk?'taken':'avail',x=236+i*11;h+=ob('hr:k'+i,'ht','talents',obURL('hrk3:'+stt,()=>heroKnot3(stt)),x,198,WW,HH,'Таланти',`<b>Таланти</b><br>${i<tk?'Взятий талант.':'Можна обрати новий талант.'}`,{pulse:stt==='avail'?1:0,always:stt==='avail'?1:0})}
+  if(s.nv.grow&&H.pts+H.sp>0)h+=ob('hr:grow','ht','grow',obURL('hrk3:avail',()=>heroKnot3('avail')),388,30,WW,HH,'Розвиток',`<b>Нові очки</b><br>Можна вкласти в характеристики чи вміння.`,{pulse:1,always:1});
+  /* записи на правій сторінці */
+  const chip=(n,v)=>`<span><i>${n}</i> <b>${v}</b></span>`;
+  h+=`<div class="hrtxt" data-sk="txt" data-sig="t" style="${PCT(232,22,160,170,WW,HH)}"><h3>Хранитель <small>рівень ${V(()=>s.h.lvl)}</small></h3>${H.bg&&BGS[H.bg]?`<p class="hrbg">колись — ${BGS[H.bg].n.toLowerCase()}</p>`:''}
+    <p>Здоров’я ${V(()=>Math.ceil(s.h.hp)+' / '+maxHP())}</p><div class="hrbar">${W(()=>Math.max(0,s.h.hp/maxHP()*100))}</div>
+    <p>Досвід ${V(()=>Math.floor(s.h.xp)+' / '+need(s.h.lvl))}</p><div class="hrbar xp">${W(()=>s.h.xp/need(s.h.lvl)*100)}</div>
+    <div class="hrch">${chip('удар',V(()=>`${wDmg()+s.h.a.str-1}–${wDmg()+s.h.a.str}`))}${chip('броня',V(()=>armor()))}${chip('очки дії',V(()=>maxAP()))}${chip('критичний',V(()=>critCh()+'%'))}</div></div>`;
+  h+=`<div class="hrttl" data-sk="ttl" data-sig="t" style="${PCT(30,18,180,20,WW,HH)}">Що несе хранитель</div>`;
+  const L={fire:[],win:[{x:216,y:120,r:240,e:.55,c:WARM,a:.35}]};
+  return`<div class="scn hr" data-scn="hr" style="${scnD()}">${h}${fxCanvas('hr',WW,HH)}${lightLayers(WW,HH,L)}</div>`}
+function heroPopHTML(id){const card=(nm,lv,body,act)=>`<div class="bpop" role="dialog" aria-label="${nm}"><div class="bph"><b>${nm}</b>${lv?`<span class="bplv">${lv}</span>`:''}<button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div>${body}${act?`<div class="act">${act}</div>`:''}</div>`;
+  if(id==='hr:food'){const b=[];if(s.seen.fish)b.push(btn('З’їсти рибу (+8)','eat','',{ok:()=>s.r.fish>=1&&s.h.hp<maxHP()}));if(s.seen.prov)b.push(btn('З’їсти провізію (+15)','eatp','',{ok:()=>s.r.prov>=1&&s.h.hp<maxHP()}));if(s.mst.olesya)b.push(btn('Перев’язка в Олесі','olheal','',{cd:'olheal',cs:120,ok:()=>s.h.hp<maxHP()}));
+    return card('Їжа','',`<p class="m">Здоров’я ${V(()=>Math.ceil(s.h.hp)+' / '+maxHP())}.</p>`,b.join(''))}
+  if(id.startsWith('hr:s:')){const sl=id.slice(5),cur=s.eq[sl],alt=Object.keys(s.inv).filter(k=>s.inv[k]>0&&IT[k]&&IT[k].slot===sl&&k!==cur),nm=k=>WT[k]?wN(k):IT[k].n;
+    return card(SLOT[sl],cur?'вдягнено':'порожньо',`${cur?`<div class="row"><span>${pimg(WT[cur]?wIco(cur):icoURL(cur),24,24)} <b>${nm(cur)}</b><br><span class="m">${itemShort(cur)}</span></span></div>`:'<p class="m">Тут поки нічого.</p>'}
+      ${alt.length?`<p class="jh">Можна взяти</p><div class="rlist">${alt.map(k=>`<div class="row"><span>${pimg(WT[k]?wIco(k):icoURL(k),20,20)} ${nm(k)}</span>${btn('Взяти','equip',k)}</div>`).join('')}</div>`:''}`,cur&&!['weapon','ranged'].includes(sl)?btn('Зняти','unequip',sl,{cls:'toggle'}):'')}
+  return''}
 /* ============ v17: LIVING SCENES ============ */
 const PCT=(x,y,w,h,W,H)=>`left:${(x/W*100).toFixed(2)}%;top:${(y/H*100).toFixed(2)}%;width:${(w/W*100).toFixed(2)}%;height:${(h/H*100).toFixed(2)}%`;
 function hs(k,a,i,box,lab,tip,o={}){const pulse=o.pulse&&(o.always||!(s.hsU||{})[k]);
@@ -4069,6 +4130,7 @@ function bpopHTML(){const id=popB;if(!id)return'';let nm,lvl,d,btns='',extra='';
   if(id.startsWith('fl:'))return flPopHTML(id.slice(3));
   if(id.startsWith('wk:')||id.startsWith('st:'))return roomPopHTML(id);
   if(id.startsWith('mp:'))return mapPopHTML(id);
+  if(id.startsWith('hr:'))return heroPopHTML(id);
   if(id==='hearth'){const n=s.b.hearth||0,c=bCost(HEARTH);nm='Вогнище';lvl=n;d=`+${2*n} жару/с, спалює ${fr(0.12*n)} плавника/с.`;
     btns=`${btn('Підкинути дров','bld','hearth',{ok:()=>afford(c),cls:'main'})}<span class="ccs">${costChips(c)}</span>${btn(s.on.hearth===false?'Розпалити':'Пригасити','tog','hearth',{cls:'toggle'})}`}
   else{const b=BD.find(x=>x.id===id);if(!b)return'';const n=s.b[id]||0,w=(s.wk||{})[id]||0,mx=b.max&&n>=b.max,dm=(s.dmgB||{})[id];nm=b.n;lvl=n;d=typeof b.d==='function'?b.d():b.d||'';
@@ -4081,7 +4143,7 @@ function bpopHTML(){const id=popB;if(!id)return'';let nm,lvl,d,btns='',extra='';
   return html}
 function placePop(){try{let L=document.getElementById('popl');if(!popB||s.cb){if(L&&L.innerHTML){L.innerHTML='';L.dataset.sig=''}return}
   if(!L){L=document.createElement('div');L.id='popl';document.body.appendChild(L)}
-  const el=document.querySelector(popB==='hearth'?'.scn [data-k="hearth"]':/^(fl|wk|st|mp):/.test(popB)?`#stage .scn [data-k="${popB}"]`:`.scn [data-k="b:${popB}"],.scn [data-k^="b:${popB}"]`);if(!el){L.innerHTML='';return}
+  const el=document.querySelector(popB==='hearth'?'.scn [data-k="hearth"]':/^(fl|wk|st|mp|hr):/.test(popB)?`#stage .scn [data-k="${popB}"]`:`.scn [data-k="b:${popB}"],.scn [data-k^="b:${popB}"]`);if(!el){L.innerHTML='';return}
   const html=bpopHTML(),sg=hsh(html);if(L.dataset.sig!==sg){L.innerHTML=html;L.dataset.sig=sg}const c=L.firstElementChild;if(!c)return;
   if(innerWidth<=560||(window.matchMedia&&matchMedia('(max-width:560px)').matches)){c.classList.add('sheet');return}c.classList.remove('sheet');
   const r=el.getBoundingClientRect(),cw=c.offsetWidth,ch=c.offsetHeight;let x=r.left+r.width/2+scrollX-cw/2;x=Math.max(8,Math.min(x,document.documentElement.clientWidth-cw-8));
