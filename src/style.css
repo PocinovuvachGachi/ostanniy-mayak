@@ -248,6 +248,10 @@ img.px{display:block}
 .src{font-style:italic}
 /* v14: transitions */
 img.xf{position:absolute;pointer-events:none;z-index:5;transition:opacity .9s ease;image-rendering:pixelated}
+img.xf.xfin{transition:opacity 2.4s ease-in-out}
+/* нове на сцені виступає з темряви */
+.ob.obnew{animation:obin var(--obd,1.6s) ease-out var(--oba,0ms) both}
+@keyframes obin{0%{opacity:0;filter:brightness(.2) blur(1px)}40%{opacity:.55}100%{opacity:1;filter:none}}
 .xin{animation:xin 1.3s ease-out both}
 @keyframes xin{from{opacity:0;filter:brightness(.25)}to{opacity:1;filter:none}}
 .ain{animation:ain .7s ease-out both}
@@ -261,7 +265,7 @@ img.xf{position:absolute;pointer-events:none;z-index:5;transition:opacity .9s ea
 #dlg .dlgbg.fo{animation:dfo .23s ease-in forwards;pointer-events:none}
 @keyframes dfo{to{opacity:0}}
 @keyframes dfi{from{opacity:0}to{opacity:1}}
-@media (prefers-reduced-motion:reduce){.xin,.ain,#tabs button.tnew,#top .rnew,#dlg .dlgbg.fi{animation:none}img.xf{display:none}}
+@media (prefers-reduced-motion:reduce){.ob.obnew,.xin,.ain,#tabs button.tnew,#top .rnew,#dlg .dlgbg.fi{animation:none}img.xf{display:none}}
 /* v14: combat icon bar */
 .abar{display:flex;flex-wrap:wrap;gap:6px;align-items:stretch;margin:10px 0 6px}
 .abar .ag{display:flex;flex-direction:column;gap:3px;padding:4px 5px 5px;border:1px solid var(--rule);border-radius:6px;background:color-mix(in srgb,var(--ink) 6%,transparent)}

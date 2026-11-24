@@ -39,3 +39,8 @@ function shoreFordHS(W,H){let h='';
 function fordPopHTML(){const low=tideLow();return`<div class="bpop" role="dialog" aria-label="Брід"><div class="bph"><b>Брід на великий острів</b><button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div>
   <p class="m">${VH(tideTxt)}</p><div class="rlist">${FORD.map(P=>{const done=(s.ford||{})[P.id],lock=P.req&&!P.req();return`<div class="row"><span><b>${P.n}</b>${done?' ✓':''}<br><span class="m">${lock?P.reqT:P.d}</span></span>${done?'':btn('Зробити','ford',P.id,{ok:()=>tideLow()&&!lock&&afford(P.c)})}${done?'':`<span class="ccs">${costTxt(P.c)}</span>`}</div>`}).join('')}</div>
   ${low?'':'<p class="hint">Камінь зараз під водою — чекай відпливу.</p>'}</div>`}
+
+/* перший відплив пояснюється (#40): море відступає — на березі з'являються калюжі */
+function tideFirst(){if(s.f.tideSeen||!s.tabs.shore||!tideLow()||s.cb||(s.dlg||[]).length)return;s.f.tideSeen=1;
+  dlg({k:'world',title:'Відплив',img:{t:'ob',k:'pool3',f:'poolObj3'},body:'<p>Море відступило. Там, де щойно бились хвилі, тепер мокре каміння, водорості й калюжі, у яких лишилась дрібна риба та мідії.</p><p>Вода повернеться — вона завжди повертається. Але скоро відступить знову.</p>',
+    gains:[`Відкрилося: калюжі на відпливі ${ih(`Відплив настає приблизно кожні ${Math.round(TIDE/60)} хв і триває ${Math.round(TLOW/60)} хв. Поки вода низько, на березі є калюжі з рибою й мідіями, а часом і знахідки. Скільки лишилось до зміни води — написано у вкладці «Берег».`)}`]})}

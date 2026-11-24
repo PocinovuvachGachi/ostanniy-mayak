@@ -6,7 +6,7 @@ function xFade(root,old,same){if(RM()||!root||!root.querySelectorAll)return;cons
     if(o){if(o.k!==el.dataset.xk&&o.src&&o.src!==el.src)xOver(el,o.src)}else if(same&&el.classList)el.classList.add('xin')})}
 function xOver(el,src){try{const r=el.getBoundingClientRect();if(!r.width)return;const ov=document.createElement('img');ov.src=src;ov.alt='';ov.className='xf';ov.setAttribute('aria-hidden','true');
   const host=el.closest&&el.closest('.scbg');if(host){ov.classList.add('xfin');host.appendChild(ov)}else{ov.style.left=(r.left+scrollX)+'px';ov.style.top=(r.top+scrollY)+'px';ov.style.width=r.width+'px';ov.style.height=r.height+'px';document.body.appendChild(ov)}
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{ov.style.opacity='0'}));setTimeout(()=>{if(ov.parentNode)ov.parentNode.removeChild(ov)},1200)}catch(e){}}
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ov.style.opacity='0'}));setTimeout(()=>{if(ov.parentNode)ov.parentNode.removeChild(ov)},host?2900:1200)}catch(e){}}
 const ASEL='.row,.card,.fcard,.node,.tdet,section,.chr-c';
 function aId(el){const b=el.tagName==='SECTION'?el.querySelector('h2'):el.querySelector('b,h3,h4');return b?(el.className||'').split(' ')[0]+'|'+b.textContent.trim().slice(0,60):''}
 function aSnap(root){const m=new Set();if(!root||!root.querySelectorAll)return m;root.querySelectorAll(ASEL).forEach(el=>{const k=aId(el);if(k)m.add(k)});return m}

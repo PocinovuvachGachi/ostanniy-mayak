@@ -112,7 +112,7 @@ function storyCheck(quiet){s.bts=s.bts||{};
       s.dlg=s.dlg||[];s.dlg.push({k:'story',chap:1,no:ix+1,sub:ch.n,title:`Розділ ${ix+1}. ${ch.n}`,img:ch.img,body:`<p>${ch.beats.map(b=>b[3]).join(' ')}</p>${nx&&!ch.side&&chStarted(CH.indexOf(nx))?`<p class="m">${nx.d}</p>`:''}<p class="stamp">✎ ${dateTxt(s.play)}</p>`});eraCheck()}})}
 function checks(){const F=s.f;novTick();mgHelpCheck();if(!s.tabs.chron&&s.chs.length&&!s.cb&&!(s.dlg||[]).some(d=>d.chap))unlock('chron');
   if(!F.lk&&s.tot.ember>=10){F.lk=1;dirty=1}
-  if(!F.wreck&&s.c.gather>=18&&s.b.hearth){F.wreck=1;say('Прибій викинув на берег уламки рибальського човна. З них можна видерти цвяхи й скоби, а в прибої — поставити пастку, щоб хвилі самі несли брухт.','world')}
+  if(!F.wreck&&s.c.gather>=18&&s.b.hearth){F.wreck=1;dlg({k:'world',title:'Уламки в прибої',img:{t:'ob',k:'wreck3',f:'wreckObj3'},body:'<p>Збираючи плавник, ти забрідаєш далі вздовж берега — і натрапляєш на щось більше за гілляку. Між каменями застряг розбитий рибальський човен: ребра шпангоутів, дошки обшивки, іржаві цвяхи.</p><p>Хвилі приносять його по шматку. Добре залізо тут на вагу золота.</p>',gains:['Відкрилося: розбирати уламки — брухт (цвяхи й скоби)']})}
   if(!F.barrel&&s.tot.scrap>=5){F.barrel=1;add('oil',8);say(`Серед уламків застрягла розбита бочка. На дні ще хлюпає ${R('oil',8)}.`,'find')}
   if(!s.tabs.tower&&s.tot.ember>=105&&s.b.hearth){unlock('tower');say('Вогонь розгорівся. Тепер видно сходи, що ведуть угору. Відкрито: Маяк.','story')}
   if(!F.quick&&s.c.wins>=5){F.quick=1;say('Ти набрався бойового досвіду. Відтепер сутички з уже знайомими ворогами можна вирішувати швидким боєм.','lvl')}

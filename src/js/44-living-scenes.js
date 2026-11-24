@@ -6,14 +6,20 @@ const OBC={};
 function obURL(key,make){const u=pxURL('ob:'+key,make);const o=pxURL('obo:'+key,()=>{const b=make();return outline2(b,'I')});const k='ob:'+key;if(!OBC[k]){const b=make();OBC[k]=[b.w,b.h]}return[u,o,OBC[k][0],OBC[k][1]]}
 function topPx(key,make){const c='tp:'+key;if(OBC[c])return OBC[c];const b=make(),W=b.W||b.w,H=b.H||b.h,k=b.k||1;for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(b.p[y*W+x]!=='.')return OBC[c]=[x/k,y/k];return OBC[c]=[b.w>>1,0]}
 const pOf=k=>{const l=(s.cd[k]||0)-Date.now();return l>0?l/((CDS[k]||1)*1000):0};const CDS={gather:1,scrapw:2,fishing:3,blow:2};
-function ob(k,a,i,spec,x,y,W,H,lab,tip,o={}){const[u,ol,w,h]=spec;if(!u)return'';const pulse=o.pulse&&(o.always||!(s.hsU||{})[k]);
+/* Нове на сцені проявляється поступово (#40): коли об'єкт з'являється вперше, він виступає з темряви за ~1,6 с
+   (обрис маяка — за ~3 с). Час появи пам'ятаємо, тож перемальовування не перезапускає анімацію. Що вже було при
+   завантаженні гри — без анімації. */
+const OB_Q=Date.now()+2500,OB_SLOW={look:3200};
+function obFresh(k){s.obK=s.obK||{};const now=Date.now();if(!(k in s.obK))s.obK[k]=now<OB_Q?0:now;const t=s.obK[k],D=OB_SLOW[k]||1600;
+  return t&&now-t<D?{c:' obnew',st:`;--obd:${D}ms;--oba:-${now-t}ms`}:{c:'',st:''}}
+function ob(k,a,i,spec,x,y,W,H,lab,tip,o={}){const[u,ol,w,h]=spec;if(!u)return'';const pulse=o.pulse&&(o.always||!(s.hsU||{})[k]);const fr=obFresh(k);
   const box=PCT(x-OP,y-OP,w+2*OP,h+2*OP,W,H),inn=`left:${(OP*100/(w+2*OP)).toFixed(3)}%;top:${(OP*100/(h+2*OP)).toFixed(3)}%;width:${(w/(w+2*OP)*100).toFixed(3)}%;height:${(h/(h+2*OP)*100).toFixed(3)}%`;
   const deco=!a;const gl=!deco&&(pulse||o.cd)?`<span class="gl" style="${inn};-webkit-mask-image:url(${u});mask-image:url(${u})"></span>`:'';
   const body=`<span class="obw"><span class="obj ${o.idle||''}">${deco?'':`<img class="obo" src="${ol}" alt="">`}<img class="obi" src="${u}" alt="" style="${inn}">${gl}</span></span>`;
   const z=10+Math.round(o.z!=null?o.z:y+h);
-  if(deco)return`<span class="ob deco${o.cls?' '+o.cls:''}" data-sk="${k}" data-sig="${hsh(u+box+(o.cls||''))}" style="${box};z-index:${z}" aria-hidden="true">${body}${o.inner||''}</span>`;
-  const core=`class="ob${pulse?' nw':''}${o.ok===false?' no':''}${o.cls?' '+o.cls:''}" data-a="${a}" data-i="${i||''}" data-k="${k}"${o.cd?` data-cd="${o.cd}" data-cs="${o.cs}"`:''} aria-label="${lab}" ${TA(tip||`<b>${lab}</b>`)}>${body}<span class="hsl">${lab}</span>${o.inner||''}`;
-  return`<button type="button" data-sk="${k}" data-sig="${hsh(core+box)}" style="${box};z-index:${z}${o.cd?`;--p:${pOf(o.cd).toFixed(3)}`:''}" ${core}</button>`}
+  if(deco)return`<span class="ob deco${o.cls?' '+o.cls:''}${fr.c}" data-sk="${k}" data-sig="${hsh(u+box+(o.cls||'')+fr.c)}" style="${box};z-index:${z}${fr.st}" aria-hidden="true">${body}${o.inner||''}</span>`;
+  const core=`class="ob${fr.c}${pulse?' nw':''}${o.ok===false?' no':''}${o.cls?' '+o.cls:''}" data-a="${a}" data-i="${i||''}" data-k="${k}"${o.cd?` data-cd="${o.cd}" data-cs="${o.cs}"`:''} aria-label="${lab}" ${TA(tip||`<b>${lab}</b>`)}>${body}<span class="hsl">${lab}</span>${o.inner||''}`;
+  return`<button type="button" data-sk="${k}" data-sig="${hsh(core+box)}" style="${box};z-index:${z}${fr.st}${o.cd?`;--p:${pOf(o.cd).toFixed(3)}`:''}" ${core}</button>`}
 function innerAt(px,py,pw,ph,w,h,cls,extra){return`<i class="${cls}" style="left:${((px+OP)/(w+2*OP)*100).toFixed(2)}%;top:${((py+OP)/(h+2*OP)*100).toFixed(2)}%;width:${(pw/(w+2*OP)*100).toFixed(2)}%;height:${(ph/(h+2*OP)*100).toFixed(2)}%;${extra||''}" aria-hidden="true"></i>`}
 function smkIn(sx,sy,w,h){return[0,1,2].map(n=>`<i class="smk" style="left:${((sx+OP)/(w+2*OP)*100).toFixed(2)}%;top:${((sy+OP)/(h+2*OP)*100).toFixed(2)}%;width:${(3/(w+2*OP)*100).toFixed(2)}%;--o:${n}s" aria-hidden="true"></i>`).join('')}
 let popB='',upT={};

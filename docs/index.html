@@ -262,6 +262,10 @@ img.px{display:block}
 .src{font-style:italic}
 /* v14: transitions */
 img.xf{position:absolute;pointer-events:none;z-index:5;transition:opacity .9s ease;image-rendering:pixelated}
+img.xf.xfin{transition:opacity 2.4s ease-in-out}
+/* нове на сцені виступає з темряви */
+.ob.obnew{animation:obin var(--obd,1.6s) ease-out var(--oba,0ms) both}
+@keyframes obin{0%{opacity:0;filter:brightness(.2) blur(1px)}40%{opacity:.55}100%{opacity:1;filter:none}}
 .xin{animation:xin 1.3s ease-out both}
 @keyframes xin{from{opacity:0;filter:brightness(.25)}to{opacity:1;filter:none}}
 .ain{animation:ain .7s ease-out both}
@@ -275,7 +279,7 @@ img.xf{position:absolute;pointer-events:none;z-index:5;transition:opacity .9s ea
 #dlg .dlgbg.fo{animation:dfo .23s ease-in forwards;pointer-events:none}
 @keyframes dfo{to{opacity:0}}
 @keyframes dfi{from{opacity:0}to{opacity:1}}
-@media (prefers-reduced-motion:reduce){.xin,.ain,#tabs button.tnew,#top .rnew,#dlg .dlgbg.fi{animation:none}img.xf{display:none}}
+@media (prefers-reduced-motion:reduce){.ob.obnew,.xin,.ain,#tabs button.tnew,#top .rnew,#dlg .dlgbg.fi{animation:none}img.xf{display:none}}
 /* v14: combat icon bar */
 .abar{display:flex;flex-wrap:wrap;gap:6px;align-items:stretch;margin:10px 0 6px}
 .abar .ag{display:flex;flex-direction:column;gap:3px;padding:4px 5px 5px;border:1px solid var(--rule);border-radius:6px;background:color-mix(in srgb,var(--ink) 6%,transparent)}
@@ -2714,7 +2718,7 @@ function flotTake(k,mul=1){let m='';const M=v=>Math.round(v*mul);
   else if(k==='bottle'){if(Math.random()<.35&&collFind('flot'))return;const n=NOTES[rnd(NOTES.length)];const g=s.floors.study?{lore:15+rnd(15),coin:5}:{coin:15};for(const x in g)add(x,g[x]);dlg({k:'find',title:'Пляшка з запискою',img:{t:'scene',id:'shore'},body:`<div class="note">${n}</div>`,gains:[costTxt(g)]});return}
   else if(k==='survivor'){if(mul>1){add('coin',20);add('prov',5)}if((s.pop||0)<2*(s.b.house||0)){s.pop=(s.pop||0)+1;m=`На уламку щогли — живий моряк! Він відігрівся біля вогнища й лишився жити біля маяка.${mul>1?` На радощах віддав тобі ${R('coin',20)} і ${R('prov',5)}.`:''}`}else{add('coin',15);m=`На уламку щогли — живий моряк. Ти відігрів його й нагодував. Для нього немає хати, тож він пішов до селища, лишивши ${R('coin',15)}.`;if(s.r.prov>=3)s.r.prov-=3}}
   if(mul>1&&m)m+=' Спритно впорався!';say(m,'find')}
-function shoreTick(){const now=Date.now();for(const[k,m]of[['bite','Велика риба зірвалася й пішла в глибину. Нічого, ще клюне.'],['hot','Заготовка охолола. Нічого, метал ще розжариться.']])if(s[k]){if(away())s[k].until=Math.max(s[k].until,now+20000);else if(now>s[k].until){s[k]=null;say(m,'world')}}if(!s.floors.gallery)return;if(s.flot&&away()&&!mgHelp('flot'))s.flot.until=Math.max(s.flot.until,now+30000);
+function shoreTick(){tideFirst();const now=Date.now();for(const[k,m]of[['bite','Велика риба зірвалася й пішла в глибину. Нічого, ще клюне.'],['hot','Заготовка охолола. Нічого, метал ще розжариться.']])if(s[k]){if(away())s[k].until=Math.max(s[k].until,now+20000);else if(now>s[k].until){s[k]=null;say(m,'world')}}if(!s.floors.gallery)return;if(s.flot&&away()&&!mgHelp('flot'))s.flot.until=Math.max(s.flot.until,now+30000);
   if(s.flot&&now>s.flot.until&&!MG){const k=s.flot.k;s.flot=null;s.flotT=now+(120+Math.random()*120)*1000;if(mgHelp('flot')){say('Варта прибою витягла те, що винесли хвилі.','find');flotTake(k,k==='bottle'?1:mgAutoRes('flot'))}else say('Хвилі забрали те, що лежало на березі.','world')}
   if(!s.flot){if(!s.flotT)s.flotT=now+(90+Math.random()*90)*1000;else if(now>=s.flotT){const ks=['crate','crate','barrel','barrel','cargo','bottle',...(s.f.people?['survivor']:[])];s.flot={k:ks[rnd(ks.length)],until:now+180000};say('Прибій щось викинув на берег.','world');dirty=1}}
   for(const e of (s.exp||[]).slice())if(now>=e.until){s.exp=s.exp.filter(x=>x!==e);const X=EXP[e.id],g=X.res(),bad=fuL('gallery')<3&&Math.random()<0.1;
@@ -3220,7 +3224,7 @@ function storyCheck(quiet){s.bts=s.bts||{};
       s.dlg=s.dlg||[];s.dlg.push({k:'story',chap:1,no:ix+1,sub:ch.n,title:`Розділ ${ix+1}. ${ch.n}`,img:ch.img,body:`<p>${ch.beats.map(b=>b[3]).join(' ')}</p>${nx&&!ch.side&&chStarted(CH.indexOf(nx))?`<p class="m">${nx.d}</p>`:''}<p class="stamp">✎ ${dateTxt(s.play)}</p>`});eraCheck()}})}
 function checks(){const F=s.f;novTick();mgHelpCheck();if(!s.tabs.chron&&s.chs.length&&!s.cb&&!(s.dlg||[]).some(d=>d.chap))unlock('chron');
   if(!F.lk&&s.tot.ember>=10){F.lk=1;dirty=1}
-  if(!F.wreck&&s.c.gather>=18&&s.b.hearth){F.wreck=1;say('Прибій викинув на берег уламки рибальського човна. З них можна видерти цвяхи й скоби, а в прибої — поставити пастку, щоб хвилі самі несли брухт.','world')}
+  if(!F.wreck&&s.c.gather>=18&&s.b.hearth){F.wreck=1;dlg({k:'world',title:'Уламки в прибої',img:{t:'ob',k:'wreck3',f:'wreckObj3'},body:'<p>Збираючи плавник, ти забрідаєш далі вздовж берега — і натрапляєш на щось більше за гілляку. Між каменями застряг розбитий рибальський човен: ребра шпангоутів, дошки обшивки, іржаві цвяхи.</p><p>Хвилі приносять його по шматку. Добре залізо тут на вагу золота.</p>',gains:['Відкрилося: розбирати уламки — брухт (цвяхи й скоби)']})}
   if(!F.barrel&&s.tot.scrap>=5){F.barrel=1;add('oil',8);say(`Серед уламків застрягла розбита бочка. На дні ще хлюпає ${R('oil',8)}.`,'find')}
   if(!s.tabs.tower&&s.tot.ember>=105&&s.b.hearth){unlock('tower');say('Вогонь розгорівся. Тепер видно сходи, що ведуть угору. Відкрито: Маяк.','story')}
   if(!F.quick&&s.c.wins>=5){F.quick=1;say('Ти набрався бойового досвіду. Відтепер сутички з уже знайомими ворогами можна вирішувати швидким боєм.','lvl')}
@@ -3706,6 +3710,11 @@ function shoreFordHS(W,H){let h='';
 function fordPopHTML(){const low=tideLow();return`<div class="bpop" role="dialog" aria-label="Брід"><div class="bph"><b>Брід на великий острів</b><button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div>
   <p class="m">${VH(tideTxt)}</p><div class="rlist">${FORD.map(P=>{const done=(s.ford||{})[P.id],lock=P.req&&!P.req();return`<div class="row"><span><b>${P.n}</b>${done?' ✓':''}<br><span class="m">${lock?P.reqT:P.d}</span></span>${done?'':btn('Зробити','ford',P.id,{ok:()=>tideLow()&&!lock&&afford(P.c)})}${done?'':`<span class="ccs">${costTxt(P.c)}</span>`}</div>`}).join('')}</div>
   ${low?'':'<p class="hint">Камінь зараз під водою — чекай відпливу.</p>'}</div>`}
+
+/* перший відплив пояснюється (#40): море відступає — на березі з'являються калюжі */
+function tideFirst(){if(s.f.tideSeen||!s.tabs.shore||!tideLow()||s.cb||(s.dlg||[]).length)return;s.f.tideSeen=1;
+  dlg({k:'world',title:'Відплив',img:{t:'ob',k:'pool3',f:'poolObj3'},body:'<p>Море відступило. Там, де щойно бились хвилі, тепер мокре каміння, водорості й калюжі, у яких лишилась дрібна риба та мідії.</p><p>Вода повернеться — вона завжди повертається. Але скоро відступить знову.</p>',
+    gains:[`Відкрилося: калюжі на відпливі ${ih(`Відплив настає приблизно кожні ${Math.round(TIDE/60)} хв і триває ${Math.round(TLOW/60)} хв. Поки вода низько, на березі є калюжі з рибою й мідіями, а часом і знахідки. Скільки лишилось до зміни води — написано у вкладці «Берег».`)}`]})}
 /* ============ БОЇ НА ОСТРІВЦІ (етап I) ============
    До броду гравець не виходить за межі острівця, тож досвід і тактику дають події на березі:
    краби в калюжах на відпливі (повторно), чайки над сушінням риби, пацюки з трюму уламка, утопленик із туману.
@@ -4625,7 +4634,7 @@ function rHome(){let h=`<div>`;
   return h+`</div>`}
 function shoreImg(){const sig=[Math.round(tideLv()*4),s.f.fordSeen?1:0,FORD.map(p=>(s.ford||{})[p.id]?1:0).join(''),Math.min(12,Math.ceil(s.r.wood/12)),s.seen.scrap?Math.min(6,Math.ceil(s.r.scrap/10)):0,s.seen.fish&&s.r.fish>=1?Math.min(5,Math.ceil(s.r.fish/8)):0,Math.min(3,s.b.pot||0)].join('')+GR;
   return pimgA('s3:'+sig,()=>shoreBg3({ph:GR,tide:Math.round(tideLv()*4)/4,fordSeen:s.f.fordSeen,ford:s.ford,wood:s.r.wood,scrapSeen:s.seen.scrap,scrap:s.r.scrap,fishSeen:s.seen.fish,fish:s.r.fish,pot:s.b.pot}),864,360,'scene','Берег',21,WATER3)}
-function rShore(){let h=`<section><h2>Берег під маяком</h2><p>Мокрий пісок, водорості й плавник, викинутий прибоєм. Туман ховає обрій.</p>`;
+function rShore(){let h=`<section><h2>Берег під маяком</h2><p>Мокрий пісок, водорості й плавник, викинутий прибоєм. Туман ховає обрій.</p>${s.f.tideSeen?`<p class="m">${VH(tideTxt)}</p>`:''}`;
   let al=`<div class="act">${btn('Збирати плавник','gather','',{cd:'gather',cs:1})}</div>`;
   if(s.f.wreck)al+=`<div class="act">${btn('Розбирати уламки човна','scrapw','',{cd:'scrapw',cs:2})}</div>`;
   if(s.f.rod)al+=`<div class="act">${btn('Рибалити','fishing','',{cd:'fishing',cs:3})}</div>`;
@@ -5001,7 +5010,7 @@ function refresh(){
   rTop();rToast();animTick();if((bdg9=(bdg9+1)%4)===0)badges9()}
 let bdg9=0;function badges9(){const el=$('tabs');if(!el||!el.querySelectorAll)return;el.querySelectorAll('button[data-i]').forEach(b=>{const t=b.dataset.i,n=s.tab!==t&&isNew(t);if(b.classList.contains('new')!==n)b.classList.toggle('new',n)})}
 function dlgImg(m){if(!m)return'';if(m.t==='scene')return sceneImg(m.id);if(m.t==='yard')return yardImg();
-  const u=m.t==='face'?faceURL(m.id):m.t==='icon'?icoURL(m.id):m.t==='wico'?wIco(m.id):m.t==='spr'?sprURL(m.id):m.t==='hero'?heroURL(s.eq):'';return u?`<div class="dlgface">${pimg(u,96,96,'')}</div>`:''}
+  const u=m.t==='ob'?obURL(m.k,globalThis[m.f])[0]:m.t==='face'?faceURL(m.id):m.t==='icon'?icoURL(m.id):m.t==='wico'?wIco(m.id):m.t==='spr'?sprURL(m.id):m.t==='hero'?heroURL(s.eq):'';return u?`<div class="dlgface">${pimg(u,96,96,'')}</div>`:''}
 let lastDlg='';
 const ROM=n=>['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'][n-1]||n;
 function rDlg(){const q=s.dlg||[];if(!q.length)s.bellHold=0;const d=s.bellHold&&q[0]&&q[0].k!=='fight'?null:q[0],el=$('dlg');if(!d){if(lastDlg){lastDlg='';const bg=!RM()&&el.querySelector&&el.querySelector('.dlgbg');if(bg){bg.classList.add('fo');setTimeout(()=>{if(!lastDlg)el.innerHTML=''},230)}else el.innerHTML=''}return}
@@ -5011,17 +5020,17 @@ function rDlg(){const q=s.dlg||[];if(!q.length)s.bellHold=0;const d=s.bellHold&&
   el.innerHTML=`<div class="dlgbg${fi?' fi':''}"><div class="dlgbox k-${d.k||'info'}" role="dialog" aria-modal="true" aria-labelledby="dlgt">${dlgImg(d.img)}<div class="dlgin"><span class="tag t-${d.k||'info'}"><img class="tico" src="${tagURL(d.k||'info')}" alt="" width="14" height="14">${TAGN[d.k||'info']}</span><h2 id="dlgt">${d.title}</h2><div class="dlgbody">${d.body||''}</div>${d.gains&&d.gains.length?`<ul class="gains">${d.gains.map(g=>`<li>${g}</li>`).join('')}</ul>`:''}<div class="act">${(d.btns||[['Зрозуміло','dlgok']]).map(b=>`<button type="button" class="main" data-a="${b[1]}" data-i="${b[2]||''}">${b[0]}</button>`).join('')}${s.dlg.length>1&&!d.btns&&d.k!=='fight'?'<button type="button" class="toggle" data-a="bellDefer" data-i="">Відкласти решту</button>':''}</div><p class="m dlgq">${s.dlg.length>1?`Ще подій у черзі: ${s.dlg.length-1}`:''}</p></div></div></div>`;
   glossify(el);try{const b=el.querySelector&&el.querySelector('button');if(b)b.focus()}catch(e){}}
 let lastToast='';
-/* Сповіщення — темні плашки внизу: звичайні тримаються 11 с, важливі (рівень, історія) — доки не закриєш ✕.
+/* Сповіщення — темні плашки внизу: звичайні тримаються 11 с, історія — 18 с, знахідки — 14 с, рівень — доки не закриєш ✕.
    Не більше трьох одразу; повтори зливаються в «×N»; смужка зліва й значок — за типом, тонка риска внизу — скільки лишилось. */
-const TOAST_MS=11000,TOAST_PIN=new Set(['lvl','story']);
-function toastList(now){const pin=s.log.filter(x=>x&&x.at&&TOAST_PIN.has(x.t)&&!x.cl).slice(0,2),reg=s.log.filter(x=>x&&x.at&&!x.cl&&now-x.at<TOAST_MS&&!pin.includes(x));
+const TOAST_MS=11000,TOAST_PIN=new Set(['lvl']),TOAST_LONG={story:18000,find:14000};const toastMs=t=>TOAST_LONG[t]||TOAST_MS;
+function toastList(now){const pin=s.log.filter(x=>x&&x.at&&TOAST_PIN.has(x.t)&&!x.cl).slice(0,1),reg=s.log.filter(x=>x&&x.at&&!x.cl&&now-x.at<toastMs(x.t)&&!pin.includes(x));
   const seen=new Set();return pin.concat(reg).sort((p,q)=>q.at-p.at).filter(x=>{const k=x.t+'|'+x.m;if(seen.has(k))return false;seen.add(k);return true}).slice(0,3).reverse()}
 function rToast(){const now=Date.now(),L=toastList(now),el=$('toast');const key=L.map(x=>x.at+':'+(x.n||1)).join();if(key===lastToast)return;lastToast=key;
   if(!el.querySelector){el.innerHTML=L.map(x=>x.m).join('');return}const keep=new Set();
   for(const x of L){const id=x.m.length+'|'+x.m.slice(0,24)+'|'+x.t,pin=TOAST_PIN.has(x.t);keep.add(id);let n=[...el.children].find(c=>c.dataset.id===id);
     if(!n){n=document.createElement('div');n.className='tst t-'+x.t+(pin?' pin':'');n.setAttribute('role','status');n.dataset.id=id;
       n.innerHTML=`<img class="tico" src="${tagURL(x.t)}" alt="" width="18" height="18"><span class="ev-text">${x.m}</span><b class="tcn"></b><button type="button" class="tx" data-a="tclose" data-i="${x.at}" aria-label="Закрити">✕</button>${pin?'':'<i class="tbar"></i>'}`;el.appendChild(n)}
-    n.querySelector('.tx').dataset.i=x.at;const left=Math.max(0,(TOAST_MS-(now-x.at))/1000-.6);n.style.setProperty('--left',left.toFixed(2)+'s');n.style.setProperty('--life',(left+.6).toFixed(2)+'s');
+    n.querySelector('.tx').dataset.i=x.at;const left=Math.max(0,(toastMs(x.t)-(now-x.at))/1000-.6);n.style.setProperty('--left',left.toFixed(2)+'s');n.style.setProperty('--life',(left+.6).toFixed(2)+'s');
     n.querySelector('.tcn').textContent=x.n>1?'×'+x.n:'';if(n.dataset.n!==String(x.n||1)){n.dataset.n=String(x.n||1);n.classList.remove('out');void n.offsetWidth}if(!pin)n.classList.add('out')}
   for(const c of[...el.children])if(!keep.has(c.dataset.id))c.remove()}
 
@@ -5033,7 +5042,7 @@ function xFade(root,old,same){if(RM()||!root||!root.querySelectorAll)return;cons
     if(o){if(o.k!==el.dataset.xk&&o.src&&o.src!==el.src)xOver(el,o.src)}else if(same&&el.classList)el.classList.add('xin')})}
 function xOver(el,src){try{const r=el.getBoundingClientRect();if(!r.width)return;const ov=document.createElement('img');ov.src=src;ov.alt='';ov.className='xf';ov.setAttribute('aria-hidden','true');
   const host=el.closest&&el.closest('.scbg');if(host){ov.classList.add('xfin');host.appendChild(ov)}else{ov.style.left=(r.left+scrollX)+'px';ov.style.top=(r.top+scrollY)+'px';ov.style.width=r.width+'px';ov.style.height=r.height+'px';document.body.appendChild(ov)}
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{ov.style.opacity='0'}));setTimeout(()=>{if(ov.parentNode)ov.parentNode.removeChild(ov)},1200)}catch(e){}}
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ov.style.opacity='0'}));setTimeout(()=>{if(ov.parentNode)ov.parentNode.removeChild(ov)},host?2900:1200)}catch(e){}}
 const ASEL='.row,.card,.fcard,.node,.tdet,section,.chr-c';
 function aId(el){const b=el.tagName==='SECTION'?el.querySelector('h2'):el.querySelector('b,h3,h4');return b?(el.className||'').split(' ')[0]+'|'+b.textContent.trim().slice(0,60):''}
 function aSnap(root){const m=new Set();if(!root||!root.querySelectorAll)return m;root.querySelectorAll(ASEL).forEach(el=>{const k=aId(el);if(k)m.add(k)});return m}
@@ -5242,14 +5251,20 @@ const OBC={};
 function obURL(key,make){const u=pxURL('ob:'+key,make);const o=pxURL('obo:'+key,()=>{const b=make();return outline2(b,'I')});const k='ob:'+key;if(!OBC[k]){const b=make();OBC[k]=[b.w,b.h]}return[u,o,OBC[k][0],OBC[k][1]]}
 function topPx(key,make){const c='tp:'+key;if(OBC[c])return OBC[c];const b=make(),W=b.W||b.w,H=b.H||b.h,k=b.k||1;for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(b.p[y*W+x]!=='.')return OBC[c]=[x/k,y/k];return OBC[c]=[b.w>>1,0]}
 const pOf=k=>{const l=(s.cd[k]||0)-Date.now();return l>0?l/((CDS[k]||1)*1000):0};const CDS={gather:1,scrapw:2,fishing:3,blow:2};
-function ob(k,a,i,spec,x,y,W,H,lab,tip,o={}){const[u,ol,w,h]=spec;if(!u)return'';const pulse=o.pulse&&(o.always||!(s.hsU||{})[k]);
+/* Нове на сцені проявляється поступово (#40): коли об'єкт з'являється вперше, він виступає з темряви за ~1,6 с
+   (обрис маяка — за ~3 с). Час появи пам'ятаємо, тож перемальовування не перезапускає анімацію. Що вже було при
+   завантаженні гри — без анімації. */
+const OB_Q=Date.now()+2500,OB_SLOW={look:3200};
+function obFresh(k){s.obK=s.obK||{};const now=Date.now();if(!(k in s.obK))s.obK[k]=now<OB_Q?0:now;const t=s.obK[k],D=OB_SLOW[k]||1600;
+  return t&&now-t<D?{c:' obnew',st:`;--obd:${D}ms;--oba:-${now-t}ms`}:{c:'',st:''}}
+function ob(k,a,i,spec,x,y,W,H,lab,tip,o={}){const[u,ol,w,h]=spec;if(!u)return'';const pulse=o.pulse&&(o.always||!(s.hsU||{})[k]);const fr=obFresh(k);
   const box=PCT(x-OP,y-OP,w+2*OP,h+2*OP,W,H),inn=`left:${(OP*100/(w+2*OP)).toFixed(3)}%;top:${(OP*100/(h+2*OP)).toFixed(3)}%;width:${(w/(w+2*OP)*100).toFixed(3)}%;height:${(h/(h+2*OP)*100).toFixed(3)}%`;
   const deco=!a;const gl=!deco&&(pulse||o.cd)?`<span class="gl" style="${inn};-webkit-mask-image:url(${u});mask-image:url(${u})"></span>`:'';
   const body=`<span class="obw"><span class="obj ${o.idle||''}">${deco?'':`<img class="obo" src="${ol}" alt="">`}<img class="obi" src="${u}" alt="" style="${inn}">${gl}</span></span>`;
   const z=10+Math.round(o.z!=null?o.z:y+h);
-  if(deco)return`<span class="ob deco${o.cls?' '+o.cls:''}" data-sk="${k}" data-sig="${hsh(u+box+(o.cls||''))}" style="${box};z-index:${z}" aria-hidden="true">${body}${o.inner||''}</span>`;
-  const core=`class="ob${pulse?' nw':''}${o.ok===false?' no':''}${o.cls?' '+o.cls:''}" data-a="${a}" data-i="${i||''}" data-k="${k}"${o.cd?` data-cd="${o.cd}" data-cs="${o.cs}"`:''} aria-label="${lab}" ${TA(tip||`<b>${lab}</b>`)}>${body}<span class="hsl">${lab}</span>${o.inner||''}`;
-  return`<button type="button" data-sk="${k}" data-sig="${hsh(core+box)}" style="${box};z-index:${z}${o.cd?`;--p:${pOf(o.cd).toFixed(3)}`:''}" ${core}</button>`}
+  if(deco)return`<span class="ob deco${o.cls?' '+o.cls:''}${fr.c}" data-sk="${k}" data-sig="${hsh(u+box+(o.cls||'')+fr.c)}" style="${box};z-index:${z}${fr.st}" aria-hidden="true">${body}${o.inner||''}</span>`;
+  const core=`class="ob${fr.c}${pulse?' nw':''}${o.ok===false?' no':''}${o.cls?' '+o.cls:''}" data-a="${a}" data-i="${i||''}" data-k="${k}"${o.cd?` data-cd="${o.cd}" data-cs="${o.cs}"`:''} aria-label="${lab}" ${TA(tip||`<b>${lab}</b>`)}>${body}<span class="hsl">${lab}</span>${o.inner||''}`;
+  return`<button type="button" data-sk="${k}" data-sig="${hsh(core+box)}" style="${box};z-index:${z}${fr.st}${o.cd?`;--p:${pOf(o.cd).toFixed(3)}`:''}" ${core}</button>`}
 function innerAt(px,py,pw,ph,w,h,cls,extra){return`<i class="${cls}" style="left:${((px+OP)/(w+2*OP)*100).toFixed(2)}%;top:${((py+OP)/(h+2*OP)*100).toFixed(2)}%;width:${(pw/(w+2*OP)*100).toFixed(2)}%;height:${(ph/(h+2*OP)*100).toFixed(2)}%;${extra||''}" aria-hidden="true"></i>`}
 function smkIn(sx,sy,w,h){return[0,1,2].map(n=>`<i class="smk" style="left:${((sx+OP)/(w+2*OP)*100).toFixed(2)}%;top:${((sy+OP)/(h+2*OP)*100).toFixed(2)}%;width:${(3/(w+2*OP)*100).toFixed(2)}%;--o:${n}s" aria-hidden="true"></i>`).join('')}
 let popB='',upT={};
