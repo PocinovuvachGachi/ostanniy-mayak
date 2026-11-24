@@ -55,7 +55,7 @@ function rTop(){rBell();const el=$('top');if(!el)return;const items=[];
   if(s.cb){items.push(['cb','foe','','бій'],['hp','','',`здоров’я <b>${Math.max(0,Math.ceil(s.h.hp))}/${maxHP()}</b>`],['ap','','',`очки дії <b>${s.cb.ap}</b>`])}
   else{const r=rates();
     for(const k of RES)if(s.seen[k]){const rt=r[k]||0;items.push(['r:'+k,`rs rs-${k}`,`<b>${RN[k].charAt(0).toUpperCase()+RN[k].slice(1)}</b><br>${RD[k]||''}`,`${pimg(icoURL(k),16,16,'ri')}<span class="rn">${RN[k]} </span><b>${fmt(s.r[k])}</b>${(k==='fish'||k==='prov')&&typeof capOf==='function'?`<small>/${capOf(k)}</small>`:''}${Math.abs(rt)>=0.005?` <small>${rt>0?'+':''}${fr(rt)}/с</small>`:''}`])}
-    if(s.tabs.hero)items.push(['hp','','',`здоров’я <b>${Math.ceil(s.h.hp)}/${maxHP()}</b>`]);
+    if(s.tabs.hero){const hurt=s.h.hp<maxHP()-.5,food=s.r.fish>=1||s.r.prov>=1;items.push(['hp',hurt?'hpl hurt':'hpl','<b>Здоров’я</b><br>Біля вогнища сили вертаються повільно, їжа лікує одразу.',`здоров’я <b>${Math.ceil(s.h.hp)}/${maxHP()}</b>${hurt&&food?' <button type="button" class="eatb" data-a="eatfull" data-i="">Поїсти</button>':''}`])}
     if(thrOn()){const v=Math.floor(s.threat||0);items.push(['thr',`thr${v>=75?' hi':''}`,`<b>Загроза Мли</b><br>Коли шкала дійде до 100, почнеться набіг. Мла збирається на метушню: збирання, будівництво, ремесло. Поки ти відпочиваєш, вона дрімає, а набіги чекають на тебе. Виграні бої її знижують, жаровні приглушують.`,`Мла <b>${v}%</b><span class="tb"><i style="width:${v}%"></i></span>`])}}
   const keys=items.map(x=>x[0]).join(',');
   if(keys===topK&&el.children&&el.children.length===items.length){items.forEach((x,i)=>{const c=el.children[i];const nw=c.classList&&c.classList.contains('rnew');const cl=x[1]+(nw?' rnew':'');if(c.className!==cl)c.className=cl;if(c.dataset.h!==x[3]){c.dataset.h=x[3];c.innerHTML=x[3]}if(x[2]&&c.getAttribute('data-tip')!==x[2])c.setAttribute('data-tip',x[2])});return}
@@ -175,8 +175,8 @@ function rLens(){const{path,out,pos}=beam();let g='';
     g+=`<button type="button" class="${cls}" disabled tabindex="-1">${ch}</button>`}
   return `<section><h2>Ліхтарня</h2>${s.f.won?'<p>Промінь іде крізь вікно в море. Маяк горить.</p>':`<p>Вогонь горить, але світло б’ється об стіни. Натискай на дзеркала, щоб повернути їх. Вікно на море позначене <b>O</b>.</p>${s.f.ostap?`<p class="hint">${P('Остап')}: ${Q('Світло біжить прямо, доки дзеркало не поверне його. Не всі дзеркала стоять на його шляху')}.</p>`:''}`}<div class="grid g9" style="margin-top:8px">${g}</div></section>`}
 
-function rWork(){return`<section><h2>Майстерня</h2><p class="m">Креслення на дошці, горн і ящик для розбору — натискай на них у кімнаті.</p><details class="ledg"${s.ldOpen?' open':''}><summary>Усе списком</summary>${rWorkList()}</details></section>`}
-function rWorkList(){let h=`<section><h2>Верстак</h2>`;const vis=RC.filter(rcVisible);
+function rWork(){const L=rWorkList(),i=L.indexOf('</section>')+10;return`<div class="wkmain">${L.slice(0,i)}</div>${L.length>i?`<section><details class="ledg"${s.ldOpen?' open':''}><summary>Кузня й розбір</summary>${L.slice(i)}</details></section>`:''}`}
+function rWorkList(){let h=`<section class="wkb"><h2>Креслення на верстаку</h2><p class="m">Що можна змайструвати з того, що є. Нові креслення приходять від людей, із записів і знахідок.</p>`;const vis=RC.filter(rcVisible);
   if(!vis.length)h+=`<p class="m">Поки що нічого нового. Шукай креслення й вивчай записи.</p>`;
   h+=`<div class="bag">`;
   for(const rc of vis){const c=rcCost(rc),nm=rc.tool?rc.n:IT[rc.out].n,d=rc.tool?rc.d:itemShort(rc.out),cr=rc.craft||0,ik=rc.tool?(rc.id==='rod'?'rod':rc.id==='belt1'?'belt':'pack'):rc.out;

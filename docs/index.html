@@ -974,6 +974,15 @@ body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .
 /* шанс влучити на цілі */
 .grid button .chb{position:absolute;right:-4px;top:-8px;z-index:4;font:700 11px/1 var(--mono);font-style:normal;padding:2px 3px;color:#fff0b0;background:#2b3a44;border:1px solid #0b1418;pointer-events:none}
 .grid button .chb.hi{background:#3d5a2e}.grid button .chb.lo{background:#7a2e28}
+/* журнал: мітки подій — чорнилом, видно на папері */
+#main section.jr .logl .tag{color:#3a3a3a;border-color:currentColor;background:rgba(255,255,255,.35);font-weight:700}
+#main section.jr .logl .tag.t-find,#main section.jr .logl .tag.t-odd{color:#8a5200}#main section.jr .logl .tag.t-fight,#main section.jr .logl .tag.t-raid{color:#8f2f2b}
+#main section.jr .logl .tag.t-story{color:#5a2f7a}#main section.jr .logl .tag.t-lvl{color:#2f5a1f}#main section.jr .logl .tag.t-world{color:#1f4a5e}#main section.jr .logl .tag.t-info{color:#4d5a60}
+/* «Поїсти» біля здоров'я */
+#top .hpl .eatb{margin-left:6px;padding:1px 8px;min-height:24px;font:700 12px var(--mono);color:#2b1d12;background:#f0b84a;border:0;border-bottom:2px solid #a8763f;cursor:pointer;vertical-align:middle}
+#top .hpl.hurt b{color:#e0735f}
+/* майстерня: креслення — головне на вкладці */
+.wkmain .wkb .bag .cell{min-height:150px}.wkmain .wkb .bag .cell .ic img{width:48px;height:48px}.wkmain .wkb .bag .cell>b{font-size:1.05rem}
 </style>
 </head>
 <body>
@@ -4373,7 +4382,7 @@ function act0(a,i){
   if(a==='evf'){(s.dlg||[]).shift();if(i==='give'){const g=Math.min(30,Math.floor(s.r.prov));s.r.prov-=g;const n=Math.round(15*g/30);trust('rot',Math.max(2,n),'ти нагодував Причал');say(`Ти віддаєш ${R('prov',g)}. Ганна мовчки тисне тобі руку.`,'world')}else{trust('rot',-8,'ти відмовив голодним')}dirty=1;return}
   if(a==='fightGo'){(s.dlg||[]).shift();if(i==='crab1'&&!s.f.crab1&&!s.cb){s.tab='shore';startFight('crab1','crab1')}dirty=1;return}
   if(a==='bg'){const B=BGS[i];if(!B||s.h.bg)return;for(const k in B.a)s.h.a[k]+=B.a[k];for(const k in B.k)s.h.k[k]+=B.k[k];s.h.bg=i;s.h.fp++;s.h.hp=maxHP();s.dlg=(s.dlg||[]).filter(d=>!d.bgsel);
-    say(`Ти згадуєш: колись ти був — ${B.n.toLowerCase()}. У вкладці «Герой» тепер є «Таланти»: обери перший.`,'lvl');dirty=1;return}
+    say(`Ти згадуєш: колись ти був — ${B.n.toLowerCase()}. Минуле ще дасть про себе знати.`,'info');dirty=1;return}
   if(a==='raidGo'||a==='raidHide'){(s.dlg||[]).shift();raidResolve(a==='raidGo');dirty=1;return}
   if(a==='reset'){resetAsk=1;dirty=1;return}
   if(a==='resetNo'){resetAsk=0;dirty=1;return}
@@ -4564,7 +4573,7 @@ function rTop(){rBell();const el=$('top');if(!el)return;const items=[];
   if(s.cb){items.push(['cb','foe','','бій'],['hp','','',`здоров’я <b>${Math.max(0,Math.ceil(s.h.hp))}/${maxHP()}</b>`],['ap','','',`очки дії <b>${s.cb.ap}</b>`])}
   else{const r=rates();
     for(const k of RES)if(s.seen[k]){const rt=r[k]||0;items.push(['r:'+k,`rs rs-${k}`,`<b>${RN[k].charAt(0).toUpperCase()+RN[k].slice(1)}</b><br>${RD[k]||''}`,`${pimg(icoURL(k),16,16,'ri')}<span class="rn">${RN[k]} </span><b>${fmt(s.r[k])}</b>${(k==='fish'||k==='prov')&&typeof capOf==='function'?`<small>/${capOf(k)}</small>`:''}${Math.abs(rt)>=0.005?` <small>${rt>0?'+':''}${fr(rt)}/с</small>`:''}`])}
-    if(s.tabs.hero)items.push(['hp','','',`здоров’я <b>${Math.ceil(s.h.hp)}/${maxHP()}</b>`]);
+    if(s.tabs.hero){const hurt=s.h.hp<maxHP()-.5,food=s.r.fish>=1||s.r.prov>=1;items.push(['hp',hurt?'hpl hurt':'hpl','<b>Здоров’я</b><br>Біля вогнища сили вертаються повільно, їжа лікує одразу.',`здоров’я <b>${Math.ceil(s.h.hp)}/${maxHP()}</b>${hurt&&food?' <button type="button" class="eatb" data-a="eatfull" data-i="">Поїсти</button>':''}`])}
     if(thrOn()){const v=Math.floor(s.threat||0);items.push(['thr',`thr${v>=75?' hi':''}`,`<b>Загроза Мли</b><br>Коли шкала дійде до 100, почнеться набіг. Мла збирається на метушню: збирання, будівництво, ремесло. Поки ти відпочиваєш, вона дрімає, а набіги чекають на тебе. Виграні бої її знижують, жаровні приглушують.`,`Мла <b>${v}%</b><span class="tb"><i style="width:${v}%"></i></span>`])}}
   const keys=items.map(x=>x[0]).join(',');
   if(keys===topK&&el.children&&el.children.length===items.length){items.forEach((x,i)=>{const c=el.children[i];const nw=c.classList&&c.classList.contains('rnew');const cl=x[1]+(nw?' rnew':'');if(c.className!==cl)c.className=cl;if(c.dataset.h!==x[3]){c.dataset.h=x[3];c.innerHTML=x[3]}if(x[2]&&c.getAttribute('data-tip')!==x[2])c.setAttribute('data-tip',x[2])});return}
@@ -4684,8 +4693,8 @@ function rLens(){const{path,out,pos}=beam();let g='';
     g+=`<button type="button" class="${cls}" disabled tabindex="-1">${ch}</button>`}
   return `<section><h2>Ліхтарня</h2>${s.f.won?'<p>Промінь іде крізь вікно в море. Маяк горить.</p>':`<p>Вогонь горить, але світло б’ється об стіни. Натискай на дзеркала, щоб повернути їх. Вікно на море позначене <b>O</b>.</p>${s.f.ostap?`<p class="hint">${P('Остап')}: ${Q('Світло біжить прямо, доки дзеркало не поверне його. Не всі дзеркала стоять на його шляху')}.</p>`:''}`}<div class="grid g9" style="margin-top:8px">${g}</div></section>`}
 
-function rWork(){return`<section><h2>Майстерня</h2><p class="m">Креслення на дошці, горн і ящик для розбору — натискай на них у кімнаті.</p><details class="ledg"${s.ldOpen?' open':''}><summary>Усе списком</summary>${rWorkList()}</details></section>`}
-function rWorkList(){let h=`<section><h2>Верстак</h2>`;const vis=RC.filter(rcVisible);
+function rWork(){const L=rWorkList(),i=L.indexOf('</section>')+10;return`<div class="wkmain">${L.slice(0,i)}</div>${L.length>i?`<section><details class="ledg"${s.ldOpen?' open':''}><summary>Кузня й розбір</summary>${L.slice(i)}</details></section>`:''}`}
+function rWorkList(){let h=`<section class="wkb"><h2>Креслення на верстаку</h2><p class="m">Що можна змайструвати з того, що є. Нові креслення приходять від людей, із записів і знахідок.</p>`;const vis=RC.filter(rcVisible);
   if(!vis.length)h+=`<p class="m">Поки що нічого нового. Шукай креслення й вивчай записи.</p>`;
   h+=`<div class="bag">`;
   for(const rc of vis){const c=rcCost(rc),nm=rc.tool?rc.n:IT[rc.out].n,d=rc.tool?rc.d:itemShort(rc.out),cr=rc.craft||0,ik=rc.tool?(rc.id==='rod'?'rod':rc.id==='belt1'?'belt':'pack'):rc.out;
@@ -5194,8 +5203,11 @@ function heroScene(){const H=s.h,WW=HRW,HH=HRH;let h=`<span data-sk="bg" data-si
     const ic=id?(WT[id]?null:id):null;h+=ob('hr:s:'+sl,'bpop','hr:s:'+sl,obURL('hrs3:'+(id||'-'),()=>heroSlot3(ic,!!(id&&WT[id]))),x,y,WW,HH,SLOT[sl],`<b>${SLOT[sl]}</b><br>${id?(WT[id]?wN(id):IT[id].n):'порожньо'}`,{cls:'hrsl',inner:id&&WT[id]?`<img class="hrwi" src="${wIco(id)}" alt="">`:''})}
   /* миска з їжею */
   const food=(s.seen.fish?Math.min(3,Math.floor(s.r.fish)):0);if(s.seen.fish||s.seen.prov)h+=ob('hr:food','bpop','hr:food',obURL('hrb3:'+food,()=>heroBowl3(food)),2,212,WW,HH,'Миска','<b>Їжа</b><br>Підкріпитися й загоїти рани.',{pulse:s.h.hp<maxHP()*.5?1:0,always:s.h.hp<maxHP()*.5?1:0});
+  /* торба й пояс на краю сторінки */
+  if(s.nv.bag){h+=ob('hr:pack','bpop','hr:pack',obURL('hrp3',()=>heroSlot3('pack')),40,170,WW,HH,'Рюкзак',`<b>Рюкзак</b><br>${s.pack.length} з ${packSlots()} зброї. Натисни, щоб подивитися.`,{cls:'hrsl'});
+    h+=ob('hr:belt','bpop','hr:belt',obURL('hrbl3',()=>heroSlot3('belt')),168,196,WW,HH,'Пояс',`<b>Пояс</b><br>${s.belt.length} з ${beltSlots()} речей під рукою в бою.`,{cls:'hrsl'})}
   /* вузли талантів на мотузці */
-  const tk=FT.filter(f=>H.ft[f.id]).length,av=H.fp>0&&FT.some(f=>tVis(f)&&featOk(f));const nk=Math.min(14,tk+(av?1:0));
+  const tk=FT.filter(f=>H.ft[f.id]).length,av=!!s.nv.tal&&H.fp>0&&FT.some(f=>tVis(f)&&featOk(f));const nk=Math.min(14,tk+(av?1:0));
   for(let i=0;i<nk;i++){const stt=i<tk?'taken':'avail',x=236+i*11;h+=ob('hr:k'+i,'ht','talents',obURL('hrk3:'+stt,()=>heroKnot3(stt)),x,198,WW,HH,'Таланти',`<b>Таланти</b><br>${i<tk?'Взятий талант.':'Можна обрати новий талант.'}`,{pulse:stt==='avail'?1:0,always:stt==='avail'?1:0})}
   if(s.nv.grow&&H.pts+H.sp>0)h+=ob('hr:grow','ht','grow',obURL('hrk3:avail',()=>heroKnot3('avail')),388,30,WW,HH,'Розвиток',`<b>Нові очки</b><br>Можна вкласти в характеристики чи вміння.`,{pulse:1,always:1});
   /* записи на правій сторінці */
@@ -5210,6 +5222,10 @@ function heroScene(){const H=s.h,WW=HRW,HH=HRH;let h=`<span data-sk="bg" data-si
 function heroPopHTML(id){const card=(nm,lv,body,act)=>`<div class="bpop" role="dialog" aria-label="${nm}"><div class="bph"><b>${nm}</b>${lv?`<span class="bplv">${lv}</span>`:''}<button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div>${body}${act?`<div class="act">${act}</div>`:''}</div>`;
   if(id==='hr:food'){const b=[];if(s.seen.fish||s.seen.prov)b.push(btn('Поїсти досхочу','eatfull','',{ok:()=>(s.r.fish>=1||s.r.prov>=1)&&s.h.hp<maxHP()}));if(s.seen.fish)b.push(btn('З’їсти рибу (+8)','eat','',{ok:()=>s.r.fish>=1&&s.h.hp<maxHP()}));if(s.seen.prov)b.push(btn('З’їсти провізію (+15)','eatp','',{ok:()=>s.r.prov>=1&&s.h.hp<maxHP()}));if(s.mst.olesya)b.push(btn('Перев’язка в Олесі','olheal','',{cd:'olheal',cs:120,ok:()=>s.h.hp<maxHP()}));
     return card('Їжа','',`<p class="m">Здоров’я ${V(()=>Math.ceil(s.h.hp)+' / '+maxHP())}. Біля вогнища сили вертаються повільно${Date.now()<((s.h.buf||{}).warm||0)?' (зараз — утричі швидше: тепло юшки)':''}; їжа лікує одразу.</p>`,b.join(''))}
+  if(id==='hr:pack'){const out=WEAP.filter(k=>has(k)&&!packHas(k));
+    return card('Рюкзак',`${s.pack.length} з ${packSlots()}`,`<p class="m">У бій береш лише зброю з рюкзака.</p><div class="rlist">${s.pack.map(k=>`<div class="row"><span>${pimg(wIco(k),20,20)} ${wN(k)}</span>${s.eq[IT[k].slot]===k?'<span class="done">у руках</span>':btn('Взяти','equip',k)}</div>`).join('')}${out.map(k=>`<div class="row"><span class="m">${pimg(wIco(k),20,20)} ${wN(k)} — у маяку</span>${btn('Покласти','packAdd',k,{ok:s.pack.length<packSlots()})}</div>`).join('')}</div>`,'')}
+  if(id==='hr:belt'){const cons=Object.keys(s.inv).filter(k=>IT[k]&&IT[k].use&&has(k)&&!s.belt.includes(k));
+    return card('Пояс',`${s.belt.length} з ${beltSlots()}`,`<p class="m">У бою можна взяти лише те, що на поясі.</p><div class="rlist">${s.belt.map(k=>`<div class="row"><span>${pimg(icoURL(k),20,20)} ${IT[k].n} × ${s.inv[k]||0}</span>${btn('Зняти','beltRem',k,{cls:'toggle'})}</div>`).join('')||'<p class="m">Поки порожньо.</p>'}${cons.map(k=>`<div class="row"><span class="m">${pimg(icoURL(k),20,20)} ${IT[k].n} × ${s.inv[k]}</span>${btn('Почепити','beltAdd',k,{ok:s.belt.length<beltSlots()})}</div>`).join('')}</div>`,'')}
   if(id.startsWith('hr:s:')){const sl=id.slice(5),cur=s.eq[sl],alt=Object.keys(s.inv).filter(k=>s.inv[k]>0&&IT[k]&&IT[k].slot===sl&&k!==cur),nm=k=>WT[k]?wN(k):IT[k].n;
     return card(SLOT[sl],cur?'вдягнено':'порожньо',`${cur?`<div class="row"><span>${pimg(WT[cur]?wIco(cur):icoURL(cur),24,24)} <b>${nm(cur)}</b><br><span class="m">${itemShort(cur)}</span></span></div>`:'<p class="m">Тут поки нічого.</p>'}
       ${alt.length?`<p class="jh">Можна взяти</p><div class="rlist">${alt.map(k=>`<div class="row"><span>${pimg(WT[k]?wIco(k):icoURL(k),20,20)} ${nm(k)}</span>${btn('Взяти','equip',k)}</div>`).join('')}</div>`:''}`,cur&&!['weapon','ranged'].includes(sl)?btn('Зняти','unequip',sl,{cls:'toggle'}):'')}

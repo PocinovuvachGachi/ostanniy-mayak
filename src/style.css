@@ -960,3 +960,12 @@ body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .
 /* шанс влучити на цілі */
 .grid button .chb{position:absolute;right:-4px;top:-8px;z-index:4;font:700 11px/1 var(--mono);font-style:normal;padding:2px 3px;color:#fff0b0;background:#2b3a44;border:1px solid #0b1418;pointer-events:none}
 .grid button .chb.hi{background:#3d5a2e}.grid button .chb.lo{background:#7a2e28}
+/* журнал: мітки подій — чорнилом, видно на папері */
+#main section.jr .logl .tag{color:#3a3a3a;border-color:currentColor;background:rgba(255,255,255,.35);font-weight:700}
+#main section.jr .logl .tag.t-find,#main section.jr .logl .tag.t-odd{color:#8a5200}#main section.jr .logl .tag.t-fight,#main section.jr .logl .tag.t-raid{color:#8f2f2b}
+#main section.jr .logl .tag.t-story{color:#5a2f7a}#main section.jr .logl .tag.t-lvl{color:#2f5a1f}#main section.jr .logl .tag.t-world{color:#1f4a5e}#main section.jr .logl .tag.t-info{color:#4d5a60}
+/* «Поїсти» біля здоров'я */
+#top .hpl .eatb{margin-left:6px;padding:1px 8px;min-height:24px;font:700 12px var(--mono);color:#2b1d12;background:#f0b84a;border:0;border-bottom:2px solid #a8763f;cursor:pointer;vertical-align:middle}
+#top .hpl.hurt b{color:#e0735f}
+/* майстерня: креслення — головне на вкладці */
+.wkmain .wkb .bag .cell{min-height:150px}.wkmain .wkb .bag .cell .ic img{width:48px;height:48px}.wkmain .wkb .bag .cell>b{font-size:1.05rem}
