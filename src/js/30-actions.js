@@ -1,6 +1,7 @@
 /* ============ ACTIONS ============ */
 function act0(a,i){
   if(a.indexOf('c_')===0){cAct(a,i);return}
+  if(a==='tclose'){const at=+i;for(const x of s.log)if(x&&x.at===at)x.cl=1;lastToast=null;dirty=1;return}
   if(a==='dlgok'){(s.dlg||[]).shift();dirty=1;return}
   if(a==='bellOpen'){s.bellHold=0;dirty=1;return}
   if(a==='bellDefer'){s.bellHold=1;dirty=1;return}

@@ -803,14 +803,20 @@ button.hs.zone:hover,button.hs.zone:focus-visible{background:transparent;border:
 .scn.tw .scene{aspect-ratio:432/300}
 
 /* ===== Сповіщення, підказки, діалоги — у піксельних рамках ===== */
-#toast .tst{--ink:#2b1d12;--mute:#5a4630;--lamp:#7a3f04;background:#d6cba9 var(--tx-paper);color:#2b1d12;border:10px solid transparent;border-image:var(--fr-paper) 4 / 10px round;box-shadow:0 5px 0 rgba(0,0,0,.35);
-  padding:2px 6px;align-items:center;gap:8px;max-width:520px;rotate:var(--rot,0deg);image-rendering:pixelated;font:14px/1.4 var(--serif);animation:tin .35s cubic-bezier(.2,.7,.3,1)}
-#toast .tst.out{animation:tin .35s cubic-bezier(.2,.7,.3,1),tout .6s ease-in var(--left,6.4s) forwards}
-#toast .tst .tico{width:18px;height:18px;image-rendering:pixelated;flex:none;align-self:center}
-#toast .tst .tcn{font:700 12px var(--mono);color:#7a3f04;margin-left:auto;flex:none}
+#toast .tst{--ink:#e3ebe6;--mute:#b3c5c4;--lamp:#f0b84a;--tc:#8a9aa4;position:relative;background:#16252e var(--tx-slate);color:#e3ebe6;border:8px solid transparent;border-image:var(--fr-slate) 4 / 8px round;box-shadow:inset 5px 0 0 var(--tc),0 5px 0 rgba(0,0,0,.4);
+  padding:4px 6px 6px 12px;align-items:center;gap:10px;max-width:560px;image-rendering:pixelated;font:16px/1.4 var(--serif);animation:tin .35s cubic-bezier(.2,.7,.3,1)}
+#toast .tst.t-fight,#toast .tst.t-raid{--tc:#e0735f}#toast .tst.t-find,#toast .tst.t-odd{--tc:#f0b84a}#toast .tst.t-lvl{--tc:#8fc46a}#toast .tst.t-story{--tc:#c9a0e0}#toast .tst.t-world,#toast .tst.t-shore,#toast .tst.t-village{--tc:#6fb3c9}
+#toast .tst.out{animation:tin .35s cubic-bezier(.2,.7,.3,1),tout .6s ease-in var(--left,10.4s) forwards}
+#toast .tst .tico{width:22px;height:22px;image-rendering:pixelated;flex:none;align-self:center}
+#toast .tst .tcn{font:700 13px var(--mono);color:#f0b84a;margin-left:auto;flex:none}
+#toast .tst .tx{flex:none;align-self:flex-start;min-width:28px;min-height:28px;padding:0;margin:-2px -4px 0 0;background:none;border:0;color:#b3c5c4;font:700 14px var(--mono);cursor:pointer}
+#toast .tst .tx:hover,#toast .tst .tx:focus-visible{color:#fff0b0}
+#toast .tst .tcn:empty+.tx{margin-left:auto}
+#toast .tst .tbar{position:absolute;left:5px;right:0;bottom:-4px;height:2px;background:var(--tc);opacity:.6;transform-origin:left;animation:tbar var(--life,11s) linear forwards}
+@keyframes tbar{to{transform:scaleX(0)}}
 #toast .tst .ev-text{min-width:0}
 @keyframes tout{to{opacity:0;transform:translateY(6px)}}
-@media (prefers-reduced-motion:reduce){#toast .tst,#toast .tst.out{animation:none}}
+@media (prefers-reduced-motion:reduce){#toast .tst,#toast .tst.out,#toast .tst .tbar{animation:none}}
 #tip{background:#16252e var(--tx-slate);color:#e3ebe6;border:8px solid transparent;border-image:var(--fr-slate) 4 / 8px round;box-shadow:0 6px 0 rgba(0,0,0,.4);padding:4px 6px;image-rendering:pixelated;--ink:#e3ebe6;--panel:#16252e;--mute:#b3c5c4;--lamp:#f0b84a}
 #tip b{color:#f0b84a}
 #dlg .dlgbox{--ink:#2b1d12;--panel:#d6cba9;--mute:#5a4630;--rule:#8a6a44;--lamp:#7a3f04;--bad:#8f2f2b;--good:#3d5a34;--sea:#22394a;color-scheme:light;
@@ -3110,7 +3116,7 @@ const onCd=k=>(s.cd[k]||0)>Date.now();
 const setCd=(k,sec)=>{s.cd[k]=Date.now()+sec*1000};
 function fr(n){return String(Math.round(n*100)/100).replace('.',',')}
 function fmt(n){n=Math.floor(n+1e-9);return n>=10000?String(Math.round(n/100)/10).replace('.',',')+'к':String(n)}
-function say(m,t='info'){if(!m)return;const L0=s.log[0],now=Date.now();if(L0&&L0.m===m&&L0.t===t&&now-L0.at<9000){L0.n=(L0.n||1)+1;L0.at=now;dirty=1;return}s.log.unshift({m,t,at:now});if(s.log.length>60)s.log.length=60;dirty=1}
+function say(m,t='info'){if(!m)return;const L0=s.log[0],now=Date.now();if(L0&&!L0.cl&&L0.m===m&&L0.t===t&&now-L0.at<9000){L0.n=(L0.n||1)+1;L0.at=now;dirty=1;return}s.log.unshift({m,t,at:now});if(s.log.length>60)s.log.length=60;dirty=1}
 function add(k,v){s.r[k]+=v;if(v>0&&(k==='fish'||k==='prov')&&typeof capOf==='function'){const cp=capOf(k);if(s.r[k]>cp){s.r[k]=Math.max(cp,s.r[k]-v);if(!s.f.capHit&&k==='fish'){s.f.capHit=1;say('Кошик із рибою повний — більше не влазить. Можна закоптити зайве або збудувати комору.','world')}}}if(v>0){if(!s.seen[k]){s.seen[k]=1;dirty=1}if(s.tot[k]!==undefined)s.tot[k]+=v}}
 function giveI(id,n=1){s.inv[id]=(s.inv[id]||0)+n;s.seenI=s.seenI||{};s.seenI[id]=1;const it=IT[id];s.pack=s.pack||[];s.belt=s.belt||[];
   if(it.slot==='weapon'||it.slot==='ranged'){if(!s.pack.includes(id)&&s.pack.length<packSlots())s.pack.push(id);if(!s.eq[it.slot]&&s.pack.includes(id))s.eq[it.slot]=id}
@@ -4326,6 +4332,7 @@ for(const D of[{id:'zbyten',c:{herb:3,prov:1},who:'Левко',how:'Трави, 
 /* ============ ACTIONS ============ */
 function act0(a,i){
   if(a.indexOf('c_')===0){cAct(a,i);return}
+  if(a==='tclose'){const at=+i;for(const x of s.log)if(x&&x.at===at)x.cl=1;lastToast=null;dirty=1;return}
   if(a==='dlgok'){(s.dlg||[]).shift();dirty=1;return}
   if(a==='bellOpen'){s.bellHold=0;dirty=1;return}
   if(a==='bellDefer'){s.bellHold=1;dirty=1;return}
@@ -4993,13 +5000,18 @@ function rDlg(){const q=s.dlg||[];if(!q.length)s.bellHold=0;const d=s.bellHold&&
   el.innerHTML=`<div class="dlgbg${fi?' fi':''}"><div class="dlgbox k-${d.k||'info'}" role="dialog" aria-modal="true" aria-labelledby="dlgt">${dlgImg(d.img)}<div class="dlgin"><span class="tag t-${d.k||'info'}"><img class="tico" src="${tagURL(d.k||'info')}" alt="" width="14" height="14">${TAGN[d.k||'info']}</span><h2 id="dlgt">${d.title}</h2><div class="dlgbody">${d.body||''}</div>${d.gains&&d.gains.length?`<ul class="gains">${d.gains.map(g=>`<li>${g}</li>`).join('')}</ul>`:''}<div class="act">${(d.btns||[['Зрозуміло','dlgok']]).map(b=>`<button type="button" class="main" data-a="${b[1]}" data-i="${b[2]||''}">${b[0]}</button>`).join('')}${s.dlg.length>1&&!d.btns&&d.k!=='fight'?'<button type="button" class="toggle" data-a="bellDefer" data-i="">Відкласти решту</button>':''}</div><p class="m dlgq">${s.dlg.length>1?`Ще подій у черзі: ${s.dlg.length-1}`:''}</p></div></div></div>`;
   glossify(el);try{const b=el.querySelector&&el.querySelector('button');if(b)b.focus()}catch(e){}}
 let lastToast='';
-/* Сповіщення — клаптики паперу: з'являються, тримаються й тануть; повтори зливаються в «×N» */
-function rToast(){const now=Date.now(),L=s.log.filter(x=>x&&x.at&&now-x.at<7000).slice(0,3).reverse(),el=$('toast');const key=L.map(x=>x.at+':'+(x.n||1)).join();if(key===lastToast)return;lastToast=key;
+/* Сповіщення — темні плашки внизу: звичайні тримаються 11 с, важливі (рівень, історія) — доки не закриєш ✕.
+   Не більше трьох одразу; повтори зливаються в «×N»; смужка зліва й значок — за типом, тонка риска внизу — скільки лишилось. */
+const TOAST_MS=11000,TOAST_PIN=new Set(['lvl','story']);
+function toastList(now){const pin=s.log.filter(x=>x&&x.at&&TOAST_PIN.has(x.t)&&!x.cl).slice(0,2),reg=s.log.filter(x=>x&&x.at&&!x.cl&&now-x.at<TOAST_MS&&!pin.includes(x));
+  const seen=new Set();return pin.concat(reg).sort((p,q)=>q.at-p.at).filter(x=>{const k=x.t+'|'+x.m;if(seen.has(k))return false;seen.add(k);return true}).slice(0,3).reverse()}
+function rToast(){const now=Date.now(),L=toastList(now),el=$('toast');const key=L.map(x=>x.at+':'+(x.n||1)).join();if(key===lastToast)return;lastToast=key;
   if(!el.querySelector){el.innerHTML=L.map(x=>x.m).join('');return}const keep=new Set();
-  for(const x of L){const id=x.m.length+'|'+x.m.slice(0,24)+'|'+x.t;keep.add(id);let n=[...el.children].find(c=>c.dataset.id===id);
-    if(!n){n=document.createElement('div');n.className='tst t-'+x.t;n.setAttribute('role','status');n.dataset.id=id;n.style.setProperty('--rot',((hsh(x.m).charCodeAt(0)%5)-2)*0.35+'deg');
-      n.innerHTML=`<img class="tico" src="${tagURL(x.t)}" alt="" width="18" height="18"><span class="ev-text">${x.m}</span><b class="tcn"></b>`;el.appendChild(n)}
-    const age=(now-x.at)/1000;n.style.setProperty('--left',Math.max(0,6.4-age).toFixed(2)+'s');n.querySelector('.tcn').textContent=x.n>1?'×'+x.n:'';if(n.dataset.n!==String(x.n||1)){n.dataset.n=String(x.n||1);n.classList.remove('out');void n.offsetWidth}n.classList.add('out')}
+  for(const x of L){const id=x.m.length+'|'+x.m.slice(0,24)+'|'+x.t,pin=TOAST_PIN.has(x.t);keep.add(id);let n=[...el.children].find(c=>c.dataset.id===id);
+    if(!n){n=document.createElement('div');n.className='tst t-'+x.t+(pin?' pin':'');n.setAttribute('role','status');n.dataset.id=id;
+      n.innerHTML=`<img class="tico" src="${tagURL(x.t)}" alt="" width="18" height="18"><span class="ev-text">${x.m}</span><b class="tcn"></b><button type="button" class="tx" data-a="tclose" data-i="${x.at}" aria-label="Закрити">✕</button>${pin?'':'<i class="tbar"></i>'}`;el.appendChild(n)}
+    n.querySelector('.tx').dataset.i=x.at;const left=Math.max(0,(TOAST_MS-(now-x.at))/1000-.6);n.style.setProperty('--left',left.toFixed(2)+'s');n.style.setProperty('--life',(left+.6).toFixed(2)+'s');
+    n.querySelector('.tcn').textContent=x.n>1?'×'+x.n:'';if(n.dataset.n!==String(x.n||1)){n.dataset.n=String(x.n||1);n.classList.remove('out');void n.offsetWidth}if(!pin)n.classList.add('out')}
   for(const c of[...el.children])if(!keep.has(c.dataset.id))c.remove()}
 
 /* ============ v14: TRANSITIONS ============ */

@@ -520,12 +520,17 @@ function rDlg(){const q=s.dlg||[];if(!q.length)s.bellHold=0;const d=s.bellHold&&
   el.innerHTML=`<div class="dlgbg${fi?' fi':''}"><div class="dlgbox k-${d.k||'info'}" role="dialog" aria-modal="true" aria-labelledby="dlgt">${dlgImg(d.img)}<div class="dlgin"><span class="tag t-${d.k||'info'}"><img class="tico" src="${tagURL(d.k||'info')}" alt="" width="14" height="14">${TAGN[d.k||'info']}</span><h2 id="dlgt">${d.title}</h2><div class="dlgbody">${d.body||''}</div>${d.gains&&d.gains.length?`<ul class="gains">${d.gains.map(g=>`<li>${g}</li>`).join('')}</ul>`:''}<div class="act">${(d.btns||[['Зрозуміло','dlgok']]).map(b=>`<button type="button" class="main" data-a="${b[1]}" data-i="${b[2]||''}">${b[0]}</button>`).join('')}${s.dlg.length>1&&!d.btns&&d.k!=='fight'?'<button type="button" class="toggle" data-a="bellDefer" data-i="">Відкласти решту</button>':''}</div><p class="m dlgq">${s.dlg.length>1?`Ще подій у черзі: ${s.dlg.length-1}`:''}</p></div></div></div>`;
   glossify(el);try{const b=el.querySelector&&el.querySelector('button');if(b)b.focus()}catch(e){}}
 let lastToast='';
-/* Сповіщення — клаптики паперу: з'являються, тримаються й тануть; повтори зливаються в «×N» */
-function rToast(){const now=Date.now(),L=s.log.filter(x=>x&&x.at&&now-x.at<7000).slice(0,3).reverse(),el=$('toast');const key=L.map(x=>x.at+':'+(x.n||1)).join();if(key===lastToast)return;lastToast=key;
+/* Сповіщення — темні плашки внизу: звичайні тримаються 11 с, важливі (рівень, історія) — доки не закриєш ✕.
+   Не більше трьох одразу; повтори зливаються в «×N»; смужка зліва й значок — за типом, тонка риска внизу — скільки лишилось. */
+const TOAST_MS=11000,TOAST_PIN=new Set(['lvl','story']);
+function toastList(now){const pin=s.log.filter(x=>x&&x.at&&TOAST_PIN.has(x.t)&&!x.cl).slice(0,2),reg=s.log.filter(x=>x&&x.at&&!x.cl&&now-x.at<TOAST_MS&&!pin.includes(x));
+  const seen=new Set();return pin.concat(reg).sort((p,q)=>q.at-p.at).filter(x=>{const k=x.t+'|'+x.m;if(seen.has(k))return false;seen.add(k);return true}).slice(0,3).reverse()}
+function rToast(){const now=Date.now(),L=toastList(now),el=$('toast');const key=L.map(x=>x.at+':'+(x.n||1)).join();if(key===lastToast)return;lastToast=key;
   if(!el.querySelector){el.innerHTML=L.map(x=>x.m).join('');return}const keep=new Set();
-  for(const x of L){const id=x.m.length+'|'+x.m.slice(0,24)+'|'+x.t;keep.add(id);let n=[...el.children].find(c=>c.dataset.id===id);
-    if(!n){n=document.createElement('div');n.className='tst t-'+x.t;n.setAttribute('role','status');n.dataset.id=id;n.style.setProperty('--rot',((hsh(x.m).charCodeAt(0)%5)-2)*0.35+'deg');
-      n.innerHTML=`<img class="tico" src="${tagURL(x.t)}" alt="" width="18" height="18"><span class="ev-text">${x.m}</span><b class="tcn"></b>`;el.appendChild(n)}
-    const age=(now-x.at)/1000;n.style.setProperty('--left',Math.max(0,6.4-age).toFixed(2)+'s');n.querySelector('.tcn').textContent=x.n>1?'×'+x.n:'';if(n.dataset.n!==String(x.n||1)){n.dataset.n=String(x.n||1);n.classList.remove('out');void n.offsetWidth}n.classList.add('out')}
+  for(const x of L){const id=x.m.length+'|'+x.m.slice(0,24)+'|'+x.t,pin=TOAST_PIN.has(x.t);keep.add(id);let n=[...el.children].find(c=>c.dataset.id===id);
+    if(!n){n=document.createElement('div');n.className='tst t-'+x.t+(pin?' pin':'');n.setAttribute('role','status');n.dataset.id=id;
+      n.innerHTML=`<img class="tico" src="${tagURL(x.t)}" alt="" width="18" height="18"><span class="ev-text">${x.m}</span><b class="tcn"></b><button type="button" class="tx" data-a="tclose" data-i="${x.at}" aria-label="Закрити">✕</button>${pin?'':'<i class="tbar"></i>'}`;el.appendChild(n)}
+    n.querySelector('.tx').dataset.i=x.at;const left=Math.max(0,(TOAST_MS-(now-x.at))/1000-.6);n.style.setProperty('--left',left.toFixed(2)+'s');n.style.setProperty('--life',(left+.6).toFixed(2)+'s');
+    n.querySelector('.tcn').textContent=x.n>1?'×'+x.n:'';if(n.dataset.n!==String(x.n||1)){n.dataset.n=String(x.n||1);n.classList.remove('out');void n.offsetWidth}if(!pin)n.classList.add('out')}
   for(const c of[...el.children])if(!keep.has(c.dataset.id))c.remove()}
 

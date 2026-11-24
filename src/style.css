@@ -789,14 +789,20 @@ button.hs.zone:hover,button.hs.zone:focus-visible{background:transparent;border:
 .scn.tw .scene{aspect-ratio:432/300}
 
 /* ===== Сповіщення, підказки, діалоги — у піксельних рамках ===== */
-#toast .tst{--ink:#2b1d12;--mute:#5a4630;--lamp:#7a3f04;background:#d6cba9 var(--tx-paper);color:#2b1d12;border:10px solid transparent;border-image:var(--fr-paper) 4 / 10px round;box-shadow:0 5px 0 rgba(0,0,0,.35);
-  padding:2px 6px;align-items:center;gap:8px;max-width:520px;rotate:var(--rot,0deg);image-rendering:pixelated;font:14px/1.4 var(--serif);animation:tin .35s cubic-bezier(.2,.7,.3,1)}
-#toast .tst.out{animation:tin .35s cubic-bezier(.2,.7,.3,1),tout .6s ease-in var(--left,6.4s) forwards}
-#toast .tst .tico{width:18px;height:18px;image-rendering:pixelated;flex:none;align-self:center}
-#toast .tst .tcn{font:700 12px var(--mono);color:#7a3f04;margin-left:auto;flex:none}
+#toast .tst{--ink:#e3ebe6;--mute:#b3c5c4;--lamp:#f0b84a;--tc:#8a9aa4;position:relative;background:#16252e var(--tx-slate);color:#e3ebe6;border:8px solid transparent;border-image:var(--fr-slate) 4 / 8px round;box-shadow:inset 5px 0 0 var(--tc),0 5px 0 rgba(0,0,0,.4);
+  padding:4px 6px 6px 12px;align-items:center;gap:10px;max-width:560px;image-rendering:pixelated;font:16px/1.4 var(--serif);animation:tin .35s cubic-bezier(.2,.7,.3,1)}
+#toast .tst.t-fight,#toast .tst.t-raid{--tc:#e0735f}#toast .tst.t-find,#toast .tst.t-odd{--tc:#f0b84a}#toast .tst.t-lvl{--tc:#8fc46a}#toast .tst.t-story{--tc:#c9a0e0}#toast .tst.t-world,#toast .tst.t-shore,#toast .tst.t-village{--tc:#6fb3c9}
+#toast .tst.out{animation:tin .35s cubic-bezier(.2,.7,.3,1),tout .6s ease-in var(--left,10.4s) forwards}
+#toast .tst .tico{width:22px;height:22px;image-rendering:pixelated;flex:none;align-self:center}
+#toast .tst .tcn{font:700 13px var(--mono);color:#f0b84a;margin-left:auto;flex:none}
+#toast .tst .tx{flex:none;align-self:flex-start;min-width:28px;min-height:28px;padding:0;margin:-2px -4px 0 0;background:none;border:0;color:#b3c5c4;font:700 14px var(--mono);cursor:pointer}
+#toast .tst .tx:hover,#toast .tst .tx:focus-visible{color:#fff0b0}
+#toast .tst .tcn:empty+.tx{margin-left:auto}
+#toast .tst .tbar{position:absolute;left:5px;right:0;bottom:-4px;height:2px;background:var(--tc);opacity:.6;transform-origin:left;animation:tbar var(--life,11s) linear forwards}
+@keyframes tbar{to{transform:scaleX(0)}}
 #toast .tst .ev-text{min-width:0}
 @keyframes tout{to{opacity:0;transform:translateY(6px)}}
-@media (prefers-reduced-motion:reduce){#toast .tst,#toast .tst.out{animation:none}}
+@media (prefers-reduced-motion:reduce){#toast .tst,#toast .tst.out,#toast .tst .tbar{animation:none}}
 #tip{background:#16252e var(--tx-slate);color:#e3ebe6;border:8px solid transparent;border-image:var(--fr-slate) 4 / 8px round;box-shadow:0 6px 0 rgba(0,0,0,.4);padding:4px 6px;image-rendering:pixelated;--ink:#e3ebe6;--panel:#16252e;--mute:#b3c5c4;--lamp:#f0b84a}
 #tip b{color:#f0b84a}
 #dlg .dlgbox{--ink:#2b1d12;--panel:#d6cba9;--mute:#5a4630;--rule:#8a6a44;--lamp:#7a3f04;--bad:#8f2f2b;--good:#3d5a34;--sea:#22394a;color-scheme:light;
