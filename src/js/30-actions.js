@@ -27,7 +27,8 @@ function act0(a,i){
   case 'jt':s.jt=i;break;
   case 'look':if(!F.looked&&s.tot.ember>=10){F.looked=1;unlock('shore');say('Ти в нижній залі маяка. Сходи вгору тонуть у темряві, крізь щілину дверей чути море. Жарині потрібне паливо. Відкрито: Берег.','story')}break;
   case 'blow':if(!s.b.hearth&&!onCd('blow')){setCd('blow',2);add('ember',3);s.c.blow=(s.c.blow||0)+1}break;
-  case 'gather':if(!onCd('gather')){setCd('gather',1);add('wood',wolf());s.c.gather++;
+  case 'hook':if(!F.hook&&afford(HOOKC)){pay(HOOKC);F.hook=1;dlg({k:'find',title:'Багор',img:{t:'ob',k:'hook3',f:'hookObj3'},body:'<p>Ти прив’язуєш до довгої жердини зігнутий цвях із уламків. Тепер плавник, що пропливає за кілька кроків від берега, теж твій.</p><p>А якщо поставити в прибої загорожу з кілків, хвилі самі зганятимуть до неї дерево.</p>',gains:['Плавника за раз — удвічі більше','Відкрилося: загорожа для плавника — прибій сам приноситиме плавник']})}break;
+  case 'gather':if(!onCd('gather')){setCd('gather',1);add('wood',wolf()*(F.hook?2:1));s.c.gather++;
     if(s.c.gather===6){say('Між водоростями блищить пляшка, заткнута воском. Усередині записка. Відкрито: Журнал.','story');page(1)}
     if(s.c.gather===60)odd('gull','У плавнику застрягла вирізана з дерева чайка.')}break;
   case 'pool':poolPick();break;

@@ -115,6 +115,8 @@ function homeHS(){const W=YW,H=YH;let h='';const st=yardSt2();
   return h}
 function shoreHS(){const W=SW,H=SH,S=(x,y,w,h)=>PCT(x,y,w,h,W,H);let h=fogs(8,22)+mlaLayer(6,62)+fxCanvas('sh',W,H);
   h+=ob('home','tab','home',obURL('door3',doorObj3),6,51,W,H,'До маяка','<b>Двері маяка</b><br>Назад, до вогнища.');
+  if(s.f.hook)h+=ob('hook','','',obURL('hook3',hookObj3),104,52,W,H,'Багор','');
+  else if((s.c.gather||0)>=8)h+=ob('hook','hook','',obURL('hook3',hookObj3),104,52,W,H,'Змайструвати багор',`<b>Багор</b><br>Довга жердина з гаком, щоб діставати плавник, який пропливає далі від берега.<br>Ціна: ${costTxt(HOOKC)}`,{pulse:1,always:1,ok:afford(HOOKC)});
   if(s.ship)h+=ob('ship','hsgo','ship',obURL('ship3',shipObj3),168,0,W,H,'Торговий когг','<b>Торговий когг</b><br>Подивитися обміни.',{pulse:1,always:1,idle:'i-bob'});
   if(s.f.boat)h+=ob('pier','hsgo','pier',obURL('pier3'+((s.exp||[]).length?'o':''),()=>pierObj3({boatOut:!!(s.exp||[]).length})),231,48,W,H,'Пристань','<b>Пристань</b><br>Виходи в море й кораблі.');
   if(s.f.wreck)h+=ob('wreck','scrapw','',obURL('wreck3',wreckObj3),186,69,W,H,'Розбирати уламки','<b>Уламки човна</b><br>Цвяхи, скоби, обшивка: усе згодиться.',{pulse:1,cd:'scrapw',cs:2,inner:'<i class="spk"></i>'});

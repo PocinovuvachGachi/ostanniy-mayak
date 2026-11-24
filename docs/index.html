@@ -1924,6 +1924,14 @@ function anvilObj3(hot){const b=pbuf(18,14);prect(b,4,9,10,5,'W');prect(b,4,9,1,
 yardBg3=HI(yardBg3);towerObj3=HI(towerObj3);towerSil3=HI(towerSil3);hearthObj3=HI(hearthObj3);emberObj3=HI(emberObj3);flame3Strip=HI(flame3Strip);signObj3=HI(signObj3);fogBuf3=HI(fogBuf3);
 yardFull3=HI(yardFull3);shoreBg3=HI(shoreBg3);wreckObj3=HI(wreckObj3);rodObj3=HI(rodObj3);pierObj3=HI(pierObj3);shipObj3=HI(shipObj3);flotObj3=HI(flotObj3);log3Buf=HI(log3Buf);doorObj3=HI(doorObj3);
 for(const k in BLD3)BLD3[k]=HI(BLD3[k]);anvilObj3=HI(anvilObj3);
+
+/* багор: довга жердина з залізним гаком (#41) */
+const HOOKC={wood:12};
+function hookObj3(){const b=pbuf(16,60);
+  hiRect(b,0,0,16,60,(i,j,x,y)=>{const ax=3,ay=59,bx=11,by=9,dx=bx-ax,dy=by-ay,L2=dx*dx+dy*dy,t=((x-ax)*dx+(y-ay)*dy)/L2;if(t<0||t>1)return;
+    const px=ax+dx*t,py=ay+dy*t,d=((x-px)*(-dy)+(y-py)*dx)/Math.sqrt(L2);if(Math.abs(d)>.75)return;return d<-.25?'e':d>.35?'c':'d'});
+  pline(b,11,9,12,4,'9');pline(b,12,4,14,2,'a');pset(b,15,3,'p');pset(b,15,4,'q');pset(b,14,5,'p');pset(b,13,5,'a');pline(b,10,8,8,6,'9');pset(b,8,5,'p');
+  prect(b,10,10,3,2,'a');pset(b,10,10,'p');return b}
 /* ============ ПОРТРЕТИ 32×32 у сітці сцен ============
    Той самий піксель, що й у сценах (логічний піксель = 1,5 точки), пласкі тони з короткими дизер-швами,
    темний контур і тло з дощок. Світло зліва-згори, як від лампи.
@@ -2205,19 +2213,19 @@ function glossify(root){if(!root||!document.createTreeWalker)return;const used={
       const at=m.index+m[1].length,w=m[2];const after=node.splitText(at);after.nodeValue=after.nodeValue.slice(w.length);
       const sp=document.createElement('span');sp.className='gl';sp.textContent=w;sp.setAttribute('data-tip',`<b>${g[1]}</b> — ${g[2]}`);node.parentNode.insertBefore(sp,after);break}}}
 const RC=[
-  {id:'oar',src:'З плавника можна вистругати весло: і грести, і битися.',out:'oar',c:{wood:6}},
-  {id:'rod',src:'На стіні майстерні висить зламане вудлище Остапа.',n:'Вудка',ic:'/~~o',d:'Відкриває рибалку на березі.',c:{wood:8,scrap:3},tool:1},
-  {id:'sling',src:'Після сутички з крабом ти думаєш, як бити здалеку.',out:'sling',c:{wood:6,fish:1}},
-  {id:'lamp',src:'У трюмах і печерах темно. Без світла туди не спуститися.',out:'lamp',c:{scrap:5,oil:4},req:()=>!!(s.disc.chaika||s.disc.cave)},
-  {id:'pack1',src:'З оглядової видно, як далеко доведеться ходити. Знадобиться ранець.',n:'Ранець',d:'Рюкзак на 4 зброї й +3 до вантажопідйомності.',c:{wood:10,tar:3},tool:1,req:()=>s.floors.gallery},
+  {id:'oar',src:'З плавника можна вистругати весло: і грести, і битися.',out:'oar',c:{wood:14}},
+  {id:'rod',src:'На стіні майстерні висить зламане вудлище Остапа.',n:'Вудка',ic:'/~~o',d:'Відкриває рибалку на березі.',c:{wood:16,scrap:6},tool:1},
+  {id:'sling',src:'Після сутички з крабом ти думаєш, як бити здалеку.',out:'sling',c:{wood:14,fish:3}},
+  {id:'lamp',src:'У трюмах і печерах темно. Без світла туди не спуститися.',out:'lamp',c:{scrap:12,oil:6},req:()=>!!(s.disc.chaika||s.disc.cave)},
+  {id:'pack1',src:'З оглядової видно, як далеко доведеться ходити. Знадобиться ранець.',n:'Ранець',d:'Рюкзак на 4 зброї й +3 до вантажопідйомності.',c:{wood:20,tar:5},tool:1,req:()=>s.floors.gallery},
   {id:'pack2',src:'Металургія підказує, як зробити міцний каркас для більшого ранця.',n:'Ранець мандрівника',d:'Рюкзак на 5 зброї й ще +3 до вантажопідйомності.',c:{iron:4,tar:6},tool:1,req:()=>s.f.pack>=1&&s.rs.metal},
-  {id:'belt1',src:'Щоб ліки були під рукою в бою, потрібні кишені на поясі.',n:'Пояс із кишенями',d:'Пояс на 4 предмети замість 2.',c:{wood:4,tar:2},tool:1,req:()=>s.floors.gallery},
+  {id:'belt1',src:'Щоб ліки були під рукою в бою, потрібні кишені на поясі.',n:'Пояс із кишенями',d:'Пояс на 4 предмети замість 2.',c:{wood:12,tar:4},tool:1,req:()=>s.floors.gallery},
   {id:'net',src:'Мирон показав, як в’язати сітку, що зупинить будь-кого.',out:'net',c:{wood:4,tar:1},req:()=>!!(s.f.rod&&s.met.myron),multi:1},
   {id:'smoke',src:'Топлення жиру навчило працювати з горючим: смола й сухі трави дадуть густий дим.',out:'smoke',c:{tar:2,herb:2},req:()=>s.rs.render,multi:1},
-  {id:'cloak',src:'Левко радить: у шхерах краще ходити в темному й тихому.',out:'cloak',c:{wood:8,oil:3},req:()=>!!s.met.levko},
+  {id:'cloak',src:'Левко радить: у шхерах краще ходити в темному й тихому.',out:'cloak',c:{wood:16,oil:5},req:()=>!!s.met.levko},
   {id:'bandage',src:'Ганна показала, як робити бинти з трав.',out:'bandage',c:{herb:2},req:()=>s.f.bandageR,multi:1},
-  {id:'harpoon',src:'Креслення з трюму «Чайки».',out:'harpoon',c:{iron:3,wood:5},craft:1,req:()=>s.f.bpHarpoon},
-  {id:'bracers',src:'Розтин краба підказав, як зробити наручі з панцирів.',out:'bracers',c:{scrap:5},it:{cshell:3},craft:1,req:()=>s.rs.a_crab},
+  {id:'harpoon',src:'Креслення з трюму «Чайки».',out:'harpoon',c:{iron:5,wood:12},craft:1,req:()=>s.f.bpHarpoon},
+  {id:'bracers',src:'Розтин краба підказав, як зробити наручі з панцирів.',out:'bracers',c:{scrap:10},it:{cshell:3},craft:1,req:()=>s.rs.a_crab},
   {id:'potion',src:'Травництво: верес, чебрець і полин гоять швидше за бинт.',out:'potion',c:{herb:4,fish:2},req:()=>s.rs.herbal,multi:1},
   {id:'bomb',src:'Топлення жиру підказало: олія в глиняному горщику горить зовсім не мирно.',out:'bomb',c:{oil:3,tar:1},req:()=>s.rs.render,multi:1},
   {id:'storm',src:'Тепер, коли є товсте скло, можна зробити ліхтар, що не гасне на вітрі.',out:'storm',c:{iron:4,oil:5},it:{glass:1},craft:2,req:()=>s.met.yarema||has('glass')},
@@ -2255,12 +2263,12 @@ const HEARTH={id:'hearth',n:'Вогнище',base:{wood:10},mult:1.6};
 const CONV={smoke:{in:{fish:0.2,wood:0.1},out:{prov:0.1}},forge:{in:{scrap:0.3,ember:3},out:{iron:0.15}},kiln:{in:{wood:0.3,ember:2},out:{tar:0.1}},render:{in:{fish:0.2},out:{oil:0.2}},coalpit:{in:{wood:0.4},out:{coal:0.2}},steel:{in:{iron:0.1,coal:0.2,ember:2},out:{steel:0.05}},glass:{in:{sand:0.3,coal:0.1},out:{gls:0.1}},apoth:{in:{herb:0.1,oil:0.05},out:{med:0.04}}};
 const DIS={knife:{iron:1,scrap:1},jacket:{wood:3,tar:1},sabre:{iron:4},pistol:{iron:4,scrap:2},storm:{iron:2,oil:2}};
 const BD=[
-  {id:'pot',n:'Пастка в прибої',d:()=>'+0,15 брухту/с за рівень. Хвилі самі заносять у неї цвяхи й скоби.',base:{wood:8},mult:1.5,show:()=>s.f.wreck},
-  {id:'boom',n:'Загорожа для плавника',d:()=>`+${fr(0.3*(s.rs.currents?2:1)*wolf())} плавника/с за рівень`,base:{wood:18,scrap:4},mult:1.5,show:()=>s.floors.work},
-  {id:'traps',n:'Ятері',d:()=>`+${fr(0.25*wolf())} риби/с за рівень`,base:{wood:10,scrap:7},mult:1.5,show:()=>s.f.bpTraps},
-  {id:'smoke',n:'Коптильня',conv:1,d:()=>'Риба 0,2 і плавник 0,1 → провізія 0,1 щосекунди за рівень. Провізія лікує й потрібна для виходу в море.',base:{wood:12,scrap:4},mult:1.5,show:()=>s.f.rod},
-  {id:'forge',n:'Кузня',conv:1,d:()=>'Брухт 0,3 і жар 3 → залізо 0,15 щосекунди за рівень.',base:{wood:18,scrap:12},mult:1.6,show:()=>s.floors.work&&!!s.f.craft1},
-  {id:'kiln',n:'Смоловарня',conv:1,d:()=>'Плавник 0,3 і жар 2 → смола 0,1 щосекунди за рівень.',base:{wood:22,iron:3},mult:1.6,show:()=>s.floors.gallery},
+  {id:'pot',n:'Пастка в прибої',d:()=>'+0,15 брухту/с за рівень. Хвилі самі заносять у неї цвяхи й скоби.',base:{wood:14},mult:1.5,show:()=>s.f.wreck},
+  {id:'boom',n:'Загорожа для плавника',d:()=>`+${fr(0.3*(s.rs.currents?2:1)*wolf())} плавника/с за рівень`,base:{wood:24},mult:1.5,show:()=>!!(s.f.hook||s.floors.work)},
+  {id:'traps',n:'Ятері',d:()=>`+${fr(0.25*wolf())} риби/с за рівень`,base:{wood:18,scrap:12},mult:1.5,show:()=>s.f.bpTraps},
+  {id:'smoke',n:'Коптильня',conv:1,d:()=>'Риба 0,2 і плавник 0,1 → провізія 0,1 щосекунди за рівень. Провізія лікує й потрібна для виходу в море.',base:{wood:20,scrap:8},mult:1.5,show:()=>s.f.rod},
+  {id:'forge',n:'Кузня',conv:1,d:()=>'Брухт 0,3 і жар 3 → залізо 0,15 щосекунди за рівень.',base:{wood:30,scrap:18},mult:1.6,show:()=>s.floors.work&&!!s.f.craft1},
+  {id:'kiln',n:'Смоловарня',conv:1,d:()=>'Плавник 0,3 і жар 2 → смола 0,1 щосекунди за рівень.',base:{wood:34,iron:5},mult:1.6,show:()=>s.floors.gallery},
   {id:'render',n:'Жиротопня',conv:1,d:()=>'Риба 0,2 → олія 0,2 щосекунди за рівень.',base:{wood:21,scrap:14},mult:1.6,show:()=>s.rs.render},
   {id:'winch',n:'Лебідка на уламках',d:()=>'+0,3 брухту/с за рівень',base:{wood:28,scrap:21},mult:1.6,show:()=>s.rs.mech},
   {id:'shelves',n:'Книжкові полиці',d:()=>'+25% знань за рівень',base:{wood:35},mult:1.6,show:()=>s.rs.order},
@@ -2313,7 +2321,7 @@ const WT={
   crossbow:{tr:'Болт пробиває 1 броні.',t:[[1,'Важкий болт','Влучання відкидає ціль на клітинку.'],[3,'Довгий приціл','+1 дальності й +10% влучності.'],[5,'Наскрізний болт','Болт пробиває ще 2 броні.']]},
   pistol:{tr:'Куля не зважає на укриття, але постріл коштує 4 ОД.',t:[[1,'Швидке перезаряджання','Постріл коштує 3 ОД.'],[3,'Упритул','+50% урону на відстані до 2 клітинок.'],[5,'Дуель','+25% урону по ватажках.']]},
 };
-const MXP=[0,10,30,60,100,160];
+const MXP=[0,20,60,130,230,380];
 const WF={
   oar:[{n:'Окована лопата',tr:'Щит лопаті: постріли й чари ворогів по тобі слабші на чверть.'},{n:'Лопата хранителя',tr:'Підсік: кожен третій твій удар оглушує ціль.'}],
   knife:[{n:'Обвалювальний ніж',tr:'Глибокий поріз: кровотеча від ножа забирає 4 здоров’я за хід замість 2.'},{n:'Стилет',tr:'Критичний удар стилетом повертає 1 ОД.'}],
@@ -2740,7 +2748,7 @@ const FAC={
     perks:[[20,'Сухарі в Панаса дешевші'],[50,'Мірошник ділиться секретом: коптильня дає на 25% більше провізії'],[80,'Лоцмани Луки: вихід у море коштує на 1 провізію менше']]},
   sails:{n:'Мореплавці',face:'marta',d:'Капітани й купці, що ходять повз шхери. Їм потрібне світло й чесна торгівля.',known:()=>!!(s.met.marta||(s.saved||0)>0||(s.sig||0)>0),
     perks:[[20,'Торгові кораблі привозять на одну пропозицію більше'],[50,'Урятовані кораблі віддячують удвічі щедріше'],[80,'Сигнальне вогнище дешевше на 30%']]},
-  silent:{n:'Мовчуни',face:'gnat',d:'Колишня ватага Гната. Хтось досі грабує, а хтось хоче жити інакше.',known:()=>!!(s.met.gnat||s.seenE.scout),
+  silent:{n:'Мовчуни',face:'gnat',get d(){return KN('gnat')?'Колишня ватага Гната. Хтось досі грабує, а хтось хоче жити інакше.':'Ватага, що ховається в туманах. Хтось досі грабує, а хтось хоче жити інакше.'},known:()=>!!(s.met.gnat||s.seenE.scout),
     perks:[[-40,'Поки вони ворожі, Мовчуни приходять разом із Млою'],[20,'Таємний контакт на складі продає бомби й дим'],[50,'Їхні розвідники попереджають: Мла збирається на 15% повільніше'],[80,'У набігах на твоєму боці б’ється Мовчун']]},
 };
 const RANKS=[[-100,'Ворожі'],[-40,'Насторожені'],[0,'Нейтральні'],[20,'Приязні'],[50,'Друзі'],[80,'Свої']];
@@ -4378,7 +4386,8 @@ function act0(a,i){
   case 'jt':s.jt=i;break;
   case 'look':if(!F.looked&&s.tot.ember>=10){F.looked=1;unlock('shore');say('Ти в нижній залі маяка. Сходи вгору тонуть у темряві, крізь щілину дверей чути море. Жарині потрібне паливо. Відкрито: Берег.','story')}break;
   case 'blow':if(!s.b.hearth&&!onCd('blow')){setCd('blow',2);add('ember',3);s.c.blow=(s.c.blow||0)+1}break;
-  case 'gather':if(!onCd('gather')){setCd('gather',1);add('wood',wolf());s.c.gather++;
+  case 'hook':if(!F.hook&&afford(HOOKC)){pay(HOOKC);F.hook=1;dlg({k:'find',title:'Багор',img:{t:'ob',k:'hook3',f:'hookObj3'},body:'<p>Ти прив’язуєш до довгої жердини зігнутий цвях із уламків. Тепер плавник, що пропливає за кілька кроків від берега, теж твій.</p><p>А якщо поставити в прибої загорожу з кілків, хвилі самі зганятимуть до неї дерево.</p>',gains:['Плавника за раз — удвічі більше','Відкрилося: загорожа для плавника — прибій сам приноситиме плавник']})}break;
+  case 'gather':if(!onCd('gather')){setCd('gather',1);add('wood',wolf()*(F.hook?2:1));s.c.gather++;
     if(s.c.gather===6){say('Між водоростями блищить пляшка, заткнута воском. Усередині записка. Відкрито: Журнал.','story');page(1)}
     if(s.c.gather===60)odd('gull','У плавнику застрягла вирізана з дерева чайка.')}break;
   case 'pool':poolPick();break;
@@ -5067,7 +5076,7 @@ function relicFor(enc,quiet){const r=RELE[enc];if(!r)return;s.rel=s.rel||{};if(s
   dlg({k:'find',title:`Знахідка: ${IT[r].n}`,img:{t:'icon',id:r},body:`<p>${IT[r].d}</p><p class="hand">${relHint(r)}</p>`})}
 const BIC={pot:'scrap',boom:'wood',traps:'fish',smoke:'food',forge:'iron',kiln:'tar',render:'oil',winch:'scrap',shelves:'lore',dummy:'a_guard',house:'a_end',garden:'herb',apoth:'med',coalpit:'coal',steel:'steel',sandpit:'sand',glass:'gls',shipyard:'wood'};
 const BSRC={pot:'Хвилі виносять на берег уламки. Якщо поставити в прибої пастку, вони самі заноситимуть у неї цвяхи й скоби.',
-  boom:'З вікна майстерні видно, як течія проносить плавник повз берег. Загорожа його затримає.',
+  boom:'Течія проносить плавник повз берег, далі, ніж дістане багор. Загорожа з кілків його затримає.',
   traps:'Тепер ти знаєш, як сплести ятері. Риба сама в них запливатиме.',
   smoke:'Є вудка — буде й риба. А щоб риба не зіпсувалася, її треба закоптити.',
   forge:'Біля майстерні знайшлося місце для горна. Там можна кувати залізо.',
@@ -5360,6 +5369,8 @@ function homeHS(){const W=YW,H=YH;let h='';const st=yardSt2();
   return h}
 function shoreHS(){const W=SW,H=SH,S=(x,y,w,h)=>PCT(x,y,w,h,W,H);let h=fogs(8,22)+mlaLayer(6,62)+fxCanvas('sh',W,H);
   h+=ob('home','tab','home',obURL('door3',doorObj3),6,51,W,H,'До маяка','<b>Двері маяка</b><br>Назад, до вогнища.');
+  if(s.f.hook)h+=ob('hook','','',obURL('hook3',hookObj3),104,52,W,H,'Багор','');
+  else if((s.c.gather||0)>=8)h+=ob('hook','hook','',obURL('hook3',hookObj3),104,52,W,H,'Змайструвати багор',`<b>Багор</b><br>Довга жердина з гаком, щоб діставати плавник, який пропливає далі від берега.<br>Ціна: ${costTxt(HOOKC)}`,{pulse:1,always:1,ok:afford(HOOKC)});
   if(s.ship)h+=ob('ship','hsgo','ship',obURL('ship3',shipObj3),168,0,W,H,'Торговий когг','<b>Торговий когг</b><br>Подивитися обміни.',{pulse:1,always:1,idle:'i-bob'});
   if(s.f.boat)h+=ob('pier','hsgo','pier',obURL('pier3'+((s.exp||[]).length?'o':''),()=>pierObj3({boatOut:!!(s.exp||[]).length})),231,48,W,H,'Пристань','<b>Пристань</b><br>Виходи в море й кораблі.');
   if(s.f.wreck)h+=ob('wreck','scrapw','',obURL('wreck3',wreckObj3),186,69,W,H,'Розбирати уламки','<b>Уламки човна</b><br>Цвяхи, скоби, обшивка: усе згодиться.',{pulse:1,cd:'scrapw',cs:2,inner:'<i class="spk"></i>'});

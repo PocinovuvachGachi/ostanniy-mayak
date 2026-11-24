@@ -7,10 +7,10 @@ function clickN(a,i,n){for(let k=0;k<n;k++){s.cd={};act(a,i);checks()}}
 T(11);act('look');A(s.tabs.shore,'shore');
 clickN('gather','',11);act('bld','hearth');A(s.b.hearth===1,'hearth');
 clickN('gather','',10);A(s.pages.includes(1),'bottle');A(s.f.wreck,'wreck');
-act('bld','pot');A(s.b.pot===1,'pot');
+s.r.wood+=20;act('bld','pot');A(s.b.pot===1,'pot');
 clickN('scrapw','',6);A(s.f.barrel,'barrel');
 T(60);A(s.tabs.tower,'tower tab');A(s.r.wood>=0,'wood nonneg');allTabs();
-s.r.wood+=60;s.r.scrap+=20;s.r.ember+=200;act('floor','work');A(s.floors.work,'work');
+s.r.wood+=100;s.r.scrap+=30;s.r.ember+=200;act('floor','work');A(s.floors.work,'work');
 act('craft','rod');A(s.f.rod,'rod');act('craft','oar');A(s.eq.weapon==='oar','oar eq');
 clickN('fishing','',5);act('fightGo','crab1');A(s.cb,'crab fight');botFight();A(!s.cb&&s.tabs.hero,'hero');console.log('after crab lvl',s.h.lvl,'hp',Math.round(s.h.hp));
 s.r.wood+=100;s.r.scrap+=60;act('bld','forge');act('bld','smoke');A(s.b.forge&&s.b.smoke,'conv built');s.r.fish+=10;const e0=s.r.ember,i0=s.r.iron;T(10);A(s.r.iron>i0,'iron made');A(s.r.prov>0,'prov made');act('tog','forge');const i1=s.r.iron;T(5);A(s.r.iron===i1,'forge off');act('tog','forge');act('ht','bag');render();act('ht','grow');render();act('ht','gear');render();act('craft','sling');A(s.eq.ranged==='sling','sling');allTabs();
@@ -77,7 +77,7 @@ s.h.hp=maxHP();act('la','bog.hut.fight');botFight();A(s.f.bogClear,'bogClear');a
 act('leave');act('go','village');act('la','village.pier.shoal');act('la','village.shop.spit');A(s.disc.shoal&&s.disc.spit,'shoal spit disc');
 act('leave');
 // weapon forms
-s.r.iron+=50;s.r.ember+=1000;s.wm.oar=70;s.wm.cleaver=70;act('wup','oar');A(wF('oar')===1,'oar form1');act('wup','oar');A(wF('oar')===1,'oar form2 needs smith');s.r.steel+=6;s.r.coal+=6;act('wup','oar');A(wF('oar')===1,'still needs smith');
+s.r.iron+=50;s.r.ember+=1000;s.wm.oar=140;s.wm.cleaver=140;act('wup','oar');A(wF('oar')===1,'oar form1');act('wup','oar');A(wF('oar')===1,'oar form2 needs smith');s.r.steel+=6;s.r.coal+=6;act('wup','oar');A(wF('oar')===1,'still needs smith');
 act('tab','work');render();act('tab','hero');act('ht','arms');render();act('ht','gear');render();
 // shoal: force low tide by trying both
 act('go','shoal');render();s.h.hp=maxHP();act('equip','oar');

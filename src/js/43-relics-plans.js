@@ -7,7 +7,7 @@ function relicFor(enc,quiet){const r=RELE[enc];if(!r)return;s.rel=s.rel||{};if(s
   dlg({k:'find',title:`Знахідка: ${IT[r].n}`,img:{t:'icon',id:r},body:`<p>${IT[r].d}</p><p class="hand">${relHint(r)}</p>`})}
 const BIC={pot:'scrap',boom:'wood',traps:'fish',smoke:'food',forge:'iron',kiln:'tar',render:'oil',winch:'scrap',shelves:'lore',dummy:'a_guard',house:'a_end',garden:'herb',apoth:'med',coalpit:'coal',steel:'steel',sandpit:'sand',glass:'gls',shipyard:'wood'};
 const BSRC={pot:'Хвилі виносять на берег уламки. Якщо поставити в прибої пастку, вони самі заноситимуть у неї цвяхи й скоби.',
-  boom:'З вікна майстерні видно, як течія проносить плавник повз берег. Загорожа його затримає.',
+  boom:'Течія проносить плавник повз берег, далі, ніж дістане багор. Загорожа з кілків його затримає.',
   traps:'Тепер ти знаєш, як сплести ятері. Риба сама в них запливатиме.',
   smoke:'Є вудка — буде й риба. А щоб риба не зіпсувалася, її треба закоптити.',
   forge:'Біля майстерні знайшлося місце для горна. Там можна кувати залізо.',
