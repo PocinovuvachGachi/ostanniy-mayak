@@ -3,7 +3,7 @@
    валуни з тінню, вода з глибиною й піною, рамка й притемнені краї. Клітинки поверх неї прозорі:
    видно лише, куди можна піти й кого вдарити. Надворі арена тоне в синяві ночі, як і сцени (градація GR);
    усередині (трюм, печера) — завжди напівтемрява, а світло несе герой. */
-const ARK={shore:{fl:'sand'},pools:{fl:'sand'},rack:{fl:'sand'},shoal:{fl:'sand'},spit:{fl:'sand',lt:1},isle:{fl:'sand'},shoreL:{fl:'sand'},
+const ARK={pierfog:{fl:'plank'},shore:{fl:'sand'},pools:{fl:'sand'},rack:{fl:'sand'},shoal:{fl:'sand'},spit:{fl:'sand',lt:1},isle:{fl:'sand'},shoreL:{fl:'sand'},
   yardA:{fl:'sand',col0:'brick'},bay:{fl:'mud'},hold:{fl:'plank',wall:'hull',in:1},store:{fl:'plank',wall:'barn',in:1},
   cave:{fl:'rock',wall:'cave',in:1},mine:{fl:'rock',wall:'cave',in:1},tower:{fl:'flag',wall:'brick',in:1},
   monastery:{fl:'flag',wall:'arch'},guard:{fl:'flag'},cliff:{fl:'heath'},fort:{fl:'heath'},bog:{fl:'bog'},heartL:{fl:'ice'},heartA:{fl:'ice'}};

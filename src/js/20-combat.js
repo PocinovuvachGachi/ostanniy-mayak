@@ -234,8 +234,8 @@ function moveTo(c,u,tx,ty){if(u.pin>0)return;const T=EN[u.t],mode=T.fly?'fly':T.
   if(best&&(best[0]!==u.x||best[1]!==u.y)){fxP({t:'mv',x0:u.x,y0:u.y,x1:best[0],y1:best[1],d:240},240);u.x=best[0];u.y=best[1];trapCheck(u)}}
 function allyAct(c,u){const foes=alive(c).filter(v=>!v.hid);if(!foes.length)return;let tg=foes.reduce((a,b)=>dist(u.x,u.y,a.x,a.y)<=dist(u.x,u.y,b.x,b.y)?a:b);
   if(dist(u.x,u.y,tg.x,tg.y)>1)moveTo(c,u,tg.x,tg.y);if(dist(u.x,u.y,tg.x,tg.y)>1)return;
-  fxP({t:'bump',x0:u.x,y0:u.y,x1:tg.x,y1:tg.y},110);if(Math.random()<0.25+0.05*0){cbLog('Ополченець промахується.');return}
-  const d=Math.max(1,Math.round((6+s.h.lvl*0.5)*(s.h.ft.leader?1.5:1))-uArm(tg));tg.hp-=d;fxP({t:'txt',x:tg.x,y:tg.y,v:'−'+d,k:'hit'},130);cbLog(`Ополченець б’є острогою: ${E(EN[tg.t].n)} −${d}.`);if(tg.hp<=0)kill(tg)}
+  fxP({t:'bump',x0:u.x,y0:u.y,x1:tg.x,y1:tg.y},110);if(Math.random()<0.25+0.05*0){cbLog(`${E(EN[u.t].n)} промахується.`);return}
+  const d=Math.max(1,Math.round(((EN[u.t].p&&EN[u.t].p[0]?EN[u.t].p[0][1]:6)+s.h.lvl*0.5)*(s.h.ft.leader?1.5:1))-uArm(tg));tg.hp-=d;fxP({t:'txt',x:tg.x,y:tg.y,v:'−'+d,k:'hit'},130);cbLog(`${E(EN[u.t].n)} б’є: ${E(EN[tg.t].n)} −${d}.`);if(tg.hp<=0)kill(tg)}
 function roleAct(c,u){const T=EN[u.t];const structs=c.u.filter(v=>v.hp>0&&EN[v.t].struct);
   if(u.role==='thief'&&u.loot){if(u.x>=GW-1){u.hp=0;u.gone=1;const g={};for(const k of['wood','fish','prov','scrap']){const v=Math.floor(s.r[k]*0.1);if(v>0){s.r[k]-=v;g[k]=v}}c.stolen=Object.assign(c.stolen||{},g);cbLog(`${E(T.n)} тікає в туман із награбованим: ${costTxt(g)||'нічого цінного'}.`);fxP({t:'die',x:u.x,y:u.y,spr:u.t},0);return true}
     moveTo(c,u,GW-1,u.y);cbLog(`${E(T.n)} тягне награбоване до води.`);return true}
@@ -262,7 +262,7 @@ function enemyAct(c,u){const T=EN[u.t];if(T.obj)return;if(T.ally){allyAct(c,u);r
     if(s.eq.weapon==='sabre'&&Math.random()*100<(wmLv('sabre')>=3?40:25)){u.wind=0;u.weak=0;fxP({t:'txt',x:c.hx,y:c.hy,v:'відбито',k:'heal'},120);cbLog(`Шабля відбиває удар! Відповідь:`);dmgTo(u,wDmg()+s.h.a.str-1,1,0,'m');if(wF('sabre')>=1&&u.hp>0)dmgTo(u,wDmg()+s.h.a.str-1,1,0,'m');return false}
     const x=hurtHero(dmg*(u.wind?2:1),ign);u.wind=0;cbLog(`${E(T.n)}: ${nm.toLowerCase()}, −${x} здоров’я${pinc?' (кліщі)':''}.`);if(T.drain){u.hp=Math.min(u.max,u.hp+x);cbLog(`${E(T.n)} п’є кров: +${x}.`)}if(T.poison&&!s.h.ft.iron){c.poison=3}return true};
   const al=c.u.find(v=>EN[v.t].ally&&v.hp>0&&dist(v.x,v.y,u.x,u.y)<=1);
-  if(al&&['hit','cold','wrap','charge'].includes(k)&&(!near()||Math.random()<0.35)){fxP({t:'bump',x0:u.x,y0:u.y,x1:al.x,y1:al.y},110);const d=Math.max(1,Math.round(v*(c.mult||1)*DIFF_DMG)-1);al.hp-=d;fxP({t:'txt',x:al.x,y:al.y,v:'−'+d,k:'hurt'},130);cbLog(`${E(T.n)} б’є ополченця: −${d}.`);if(al.hp<=0)kill(al);u.acted=1;if(u.pin>0)u.pin--;u.step++;return}
+  if(al&&['hit','cold','wrap','charge'].includes(k)&&(!near()||Math.random()<0.35)){fxP({t:'bump',x0:u.x,y0:u.y,x1:al.x,y1:al.y},110);const d=Math.max(1,Math.round(v*(c.mult||1)*DIFF_DMG)-1);al.hp-=d;fxP({t:'txt',x:al.x,y:al.y,v:'−'+d,k:'hurt'},130);cbLog(`${E(T.n)} б’є: ${E(EN[al.t].n.toLowerCase())} −${d}.`);if(al.hp<=0)kill(al);u.acted=1;if(u.pin>0)u.pin--;u.step++;return}
   if(STANCE[k]){}
   else if(k==='charge'){const d0=dist(u.x,u.y,c.hx,c.hy);if(!near())moveUnit(c,u,'melee');if(u.hp<=0)return;if(near()){const far=d0>=2;if(far)cbLog(`${E(T.n)} кидається стрибком!`);strike(v*(far?1.3:1))}else cbLog(`${E(T.n)} не дістає до тебе.`)}
   else if(k==='hook'){const d0=dist(u.x,u.y,c.hx,c.hy);if(d0>1&&d0<=rg&&los(c,u.x,u.y,c.hx,c.hy)){fxP({t:'shot',x0:u.x,y0:u.y,x1:c.hx,y1:c.hy},150);const nx=u.x+sgn(c.hx-u.x),ny=u.y+sgn(c.hy-u.y);
