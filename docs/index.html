@@ -3072,7 +3072,7 @@ heart:{n:'Серце Мли',x:340,y:12,lx:'l',sea:2,d:'Острів, якого
 ]},
 };
 
-const TABS=[['home','Вогнище'],['shore','Берег'],['tower','Маяк'],['work','Майстерня'],['kitchen','Кухня'],['study','Кабінет'],['hero','Герой'],['map','Мапа'],['trade','Торг'],['folk','Громади'],['chron','Літопис'],['journal','Журнал']];
+const TABS=[['home','Вогнище'],['shore','Берег'],['tower','Маяк'],['work','Майстерня'],['study','Кабінет'],['hero','Герой'],['map','Мапа'],['trade','Торг'],['folk','Громади'],['chron','Літопис'],['journal','Журнал']];
 
 /* ============ STATE ============ */
 function fresh(){return{
@@ -4044,7 +4044,7 @@ const DISH=[
 for(const D of DISH){const T=IT[D.id];IT[D.id+'_t']=Object.assign({},T,{n:'Смачна '+T.n.charAt(0).toLowerCase()+T.n.slice(1),v:Math.round(T.v*1.5),warm:T.warm?T.warm*2:0,full:T.full?T.full+1:0,tasty:1,
   d:`Смачна! Лікує ${Math.round(T.v*1.5)} здоров’я.${T.warm?` Тепло — ${T.warm*2} хвилин.`:''}${T.full?` Ситість — ${T.full+1} ${T.full+1<5?'бої':'боїв'}.`:''}`});ICO[D.id+'_t']=ICO[D.id];ILD[D.id]=T.d;ILD[D.id+'_t']=IT[D.id+'_t'].d}
 const rcpKnown=id=>!!(s.rcp||{})[id];
-function kitTick(){if(typeof MGH!=='undefined'&&!MGH.cook)MGH.cook=MGH_COOK;if(!s.f.tracks)return;if(!s.tabs.kitchen)unlock('kitchen');s.rcp=s.rcp||{};
+function kitTick(){if(typeof MGH!=='undefined'&&!MGH.cook)MGH.cook=MGH_COOK;if(!s.f.tracks)return;if(!s.tabs.kitchen){s.tabs.kitchen=1;s.ttNew=1;if(s.tabs.tower)s.newTab.tower=1;dlg({k:'world',title:'Відкрилося: Кухня',body:'<p>У нижній залі, біля вогнища, Зиновій поставив казан і стіл. Кухня — у вкладці «Маяк», поруч із розрізом маяка.</p>'})}s.rcp=s.rcp||{};
   for(const D of DISH)if(!s.rcp[D.id]&&D.learn()){s.rcp[D.id]=1;if(Object.keys(s.rcp).length>2)dlg({k:'find',title:'Новий рецепт',img:{t:'icon',id:D.id},body:`<p><b>${IT[D.id].n}.</b> ${D.who} показує, як: ${D.how.charAt(0).toLowerCase()+D.how.slice(1)}</p>`,gains:['Рецепт на кухні']})}}
 const dishOk=D=>rcpKnown(D.id)&&afford(D.c);
 function cookDone(id,q){const D=DISH.find(x=>x.id===id),n=q>=2?2:1,it=q>=3?id+'_t':id;giveI(it,n);s.c.cook=(s.c.cook||0)+1;
@@ -4066,7 +4066,7 @@ const MGH_COOK={help:()=>false,lab:['Варити звично','Доручит�
 function dishEffect(id){const T=IT[id];if(!T)return;s.h.buf=s.h.buf||{};if(T.warm)s.h.buf.warm=Date.now()+T.warm*60000;if(T.full)s.h.buf.full=(s.h.buf.full||0)+T.full}
 /* казан у нижній залі веде на кухню */
 function potHS(W,H){if(!s.tabs.kitchen||!s.b.hearth)return'';const[x,y,w,h]=twBox('hall');
-  return ob('cl:pot','tab','kitchen',obURL('pot3',pot3),x+4,y+h-20,W,H,'Кухня Зиновія','<b>Кухня Зиновія</b><br>Казан, стіл і книга рецептів.',{z:293})}
+  return ob('cl:pot','tt','kitchen',obURL('pot3',pot3),x+4,y+h-20,W,H,'Кухня Зиновія','<b>Кухня Зиновія</b><br>Казан, стіл і книга рецептів.',{z:293})}
 const pot3=HI(function(){const b=pbuf(16,14);prect(b,2,0,1,6,'D');prect(b,13,0,1,6,'D');prect(b,2,0,12,1,'D');hiRect(b,3,5,10,8,(i,j,x,y)=>((x-8)/5)**2+((y-8)/4.5)**2<=1?(y<6.3?'u':x<6.5?'F':'D'):'');prect(b,4,12,8,2,'J');pset(b,6,13,'I');pset(b,9,13,'I');return b});
 /* ---- сцена кухні ---- */
 const kitRoom3=HI(function(){const b=pbuf(RMW,RMH);roomBase(b,{win:[300,36,36,48],st:1});
@@ -4106,6 +4106,9 @@ function kitPopHTML(id){const head=(t)=>`<div class="bpop wide" role="dialog" ar
   if(id==='kt:zin')return head('Зиновій')+`<p class="m">${Q(['Казан не любить поспіху. Тріску — коли стихає, не раніше.','Голодний хранитель — поганий хранитель.','Ганна знає трави, Оксана — сіль. Питай людей, хранителю.','Смачне лікує краще. Це не я вигадав — це всі коки знають.'][Math.floor(Date.now()/60000)%4])}</p></div>`;
   return''}
 function rKitchen(){return`<section><h2>Кухня</h2><p class="m">Казан, стіл і книга рецептів — натискай на них у кухні. Біля казана страви виходять кращими.</p></section>`}
+/* підвкладки «Маяка»: розріз і кухня */
+function ttBar(){if(!s.tabs.kitchen)return'';const L=[['cut','Маяк','ember'],['kitchen','Кухня','soup']];if(s.tt!=='kitchen')s.tt='cut';
+  return`<div class="sub2" role="tablist">${L.map(x=>btn(`${pimg(icoURL(x[2]),18,18)}${x[1]}${x[0]==='kitchen'&&s.ttNew?'<span class="dot"></span>':''}`,'tt',x[0],{cls:s.tt===x[0]?'on':''})).join('')}</div>`}
 /* ============ ACTIONS ============ */
 function act0(a,i){
   if(a.indexOf('c_')===0){cAct(a,i);return}
@@ -4185,6 +4188,7 @@ function act0(a,i){
   case 'eatfull':eatFull();break;
   case 'cook':cook(i);break;
   case 'cookp':cook(i,'plain');break;
+  case 'tt':s.tt=i;if(i==='kitchen')s.ttNew=0;popB='';break;
   case 'eat':if(s.r.fish>=1&&s.h.hp<maxHP()){s.r.fish--;s.h.hp=Math.min(maxHP(),s.h.hp+8)}break;
   case 'eatp':if(s.r.prov>=1&&s.h.hp<maxHP()){s.r.prov--;s.h.hp=Math.min(maxHP(),s.h.hp+15)}break;
   case 'scan':{const nx=SCAN.find(x=>!s.disc[x]);if(nx&&s.tabs.map&&s.r.ember>=scanCost()){s.r.ember-=scanCost();s.scans++;reveal(nx);say(SCANMSG[nx]+' Місце з’явилося на мапі.','world')}break}
@@ -4719,7 +4723,7 @@ const inR=u0&&inReach(u0),cv=u0?cover(c,c.hx,c.hy,u0.x,u0.y):0;
   h=h.replace('<ul class="foes">',BAR+'<ul class="foes">');
   h+=`</div></div></section>`;
   return h}
-const TR={chron:rChron,folk:rFolk,talents:rTalents,home:rHome,shore:rShore,tower:rTower,work:rWork,kitchen:rKitchen,study:rStudy,hero:rHero,map:rMap,trade:rTrade,journal:rJournal};
+const TR={chron:rChron,folk:rFolk,talents:rTalents,home:rHome,shore:rShore,tower:()=>ttBar()+(s.tt==='kitchen'&&s.tabs.kitchen?rKitchen():rTower()),work:rWork,study:rStudy,hero:rHero,map:rMap,trade:rTrade,journal:rJournal};
 function render(){B={};bn=0;
   const tl=TABS.filter(t=>s.tabs[t[0]]);
   const dOpen=(s.dlg||[]).length>0&&!s.bellHold;if(!tabSeen)tabSeen=new Set(tl.map(t=>t[0]));
@@ -4736,8 +4740,8 @@ function render(){B={};bn=0;
   try{if(!texInit){texInit=1;const rs=document.documentElement.style;for(const k of['stone','sand','plank','board','paper','slate','ruled','roll']){const u=pxURL('tx:'+k,()=>texBuf(k));if(u)rs.setProperty('--tx-'+k,`url(${u})`)}}
     if(!texInit2){texInit2=1;const rs=document.documentElement.style;for(const k of['wood','drift','stone','paper','slate']){const u=pxURL('fr:'+k,()=>frameBuf(k));if(u)rs.setProperty('--fr-'+k,`url(${u})`)}}
     const th=s.cb?'th-home':['home','tower','work','kitchen','study','hero','folk','trade','chron','journal'].includes(s.tab)||s.tab==='map'?'th-home':s.tab==='shore'?'th-shore':'';document.body.classList.toggle('th-home',th==='th-home');document.body.classList.toggle('th-shore',th==='th-shore')}catch(e){}
-  hideTip();const mn=$('main');const vw0=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:''),same0=vw0===lastView&&!s.cb,xs=same0?xSnap(mn):null,as0=same0?aSnap(mn):null;let tlx=null;try{const q=same0&&mn.querySelector('.chr-tl');if(q)tlx=q.scrollLeft>=q.scrollWidth-q.clientWidth-4?-1:q.scrollLeft}catch(e){}patchStage(s.cb?'':s.tab==='home'?homeScene():s.tab==='shore'?shoreScene():s.tab==='tower'?towerScene():s.tab==='work'?workScene():s.tab==='kitchen'?kitchenScene():s.tab==='study'?studyScene():s.tab==='map'?(s.at?locScene():mapScene()):s.tab==='hero'?heroScene():s.tab==='folk'?folkScene():s.tab==='trade'?tradeScene():'');zoomRun();mn.innerHTML=h;if(tlx!==null){try{const q=mn.querySelector('.chr-tl');if(q)q.scrollLeft=tlx<0?q.scrollWidth:tlx}catch(e){}}glossify(mn);rDlg();if(xs)xFade(mn,xs,1);if(as0)aMark(mn,as0);
-  const view=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:'');const prevView=lastView;if(view!==lastView&&mn.classList&&!RM()){for(const e of[mn,$('stage')]){if(!e||!e.classList)continue;e.classList.remove('tin');void e.offsetWidth;e.classList.add('tin')}}lastView=view;
+  hideTip();const mn=$('main');const vw0=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:s.tab==='tower'?s.tt||'':''),same0=vw0===lastView&&!s.cb,xs=same0?xSnap(mn):null,as0=same0?aSnap(mn):null;let tlx=null;try{const q=same0&&mn.querySelector('.chr-tl');if(q)tlx=q.scrollLeft>=q.scrollWidth-q.clientWidth-4?-1:q.scrollLeft}catch(e){}patchStage(s.cb?'':s.tab==='home'?homeScene():s.tab==='shore'?shoreScene():s.tab==='tower'?(s.tt==='kitchen'&&s.tabs.kitchen?kitchenScene():towerScene()):s.tab==='work'?workScene():s.tab==='study'?studyScene():s.tab==='map'?(s.at?locScene():mapScene()):s.tab==='hero'?heroScene():s.tab==='folk'?folkScene():s.tab==='trade'?tradeScene():'');zoomRun();mn.innerHTML=h;if(tlx!==null){try{const q=mn.querySelector('.chr-tl');if(q)q.scrollLeft=tlx<0?q.scrollWidth:tlx}catch(e){}}glossify(mn);rDlg();if(xs)xFade(mn,xs,1);if(as0)aMark(mn,as0);
+  const view=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:s.tab==='tower'?s.tt||'':'');const prevView=lastView;if(view!==lastView&&mn.classList&&!RM()){for(const e of[mn,$('stage')]){if(!e||!e.classList)continue;e.classList.remove('tin');void e.offsetWidth;e.classList.add('tin')}}lastView=view;
   placePop();
   if(hlT){const tg=hlT;hlT=null;try{const el=document.getElementById(tg);if(el){el.scrollIntoView({block:'center',behavior:RM()?'auto':'smooth'});el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash')}}catch(e){}}
   if(!s.cb&&s.tab==='chron'&&view!==prevView){try{const tl=mn.querySelector('.chr-tl');if(tl)tl.scrollLeft=tl.scrollWidth}catch(e){}}

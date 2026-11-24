@@ -40,7 +40,7 @@ const DISH=[
 for(const D of DISH){const T=IT[D.id];IT[D.id+'_t']=Object.assign({},T,{n:'Смачна '+T.n.charAt(0).toLowerCase()+T.n.slice(1),v:Math.round(T.v*1.5),warm:T.warm?T.warm*2:0,full:T.full?T.full+1:0,tasty:1,
   d:`Смачна! Лікує ${Math.round(T.v*1.5)} здоров’я.${T.warm?` Тепло — ${T.warm*2} хвилин.`:''}${T.full?` Ситість — ${T.full+1} ${T.full+1<5?'бої':'боїв'}.`:''}`});ICO[D.id+'_t']=ICO[D.id];ILD[D.id]=T.d;ILD[D.id+'_t']=IT[D.id+'_t'].d}
 const rcpKnown=id=>!!(s.rcp||{})[id];
-function kitTick(){if(typeof MGH!=='undefined'&&!MGH.cook)MGH.cook=MGH_COOK;if(!s.f.tracks)return;if(!s.tabs.kitchen)unlock('kitchen');s.rcp=s.rcp||{};
+function kitTick(){if(typeof MGH!=='undefined'&&!MGH.cook)MGH.cook=MGH_COOK;if(!s.f.tracks)return;if(!s.tabs.kitchen){s.tabs.kitchen=1;s.ttNew=1;if(s.tabs.tower)s.newTab.tower=1;dlg({k:'world',title:'Відкрилося: Кухня',body:'<p>У нижній залі, біля вогнища, Зиновій поставив казан і стіл. Кухня — у вкладці «Маяк», поруч із розрізом маяка.</p>'})}s.rcp=s.rcp||{};
   for(const D of DISH)if(!s.rcp[D.id]&&D.learn()){s.rcp[D.id]=1;if(Object.keys(s.rcp).length>2)dlg({k:'find',title:'Новий рецепт',img:{t:'icon',id:D.id},body:`<p><b>${IT[D.id].n}.</b> ${D.who} показує, як: ${D.how.charAt(0).toLowerCase()+D.how.slice(1)}</p>`,gains:['Рецепт на кухні']})}}
 const dishOk=D=>rcpKnown(D.id)&&afford(D.c);
 function cookDone(id,q){const D=DISH.find(x=>x.id===id),n=q>=2?2:1,it=q>=3?id+'_t':id;giveI(it,n);s.c.cook=(s.c.cook||0)+1;
@@ -62,7 +62,7 @@ const MGH_COOK={help:()=>false,lab:['Варити звично','Доручит�
 function dishEffect(id){const T=IT[id];if(!T)return;s.h.buf=s.h.buf||{};if(T.warm)s.h.buf.warm=Date.now()+T.warm*60000;if(T.full)s.h.buf.full=(s.h.buf.full||0)+T.full}
 /* казан у нижній залі веде на кухню */
 function potHS(W,H){if(!s.tabs.kitchen||!s.b.hearth)return'';const[x,y,w,h]=twBox('hall');
-  return ob('cl:pot','tab','kitchen',obURL('pot3',pot3),x+4,y+h-20,W,H,'Кухня Зиновія','<b>Кухня Зиновія</b><br>Казан, стіл і книга рецептів.',{z:293})}
+  return ob('cl:pot','tt','kitchen',obURL('pot3',pot3),x+4,y+h-20,W,H,'Кухня Зиновія','<b>Кухня Зиновія</b><br>Казан, стіл і книга рецептів.',{z:293})}
 const pot3=HI(function(){const b=pbuf(16,14);prect(b,2,0,1,6,'D');prect(b,13,0,1,6,'D');prect(b,2,0,12,1,'D');hiRect(b,3,5,10,8,(i,j,x,y)=>((x-8)/5)**2+((y-8)/4.5)**2<=1?(y<6.3?'u':x<6.5?'F':'D'):'');prect(b,4,12,8,2,'J');pset(b,6,13,'I');pset(b,9,13,'I');return b});
 /* ---- сцена кухні ---- */
 const kitRoom3=HI(function(){const b=pbuf(RMW,RMH);roomBase(b,{win:[300,36,36,48],st:1});
@@ -102,3 +102,6 @@ function kitPopHTML(id){const head=(t)=>`<div class="bpop wide" role="dialog" ar
   if(id==='kt:zin')return head('Зиновій')+`<p class="m">${Q(['Казан не любить поспіху. Тріску — коли стихає, не раніше.','Голодний хранитель — поганий хранитель.','Ганна знає трави, Оксана — сіль. Питай людей, хранителю.','Смачне лікує краще. Це не я вигадав — це всі коки знають.'][Math.floor(Date.now()/60000)%4])}</p></div>`;
   return''}
 function rKitchen(){return`<section><h2>Кухня</h2><p class="m">Казан, стіл і книга рецептів — натискай на них у кухні. Біля казана страви виходять кращими.</p></section>`}
+/* підвкладки «Маяка»: розріз і кухня */
+function ttBar(){if(!s.tabs.kitchen)return'';const L=[['cut','Маяк','ember'],['kitchen','Кухня','soup']];if(s.tt!=='kitchen')s.tt='cut';
+  return`<div class="sub2" role="tablist">${L.map(x=>btn(`${pimg(icoURL(x[2]),18,18)}${x[1]}${x[0]==='kitchen'&&s.ttNew?'<span class="dot"></span>':''}`,'tt',x[0],{cls:s.tt===x[0]?'on':''})).join('')}</div>`}
