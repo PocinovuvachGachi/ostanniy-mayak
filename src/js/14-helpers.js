@@ -37,7 +37,7 @@ const maxAP=()=>Math.max(2,5+Math.floor((s.h.a.dex-1)/3)+(s.rs.tactics?1:0)+(s.h
 const wAP=()=>s.eq.weapon?(IT[s.eq.weapon].wap||2):2;
 const reach=()=>s.eq.weapon?(IT[s.eq.weapon].reach||1)+(s.eq.weapon==='harpoon'&&wF('harpoon')>=2?1:0):1;
 const heavyAP=()=>wAP()+2-(s.h.ft.heavy?1:0);
-const need=l=>30*l+12*(l-1)*(l-1);
+const need=l=>40*l+20*(l-1)*(l-1);
 const ACAP=10;
 const wDmg=()=>s.eq.weapon?IT[s.eq.weapon].dmg+2*wF(s.eq.weapon)+((s.wfb||{})[s.eq.weapon]||0)+(fuL('work')>=2?1:0):1;
 const wmLv=id=>{const x=(s.wm||{})[id]||0;let l=0;for(let i=1;i<MXP.length;i++)if(x>=MXP[i])l=i;return l};
@@ -58,7 +58,7 @@ const rsCost=r=>Math.ceil(r.c*(s.h.ft.pupil?0.8:1)*(fuL('study')>=2?0.85:1));
 const rsReady=r=>(r.r||[]).every(q=>s.rs[q])&&(!r.kill||s.kills[r.kill]>0);
 function featOk(f){if(s.h.ft[f.id])return false;for(const k in f.req)if(st(k)<f.req[k])return false;return(f.pre||[]).every(q=>s.h.ft[q])}
 const critCh=()=>5+3*st('per')+eqv('crit')+(s.h.ft.eye?15:0);
-function xp(n){if(!n)return;if(s.h.ft.curious)n*=1.1;if(fuL('study')>=3)n*=1.1;if(!s.tabs.hero){s.h.xpb=(s.h.xpb||0)+n;return}s.h.xp+=n;while(s.h.xp>=need(s.h.lvl)){s.h.xp-=need(s.h.lvl);s.h.lvl++;if(s.h.lvl%5===0)mom('lvl',`Рівень ${s.h.lvl}`,'Хранитель став сильнішим і досвідченішим.',{t:'hero'});s.h.pts++;const sp=2+(s.h.a.int>=4?1:0);s.h.sp+=sp;s.h.fp++;s.h.hp=maxHP();say(`Новий рівень: ${s.h.lvl}.`,'lvl');
+function xp(n){if(!n)return;if(s.h.ft.curious)n*=1.1;if(fuL('study')>=3)n*=1.1;if(!s.tabs.hero){s.h.xpb=(s.h.xpb||0)+n;return}s.h.xp+=n;while(s.h.xp>=need(s.h.lvl)){s.h.xp-=need(s.h.lvl);s.h.lvl++;if(s.h.lvl%5===0)mom('lvl',`Рівень ${s.h.lvl}`,'Хранитель став сильнішим і досвідченішим.',{t:'hero'});s.h.pts++;const sp=(s.h.lvl%2===0?2:1)+(s.h.a.int>=4?1:0);s.h.sp+=sp;s.h.fp++;s.h.hp=maxHP();say(`Новий рівень: ${s.h.lvl}.`,'lvl');
   const q=s.dlg||[],last=q[q.length-1],g=[s.nv.grow?`Вільних очок характеристик: ${s.h.pts}`:'',s.nv.grow?`Вільних очок умінь: ${s.h.sp}`:'',s.nv.tal?`Талантів до вибору: ${s.h.fp}`:'',s.nv.grow?`Стеля вмінь тепер ${skillCap()}`:'','Здоров’я відновлено повністю'].filter(Boolean);
   if(last&&last.lvup){last.title=`Новий рівень: ${s.h.lvl}`;last.gains=g}else dlg({k:'lvl',lvup:1,title:`Новий рівень: ${s.h.lvl}`,img:{t:'hero'},body:s.nv.grow?'<p>Ти став сильнішим. Розподіли очки у вкладці «Герой → Розвиток».</p>':'<p>Ти став сильнішим і витривалішим. Тіло пригадує, як воно колись рухалося.</p>',gains:g})}}
 

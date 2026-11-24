@@ -17,6 +17,10 @@
 | `14-helpers` | `say` (журнал і тости), `dlg` (черга діалогів), `unlock`, `pay`, `xp`, `flow`/`produce` (виробництво за секунду), `checks` (усі перевірки щотіку), `storyCheck` |
 | `20-combat` | Тактичний бій на сітці, вороги, набіги Мли: `thrOn`, `mlaAdd`, `away`, `raidCheck`, `thrDrop` |
 | `21`, `22` | Логіка локацій, головоломка з лінзами |
+| `23-tide-ford` | Приплив (`tideLv`, `tideLow`, цикл 15 хв, відплив 5 хв; `s.dbgTide` для тестів), калюжі (`poolPick`), брід `FORD` (частини на відпливі; готовий брід відкриває Мапу) |
+| `24-shore-fights` | Події етапу I на березі `SHF` (бої й прихід людей): `shfTick` спливає, `shfGo` починає, перемога — `win:'S:<id>'`; нові арени й бої (`poolcrab`, `gullrack`, `rats`, `drown1`); пацюки гуртом (`EN.rat.pack`) |
+| `25-collection` | Колекція хранителя: дивини `OD` із джерелами (`collFind`), набори `OSET`, полиця в нижній залі (`cl:shelf`) |
+| `26-stage1-extras` | Граблі; три камені з написами (`RUNE`) і сховок під вогнищем (`cl:cache`) |
 | `30-actions` | `act0(a,i)` — усі дії гравця великим `switch`; обгортка `act` додає Млу (`MLA_A`), звуки (`SFXA`) і `s.lastAct` |
 | `40-render` | `render()` перемальовує `#main`; `refresh()` кожні 250 мс оновлює лише прив'язки `V()`, `VH()`, `W()`, `data-ok`, `data-cd`; `rTop`, `rBell`, `rDlg`, `rToast`, усі вкладки `rHome`, `rShore`… |
 | `41-transitions` | Плавна зміна картинок (`xSnap`/`xFade`) |

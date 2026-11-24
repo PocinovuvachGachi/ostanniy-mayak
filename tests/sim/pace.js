@@ -26,7 +26,7 @@ function scan(){for(const t in s.tabs)mark('tab:'+t,'вкладка «'+(TABS.fi
   for(const k in s.inv)if(s.inv[k]&&IT[k])mark('it:'+k,'річ: '+IT[k].n,0);
   for(const k of RES)if(s.seen[k])mark('res:'+k,'ресурс: '+k,1);
   mark('lvl:'+s.h.lvl,'рівень героя '+s.h.lvl,0);
-  for(const k of ['rod','wreck','people','boat','schooner','won','siege1','ostap','chest','crypt','stones','fordSeen','fordDone','gullrack','rats','drown1','zinovii','horpyna'])if(s.f[k])mark('f:'+k,'подія: '+k,1)}
+  for(const k of ['rod','wreck','people','boat','schooner','won','siege1','ostap','chest','crypt','stones','fordSeen','fordDone','gullrack','rats','drown1','zinovii','horpyna','cache'])if(s.f[k])mark('f:'+k,'подія: '+k,1)}
 /* діалоги: читаємо й тиснемо першу кнопку */
 function dialogs(){let g=0;while((s.dlg||[]).length&&g++<30){const d=s.dlg[0];wait(P.read);
   if(d.bgsel){act('bg',Object.keys(BGS)[0]);continue}
@@ -83,6 +83,8 @@ function misc(){let d=0;if(s.floors.gallery&&s.tabs.map&&SCAN.some(x=>!s.disc[x]
   for(const f in s.req||{}){if(afford(s.req[f].give)){A('freq',f);d=1}}
   if(s.tabs.trade)for(const it of SHOP){if((it.show&&!it.show())||s.bought&&s.bought[it.id])continue;const p=price(it.p);if(IT[it.id]&&has(it.id))continue;if(s.r.coin>=p*1.5){A('buy',it.id);s.bought=s.bought||{};s.bought[it.id]=1;d=1}}
   if(s.shf&&(SHF[s.shf].npc||s.h.hp>=maxHP()*.7)){A('shfgo','',2);if(s.cb)fight();d=1}
+  for(const k in RUNE)if(!(s.runes||{})[k]&&RUNE[k].ok()){A('rune',k,3);d=1}
+  if(runesAll()&&!s.f.cache){A('cache','',5);d=1}
   if(s.flot){A('flot',1);d=1}if(s.bite){A('bigfish','',8);d=1}if(s.hot){A('smithhot','',8);d=1}
   if(s.lost&&s.f.won){A('beam',s.lost.sec,2);d=1}
   if(s.floors.lantern&&!s.f.won){wait(P.think);const ks=Object.keys(s.mirrors);for(let mask=0;mask<1<<ks.length&&!s.f.won;mask++){const want=ks.map((k,i)=>mask>>i&1?'/':'\\\\');ks.forEach((k,i)=>{if(s.mirrors[k]!==want[i])A('mirror',k,1)})}d=1}
