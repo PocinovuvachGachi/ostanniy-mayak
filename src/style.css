@@ -856,7 +856,7 @@ button.hs.zone:hover,button.hs.zone:focus-visible{background:transparent;border:
 .scn .hrttl{font-size:clamp(10px,2.4cqw,17px);font-style:italic;text-align:center}
 /* Громади й крамниця */
 .scn.vl .scene,.scn.tr .scene{aspect-ratio:432/240}
-.ob.fkb .fkface{position:absolute;left:24%;top:-30%;width:62%;image-rendering:pixelated;pointer-events:none;border:1px solid #3a2718;background:#16252e}
+.ob.fkb .fkface{position:absolute;left:13.6%;top:-26%;width:72.7%;image-rendering:pixelated;pointer-events:none;outline:2px solid #3a2718}
 .ob.fkb .mpl{position:absolute;left:50%;top:100%;transform:translateX(-50%);white-space:nowrap;font:italic 600 11px/1.1 var(--serif);color:#efe3c8;text-shadow:0 1px 0 #0b1418,0 0 3px #0b1418;pointer-events:none}
 .scn .trface{position:absolute;image-rendering:pixelated;z-index:40;pointer-events:none}
 .scn .trcoin{position:absolute;z-index:80;color:#fff0b0;font:700 13px var(--mono);display:flex;align-items:center;gap:4px;text-shadow:0 1px 0 #0b1418;pointer-events:none;line-height:1}
@@ -891,7 +891,7 @@ body.th-home #main section.jr h3,body.th-home #main section.jr h4,body.th-home #
 body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .foe{color:#8f2f2b}body.th-home #main section.jr .itm{color:#7a3f04}
 /* Сцена місця на мапі */
 .ob.lcp .mpl{position:absolute;left:50%;top:100%;transform:translateX(-50%);white-space:nowrap;font:italic 600 12px/1.1 var(--serif);color:#efe3c8;text-shadow:0 1px 0 #0b1418,0 0 3px #0b1418,0 0 6px #0b1418;pointer-events:none}
-.ob.lcp .lcface{position:absolute;left:10%;top:7.1%;width:80%;image-rendering:pixelated;pointer-events:none}
+.ob.lcp .lcface{position:absolute;left:5.56%;top:4.35%;width:88.9%;image-rendering:pixelated;pointer-events:none}
 .scn.lcd::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 12% 85%,transparent 0 12%,rgba(2,4,8,.92) 38%);pointer-events:none;z-index:900}
 .lcpf{display:flex;gap:10px;align-items:flex-start}.lcpf>div{min-width:0;flex:1}.lcpf img.face{flex:none;border:1px solid #3a2718;background:#16252e}
 @media (max-width:560px){.ob.lcp .mpl{font-size:10px}}

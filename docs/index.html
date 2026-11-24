@@ -870,7 +870,7 @@ button.hs.zone:hover,button.hs.zone:focus-visible{background:transparent;border:
 .scn .hrttl{font-size:clamp(10px,2.4cqw,17px);font-style:italic;text-align:center}
 /* Громади й крамниця */
 .scn.vl .scene,.scn.tr .scene{aspect-ratio:432/240}
-.ob.fkb .fkface{position:absolute;left:24%;top:-30%;width:62%;image-rendering:pixelated;pointer-events:none;border:1px solid #3a2718;background:#16252e}
+.ob.fkb .fkface{position:absolute;left:13.6%;top:-26%;width:72.7%;image-rendering:pixelated;pointer-events:none;outline:2px solid #3a2718}
 .ob.fkb .mpl{position:absolute;left:50%;top:100%;transform:translateX(-50%);white-space:nowrap;font:italic 600 11px/1.1 var(--serif);color:#efe3c8;text-shadow:0 1px 0 #0b1418,0 0 3px #0b1418;pointer-events:none}
 .scn .trface{position:absolute;image-rendering:pixelated;z-index:40;pointer-events:none}
 .scn .trcoin{position:absolute;z-index:80;color:#fff0b0;font:700 13px var(--mono);display:flex;align-items:center;gap:4px;text-shadow:0 1px 0 #0b1418;pointer-events:none;line-height:1}
@@ -905,7 +905,7 @@ body.th-home #main section.jr h3,body.th-home #main section.jr h4,body.th-home #
 body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .foe{color:#8f2f2b}body.th-home #main section.jr .itm{color:#7a3f04}
 /* Сцена місця на мапі */
 .ob.lcp .mpl{position:absolute;left:50%;top:100%;transform:translateX(-50%);white-space:nowrap;font:italic 600 12px/1.1 var(--serif);color:#efe3c8;text-shadow:0 1px 0 #0b1418,0 0 3px #0b1418,0 0 6px #0b1418;pointer-events:none}
-.ob.lcp .lcface{position:absolute;left:10%;top:7.1%;width:80%;image-rendering:pixelated;pointer-events:none}
+.ob.lcp .lcface{position:absolute;left:5.56%;top:4.35%;width:88.9%;image-rendering:pixelated;pointer-events:none}
 .scn.lcd::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 12% 85%,transparent 0 12%,rgba(2,4,8,.92) 38%);pointer-events:none;z-index:900}
 .lcpf{display:flex;gap:10px;align-items:flex-start}.lcpf>div{min-width:0;flex:1}.lcpf img.face{flex:none;border:1px solid #3a2718;background:#16252e}
 @media (max-width:560px){.ob.lcp .mpl{font-size:10px}}
@@ -1702,6 +1702,10 @@ const BANC={forge:[174,146],smoke:[232,154],kiln:[270,158],dummy:[150,186],winch
 const HOUSES=[[20,186],[46,164],[16,232],[60,218]];
 const BSMK3={forge:'chim',smoke:'chim',kiln:'top',steel:'chim',coalpit:'top',house:'chim',render:'top'};
 /* Люди біля вогнища: стоять чи сидять обличчям до вогню; бік до вогню підсвічений жаром */
+/* Пісок плямами: великі темніші й світліші латки, рідкі камінці — без дрібного «зерна» */
+function vnz(i,j,S,sd){const x=i/S,y=j/S,x0=Math.floor(x),y0=Math.floor(y),fx=x-x0,fy=y-y0,u=fx*fx*(3-2*fx),v=fy*fy*(3-2*fy),g=(a,c)=>hh2(a+sd,c);return g(x0,y0)*(1-u)*(1-v)+g(x0+1,y0)*u*(1-v)+g(x0,y0+1)*(1-u)*v+g(x0+1,y0+1)*u*v}
+function sandC(i,j,base){const p=hh2(i,j);if(p<.005)return'O';if(p<.01)return'L';const v=vnz(i,j*1.8,14,3)*.65+vnz(i,j*1.8,5,9)*.35;
+  return v<.27?(base==='O'?'N':base==='N'?'M':'L'):v>.76?(base==='M'?'N':'O'):base}
 function villager3(b,x,y,i,fire){const C=[['W','X'],['Q','R'],['s','Z'],['t','v'],['L','M'],['P','Q'],['V','W'],['Z','r']][i%8],sit=i%3===1,lit=fire&&i<5,hat=['D','i','c','x','j','D','c','o'][i%8];
   const top=sit?y-9:y-12;
   if(sit){prect(b,x-2,y-2,6,2,'W');prect(b,x-2,y-2,6,1,'X');prect(b,x-4,y-4,3,1,'V');pset(b,x-4,y-3,'x');pset(b,x-4,y-2,'x')}
@@ -1729,7 +1733,7 @@ function yardBg3(st){const W=YW,H=YH,b=pbuf(W,H);
   rampV(b,0,120,W,120,['T','S','R','Q','P']);const R2=rng(9);
   {const kk=b.k||1;for(let i=0;i<520;i++){const x=Math.floor(R2()*W*kk),y=Math.floor((122+R2()*116)*kk),l=Math.round((2+R2()*7)*kk*(0.6+0.4*(y/kk-120)/120));for(let q=0;q<l;q++)phx(b,x+q,y,y/kk<150?'U':'T')}}
   const land=[[0,240],[0,160],[30,148],[60,140],[110,134],[170,130],[230,130],[285,132],[318,137],[342,146],[356,158],[366,176],[374,200],[380,240]];
-  polyFill(b,land,(x,y)=>{const n=hh2(EXX,EXY);pset(b,x,y,n<.05?'O':n<.12||.16>bay(EXX,EXY)?'L':y<160?'N':'M')});
+  polyFill(b,land,(x,y)=>pset(b,x,y,sandC(EXX,EXY,y<160?'N':'M')));
   polyFill(b,[[21,240],[27,192],[45,177],[135,174],[156,192],[165,240]],(x,y)=>pset(b,x,y,(x+y*3)%11<2?'D':((x*7+y)%9<4?'E':'F')));stones(b,24,180,141,60,31);
   const R3=rng(12);for(let i=0;i<110;i++){const x=Math.floor(R3()*300)+6,y=150+Math.floor(R3()*80);const c=pget(b,x,y);if(c==='M'||c==='N'||c==='L'){pset(b,x,y,'r');pset(b,x+1,y-1,'Z');pset(b,x-1,y-1,'r');if(i%3===0)pset(b,x,y-2,'Z')}}
   for(let i=0;i<land.length-1;i++){const[a,c]=[land[i],land[i+1]];if(a[0]<300)continue;const n=Math.max(Math.abs(c[0]-a[0]),Math.abs(c[1]-a[1]));for(let k=0;k<=n;k++){const x=Math.round(a[0]+(c[0]-a[0])*k/n),y=Math.round(a[1]+(c[1]-a[1])*k/n);pset(b,x+1,y,'u');pset(b,x+2,y,'U');if(k%3===0)pset(b,x+3,y,'u');if(k%5===0)pset(b,x+5,y,'U')}}
@@ -1773,7 +1777,7 @@ function yardFull3(st){const b=yardBg3(st);if(!st.looked)return b;const L=st.b||
 function shoreBg3(st){const W=SW,H=SH,b=pbuf(W,H),ph=st.ph||'n';rampV(b,0,0,W,24,ph==='y'?['5','6','6','5']:ph==='d'?['o','3','4','5']:['C','1','2','4']);
   rampV(b,0,21,W,60,['T','S','R','Q','R']);const R=rng(41),kk=b.k||1;for(let i=0;i<420;i++){const x=Math.floor(R()*W*kk),y=Math.floor((24+R()*54)*kk),l=Math.round((2+R()*8)*kk*(0.5+0.5*(y/kk-24)/54)),c=y/kk<36?'U':(R()<.5?'T':'S');for(let q=0;q<l;q++)phx(b,x+q,y,c)}
   for(const[yy,c]of[[66,'u'],[72,'U'],[76,'u']]){for(let hx=0;hx<W*kk;hx++){const x=hx/kk,y=Math.round((yy+Math.sin(x/12+yy)*1.6)*kk);phx(b,hx,y,c);if(hx%5)phx(b,hx,y+1,c==='u'?'U':'T');if(hx%9===0)phx(b,hx,y-1,'U');if(c==='u'&&hh2(hx,yy)<.25)phx(b,hx,y+2,'U')}}
-  rampV(b,0,78,W,12,['M','L','M']);rampV(b,0,87,W,33,['N','N','O']);pnoise(b,0,87,W,33,'M',0.1,44);pnoise(b,0,87,W,33,'L',0.04,45);pnoise(b,0,78,W,12,'T',0.06,46);
+  rampV(b,0,78,W,12,['M','L','M']);hiRect(b,0,87,W,33,(i,j,x,y)=>sandC(i,j,y<100?'N':'O'));pnoise(b,0,78,W,12,'T',0.06,46);
   for(let i=0;i<24;i++){const R3=rng(60+i),x=Math.floor(R3()*W),y=90+Math.floor(R3()*28);pset(b,x,y,'r');pset(b,x+1,y,'Z');pset(b,x+2,y-1,'r');if(i%3===0){pset(b,x+4,y+1,'G');pset(b,x+5,y+1,'H')}}
   {const bh=Math.round(5*kk),bw=Math.round(8*kk);hiRect(b,0,0,33,93,(i,j,x)=>{const row=Math.floor(j/bh),off=row%2?Math.round(bw/2):0,bi=Math.floor((i+off)/bw);if(j%bh===bh-1||(i+off)%bw===0)return'D';const sh=x<5?'G':x>26?'E':'F',v=hh2(bi,row);return v<.12?(sh==='G'?'F':'E'):(j%bh===0&&sh!=='E')?'G':sh})}
   stones(b,0,90,45,30,71);
@@ -1855,177 +1859,138 @@ function anvilObj3(hot){const b=pbuf(18,14);prect(b,4,9,10,5,'W');prect(b,4,9,1,
 yardBg3=HI(yardBg3);towerObj3=HI(towerObj3);towerSil3=HI(towerSil3);hearthObj3=HI(hearthObj3);emberObj3=HI(emberObj3);flame3Strip=HI(flame3Strip);signObj3=HI(signObj3);fogBuf3=HI(fogBuf3);
 yardFull3=HI(yardFull3);shoreBg3=HI(shoreBg3);wreckObj3=HI(wreckObj3);rodObj3=HI(rodObj3);pierObj3=HI(pierObj3);shipObj3=HI(shipObj3);flotObj3=HI(flotObj3);log3Buf=HI(log3Buf);doorObj3=HI(doorObj3);
 for(const k in BLD3)BLD3[k]=HI(BLD3[k]);anvilObj3=HI(anvilObj3);
-/* ============ ПОРТРЕТИ 48×48 ============
-   Погруддя під лампою: тепле світло зліва-спереду, холодний місячний обрис справа, темне тло з відсвітом.
-   Голова, шия, одяг — об'ємні форми з освітленням і дизерингом (bay); волосся — пасмами;
-   кожен персонаж — набір рис (`FP`) і власні деталі (`draw`). Буфер k=1, без нічної градації. */
-Object.assign(PAL,{'!':'#f2c8a0','#':'#6e4434','$':'#5d5a78','&':'#4a2e24','(':'#2f2640',')':'#7d6a90','*':'#c7b99a','+':'#8a3a2c',':':'#8a573f',';':'#c38c69','<':'#5b3a2c','>':'#9a6a4e','=':'#3a2a24'});
-const PSZ=48;
-const pv=(v)=>Math.max(0,Math.min(1,v));
-let PSH=1.7;
-function prmp(b,x,y,R,v){const n=R.length-1,t=pv(v)*n,k=Math.min(n-1,Math.floor(t)),f=pv((t-k-.5)*PSH+.5);pset(b,x,y,f>bay(x,y)?R[Math.min(n,k+1)]:R[k])}
-const PLX=-.55,PLY=-.45,PLZ=.70;
-let PDIM=1;
-function plit(nx,ny){const q=nx*nx+ny*ny,nz=Math.sqrt(Math.max(0,1-q)),d=nx*PLX+ny*PLY+nz*PLZ;return pv((.05+1.05*d*d*Math.sign(d)+.1*d)*PDIM)}
-const PR={skin:['<','#',':','n',';','m','!'],tan:['=','&','<','#',':','>','n',';'],
+/* ============ ПОРТРЕТИ 32×32 у сітці сцен ============
+   Той самий піксель, що й у сценах (логічний піксель = 1,5 точки), пласкі тони з короткими дизер-швами,
+   темний контур і тло з дощок. Світло зліва-згори, як від лампи.
+   faceURL — для інтерфейсу (без нічної градації), faceSceneURL — для сцен (тоне в ночі разом зі сценою),
+   faceMiniURL — 16×16 для прапорів громад. Риси персонажів — `FP`. */
+Object.assign(PAL,{'!':'#f2c8a0','#':'#6e4434','$':'#5d5a78','&':'#4a2e24','(':'#2f2640',')':'#7d6a90','*':'#c7b99a','+':'#8a3a2c',':':'#8a573f',';':'#c38c69'});
+const PSZ=32;
+const pv=v=>Math.max(0,Math.min(1,v));
+/* пласкі смуги: дизер лише на вузькому шві між тонами */
+function prmp(b,x,y,R,v){const n=R.length-1,t=pv(v)*n,k=Math.min(n-1,Math.floor(t)),f=pv((t-k-.5)*16+.5);pset(b,x,y,f>bay(x&3,y&3)?R[Math.min(n,k+1)]:R[k])}
+function plit(nx,ny){const nz=Math.sqrt(Math.max(0,1-nx*nx-ny*ny));return pv(.2+.85*(-.6*nx-.45*ny+.66*nz))}
+const PR={skin:['#','n','m','!'],tan:['#',':','n',';'],
   white:['G','H','6','u'],grey:['8','9','a','H'],dark:['x','0','8','9'],brown:['V','c','d','e'],red:['t','v','w','j'],straw:['X','Y','e','b'],black:['x','0','1','8'],
-  navy:['x','P','Q','R','S'],leather:['V','W','X','Y'],wine:['V','t','i','v'],green:['x','s','Z','k'],wool:['x','D','E','F','G'],linen:['L','M','N','O','*'],
-  kred:['t','+','i','j'],kdark:['x','1','2','3'],ochre:['V','W','X','Y','e'],violet:['x','(','o',')'],hood:['x','A','D','E','F'],felt:['x','V','c','W']};
-function portrait2(o){const b=pbuf(PSZ,PSZ),cx=24+(o.dx||0),cy=o.cy||21,rx=o.rx||9.5,ry=o.ry||12,ey=cy+1,SK0=PR[o.skin||'skin'],age=o.age||0;
-  const G={b,cx,cy,rx,ry,ey,o};
-  /* тло: темрява з теплим відсвітом лампи зліва або холодом */
-  const BG=o.bg==='cold'?['x','A','P','Q']:['x','A','B','C'];
-  PSH=3.5;PDIM=o.dim||1;for(let y=0;y<PSZ;y++)for(let x=0;x<PSZ;x++){const d=Math.hypot(x-cx+3,(y-cy+2)*1.1),v=pv(.85-d/30)-Math.max(0,(y-32)/50);prmp(b,x,y,BG,v*.85)}PSH=1.7;
-  const fig=new Uint8Array(PSZ*PSZ),mark=(x,y)=>{fig[y*PSZ+x]=1};
+  navy:['P','Q','R','S'],leather:['V','W','X','Y'],wine:['V','t','i','v'],green:['s','Z','k','r'],wool:['D','E','F','G'],linen:['L','M','N','O'],
+  kred:['t','i','j','w'],kdark:['x','1','2','3'],ochre:['W','X','Y','e'],violet:['x','(','o',')'],hood:['x','A','D','E'],felt:['x','V','c','W']};
+function portrait3(o){const b=pbuf(PSZ,PSZ),cx=16,cy=o.cy||13.5,rx=o.rx||6.6,ry=o.ry||8,ey=Math.round(cy+.6),SK0=PR[o.skin||'skin'],age=o.age||0,DK=SK0[0],SD=SK0[1];
+  const fig=new Uint8Array(PSZ*PSZ),mk=(x,y)=>{if(x>=0&&y>=0&&x<PSZ&&y<PSZ)fig[y*PSZ+x]=1},put=(x,y,R,v)=>{prmp(b,x,y,R,v);mk(x,y)};
+  /* тло: дошки стіни, світліші ближче до лампи */
+  const BG=o.bg==='cold'?['x','A','B']:['x','V','W'];
+  for(let y=0;y<PSZ;y++)for(let x=0;x<PSZ;x++){const pl=x%5;pset(b,x,y,pl===4?BG[0]:pl===0&&x<14&&y<24?BG[2]:BG[1])}
   /* одяг */
-  const top=x=>{const d=Math.abs(x+.5-cx);return d<9?36.5:36.5+(d-9)*(d-9)/(o.slope||16)};
-  const CR=PR[o.coat||'wool'];
-  for(let y=30;y<PSZ;y++)for(let x=0;x<PSZ;x++)if(y>=top(x)){const nx=(x+.5-cx)/24;prmp(b,x,y,CR,plit(nx*.9,-.15)*(1-(y-36)/34)+.05);mark(x,y)}
-  if(o.shirt||o.cut){const SR=PR[o.shirt||'linen'];for(let y=36;y<PSZ;y++){const hw=o.cut==='v'?Math.max(0,4.5-(y-36)*.42):o.cut==='open'?3:0;for(let x=Math.floor(cx-hw);x<cx+hw;x++)prmp(b,x,y,SR,plit((x+.5-cx)/12,-.2)*.8)}
-    if(o.cut==='v'){pline(b,cx-5,36,cx,46,CR[0]);pline(b,cx+4,36,cx,46,CR[0]);pline(b,cx-6,36,cx-1,46,CR[CR.length-1])}}
-  if(o.collar==='emb'){/* вишита пазуха */for(let x=cx-5;x<cx+5;x++){pset(b,x,37,((x-cx)&1)?'i':'t');pset(b,x,38,((x-cx)&1)?'t':'i')}for(let y=38;y<46;y++){pset(b,cx-1,y,y&1?'i':'t');pset(b,cx+1,y,y&1?'t':'i');pset(b,cx,y,'L')}}
-  if(o.buttons)for(const[bx,by]of o.buttons){pset(b,cx+bx,by,'g');pset(b,cx+bx,by+1,'f')}
-  /* шия */
-  for(let y=cy+7;y<38;y++)for(let x=cx-4;x<cx+4;x++){const nx=(x+.5-cx)/4.6;prmp(b,x,y,SK0,plit(nx,.1)*(y<cy+ry+1?.45:.68));mark(x,y)}
-  /* вуха */
-  for(const sx of[-1,1])for(let y=ey-3;y<ey+3;y++)for(let x=-2;x<1;x++){const X=Math.round(cx+sx*(rx-.5)+sx*x*-1)+(sx<0?-1:0),t=(y-ey+.5)/3,u=(x+1)/1.6;if(t*t+u*u<=1.15){prmp(b,X,y,SK0,(sx<0?.62:.3)-(x===0?.1:0));mark(X,y)}}
-  /* голова: яйце, що звужується до підборіддя */
+  const top=x=>{const d=Math.abs(x+.5-cx);return d<6?24.5:24.5+(d-6)*(d-6)/(o.slope||10)},CR=PR[o.coat||'wool'];
+  for(let y=20;y<PSZ;y++)for(let x=0;x<PSZ;x++)if(y>=top(x))put(x,y,CR,plit((x+.5-cx)/16,-.2)-(y-25)*.025);
+  if(o.cut){const SR=PR[o.shirt||'linen'];for(let y=24;y<PSZ;y++){const hw=o.cut==='v'?Math.max(0,3-(y-24)*.45):2;for(let x=Math.floor(cx-hw);x<cx+hw;x++)put(x,y,SR,plit((x+.5-cx)/8,-.2)*.9)}
+    if(o.cut==='v'){pline(b,cx-4,24,cx-1,31,CR[0]);pline(b,cx+3,24,cx,31,CR[0])}}
+  if(o.collar==='emb'){for(let x=cx-3;x<cx+3;x++)pset(b,x,25,(x&1)?'i':'t');for(let y=26;y<31;y++){pset(b,cx-1,y,y&1?'i':'t');pset(b,cx,y,'L')}}
+  if(o.buttons)for(const[bx,by]of o.buttons)pset(b,cx+bx,by,'g');
+  /* шия, вуха, голова */
+  for(let y=Math.floor(cy+5);y<26;y++)for(let x=cx-3;x<cx+3;x++)put(x,y,SK0,y<cy+ry?.12:.4);
+  for(const sd of[-1,1])for(let y=ey-2;y<ey+2;y++){const X=sd<0?Math.round(cx-rx-.6):Math.round(cx+rx-.4);put(X,y,SK0,sd<0?.55:.2)}
   const rxe=y=>{const t=(y-cy)/ry;return t>0?rx*(1-(o.jaw||.3)*t*t):rx};
   const inH=(x,y)=>{const X=(x+.5-cx)/rxe(y+.5),Y=(y+.5-cy)/ry;return X*X+Y*Y<=1};
-  const shTop=o.shadeTop||-99;
-  for(let y=0;y<PSZ;y++)for(let x=0;x<PSZ;x++)if(inH(x,y)){const nx=(x+.5-cx)/rxe(y+.5),ny=(y+.5-cy)/ry;let v=plit(nx,ny)*.92+.08;if(y<shTop)v*=o.hood?.45:.7;
-    if(o.cheek&&Math.abs(Math.abs(x+.5-cx)-5)<1.6&&Math.abs(y-(ey+4))<1.5)v-=.12;prmp(b,x,y,SK0,v);mark(x,y)}
-  G.inH=inH;G.rxe=rxe;
-  /* риси обличчя */
-  const SD=SK0[1],DK=SK0[0];
-  const eye=(ex,side)=>{const st=o.eyes||'open';const iris=o.iris||'0';
-    if(st==='closed'){pline(b,ex,ey,ex+3,ey,DK);pset(b,ex+(side<0?0:3),ey+1,SD);return}
-    pline(b,ex,ey-1,ex+3,ey-1,DK);
-    if(st==='narrow'){pset(b,ex+1,ey,iris);pset(b,ex+2,ey,iris);pset(b,ex+(side<0?0:3),ey,SD);pset(b,ex+(side<0?3:0),ey,SD);return}
-    const W=side<0?'N':'b';pset(b,ex,ey,side<0?W:SD);pset(b,ex+3,ey,side<0?SD:W);pset(b,ex+1,ey,iris);pset(b,ex+2,ey,iris);pset(b,ex+1+(side<0?0:0),ey,iris);
-    if(st==='big'){pset(b,ex+1,ey+1,iris);pset(b,ex+2,ey+1,iris);pset(b,ex,ey+1,side<0?W:SD);pset(b,ex+3,ey+1,side<0?SD:W)}
-    if(side<0)pset(b,ex+1,ey,'y');else pset(b,ex+1,ey,'q');
-    pline(b,ex,ey+(st==='big'?2:1),ex+3,ey+(st==='big'?2:1),SD)};
-  eye(cx-6,-1);eye(cx+2,1);
-  /* брови */
+  for(let y=0;y<PSZ;y++)for(let x=0;x<PSZ;x++)if(inH(x,y)){let v=plit((x+.5-cx)/rxe(y+.5),(y+.5-cy)/ry);if(o.hood&&y<ey+1)v*=.55;put(x,y,SK0,v)}
+  /* обличчя */
+  const IR=o.iris||'0',eyes=o.eyes||'open';
+  for(const sd of[-1,1]){const ex=sd<0?cx-4:cx+2;
+    if(eyes==='closed'){pset(b,ex,ey,DK);pset(b,ex+1,ey,DK);continue}
+    if(eyes==='narrow'){pset(b,ex,ey,DK);pset(b,ex+1,ey,IR==='0'?DK:IR);continue}
+    pset(b,ex,ey,sd<0?'N':IR);pset(b,ex+1,ey,sd<0?IR:'M');if(eyes==='big'){pset(b,ex,ey+1,sd<0?SD:IR);pset(b,ex+1,ey+1,sd<0?IR:SD)}
+    pset(b,ex,ey-1,DK);pset(b,ex+1,ey-1,DK)}
   const BR=PR[o.brow||o.hair||'dark'],bt=o.browT||0;
-  for(const[x0,sd]of[[cx-7,-1],[cx+2,1]])for(let i=0;i<5;i++){const yy=ey-3+(bt?Math.round((sd<0?i:4-i)*bt/4):0);pset(b,x0+i,yy,BR[sd<0?2:1]);if(o.browThick)pset(b,x0+i,yy-1,BR[1])}
-  /* ніс */
-  const nl=o.nose||5;for(let y=ey+1;y<ey+nl;y++){pset(b,cx+1,y,SD)}pset(b,cx,ey+nl-1,SK0[3]);pset(b,cx-1,ey+nl,SD);pset(b,cx+2,ey+nl,DK);pset(b,cx+1,ey+nl,SD);
-  /* рот */
-  const my=ey+nl+3,mw=o.mw||2;const mo=o.mouth||'flat';
-  for(let x=cx-mw;x<=cx+mw;x++){const e=Math.abs(x-cx)===mw;pset(b,x,my+(mo==='smile'&&e?-1:mo==='frown'&&e?1:0),DK)}
-  pset(b,cx,my-1,SD);for(let x=cx-mw+1;x<cx+mw;x++)pset(b,x,my+1,x<cx?SK0[3]:SK0[2]);pset(b,cx-1,my+3,SD);pset(b,cx,my+3,SD);
-  /* вік */
-  if(age>=1){pline(b,cx-3,ey+nl+1,cx-mw-1,my+1,SD);pline(b,cx+4,ey+nl+1,cx+mw+1,my+1,DK)}
-  if(age>=2){pline(b,cx-6,ey+2,cx-3,ey+2,SD);pline(b,cx+3,ey+2,cx+6,ey+2,SD);if(!o.noForehead){pline(b,cx-4,cy-5,cx+3,cy-5,SD);pline(b,cx-3,cy-3,cx+2,cy-3,SD)}}
-  if(age>=3){pset(b,cx-8,ey,SD);pset(b,cx+8,ey,DK);pset(b,cx-8,ey+1,SD);pline(b,cx-6,ey+3,cx-4,ey+4,SD);pline(b,cx+4,ey+4,cx+6,ey+3,DK)}
-  if(o.freckles)for(const[fx,fy]of[[-5,3],[-3,4],[-6,4],[4,3],[3,4],[6,4],[-4,3]])pset(b,cx+fx,ey+fy,SD);
-  if(o.blush)for(const sx of[-5,5]){pset(b,cx+sx,ey+3,'w');pset(b,cx+sx+(sx<0?1:-1),ey+3,'w')}
+  for(const sd of[-1,1]){const ex=sd<0?cx-5:cx+2;for(let i=0;i<3;i++){const outer=(sd<0&&i===0)||(sd>0&&i===2),inner=(sd<0&&i===2)||(sd>0&&i===0);const yy=ey-2-(bt>0&&outer?1:0)+(bt<0&&outer?-1:0)+(bt<0&&inner?1:0)*0;pset(b,ex+i,yy,BR[sd<0?2:1])}}
+  pset(b,cx,ey+1,SD);pset(b,cx,ey+2,SD);pset(b,cx-1,ey+3,SK0[3]);pset(b,cx,ey+3,DK);
+  const my=ey+5,mo=o.mouth||'flat';
+  for(let x=cx-2;x<=cx+1;x++){const e=x===cx-2||x===cx+1;pset(b,x,my+(mo==='smile'&&e?-1:mo==='frown'&&e?1:0),DK)}pset(b,cx-1,my+1,SK0[2]);
+  if(age>=1){pset(b,cx-3,ey+3,SD);pset(b,cx+2,ey+3,DK)}
+  if(age>=2){pset(b,cx-4,ey+1,SD);pset(b,cx+3,ey+1,SD);if(!o.hat||o.hat==='brim')pline(b,cx-2,cy-4,cx+1,cy-4,SD)}
+  if(age>=3){pset(b,cx-3,ey+1,SD);pset(b,cx+2,ey+1,DK);pset(b,cx-4,my,SD)}
+  if(o.freckles)for(const[fx,fy]of[[-4,2],[-3,2],[2,2],[3,2]])pset(b,cx+fx,ey+fy,SD);
+  if(o.blush){pset(b,cx-4,ey+2,'w');pset(b,cx+3,ey+2,'w')}
   /* борода й вуса */
   const HR=PR[o.beardC||o.hair||'dark'];
-  const strand=(x,y,sd)=>hh2(Math.floor(x+y*.35*(x<cx?-1:1)),sd||7)-.5;
-  if(o.beard){const len=o.beard==='long'?12:o.beard==='full'?5:o.beard==='short'?2:2,y0=ey+nl-1,cyB=cy+ry-1;
-    for(let y=y0;y<PSZ;y++)for(let x=0;x<PSZ;x++){const dx=(x+.5-cx),inFace=inH(x,y)&&Math.abs(dx)>(y<my-1?rx-3.2:0);
-      const below=y>=cy+ry-3&&(dx*dx)/((rx-1.5)*(rx-1.5))+((y+.5-cyB)*(y+.5-cyB))/(len*len)<=1&&y>=cyB-2;
-      const lips=Math.abs(dx)<=mw+.5&&y>=my-1&&y<=my+1&&o.beard!=='long';
-      if((inFace||below)&&!lips&&y>=my-2-(Math.abs(dx)>rx-3.2?6:0)){
-        if(o.beard==='stubble'){if(hh2(x*7,y*3)<.38)pset(b,x,y,HR[0]);continue}
-        const nx=dx/(rx+1),ny=(y-cyB)/(len+6);prmp(b,x,y,HR,plit(nx,ny)+strand(x,y,3)*.45);mark(x,y)}}}
-  if(o.mous){const ys=ey+nl+1,P=o.mous==='cossack'?[[0,0],[1,0],[2,0],[3,1],[mw+2,1],[mw+3,2],[mw+3,3],[mw+3,4],[mw+3,5],[mw+3,6]]:[[0,0],[1,0],[2,0],[mw+1,1],[mw+2,1]];
-    for(const sd of[-1,1])P.forEach(([dx,dy],i)=>{const X=sd<0?cx-1-dx:cx+dx,v=sd<0?.8:.42;prmp(b,X,ys+dy,HR,v-i*.03);if(i<5||o.mous==='cossack')prmp(b,X+(i>3?sd*-1:0),ys+dy+(i>3?0:1),HR,v-.25)})}
+  if(o.beard){const len=o.beard==='long'?7:o.beard==='full'?3:1.5,cyB=cy+ry-1;
+    for(let y=ey+2;y<PSZ;y++)for(let x=0;x<PSZ;x++){const dx=x+.5-cx,side=inH(x,y)&&Math.abs(dx)>rx-2.2&&y>=ey+1,low=inH(x,y)&&y>=my-1,below=y>=cyB-1&&(dx*dx)/((rx-1)*(rx-1))+((y+.5-cyB)*(y+.5-cyB))/(len*len)<=1;
+      const lips=Math.abs(dx)<2.2&&y===my&&o.beard!=='long';if(!(side||low||below)||lips)continue;
+      if(o.beard==='stubble'){if(hh2(x*3,y*7)<.3)pset(b,x,y,HR[0]);continue}put(x,y,HR,plit(dx/(rx+1),(y-cyB)/(len+4))+(hh2(x,y)-.5)*.2)}}
+  if(o.mous){const P=o.mous==='cossack'?[[0,0],[1,0],[2,1],[3,1],[3,2],[3,3]]:[[0,0],[1,0],[2,1]];for(const sd of[-1,1])P.forEach(([dx,dy])=>{put(sd<0?cx-1-dx:cx+dx,my-1+dy,HR,sd<0?.75:.35)})}
   /* волосся */
-  const hs=o.hairS||'short',HC=PR[o.hair||'dark'];
-  const hl=x=>cy-(o.hairline||5.5)+2.5*Math.pow((x+.5-cx)/rx,2);
-  const outE=(x,y,ex2,ey2,dy)=>{const X=(x+.5-cx)/(rx+ex2),Y=(y+.5-cy+(dy||.6))/(ry+ey2);return X*X+Y*Y<=1};
-  const hairAt=(x,y)=>{const dx=Math.abs(x+.5-cx);
-    if(hs==='none')return false;
-    if(hs==='bald')return outE(x,y,.8,1)&&dx>rx-1.6&&y>cy-4&&y<ey-2+(dx>rx-.6?4:0)||(o.wisps&&outE(x,y,1.8,1.2)&&!inH(x,y)&&y<cy-1&&y>cy-8&&dx>rx-3&&hh2(x,y)<.55);
-    let h=outE(x,y,1.3,1.2)&&(y<hl(x)||(dx>rx-1.6&&y<ey-1));
-    if(hs==='messy'&&!h&&y<cy-ry+3&&outE(x,y,2.5,2.6,1.4)&&hh2(x,9)<.7)h=true;
-    if((hs==='long'||hs==='braid')&&!h){const w=hs==='long'?3.4-Math.max(0,y-ey-6)*.12+Math.sin(y*.7)*.6:1.2;h=dx>rx-1.8&&dx<rx+w&&y>=cy-2&&y<(hs==='long'?44:ey+5)&&!(inH(x,y)&&dx<rx-1)}
-    if(hs==='bun'&&!h)h=Math.hypot(x+.5-cx,y+.5-(cy-ry-1))<4.2;
+  const hs=o.hairS||'short',HC=PR[o.hair||'dark'],hl=x=>cy-(o.hairline||3.6)+1.8*Math.pow((x+.5-cx)/rx,2);
+  const out=(x,y,ex,ey2,dy)=>{const X=(x+.5-cx)/(rx+ex),Y=(y+.5-cy+(dy||.5))/(ry+ey2);return X*X+Y*Y<=1};
+  const hairAt=(x,y)=>{const dx=Math.abs(x+.5-cx);if(hs==='none')return false;
+    if(hs==='bald')return out(x,y,.7,.8)&&dx>rx-1.2&&y>cy-3&&y<ey+1||(o.wisps&&out(x,y,1.4,1)&&!inH(x,y)&&y<cy-1&&y>cy-6&&dx>rx-2.5&&hh2(x,y*3)<.5);
+    let h=out(x,y,1,1)&&(y<hl(x)||(dx>rx-1.1&&y<ey-1));
+    if(hs==='messy'&&!h&&y<cy-ry+2&&out(x,y,1.8,1.8,1)&&x%2===0)h=true;
+    if(hs==='long'&&!h)h=dx>rx-1.2&&dx<rx+2-Math.max(0,y-ey-4)*.1&&y>=cy-2&&y<29&&!(inH(x,y)&&dx<rx-.6);
+    if(hs==='braid'&&!h)h=dx>rx-1.2&&dx<rx+.8&&y>=cy-2&&y<ey+3&&!(inH(x,y)&&dx<rx-.6);
     return h};
-  for(let y=0;y<PSZ;y++)for(let x=0;x<PSZ;x++)if(hairAt(x,y)){const nx=(x+.5-cx)/(rx+2),ny=(y+.5-cy)/(ry+2);prmp(b,x,y,HC,plit(nx,ny)*.95+strand(x,y,5)*.5);mark(x,y)}
-  if(hs==='braid'){for(let i=0;i<7;i++){const bx=cx+rx-1+Math.round(i*.5),by=ey+3+i*2;for(let yy=0;yy<2;yy++)for(let xx=-1;xx<2;xx++){prmp(b,bx+xx,by+yy,HC,.55-xx*.2+(yy?-.15:.1));mark(bx+xx,by+yy)}}pset(b,cx+rx+2,ey+18,'i');pset(b,cx+rx+3,ey+18,'i')}
+  for(let y=0;y<PSZ;y++)for(let x=0;x<PSZ;x++)if(hairAt(x,y))put(x,y,HC,plit((x+.5-cx)/(rx+1.5),(y+.5-cy)/(ry+1.5))+((x+(y>>1))%3===0?-.18:0));
+  if(hs==='braid')for(let i=0;i<5;i++){const bx=Math.round(cx+rx)+(i>2?1:0),by=ey+3+i*2;put(bx,by,HC,.7);put(bx+1,by,HC,.3);put(bx,by+1,HC,.35)}
   /* головні убори */
-  const hat=o.hat;
-  if(hat){const HT=PR[o.hatC||'felt'],dot=o.hatDot;
-    const put=(x,y,v)=>{if(x<0||y<0||x>=PSZ||y>=PSZ)return;let c=null;if(dot&&((x*3+y*5)%11===0))c=dot;if(c)pset(b,x,y,c);else prmp(b,x,y,HT,v);mark(x,y)};
+  const hat=o.hat;if(hat){const HT=PR[o.hatC||'felt'],dot=o.hatDot,hp=(x,y,v)=>{if(dot&&(x*3+y*5)%9===0){pset(b,x,y,dot);mk(x,y)}else put(x,y,HT,v)};
     if(hat==='kerchief'||hat==='kerchiefB'){const chin=hat==='kerchief';
-      for(let y=0;y<PSZ;y++)for(let x=0;x<PSZ;x++){const dx=Math.abs(x+.5-cx);const inO=outE(x,y,2.2,1.8,1);
-        const cover=inO&&(y<cy-4+1.4*Math.pow((x+.5-cx)/rx,2)||(chin?dx>rx-2.4&&y<cy+ry-1:dx>rx-1.4&&y<ey-2));
-        const knot=chin&&Math.hypot(x+.5-cx,(y+.5-(cy+ry+1))*1.3)<2.6;
-        const tail=chin&&y>=cy+ry&&y<cy+ry+7&&Math.abs(x+.5-cx-(y-cy-ry)*.45-1)<1.6;
-        if(cover||knot||tail){const nx=(x+.5-cx)/(rx+3),ny=(y+.5-cy+1)/(ry+3);put(x,y,plit(nx,ny)+(knot?.15:0))}}
-      if(hat==='kerchief')pline(b,cx-rx+1,cy-4,cx+rx-1,cy-4,HT[0])}
-    if(hat==='cap'||hat==='knit'){const yb=cy-ry+(hat==='knit'?6:5.5);
-      for(let y=0;y<PSZ;y++)for(let x=0;x<PSZ;x++){const X=(x+.5-cx)/(rx+(hat==='knit'?1.6:2.4)),Y=(y+.5-yb)/(hat==='knit'?ry*.85:7.5);if(X*X+Y*Y<=1&&y<yb+1.5){const nx=X,ny=Y;let v=plit(nx*.9,ny*.8);if(hat==='knit'&&y>yb-2.5)v+=((x&1)?-.2:.1);put(x,y,v)}}
-      if(hat==='cap'){for(let x=Math.round(cx-rx-1);x<cx+rx+1;x++){pset(b,x,Math.round(yb)+1,HT[0]);pset(b,x,Math.round(yb)+2,'x');}for(let x=Math.round(cx-rx);x<cx+rx;x++)pset(b,x,Math.round(yb),HT[1]);
-        for(let x=Math.round(cx-rx+1);x<cx+rx-1;x++)pset(b,x,Math.round(yb)+3,SK0[0])}
-      else{const Y=Math.round(yb)+1;for(let x=Math.round(cx-rx-1);x<cx+rx+1;x++)pset(b,x,Y,SK0[0])}}
-    if(hat==='brim'){const yb=cy-ry+5;for(let y=0;y<PSZ;y++)for(let x=0;x<PSZ;x++){const dx=x+.5-cx;
-        if(Math.abs(dx)<rx-.5&&y>=yb-9&&y<yb){put(x,y,plit(dx/(rx+1),-.3)-(y<yb-7?.0:0)-.05)}
-        const B=(dx/(rx+7))**2+((y+.5-yb)/2.2)**2;if(B<=1)put(x,y,plit(dx/(rx+7),(y+.5-yb)/2.2*-.4)+.1)}
-      for(let x=Math.round(cx-rx+1);x<cx+rx-1;x++){pset(b,x,yb-2,o.band||'i');pset(b,x,yb-1,o.band==='g'?'f':'t')}
-      for(let x=Math.round(cx-rx+1);x<cx+rx-1;x++){pset(b,x,yb+2,SK0[0]);if(hh2(x,2)<.5)pset(b,x,yb+3,SK0[1])}}
-    if(hat==='captain'){const yb=cy-ry+5;for(let y=0;y<PSZ;y++)for(let x=0;x<PSZ;x++){const dx=x+.5-cx,ad=Math.abs(dx);
-        const crown=ad<rx-1&&y>=yb-7&&y<yb+1&&(y+.5-(yb-7))>(ad/rx)*2;const wing=ad<rx+7&&y<yb+2&&y>=yb-5+Math.round(ad*.32)-((ad>rx+3)?0:0)&&y>yb-6+(ad*ad)/40;
-        if(crown||wing)put(x,y,plit(dx/(rx+8),-.2)+(crown?.05:-.05))}
-      for(let x=Math.round(cx-rx-6);x<cx+rx+6;x++){const ad=Math.abs(x+.5-cx);const y=Math.round(yb-5+ad*.32+(ad*ad)/40)-1;if(ad<rx+6.5)pset(b,x,Math.max(y,yb-6),'g')}
-      pset(b,cx-2,yb-3,'i');pset(b,cx-1,yb-3,'j');pset(b,cx-2,yb-2,'t');pset(b,cx-1,yb-2,'i');
-      for(let x=Math.round(cx-rx+1);x<cx+rx-1;x++)pset(b,x,yb+2,SK0[0])}
-    if(hat==='hood'){for(let y=0;y<PSZ;y++)for(let x=0;x<PSZ;x++){const dx=x+.5-cx,ad=Math.abs(dx);const X=dx/(rx+4.5),Y=(y+.5-cy+1)/(ry+4.5);
-        const inO=X*X+Y*Y<=1||(y>cy&&ad<rx+5.5-(y-cy)*.05&&y<40);const face=inH(x,y)&&!(y<cy-ry+5)&&ad<rx-.6;const opening=Math.abs(dx/(rx-.5))**2+((y+.5-ey-2)/(ry-1.5))**2<=1&&y>cy-ry+4.5;
-        if(inO&&!opening&&!face){put(x,y,plit(X,Y)*.9)}else if(opening&&!inH(x,y))put(x,y,.05)}
-      for(let x=0;x<PSZ;x++)for(let y=0;y<PSZ;y++){const dx=x+.5-cx;if(Math.abs(dx/(rx-.5))**2+((y+.5-ey-2)/(ry-1.5))**2>1&&Math.abs(dx/(rx-.5))**2+((y+.5-ey-2)/(ry-1.5))**2<=1.18&&y>cy-ry+4&&y<cy+ry+2)pset(b,x,y,HT[0])}}}
-  /* власні деталі */
-  if(o.draw)o.draw(b,G);
-  /* холодний обрис справа (місяць у вікні) */
-  const RIM=o.bg==='cold'?'4':'3';const p=b.p.slice();
-  for(let y=4;y<PSZ;y++)for(let x=PSZ-2;x>cx+3;x--){if(fig[y*PSZ+x]&&!fig[y*PSZ+x+1]){p[y*PSZ+x]=RIM;break}}
-  b.p=p;PDIM=1;return b}
-/* Риси персонажів */
+      for(let y=0;y<PSZ;y++)for(let x=0;x<PSZ;x++){const dx=Math.abs(x+.5-cx),inO=out(x,y,1.5,1.3,.8);
+        const cov=inO&&(y<cy-3+Math.pow((x+.5-cx)/rx,2)||(chin?dx>rx-1.6&&y<cy+ry-1:dx>rx-1&&y<ey-1)),knot=chin&&Math.hypot(x+.5-cx,(y+.5-(cy+ry+.8))*1.3)<1.8;
+        if(cov||knot)hp(x,y,plit((x+.5-cx)/(rx+2),(y+.5-cy+1)/(ry+2))+(knot?.1:0))}
+      if(!chin)for(let i=0;i<3;i++)put(Math.round(cx+rx+1)+i%2,Math.round(cy-1)+i,HT,.3)}
+    if(hat==='cap'||hat==='knit'){const yb=cy-ry+(hat==='knit'?4.3:3.8);
+      for(let y=0;y<PSZ;y++)for(let x=0;x<PSZ;x++){const X=(x+.5-cx)/(rx+(hat==='knit'?1.1:1.6)),Y=(y+.5-yb)/(hat==='knit'?ry*.8:5);if(X*X+Y*Y<=1&&y<yb+1)hp(x,y,plit(X*.9,Y*.8)+(hat==='knit'&&y>yb-2&&x%2?-.25:0))}
+      if(hat==='cap'){const Y=Math.round(yb)+1;for(let x=Math.round(cx-rx-1);x<cx+rx+1;x++){pset(b,x,Y,HT[0]);mk(x,Y)}for(let x=Math.round(cx-rx+1);x<cx+rx-1;x++)pset(b,x,Y+1,DK)}}
+    if(hat==='brim'){const yb=cy-ry+3.5;for(let y=0;y<PSZ;y++)for(let x=0;x<PSZ;x++){const dx=x+.5-cx;if(Math.abs(dx)<rx-.5&&y>=yb-6&&y<yb)hp(x,y,plit(dx/(rx+1),-.3));if((dx/(rx+5))**2+((y+.5-yb)/1.6)**2<=1)hp(x,y,plit(dx/(rx+5),.2)+.1)}
+      for(let x=Math.round(cx-rx+1);x<cx+rx-1;x++){pset(b,x,Math.round(yb)-2,o.band||'i');pset(b,x,Math.round(yb)+2,DK)}}
+    if(hat==='captain'){const yb=cy-ry+3.5;for(let y=0;y<PSZ;y++)for(let x=0;x<PSZ;x++){const dx=x+.5-cx,ad=Math.abs(dx);const crown=ad<rx-.5&&y>=yb-5&&y<yb+1&&(y+.5-(yb-5))>(ad/rx)*1.5,wing=ad<rx+5&&y<yb+1.5&&y>yb-4+(ad*ad)/30;if(crown||wing)hp(x,y,plit(dx/(rx+6),-.2))}
+      for(let x=Math.round(cx-rx-4);x<cx+rx+4;x++){const ad=Math.abs(x+.5-cx),y=Math.round(yb-4+(ad*ad)/30);if(ad<rx+4.5)pset(b,x,y,'g')}pset(b,cx-1,Math.round(yb)-2,'i');for(let x=Math.round(cx-rx+1);x<cx+rx-1;x++)pset(b,x,Math.round(yb)+2,DK)}
+    if(hat==='hood'){for(let y=0;y<PSZ;y++)for(let x=0;x<PSZ;x++){const dx=x+.5-cx,ad=Math.abs(dx),X=dx/(rx+3),Y=(y+.5-cy+.8)/(ry+3);
+        const inO=X*X+Y*Y<=1||(y>cy&&ad<rx+3.6&&y<27);const open=(dx/(rx-.3))**2+((y+.5-ey-1.5)/(ry-1))**2<=1&&y>cy-ry+3;
+        if(inO&&!open)hp(x,y,plit(X,Y)*.9);else if(open&&!inH(x,y)){pset(b,x,y,'x');mk(x,y)}}}}
+  if(o.draw)o.draw(b,{cx,cy,rx,ry,ey,my,put,mk});
+  /* темний контур навколо постаті */
+  const p=b.p.slice(),k=b.k,PW=b.W,n=(xx,yy)=>xx>=0&&yy>=0&&xx<PSZ&&yy<PSZ&&fig[yy*PSZ+xx];
+  for(let y=0;y<PSZ;y++)for(let x=0;x<PSZ;x++){if(fig[y*PSZ+x])continue;if(n(x+1,y)||n(x-1,y)||n(x,y+1)||n(x,y-1)){for(let j=Math.round(y*k);j<Math.round((y+1)*k);j++)for(let i=Math.round(x*k);i<Math.round((x+1)*k);i++)p[j*PW+i]='x'}}
+  b.p=p;return b}
+/* Риси персонажів (координати — сітка 32×32) */
 const FP={
-  ostap:{age:3,hair:'white',hairS:'bald',beard:'long',mous:'cossack',beardC:'white',brow:'white',coat:'navy',cut:'v',shirt:'linen',buttons:[[-7,40],[6,40],[-7,44],[6,44]],eyes:'narrow',mouth:'flat',
-    draw(b,G){/* шрам від мотузки на скроні, сивина */pset(b,G.cx-8,G.cy-4,'6');pset(b,G.cx-7,G.cy-5,'6')}},
-  hanna:{age:2,hair:'brown',hairS:'short',hat:'kerchief',hatC:'kred',hatDot:'O',coat:'wine',shirt:'linen',cut:'open',collar:'emb',mouth:'smile',eyes:'open',iris:'c',
-    draw(b,G){/* пучок трав за хусткою */for(let i=0;i<5;i++){pset(b,G.cx+G.rx+1+(i>>1),G.cy-6-i,'k');pset(b,G.cx+G.rx+2+(i>>1),G.cy-7-i,'l')}pset(b,G.cx+G.rx+4,G.cy-11,'o');pset(b,G.cx+G.rx+3,G.cy-11,')')}},
-  myron:{age:2,hair:'grey',hairS:'short',hat:'knit',hatC:'navy',beard:'stubble',beardC:'grey',coat:'ochre',cut:'open',shirt:'wool',mouth:'frown',browT:-1,eyes:'narrow',skin:'tan',
-    draw(b,G){/* мотузок сітей через плече */for(let i=0;i<14;i++){const x=G.cx-14+i,y=37+Math.round(i*.75);pset(b,x,y,(i&1)?'b':'N');pset(b,x,y+1,'X')}for(let i=0;i<4;i++)pset(b,G.cx-15+i*3,40+i*2,'M')}},
-  levko:{age:2,hair:'dark',hairS:'bald',mous:'cossack',brow:'dark',browThick:1,coat:'linen',collar:'emb',rx:10.5,jaw:.22,cheek:1,mouth:'smile',eyes:'narrow',
-    draw(b,G){/* чуб-оселедець, що спадає на ліве вухо, і фартух корчмаря */const P=[[1,-13],[1,-12],[0,-11],[-1,-10],[-2,-9],[-3,-8],[-4,-7],[-5,-6],[-6,-5],[-7,-4],[-8,-3],[-9,-2],[-9,-1],[-9,0]];P.forEach(([dx,dy],i)=>{const X=G.cx+dx,Y=G.cy+dy;pset(b,X-1,Y,i<9?'a':'9');pset(b,X,Y,'9');pset(b,X+1,Y,'8');pset(b,X+2,Y,i<11?'0':'.');if(i<9)pset(b,X+1,Y+1,'#')});
-      for(let y=41;y<48;y++)for(let x=G.cx-9;x<G.cx+9;x++)prmp(b,x,y,PR.leather,plit((x-G.cx)/12,0)*.8);for(const sx of[-9,8])pline(b,G.cx+sx,37,G.cx+sx+(sx<0?2:-2),41,'W')}},
-  yarema:{age:2,hair:'brown',hairS:'short',hat:'brim',hatC:'felt',band:'g',mous:'thin',beard:'short',beardC:'brown',coat:'wine',cut:'v',shirt:'linen',buttons:[[-6,42],[-6,46]],mouth:'smile',eyes:'narrow',browT:1,
-    draw(b,G){/* золота сережка й монета в пальцях */pset(b,G.cx+G.rx,G.ey+3,'g');pset(b,G.cx+G.rx,G.ey+4,'f');
-      for(const[x,y]of[[33,43],[34,43],[35,43],[33,44],[35,44],[33,45],[34,45],[35,45]])pset(b,x,y,'g');pset(b,34,44,'f');pset(b,32,44,'m');pset(b,32,45,'n');pset(b,36,45,'n')}},
-  tymish:{age:0,hair:'straw',hairS:'messy',coat:'linen',collar:'emb',rx:9,ry:11,cy:22,eyes:'big',iris:'3',freckles:1,mouth:'smile',nose:4,mw:1,blush:1,
-    draw(b,G){/* камінець у руці */pset(b,30,45,'9');pset(b,31,45,'a');pset(b,30,46,'8');pset(b,31,46,'9');pset(b,29,46,'m');pset(b,32,46,'n')}},
-  olesya:{age:0,hair:'brown',hairS:'braid',coat:'green',shirt:'linen',cut:'open',collar:'emb',eyes:'big',iris:'k',mouth:'flat',nose:4,mw:1,rx:9,jaw:.38,
-    draw(b,G){/* вінок із сухих трав */for(let x=G.cx-G.rx;x<G.cx+G.rx;x++){const y=Math.round(G.cy-G.ry+4+Math.pow((x-G.cx)/G.rx,2)*2.5);pset(b,x,y,(x&1)?'l':'k');if(x%3===0)pset(b,x,y-1,x%2?'g':'o')}
-      for(let i=0;i<6;i++){pset(b,13+i,44-i,'l');if(i&1)pset(b,12+i,43-i,'k')}pset(b,18,38,'g')}},
-  ustyna:{age:1,hair:'dark',hairS:'short',hat:'kerchiefB',hatC:'kdark',hatDot:'5',coat:'leather',cut:'open',shirt:'linen',mouth:'frown',browT:-1,browThick:1,eyes:'narrow',skin:'tan',rx:10,jaw:.25,
-    draw(b,G){/* хвостики хустки, сажа на щоці, сокира на плечі */for(let i=0;i<5;i++){prmp(b,G.cx+G.rx+i*.6,G.cy-3+i,PR.kdark,.5-i*.06);prmp(b,G.cx+G.rx+1+i*.6,G.cy-2+i,PR.kdark,.25)}for(const[x,y]of[[-6,4],[-5,5],[-7,5],[5,6]])pset(b,G.cx+x,G.ey+y,'#');pline(b,36,47,42,33,'X');pline(b,37,47,43,33,'W');for(let y=29;y<35;y++){pset(b,41,y,'p');pset(b,42,y,'q');pset(b,43,y,'p')}pset(b,44,30,'H')}},
-  kindrat:{age:2,hair:'black',hairS:'none',beard:'full',beardC:'black',brow:'brown',coat:'leather',shirt:'wool',cut:'open',rx:10.5,jaw:.2,mouth:'flat',eyes:'narrow',skin:'tan',slope:12,
-    draw(b,G){/* сажа, лиск на лисині, сліди кайданів на шиї */for(const[x,y]of[[-5,-6],[3,-7],[-7,3],[6,2]])pset(b,G.cx+x,G.ey+y,'#');pset(b,G.cx-4,G.cy-8,'!');pset(b,G.cx-3,G.cy-9,'!');
-      for(let x=G.cx-4;x<G.cx+4;x++)pset(b,x,35,(x&1)?'9':'8');for(const sx of[-8,7])for(let y=37;y<48;y++)pset(b,G.cx+sx+(y>42?(sx<0?1:-1):0),y,'V')}},
-  severyn:{age:3,hair:'white',hairS:'bald',wisps:1,coat:'leather',shirt:'linen',cut:'open',rx:8.5,jaw:.42,cheek:1,mouth:'flat',eyes:'open',iris:'4',beard:'stubble',beardC:'white',
-    draw(b,G){/* окуляри склодува */const ey=G.ey;for(const ex of[G.cx-7,G.cx+1]){for(let i=0;i<6;i++){pset(b,ex+i,ey-2,'q');pset(b,ex+i,ey+2,'p')}pset(b,ex,ey-1,'q');pset(b,ex,ey,'q');pset(b,ex,ey+1,'p');pset(b,ex+5,ey-1,'p');pset(b,ex+5,ey,'p');pset(b,ex+5,ey+1,'p');pset(b,ex+1,ey-1,'U')}
-      pset(b,G.cx-1,ey-1,'q');pset(b,G.cx,ey-1,'q')}},
-  zakhar:{age:3,hair:'white',hairS:'short',hat:'cap',hatC:'wool',beard:'full',beardC:'white',brow:'grey',coat:'navy',cut:'v',shirt:'linen',mouth:'flat',eyes:'narrow',skin:'tan',
-    draw(b,G){/* олівець за вухом */pline(b,G.cx+G.rx-1,G.ey-6,G.cx+G.rx+3,G.ey-2,'e');pset(b,G.cx+G.rx+3,G.ey-2,'0');pset(b,G.cx+G.rx-1,G.ey-6,'g')}},
-  marta:{age:1,hair:'red',hairS:'long',hat:'captain',hatC:'black',coat:'navy',cut:'v',shirt:'linen',buttons:[[-7,41],[6,41],[-7,45],[6,45]],mouth:'smile',eyes:'open',iris:'3',browT:1,jaw:.34,
-    draw(b,G){/* золоті еполети по лінії плечей */for(const x0 of[6,34])for(let i=0;i<8;i++){const x=x0+i,d=Math.abs(x+.5-G.cx),y=Math.ceil(d<9?36.5:36.5+(d-9)*(d-9)/16);pset(b,x,y,'g');pset(b,x,y+1,i&1?'f':'g');if(i%2===0)pset(b,x,y+2,'f')}}},
-  panas:{age:2,hair:'brown',hairS:'short',hat:'cap',hatC:'linen',mous:'cossack',brow:'straw',coat:'linen',collar:'emb',rx:10.5,jaw:.2,cheek:1,mouth:'smile',eyes:'narrow',blush:1,
-    draw(b,G){/* борошно на бровах і кашкеті */for(const[x,y]of[[-6,-3],[-4,-3],[3,-3],[5,-3],[-2,-12],[4,-13],[0,-14]])pset(b,G.cx+x,G.ey+y,'u');for(let i=0;i<10;i++)pset(b,8+i*3,38+(i%3),'O')}},
-  motrya:{age:3,hair:'white',hairS:'short',hat:'kerchief',hatC:'kdark',hatDot:'i',coat:'violet',eyes:'closed',mouth:'smile',rx:9,jaw:.42,cheek:1,
-    draw(b,G){/* пасмо сивини з-під хустки */pset(b,G.cx-5,G.cy-3,'6');pset(b,G.cx-4,G.cy-3,'u');pset(b,G.cx-6,G.cy-2,'6')}},
-  luka:{age:2,hair:'dark',hairS:'short',hat:'cap',hatC:'navy',mous:'thin',beard:'short',beardC:'dark',coat:'navy',cut:'v',shirt:'linen',buttons:[[-6,41],[-6,45]],mouth:'frown',eyes:'narrow',browT:-1,
-    draw(b,G){/* якір на кашкеті */const y=G.cy-G.ry+3;pset(b,G.cx,y-1,'g');pset(b,G.cx,y,'g');pset(b,G.cx,y+1,'g');pset(b,G.cx-1,y+1,'f');pset(b,G.cx+1,y+1,'f');pset(b,G.cx-1,y-1,'g');pset(b,G.cx+1,y-1,'g')}},
-  gnat:{age:2,hair:'grey',hairS:'short',hat:'hood',hatC:'hood',hood:1,shadeTop:22,dim:.95,skin:'tan',beard:'stubble',beardC:'grey',coat:'hood',mouth:'flat',eyes:'narrow',iris:'5',browT:-2,bg:'cold',
-    draw(b,G){/* шрам через око */pline(b,G.cx+2,G.ey-5,G.cx+6,G.ey+4,'+');pline(b,G.cx+3,G.ey-5,G.cx+7,G.ey+4,'t')}},
+  ostap:{age:3,hair:'white',hairS:'bald',beard:'long',mous:'cossack',beardC:'white',brow:'white',coat:'navy',cut:'v',buttons:[[-5,27],[4,27],[-5,30],[4,30]],eyes:'narrow'},
+  hanna:{age:2,hair:'brown',hat:'kerchief',hatC:'kred',hatDot:'O',coat:'wine',cut:'open',collar:'emb',mouth:'smile',iris:'c',
+    draw(b,G){for(let i=0;i<4;i++)G.put(G.cx+8+(i>>1),Math.round(G.cy-4-i),PR.green,.6);G.put(G.cx+10,Math.round(G.cy-8),PR.violet,.9)}},
+  myron:{age:2,hair:'grey',hat:'knit',hatC:'navy',beard:'stubble',beardC:'grey',coat:'ochre',cut:'open',shirt:'wool',mouth:'frown',browT:-1,eyes:'narrow',skin:'tan',
+    draw(b,G){for(let i=0;i<10;i++)pset(b,G.cx-10+i,25+Math.round(i*.6),i&1?'b':'N')}},
+  levko:{age:2,hair:'dark',hairS:'bald',mous:'cossack',coat:'linen',collar:'emb',rx:7.2,jaw:.2,mouth:'smile',eyes:'narrow',
+    draw(b,G){const P=[[0,-8],[0,-7],[-1,-6],[-2,-5],[-3,-4],[-4,-3],[-5,-2],[-6,-1],[-6,0]];P.forEach(([dx,dy],i)=>{G.put(G.cx+dx,Math.round(G.cy+dy),PR.dark,i<3?.8:.5);G.put(G.cx+dx+1,Math.round(G.cy+dy),PR.dark,.2)});
+      for(let y=28;y<32;y++)for(let x=G.cx-6;x<G.cx+6;x++)G.put(x,y,PR.leather,plit((x-G.cx)/8,0)*.8)}},
+  yarema:{age:2,hair:'brown',hat:'brim',hatC:'felt',band:'g',mous:'thin',beard:'short',beardC:'brown',coat:'wine',cut:'v',buttons:[[-4,28],[-4,31]],mouth:'smile',eyes:'narrow',browT:1,
+    draw(b,G){pset(b,Math.round(G.cx+G.rx),G.ey+2,'g');for(const[x,y]of[[22,29],[23,29],[22,30],[23,30]])pset(b,x,y,'g');pset(b,21,30,'m')}},
+  tymish:{hair:'straw',hairS:'messy',coat:'linen',collar:'emb',rx:6.2,ry:7.6,cy:14,eyes:'big',iris:'3',freckles:1,mouth:'smile',blush:1},
+  olesya:{hair:'brown',hairS:'braid',coat:'green',cut:'open',collar:'emb',eyes:'big',iris:'k',rx:6.2,jaw:.36,
+    draw(b,G){for(let x=Math.round(G.cx-G.rx);x<G.cx+G.rx;x++){const y=Math.round(G.cy-G.ry+3+Math.pow((x+.5-G.cx)/G.rx,2)*2);pset(b,x,y,x%3===0?'g':(x&1)?'l':'k')}}},
+  ustyna:{age:1,hair:'dark',hat:'kerchiefB',hatC:'kdark',hatDot:'5',coat:'leather',cut:'open',mouth:'frown',browT:-1,eyes:'narrow',skin:'tan',rx:7,jaw:.24,
+    draw(b,G){pset(b,G.cx-4,G.ey+3,'&');pset(b,G.cx-3,G.ey+4,'&');pline(b,24,31,28,22,'X');for(let y=19;y<23;y++){G.put(27,y,PR.wool,.9);G.put(28,y,PR.wool,.5)}}},
+  kindrat:{age:2,hair:'black',hairS:'none',beard:'full',beardC:'black',brow:'brown',coat:'leather',cut:'open',shirt:'wool',rx:7.2,jaw:.18,eyes:'narrow',skin:'tan',slope:8,
+    draw(b,G){pset(b,G.cx-3,Math.round(G.cy-5),'n');pset(b,G.cx-2,Math.round(G.cy-6),'n');for(let x=G.cx-3;x<G.cx+3;x++)pset(b,x,23,(x&1)?'9':'8')}},
+  severyn:{age:3,hair:'white',hairS:'bald',wisps:1,coat:'leather',cut:'open',rx:6,jaw:.4,iris:'4',beard:'stubble',beardC:'white',
+    draw(b,G){for(const ex of[G.cx-5,G.cx+1]){pline(b,ex,G.ey-1,ex+3,G.ey-1,'H');pline(b,ex,G.ey+1,ex+3,G.ey+1,'G');pset(b,ex,G.ey,'H');pset(b,ex+3,G.ey,'G');pset(b,ex+1,G.ey-1,'U')}pset(b,G.cx-1,G.ey-1,'G')}},
+  zakhar:{age:3,hair:'white',hat:'cap',hatC:'wool',beard:'full',beardC:'white',brow:'grey',coat:'navy',cut:'v',eyes:'narrow',skin:'tan',
+    draw(b,G){pline(b,Math.round(G.cx+G.rx),G.ey-4,Math.round(G.cx+G.rx)+2,G.ey-2,'e')}},
+  marta:{age:1,hair:'red',hairS:'long',hat:'captain',hatC:'black',coat:'navy',cut:'v',buttons:[[-5,28],[4,28],[-5,31],[4,31]],mouth:'smile',iris:'3',browT:1,jaw:.34,
+    draw(b,G){for(const x0 of[4,23])for(let i=0;i<5;i++){const x=x0+i,d=Math.abs(x+.5-G.cx),y=Math.ceil(d<6?24.5:24.5+(d-6)*(d-6)/10);pset(b,x,y,'g');if(i&1)pset(b,x,y+1,'f')}}},
+  panas:{age:2,hair:'brown',hat:'cap',hatC:'linen',mous:'cossack',brow:'straw',coat:'linen',collar:'emb',rx:7.2,jaw:.2,mouth:'smile',eyes:'narrow',blush:1,
+    draw(b,G){for(const[x,y]of[[-4,-2],[3,-2],[-1,-9],[3,-10]])pset(b,G.cx+x,G.ey+y,'u')}},
+  motrya:{age:3,hair:'white',hat:'kerchief',hatC:'kdark',hatDot:'i',coat:'violet',eyes:'closed',mouth:'smile',rx:6.2,jaw:.4,
+    draw(b,G){pset(b,G.cx-3,Math.round(G.cy-2),'6');pset(b,G.cx-2,Math.round(G.cy-2),'u')}},
+  luka:{age:2,hair:'dark',hat:'cap',hatC:'navy',mous:'thin',beard:'short',beardC:'dark',coat:'navy',cut:'v',buttons:[[-4,28],[-4,31]],mouth:'frown',eyes:'narrow',browT:-1,
+    draw(b,G){const y=Math.round(G.cy-G.ry+2);pset(b,G.cx,y,'g');pset(b,G.cx-1,y+1,'f');pset(b,G.cx+1,y+1,'f')}},
+  gnat:{age:2,hair:'grey',hat:'hood',hatC:'hood',hood:1,beard:'stubble',beardC:'grey',coat:'hood',eyes:'narrow',iris:'5',browT:-1,bg:'cold',skin:'tan',
+    draw(b,G){pline(b,G.cx+1,G.ey-3,G.cx+4,G.ey+3,'+')}},
 };
-for(const id in FP)FACES[id]=()=>portrait2(FP[id]);
+const P3=HI(portrait3);
+function faceBuf(id,graded){const b=P3(FP[id]||FP.ostap);if(!graded)b.ng=1;return b}
+for(const id in FP)FACES[id]=()=>faceBuf(id,0);
+const faceSceneURL=id=>pxURL('fs3:'+id,()=>faceBuf(id,1));
+/* мініатюра 16×16: кожен піксель — найчастіший колір у квадраті 2×2 */
+const faceMiniURL=id=>pxURL('fm3:'+id,()=>{const f=faceBuf(id,1),o=PK;PK=SK;const b=pbuf(16,16);PK=o;for(let y=0;y<16;y++)for(let x=0;x<16;x++){const c={};for(const[dx,dy]of[[0,0],[1,0],[0,1],[1,1]]){const v=pget(f,2*x+dx,2*y+dy);c[v]=(c[v]||0)+1}
+    pset(b,x,y,Object.keys(c).sort((a,q)=>c[q]-c[a])[0])}return b});
 /* ============ TEXT HELPERS ============ */
 const P=t=>`<span class="npc">${t}</span>`;
 const I=t=>`<span class="itm">${t}</span>`;
@@ -4555,14 +4520,21 @@ function flPopHTML(id){const nm=FLN[id],built=floorBuilt(id),U2=FLU[id]||[],tr=f
    Човен або вказівник — «Повернутися до маяка». Повний перелік — у «Усе списком». */
 const LCW=432,LCH=240;
 const cn=(x,y,s,sd)=>hh2(Math.floor(x/s)+(sd||0),Math.floor(y/s));
+let LKCUR='';
 function lkSky(b,h){const ph=GR;rampV(b,0,0,LCW,h,ph==='y'?['4','5','5','6']:ph==='d'?['C','o','3','4']:['A','B','C','1']);
-  if(ph!=='y'){const R=rng(h*7+3);for(let i=0;i<140;i++){const x=Math.floor(R()*LCW*SK),y=Math.floor(R()*(h-12)*SK);phx(b,x,y,R()<.1?'y':R()<.5?'6':'5')}}}
+  if(ph!=='y'){const R=rng(h*7+3);for(let i=0;i<140;i++){const x=Math.floor(R()*LCW*SK),y=Math.floor(R()*(h-12)*SK);phx(b,x,y,R()<.1?'y':R()<.5?'6':'5')}}
+  const sd=LKCUR.length*7+h;lkMoon(b,60+(sd*37)%320,22+(sd%3)*6);lkClouds(b,h,sd)}
 function lkSea(b,y0,y1){rampV(b,0,y0,LCW,y1-y0,['T','S','R','Q','P']);const R=rng(y0*13+5),kk=b.k;
-  for(let i=0;i<260;i++){const x=Math.floor(R()*LCW*kk),yy=y0+1+R()*(y1-y0-1),y=Math.floor(yy*kk),l=Math.round((2+R()*8)*kk*(.4+.6*(yy-y0)/(y1-y0)));for(let q=0;q<l;q++)phx(b,x+q,y,yy<y0+10?'U':'T')}}
-function lkFar(b,y,seed){const R=rng(seed);for(let k=0;k<3;k++){const x=R()*LCW,w=50+R()*90,h=5+R()*9;polyFill(b,[[x-w/2,y],[x-w/4,y-h*.7],[x,y-h],[x+w/3,y-h*.6],[x+w/2,y]],(px,py)=>pset(b,px,py,'1'))}}
-const LKG={sand:(x,y)=>{const n=cn(x,y,3,1);return n<.12?'L':n<.62?'M':'N'},grass:(x,y)=>{const n=cn(x,y,2,2);return n<.1?'s':n<.6?'Z':'r'},
+  for(let i=0;i<260;i++){const x=Math.floor(R()*LCW*kk),yy=y0+1+R()*(y1-y0-1),y=Math.floor(yy*kk),l=Math.round((2+R()*8)*kk*(.4+.6*(yy-y0)/(y1-y0)));for(let q=0;q<l;q++)phx(b,x+q,y,yy<y0+10?'U':'T')}lkHorizon(b,y0)}
+/* даль: пасмо островів на обрії й рідний маяк — видно звідусіль */
+function lkHorizon(b,y0){const R=rng(LKCUR.length*31+y0);for(let k=0;k<4;k++){const x=R()*LCW,w=70+R()*110,h=7+R()*12;polyFill(b,[[x-w/2,y0+.5],[x-w/3,y0-h*.5],[x-w/8,y0-h],[x+w/6,y0-h*.8],[x+w/3,y0-h*.45],[x+w/2,y0+.5]],(px,py)=>pset(b,px,py,GR==='y'?(py<y0-h*.6?'5':'4'):(py<y0-h*.6?'B':'A')))}
+  const M=typeof MAPPT!=='undefined'?MAPPT:{},me=M[LKCUR],tw=M.tower;if(!me||!tw||LKCUR==='heart')return;const tx=Math.max(24,Math.min(LCW-24,216+(tw[0]-me[0])*2.6));
+  polyFill(b,[[tx-14,y0+.5],[tx-6,y0-4],[tx+7,y0-5],[tx+16,y0+.5]],(x,y)=>pset(b,x,y,GR==='y'?'4':'A'));prect(b,tx-1.5,y0-17,3,13,GR==='y'?'5':'B');prect(b,tx-2.5,y0-18,5,1.5,'A');prect(b,tx-1,y0-20,2,2,s.f.won?'I':'J');pset(b,tx-.5,y0-21.5,'A')}
+function lkTowerX(){const M=MAPPT,me=M[s.at],tw=M.tower,C=LKS[s.at];if(!me||!tw||!C||!C.sea||s.at==='heart')return null;return[Math.max(24,Math.min(LCW-24,216+(tw[0]-me[0])*2.6)),C.sea[0]-19]}
+function lkFar(b,y,seed){const R=rng(seed);for(let k=0;k<3;k++){const x=R()*LCW,w=50+R()*90,h=5+R()*9;polyFill(b,[[x-w/2,y],[x-w/4,y-h*.7],[x,y-h],[x+w/3,y-h*.6],[x+w/2,y]],(px,py)=>pset(b,px,py,GR==='y'?'4':'A'))}}
+const LKG={sand:(x,y)=>sandC(x,y,'M'),grass:(x,y)=>{const n=cn(x,y,2,2);return n<.1?'s':n<.6?'Z':'r'},
   rock:(x,y)=>{const n=cn(x,y,3,3),st=cn(x,y*2.4,7,4);return st<.18?'D':n<.35?'E':'F'},heath:(x,y)=>{const n=cn(x,y,2,5),st=cn(x,y*2.4,7,6);return n<.14?'o':n<.3?'s':st<.2?'D':'E'},
-  bog:(x,y)=>{const n=cn(x,y,3,7);return n<.12?'Z':n<.55?'s':'x'},mud:(x,y)=>{const n=cn(x,y,3,8);return n<.1?'L':n<.55?'W':'V'},white:(x,y)=>{const n=cn(x,y,3,9);return n<.1?'M':n<.55?'N':'O'},
+  bog:(x,y)=>{const n=cn(x,y,3,7);return n<.12?'Z':n<.55?'s':'x'},mud:(x,y)=>{const n=cn(x,y,3,8);return n<.1?'L':n<.55?'W':'V'},white:(x,y)=>sandC(x,y,'N'),
   cave:(x,y)=>{const n=cn(x,y,4,10);return n<.1?'D':n<.6?'x':'A'},plank:(x,y)=>woodC(x,y,['V','W','X','Y'],.55,2)};
 function lkGround(b,pts,kind,rim){const f=LKG[kind];polyFill(b,pts,(x,y)=>pset(b,x,y,f(EXX,EXY)));if(rim)for(let i=0;i<pts.length-1;i++){const[a,c]=[pts[i],pts[i+1]];if(a[1]>=LCH-1&&c[1]>=LCH-1)continue;if(Math.abs(a[0]-c[0])<1)continue;pline(b,a[0],a[1],c[0],c[1],rim)}}
 function lkRock(b,cx,yb,w,h,sd){polyFill(b,[[cx-w/2,yb],[cx-w/2+w*.1,yb-h*.6],[cx-w*.15,yb-h],[cx+w*.2,yb-h*.9],[cx+w/2,yb-h*.3],[cx+w/2,yb]],(x,y)=>{const u=(x-cx)/w*2,v=(yb-y)/h,l=-u*.6+v*.5+(cn(EXX,EXY,3,sd)-.5)*.4;pset(b,x,y,l>.45?'G':l>.05?'F':l>-.35?'E':'D')})}
@@ -4603,7 +4575,7 @@ const LKS={
       lkGround(b,[[0,240],[0,186],[30,182],[90,184],[160,188],[250,190],[270,196],[270,240]],'plank','Y');lkGround(b,[[250,198],[432,196],[432,206],[250,208]],'plank','Y');for(let x=256;x<432;x+=12){prect(b,x,206,2,34,'V')}},
     sp:{tavern:[56,182],hut:[140,184],shop:[220,186],pier:[300,196],harbor:[400,194],boy:[350,232]}},
   cliffs:{sea:[110,240],bg(b){lkSky(b,112);lkSea(b,110,240);lkFar(b,112,9);lkGround(b,[[0,240],[0,64],[40,56],[90,62],[140,82],[170,112],[176,140],[210,150],[240,140],[268,160],[300,176],[330,240]],'heath','H');
-      for(const[x,h]of[[206,22],[220,30],[234,20]]){prect(b,x,150-h,7,h,'F');prect(b,x,150-h,2,h,'G');prect(b,x+5,150-h,2,h,'D')}lkTowerS(b,410,118,6,16,{roof:4,win:[[0,4,1]]})},
+      for(const[x,h]of[[206,22],[220,30],[234,20]]){prect(b,x,150-h,7,h,'F');prect(b,x,150-h,2,h,'G');prect(b,x+5,150-h,2,h,'D')}},
     sp:{nests:[70,60],slope:[120,120],stones:[220,152],gorge:[290,178]}},
   bay:{sea:[100,200],bg(b){lkSky(b,100);const low=typeof lowTide==='function'&&lowTide();lkSea(b,96,240);lkFar(b,98,11);
       if(low)lkGround(b,[[0,240],[0,180],[80,170],[200,176],[330,170],[432,178],[432,240]],'mud','X');else lkGround(b,[[0,240],[0,206],[90,200],[200,212],[300,206],[432,214],[432,240]],'mud','X');
@@ -4629,7 +4601,7 @@ const LKS={
   bog:{bg(b){lkSky(b,108);lkFar(b,108,17);lkGround(b,[[0,240],[0,110],[432,108],[432,240]],'bog');
       for(const[x,y,w]of[[20,150,70],[140,200,90],[270,170,60],[60,220,50],[350,214,70]])polyFill(b,[[x,y],[x+w*.2,y-4],[x+w*.8,y-4],[x+w,y],[x+w*.8,y+4],[x+w*.2,y+4]],(px,py)=>pset(b,px,py,cn(EXX,EXY,2,15)<.08?'R':'P'));
       lkReeds(b,0,120,150,5);lkReeds(b,200,260,172,6);lkReeds(b,380,432,210,7);lkHut(b,310,150,44,18,14,{roof:['W','X','Y'],win:[6]});
-      for(let i=0;i<14;i++){const x=110+i*14,y=210-i*4;prect(b,x,y,9,2,'W');prect(b,x,y,9,1,'X')}ditherBlend(b,0,100,LCW,40,'5',.22)},
+      for(let i=0;i<14;i++){const x=110+i*14,y=210-i*4;prect(b,x,y,9,2,'W');prect(b,x,y,9,1,'X')}},
     sp:{edge:[60,208],path:[200,178],hut:[340,152]},lt:[[318,138]]},
   shoal:{sea:[96,160],bg(b){lkSky(b,98);lkSea(b,96,240);lkFar(b,98,19);lkGround(b,[[0,240],[0,170],[120,160],[240,166],[330,158],[432,170],[432,240]],'sand','N');
       for(let i=0;i<9;i++){const x=30+i*44,y=190+(i%3)*14;polyFill(b,[[x,y],[x+20,y-2],[x+26,y+2],[x+4,y+3]],(px,py)=>pset(b,px,py,'R'))}lkRock(b,330,168,60,26,4);lkRock(b,360,172,30,14,5);prect(b,316,160,10,6,'x')},
@@ -4658,10 +4630,10 @@ const LKS={
   heart:{sea:[96,240],bg(b){lkSky(b,100);lkSea(b,96,240);lkVortex(b,216,170);lkRock(b,60,210,70,40,6);lkRock(b,380,220,60,34,7)},
     sp:{core:[216,166]}},
 };
-function lkBg3(l){const b=pbuf(LCW,LCH);const C=LKS[l];if(C)C.bg(b);else{lkSky(b,100);lkSea(b,96,240)}return b}
+function lkBg3(l){LKCUR=l;const b=pbuf(LCW,LCH);const C=LKS[l];if(C)C.bg(b);else{lkSky(b,100);lkSea(b,96,240)}if(LKX[l])LKX[l](b);return b}
 function lkPin3(on){const b=pbuf(10,22);prect(b,4,6,2,16,'W');prect(b,4,6,1,16,'X');prect(b,2,5,6,1,'V');prect(b,6,5,1,3,'z');
   prect(b,1,8,6,7,'z');prect(b,2,9,4,5,on?'J':'B');if(on){prect(b,3,10,2,3,'I');pset(b,3,10,'y')}prect(b,1,7,6,1,'E');prect(b,2,15,4,1,'E');return b}
-function lkPlq3(){const b=pbuf(20,28);prect(b,9,18,2,10,'W');prect(b,9,18,1,10,'X');prect(b,0,0,20,20,'V');prect(b,1,1,18,18,'W');prect(b,0,0,20,1,'Y');prect(b,2,2,16,16,'x');return b}
+function lkPlq3(){const b=pbuf(36,46);prect(b,17,36,2,10,'W');prect(b,17,36,1,10,'X');prect(b,0,0,36,36,'V');prect(b,1,1,34,34,'W');prect(b,0,0,36,1,'Y');prect(b,0,35,36,1,'x');prect(b,2,2,32,32,'x');return b}
 function lkBoat3(sea){const b=pbuf(36,20);if(!sea){prect(b,16,4,3,16,'W');prect(b,16,4,1,16,'X');polyFill(b,[[2,2],[30,2],[35,7],[30,12],[2,12]],(x,y)=>pset(b,x,y,woodC(EXX,EXY,WD,.75,2)));prect(b,2,2,28,1,'Y');prect(b,6,6,18,1,'V');return b}
   polyFill(b,[[0,9],[36,9],[31,17],[5,17]],(x,y)=>{const t=(y-9)/8,band=Math.floor(t*3);if((t*3-band)<.18&&band)return pset(b,x,y,'V');pset(b,x,y,woodC(EXX,EXY,WD,.8-band*.2,band))});prect(b,0,9,36,1,'Y');
   pline(b,8,8,26,2,'X');pline(b,8,9,26,3,'W');pline(b,0,18,36,18,'U');pline(b,3,19,33,19,'T');return b}
@@ -4682,13 +4654,59 @@ function locScene(){const l=s.at,L=LOC[l],C=LKS[l]||{sp:{}},W=LCW,H=LCH,dark=(L.
   let h=`<span data-sk="bg" data-sig="bg" class="scbg">${VH(()=>pimg(pxURL('lc3:'+lcSig(l)+':'+GR,()=>lkBg3(l)),864,480,'scene',L.n))}</span>`;
   const sps=L.spots.filter(S=>!S.show||S.show()),lights=[];let auto=0;
   for(const S of sps){let p=C.sp[S.id];if(!p){p=[60+((auto++)*97)%320,200]}const[x,y]=p,nw=spotNew(l,S);
-    if(S.face){const sp=obURL('lcq3',lkPlq3);h+=ob('lc:'+S.id,'bpop','lc:'+S.id,sp,x-10,y-28,W,H,S.n,`<b>${S.n}</b>`,{cls:'lcp',pulse:nw,always:nw,inner:`<img class="lcface" src="${faceURL(S.face)}" alt=""><span class="mpl">${S.n}</span>`})}
+    if(S.face){const sp=obURL('lcq3',lkPlq3);h+=ob('lc:'+S.id,'bpop','lc:'+S.id,sp,x-18,y-46,W,H,S.n,`<b>${S.n}</b>`,{cls:'lcp',pulse:nw,always:nw,inner:`<img class="lcface" src="${faceSceneURL(S.face)}" alt=""><span class="mpl">${S.n}</span>`})}
     else{const on=!(S.dark&&!s.eq.light);h+=ob('lc:'+S.id,'bpop','lc:'+S.id,obURL('lcp3:'+(on?1:0),()=>lkPin3(on)),x-5,y-22,W,H,S.n,`<b>${S.n}</b>`,{cls:'lcp',pulse:nw,always:nw,inner:`<span class="mpl">${S.n}</span>`});if(on)lights.push({x,y:y-11,r:26,c:WARM,a:.55})}}
   h+=ob('lc:leave','leave','',obURL('lcb3:'+(L.sea?1:0),()=>lkBoat3(!!L.sea)),6,LCH-24,W,H,'Повернутися до маяка','<b>Назад</b><br>Повернутися до маяка.',{cls:'lcp',inner:'<span class="mpl">До маяка</span>'});
-  for(const[x,y]of C.lt||[])lights.push({x,y,r:34,c:FIRE,a:.6});
-  return`<div class="scn rm lc${dark?' lcd':''}" data-scn="lc:${l}" style="${scnD()}">${h}${fxCanvas('lc',W,H)}${lightLayers(W,H,{fire:[],win:lights})}</div>`}
+  const tx=lkTowerX();if(tx)lights.push({x:tx[0],y:tx[1],r:s.f.won?26:12,c:PALE,a:s.f.won?.7:.4});
+  const fires=(C.lt||[]).map(([x,y])=>({x,y,r:34,c:FIRE,a:.6}));
+  return`<div class="scn rm lc${dark?' lcd':''}" data-scn="lc:${l}" style="${scnD()}">${h}${fxCanvas('lc',W,H)}${lightLayers(W,H,{fire:fires,win:lights})}</div>`}
 function locPopHTML(id){const l=s.at,L=LOC[l];if(!L)return'';const S=L.spots.find(x=>x.id===id.slice(3));if(!S||(S.show&&!S.show()))return'';
   return`<div class="bpop wide" role="dialog" aria-label="${S.n}"><div class="bph"><b>${S.n}</b><button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div>${S.face?`<div class="lcpf">${pimg(faceURL(S.face),48,48,'face','')}<div>${spotBody(l,S,'rdp')}</div></div>`:spotBody(l,S,'rdp')}</div>`}
+/* ---- Деталі, що оживляють місця ---- */
+function lkMoon(b,x,y){if(GR==='y')return;hiRect(b,x-9,y-9,18,18,(i,j,px,py)=>{const d=Math.hypot(px-x,py-y);if(d<5.2)return(Math.hypot(px-x+1.6,py-y+1)<1.3||Math.hypot(px-x-1.8,py-y-1.5)<1)?'6':px-x>2.6?'6':'u';if(d<8&&(8-d)/12>bay(i,j))return'1'})}
+function lkClouds(b,h,sd){const R=rng(sd);for(let k=0;k<6;k++){const cy=10+R()*(h-30),cx=R()*LCW,w=70+R()*150,th=4+R()*6;hiRect(b,cx-w/2,cy-th,w,th*2,(i,j,x,y)=>{const u=(x-cx)/(w/2),v=(y-cy)/th,d=u*u+v*v*1.6+.25*Math.sin(x/9+k);if(d<1&&(1-d)*1.3>bay(i,j))return v<-.35?'2':v<.2?'1':'C'})}}
+function lkBarrel(b,x,yb){polyFill(b,[[x,yb-9],[x+7,yb-9],[x+7.5,yb-4.5],[x+7,yb],[x,yb],[x-.5,yb-4.5]],(px,py)=>pset(b,px,py,woodC(EXX,EXY,WD,.8-(px-x)/9,x)));prect(b,x,yb-7,7,1,'z');prect(b,x,yb-2.5,7,1,'z');prect(b,x+1,yb-9,5,1,'Y')}
+function lkNet(b,x0,x1,y0,h){prect(b,x0,y0-4,2,h+8,'V');prect(b,x1,y0-4,2,h+8,'V');for(let x=x0+2;x<x1;x++){const sag=Math.sin((x-x0)/(x1-x0)*3.14)*3;for(let y=y0+sag;y<y0+h+sag*.5;y++)if((Math.floor(x)+Math.floor(y))%3===0||(Math.floor(x)-Math.floor(y)+300)%3===0)pset(b,x,y,'M')}pline(b,x0,y0,x1,y0,'N');for(let x=x0+4;x<x1;x+=6)prect(b,x,y0+h-1,2,2,'X')}
+function lkSkiff(b,x,y){polyFill(b,[[x,y],[x+24,y],[x+21,y+5],[x+3,y+5]],(px,py)=>pset(b,px,py,woodC(EXX,EXY,WD,.75-(py-y)/10,x)));prect(b,x,y,24,1,'Y');pline(b,x+6,y-1,x+18,y-3,'X');pline(b,x-2,y+6,x+26,y+6,'U')}
+function lkPost(b,x,yb){prect(b,x,yb-22,2,22,'W');prect(b,x,yb-22,1,22,'X');prect(b,x-2,yb-24,6,1,'V');prect(b,x-1,yb-21,4,5,'z');prect(b,x,yb-20,2,3,'J');pset(b,x,yb-20,'I')}
+function lkDeadTree(b,x,yb,h){pline(b,x,yb,x+1,yb-h,'V');pline(b,x+1,yb,x+2,yb-h,'W');for(const[t,dx,dy]of[[.5,-7,-6],[.65,6,-5],[.8,-4,-5],[.9,5,-3]])pline(b,x+1,yb-h*t,x+1+dx,yb-h*t+dy,'V')}
+function lkBush(b,x,yb,w,R){polyFill(b,[[x,yb],[x+w*.15,yb-w*.35],[x+w*.5,yb-w*.45],[x+w*.85,yb-w*.3],[x+w,yb]],(px,py)=>pset(b,px,py,cn(EXX,EXY,2,x)<.25?R[0]:px<x+w*.45?R[2]:R[1]))}
+function lkGull(b,x,y){prect(b,x,y,3,2,'6');pset(b,x+3,y,'6');pset(b,x+3,y-1,'u');pset(b,x+4,y,'g');pset(b,x,y+2,'x');pset(b,x+2,y+2,'x')}
+function lkStalac(b,x0,x1,yTop,sd){const R=rng(sd);for(let x=x0;x<x1;x+=4+R()*8){const h=4+R()*14,w=2+R()*3;polyFill(b,[[x,yTop],[x+w,yTop],[x+w/2,yTop+h]],(px,py)=>pset(b,px,py,px<x+w/2?'E':'D'))}}
+function lkCart(b,x,yb){polyFill(b,[[x,yb-12],[x+22,yb-12],[x+20,yb-4],[x+2,yb-4]],(px,py)=>pset(b,px,py,woodC(EXX,EXY,WD,.6,3)));prect(b,x,yb-12,22,1,'Y');for(const wx of[x+5,x+17])hiRect(b,wx-3,yb-6,6,6,(i,j,px,py)=>{const d=Math.hypot(px-wx,py-yb+3);return d<2.8?(d<1?'H':d>2?'E':'D'):''});prect(b,x+3,yb-15,16,3,'D');prect(b,x+3,yb-15,16,1,'F')}
+function lkHay(b,x,yb){polyFill(b,[[x,yb],[x+4,yb-12],[x+10,yb-15],[x+16,yb-12],[x+20,yb]],(px,py)=>pset(b,px,py,cn(EXX,EXY,2,7)<.2?'X':px<x+9?'e':'Y'))}
+function lkFence(b,x0,x1,yb){for(let x=x0;x<x1;x+=9)prect(b,x,yb-9,2,9,'W');pline(b,x0,yb-7,x1,yb-7,'X');pline(b,x0,yb-3,x1,yb-3,'X')}
+function lkTent(b,x,yb,w){polyFill(b,[[x,yb],[x+w/2,yb-w*.6],[x+w,yb]],(px,py)=>pset(b,px,py,px<x+w/2?'M':'L'));prect(b,x+w/2-2,yb-7,4,7,'x');pline(b,x+w/2,yb-w*.6,x+w/2,yb-w*.6-4,'W')}
+function lkFlag(b,x,yb,c){prect(b,x,yb-30,1.5,30,'W');polyFill(b,[[x+1.5,yb-30],[x+14,yb-27],[x+1.5,yb-23]],(px,py)=>pset(b,px,py,c))}
+function lkLogs(b,x,yb,n){for(let i=0;i<n;i++){const r=Math.floor(i/4),c=i%4,lx=x+c*9+r*4,ly=yb-4-r*4;prect(b,lx,ly,9,4,'X');prect(b,lx,ly,9,1,'Y');hiRect(b,lx,ly,2,4,(a,q,px,py)=>'N');pset(b,lx+.5,ly+2,'M')}}
+function lkShells(b,x0,x1,yy,sd){const R=rng(sd);for(let i=0;i<14;i++){const x=x0+R()*(x1-x0),y=yy+R()*30;pset(b,x,y,R()<.5?'O':'u');if(R()<.4)pset(b,x+1,y,'N')}}
+function lkCandles(b,x,yb){for(let i=0;i<4;i++){prect(b,x+i*4,yb-3-(i%2)*2,2,3+(i%2)*2,'O');pset(b,x+i*4,yb-4-(i%2)*2,'I')}}
+function lkFore(b,side,kind){const R=side<0?[[0,240],[0,214],[18,206],[40,212],[58,226],[70,240]]:[[LCW,240],[LCW,208],[410,204],[388,214],[372,228],[364,240]];
+  polyFill(b,R,(x,y)=>pset(b,x,y,kind==='grass'?(cn(EXX,EXY,2,3)<.3?'Z':'s'):cn(EXX,EXY,3,5)<.2?'D':'x'));if(kind==='grass')for(let i=0;i<14;i++){const x=side<0?4+i*4:LCW-4-i*4;pline(b,x,240-4,x+(i%3-1)*2,212+(i*7)%14,'s')}}
+const LKX={
+  chaika:b=>{lkBarrel(b,90,192);lkBarrel(b,100,194);lkCrates(b,286,204,2);lkGull(b,214,126);lkGull(b,300,138);pline(b,60,180,140,150,'W');pline(b,61,181,141,151,'V');lkFore(b,1,'rock')},
+  village:b=>{lkNet(b,88,114,148,22);lkSkiff(b,284,188);lkSkiff(b,168,180);lkBarrel(b,12,188);lkBarrel(b,104,190);lkBarrel(b,178,194);lkPost(b,252,198);lkPost(b,110,186);
+    pline(b,82,150,120,146,'H');for(const[x,c]of[[90,'i'],[98,'N'],[106,'S']]){prect(b,x,149,5,7,c);prect(b,x,149,5,1,'O')}lkGull(b,224,128)},
+  cliffs:b=>{lkDeadTree(b,150,98,26);lkBush(b,40,64,16,['s','o',')']);lkBush(b,100,72,14,['s','o',')']);lkBush(b,250,148,14,['s','Z','o']);for(const[x,y]of[[60,52],[84,54],[30,58]])lkGull(b,x,y);for(let i=0;i<8;i++)prect(b,150+i*14,128+i*6,10,2,'F')},
+  bay:b=>{lkSkiff(b,280,176);lkGull(b,150,136);lkGull(b,318,136);for(const x of[60,120,350])prect(b,x,196,7,6,'z'),pline(b,x,196,x+7,202,'H');lkFore(b,-1,'rock')},
+  cave:b=>{lkStalac(b,90,360,46,3);lkStalac(b,130,330,52,4);lkBarrel(b,80,196);lkBarrel(b,89,198);lkBarrel(b,250,186);for(let i=0;i<3;i++){prect(b,214+i*5,184,3,6,'r');pset(b,215+i*5,182,'X')}pline(b,280,120,300,186,'X');lkFore(b,1,'rock')},
+  reef:b=>{lkGull(b,180,180);lkGull(b,274,178);polyFill(b,[[250,198],[262,192],[270,198]],(x,y)=>pset(b,x,y,'q'));for(let i=0;i<10;i++)pline(b,90+i*28,196+(i%3)*4,94+i*28,190+(i%3)*4,'Z')},
+  fort:b=>{lkTent(b,120,166,22);lkTent(b,168,166,18);lkFlag(b,300,140,'t');lkCrates(b,196,178,3);lkSkiff(b,20,206);lkBarrel(b,110,196)},
+  warehouse:b=>{lkNet(b,20,60,110,30);lkNet(b,372,412,104,34);lkCart(b,240,198);lkBarrel(b,320,196);lkBarrel(b,329,198);lkPost(b,160,150);lkFore(b,-1,'grass')},
+  bog:b=>{lkDeadTree(b,40,150,40);lkDeadTree(b,270,170,30);lkDeadTree(b,400,140,46);for(const[x,y]of[[150,202],[166,206],[300,174],[60,152]])prect(b,x,y,4,1.5,'r'),pset(b,x+1,y-1,'g');lkFore(b,1,'grass')},
+  shoal:b=>{lkShells(b,40,300,180,9);lkLogs(b,200,190,3);lkGull(b,120,170);lkGull(b,260,166);for(const[x,y]of[[90,200],[240,214]])prect(b,x,y,4,2,'v'),pset(b,x-1,y-1,'v'),pset(b,x+4,y-1,'v')},
+  spit:b=>{lkNet(b,280,312,140,18);lkSkiff(b,180,166);lkShells(b,60,300,190,10);lkBarrel(b,372,162)},
+  mine:b=>{lkStalac(b,140,380,52,5);lkCart(b,240,214);for(const[x,y]of[[120,140],[300,128]]){prect(b,x,y,3,4,'z');prect(b,x,y+1,3,2,'J')}pline(b,170,190,180,170,'X');pline(b,180,170,186,172,'H');lkFore(b,-1,'rock')},
+  shipisle:b=>{lkLogs(b,40,200,7);lkBarrel(b,100,200);lkBarrel(b,108,201);pline(b,96,186,118,176,'X');pline(b,118,176,124,186,'X');lkSkiff(b,20,196);lkGull(b,232,140)},
+  monastery:b=>{polyFill(b,[[60,214],[80,208],[96,214],[80,218]],(x,y)=>pset(b,x,y,'q'));for(let i=0;i<6;i++){prect(b,120+i*40,206+(i%2)*10,10,2,'W')}lkGull(b,214,58)},
+  guardians:b=>{lkCandles(b,214,162);for(const x of[150,226,300])pset(b,x-2,158-30,'s'),pset(b,x+3,158-20,'Z');lkGull(b,226,78);lkGull(b,150,92)},
+  cape:b=>{lkFence(b,140,200,112);lkHay(b,40,92);lkHay(b,166,104);lkFlag(b,420,202,'j');lkSkiff(b,370,212);lkBush(b,250,140,14,['s','Z','r'])},
+  heart:b=>{for(const[x,y,a]of[[140,160,.3],[300,190,-.4],[230,130,.8]]){pline(b,x,y,x+18*Math.cos(a),y+18*Math.sin(a)*.4,'W');pline(b,x,y+1,x+18*Math.cos(a),y+1+18*Math.sin(a)*.4,'V')}},
+};
+/* рух: дим із димарів, хвилі, світлячки, краплі */
+const LKF={village:{sm:[[71,95]],wv:[[0,250,184],[250,432,214]]},chaika:{wv:[[0,150,184],[300,432,198]]},bay:{wv:[[0,432,()=>lowTide()?176:204]]},reef:{wv:[[60,400,192]],sp:[[80,196],[380,206]]},
+  fort:{sm:[[60,150],[180,150]],wv:[[0,110,212]]},spit:{sm:[[357,100]],wv:[[0,432,192]]},shipisle:{wv:[[0,140,200]]},monastery:{wv:[[0,432,190]]},guardians:{wv:[[0,80,210],[380,432,206]]},
+  cape:{sm:[[216,104]],wv:[[340,432,208]]},bog:{ff:1},cave:{dr:[[140,60],[230,48],[300,70]]},mine:{dr:[[180,56],[320,60]]},warehouse:{sm:[[200,64]]},heart:{},shoal:{wv:[[0,432,168]]},cliffs:{wv:[[300,432,200]]}};
 /* ============ МАПА: морська карта на пергаменті ============
    Стара піксельна мапа (mapBuf, 160×108) — маска суші й деталей; поверх неї малюємо карту чорнилом:
    пергамент, штрихування моря, обведені береги, обмілини, румби, троянда вітрів. Нерозвідане ховається під вугільним туманом.
@@ -4885,7 +4903,7 @@ function fxTick(ts){requestAnimationFrame(fxTick);if(typeof document==='undefine
 function fxParts(dt){const out=[];for(const p of FX.ps){p.life+=dt;if(p.life>p.max)continue;p.vy+=(p.gr||0)*dt;p.vx*=1-.8*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;const f=p.life/p.max;
   if(p.kind==='flash'){const R=14*(1-f*.4),a=.55*(1-f);for(let j=-R;j<=R;j++)for(let i=-R;i<=R;i++){const d=Math.hypot(i,j)/R;if(d<1&&(1-d)*a>bay((p.x+i)|0,(p.y+j)|0))fxP(p.x+i,p.y+j,fxCol(d<.35?'I':'J',.5))}out.push(p);continue}
   let c;if(p.kind==='spark'){c=f<.25?fxCol('I',1):f<.55?fxCol('J',.95):fxCol('K',.9*(1-f)+.1);if(Math.random()<.15)continue}
-  else if(p.kind==='splash')c=fxCol(f<.5?'u':'U',.9*(1-f)+.1);else if(p.kind==='chip')c=fxCol(f<.5?'Y':'X',1-f*.6);else c=fxCol('6',.45*(1-f));
+  else if(p.kind==='splash')c=fxCol(f<.5?'u':'U',.9*(1-f)+.1);else if(p.kind==='chip')c=fxCol(f<.5?'Y':'X',1-f*.6);else if(p.kind==='smoke'){const r=(1+f*3.5)*SK,al=.3*(1-f)*(f<.1?f*10:1);for(let j=-r;j<=r;j++)for(let i=-r;i<=r;i++){if(i*i+j*j<=r*r&&al*1.6>bay((p.x+i)&3,(p.y+j)&3))fxP(p.x+i,p.y+j,fxCol(f<.4?'H':'G',al))}out.push(p);continue}else c=fxCol('6',.45*(1-f));
   fxP(p.x,p.y,c);if(p.kind==='spark'&&f<.3)fxP(p.x,p.y+1,fxCol('K',.6));out.push(p)}FX.ps=out.length>600?out.slice(-600):out}
 const fxNight=()=>GR==='n'?1:GR==='d'?.6:.25;
 function fxEvery(id,a,b){const t=FX.t,e=FX.ev;if(e[id]===undefined){e[id]=t+fxR(a*.3,b*.6);return false}if(t>=e[id]){e[id]=t+fxR(a,b);return true}return false}
@@ -5000,7 +5018,15 @@ function fxLoc(dt){const k=SK,W=LCW,C=LKS[s.at]||{},dark=C.dark;
   if(!dark){fxStars(dt,80,W);fxShoot(dt,70,W);fxGulls(dt,20,70,W);if(C.sea){const[y0,y1]=C.sea;fxGlints(dt,GR==='n'?1:2,[0,y0+2,W,y1],(x,y)=>y>y0+1&&y<y1)}}
   for(const[x,y]of C.lt||[])if(Math.random()<dt*2.2)FX.ps.push({x:(x+fxR(-2,2))*k,y:y*k,vx:fxR(-6,6),vy:fxR(-26,-12),gr:-3,life:0,max:fxR(.6,1.3),kind:'spark'});
   if(s.at==='heart'){FX.vx=(FX.vx||0)+dt*.5;for(let i=0;i<40;i++){const t=i/40,an=t*6.283*3-FX.vx*(1.6-t),r=8+t*80;fxP((216+Math.cos(an)*r*1.8)*k,(170+Math.sin(an)*r*.55)*k,fxCol('u',.5*(1-t)))}}
-  if(s.at==='bog')fxWisps(dt,100,200,W)}
+  if(s.at==='bog')fxWisps(dt,100,200,W);
+  {const tp=lkTowerX();if(tp&&s.f.won&&GR!=='y'){const th=FX.t*.42,c=Math.cos(th),sn=Math.sin(th),L=8+140*Math.abs(c)*Math.max(.15,sn),sd=c>=0?1:-1,a0=.12+.45*Math.max(0,sn);
+    for(let i=1;i<L;i+=.5){const x=tp[0]+sd*i,y=tp[1]-i*.04,a=a0*(1-i/L);for(let w=-1;w<=1;w++)if(a*(w?.5:1)>bay((x*k)&3,((y+w*.5)*k)&3)*.6)fxP(x*k,(y+w*.5)*k,fxCol('h',a))}}}
+  const X=LKF[s.at]||{},t=FX.t;
+  for(const[x,y]of X.sm||[])if(Math.random()<dt*2.5)FX.ps.push({x:(x+fxR(-1,1))*k,y:y*k,vx:fxR(2,7),vy:fxR(-9,-5),gr:0,life:0,max:fxR(2.5,4),kind:'smoke'});
+  for(const[x0,x1,yy]of X.wv||[]){const y0=typeof yy==='function'?yy():yy;for(let hx=Math.round(x0*k);hx<x1*k;hx++){const x=hx/k,y=y0+Math.sin(x/7+t*1.2)*.7+Math.sin(x/3.1-t*.8)*.3,a=.35+.3*Math.sin(x/11-t*.9);if(hh2(hx,(t*2)|0)<.75)fxP(hx,Math.round(y*k),fxCol('u',a))}}
+  for(const[x,y]of X.sp||[])if(fxEvery('sp'+x,3,7))for(let i=0;i<10;i++)FX.ps.push({x:(x+fxR(-6,6))*k,y:y*k,vx:fxR(-25,25),vy:fxR(-60,-25),gr:200,life:0,max:fxR(.5,.9),kind:'splash'});
+  if(X.ff){FX.ffl=FX.ffl||Array.from({length:12},()=>({x:fxR(20,420),y:fxR(120,220),ph:fxR(0,6.3)}));for(const f of FX.ffl){f.x+=Math.sin(t*.7+f.ph)*dt*6;f.y+=Math.cos(t*.5+f.ph)*dt*4;const a=Math.max(0,Math.sin(t*1.6+f.ph));if(a>.2){fxP(f.x*k,f.y*k,fxCol('I',a));fxP(f.x*k+1,f.y*k,fxCol('J',a*.5))}}}
+  for(const[x,y]of X.dr||[]){const ph=((t+x*.013)%2.2)/2.2;if(ph<.7){fxP(x*k,(y+ph*60)*k,fxCol('U',.7))}else if(ph<.8){fxP(x*k-1,(y+42)*k,fxCol('U',.5));fxP(x*k+1,(y+42)*k,fxCol('U',.5))}}}
 /* ============ ВКЛАДКА «МАЯК»: розріз маяка як жива сцена ============
    Тло (небо, море, острів, кам'яна оболонка вежі, перекриття, балкон, ліхтарня) — одна картинка.
    Кожен поверх — окремий об'єкт-кімната: натиснув — картка поверху з відновленням і покращеннями.
@@ -5161,12 +5187,12 @@ for(const f of['villageBg3','facBanner3','facNote3','shopBg3','shopItem3','shopS
 function folkScene(){const W=VLW,H=VLH;let h=`<span data-sk="bg" data-sig="bg" class="scbg">${VH(()=>pimg(pxURL('vlg4:'+GR,villageBg3),864,480,'scene','Причал'))}</span>`;
   const fs=Object.keys(FAC).filter(f=>FAC[f].known());let qi=0;
   fs.forEach((f,i)=>{const F=FAC[f],v=fac(f),lift=Math.round((v+100)/200*8)/8,[x,y]=FACXY[i%FACXY.length],q=(s.req||{})[f],ci=Object.keys(FAC).indexOf(f)%FACC.length;
-    h+=ob('fk:f:'+f,'bpop','fk:f:'+f,obURL('fkb3:'+ci+':'+lift,()=>facBanner3(ci,lift)),x,y,W,H,F.n,`<b>${F.n}</b><br>${RANKS[rankI(v)][1]}, довіра ${v}.`,{cls:'fkb',inner:`<img class="fkface" src="${faceURL(F.face)}" alt=""><span class="mpl">${F.n}</span>`});
+    h+=ob('fk:f:'+f,'bpop','fk:f:'+f,obURL('fkb3:'+ci+':'+lift,()=>facBanner3(ci,lift)),x,y,W,H,F.n,`<b>${F.n}</b><br>${RANKS[rankI(v)][1]}, довіра ${v}.`,{cls:'fkb',inner:`<img class="fkface" src="${faceMiniURL(F.face)}" alt=""><span class="mpl">${F.n}</span>`});
     if(q){const nx=156+(qi%5)*25,ny=108+Math.floor(qi/5)*30;qi++;h+=ob('fk:q:'+f,'bpop','fk:q:'+f,obURL('fkn3:'+ci,()=>facNote3(ci)),nx,ny,W,H,'Прохання: '+q.n,`<b>${q.n}</b><br>Від громади «${F.n}».`,{pulse:prev9['fq:'+f+q.n]?0:1,always:prev9['fq:'+f+q.n]?0:1})}});
   const L={fire:[],win:[{x:216,y:140,r:120,e:.8,c:WARM,a:.55},{x:20,y:84,r:26,c:WARM,a:.6},{x:316,y:72,r:26,c:WARM,a:.6}]};
   return`<div class="scn rm vl" data-scn="vl" style="${scnD()}">${h}${fxCanvas('vl',W,H)}${lightLayers(W,H,L)}</div>`}
 function tradeScene(){const W=VLW,H=VLH;let h=`<span data-sk="bg" data-sig="bg" class="scbg">${VH(()=>pimg(pxURL('shp4:'+GR,shopBg3),864,480,'scene','Крамниця Яреми'))}</span>`;
-  h+=`<img class="trface" data-sk="face" data-sig="1" src="${faceURL('yarema')}" alt="Ярема" style="${PCT(190,96,48,48,W,H)}">`;
+  h+=`<img class="trface" data-sk="face" data-sig="1" src="${faceSceneURL('yarema')}" alt="Ярема" style="${PCT(198,104,32,32,W,H)}">`;
   const its=SHOP.filter(it=>!it.show||it.show());its.slice(0,18).forEach((it,i)=>{const ik=IT[it.id]?it.id:(it.res?Object.keys(it.res)[0]:it.book?'lore':'crate'),x=106+(i%6)*38,y=30+Math.floor(i/6)*38,fr=!prev9['t:'+it.id];
     h+=ob('tr:b:'+it.id,'bpop','tr:b:'+it.id,obURL('tri3:'+ik,()=>shopItem3(ik)),x,y,W,H,it.n,`<b>${it.n}</b><br>${R('coin',price(it.p))}`,{pulse:fr?1:0,always:fr?1:0})});
   h+=ob('tr:sell','bpop','tr:sell',obURL('trs3',shopScale3),326,114,W,H,'Ваги: продати','<b>Ваги</b><br>Продати Яремі зайве.',{});

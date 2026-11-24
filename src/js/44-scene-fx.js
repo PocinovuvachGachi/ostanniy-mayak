@@ -25,7 +25,7 @@ function fxTick(ts){requestAnimationFrame(fxTick);if(typeof document==='undefine
 function fxParts(dt){const out=[];for(const p of FX.ps){p.life+=dt;if(p.life>p.max)continue;p.vy+=(p.gr||0)*dt;p.vx*=1-.8*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;const f=p.life/p.max;
   if(p.kind==='flash'){const R=14*(1-f*.4),a=.55*(1-f);for(let j=-R;j<=R;j++)for(let i=-R;i<=R;i++){const d=Math.hypot(i,j)/R;if(d<1&&(1-d)*a>bay((p.x+i)|0,(p.y+j)|0))fxP(p.x+i,p.y+j,fxCol(d<.35?'I':'J',.5))}out.push(p);continue}
   let c;if(p.kind==='spark'){c=f<.25?fxCol('I',1):f<.55?fxCol('J',.95):fxCol('K',.9*(1-f)+.1);if(Math.random()<.15)continue}
-  else if(p.kind==='splash')c=fxCol(f<.5?'u':'U',.9*(1-f)+.1);else if(p.kind==='chip')c=fxCol(f<.5?'Y':'X',1-f*.6);else c=fxCol('6',.45*(1-f));
+  else if(p.kind==='splash')c=fxCol(f<.5?'u':'U',.9*(1-f)+.1);else if(p.kind==='chip')c=fxCol(f<.5?'Y':'X',1-f*.6);else if(p.kind==='smoke'){const r=(1+f*3.5)*SK,al=.3*(1-f)*(f<.1?f*10:1);for(let j=-r;j<=r;j++)for(let i=-r;i<=r;i++){if(i*i+j*j<=r*r&&al*1.6>bay((p.x+i)&3,(p.y+j)&3))fxP(p.x+i,p.y+j,fxCol(f<.4?'H':'G',al))}out.push(p);continue}else c=fxCol('6',.45*(1-f));
   fxP(p.x,p.y,c);if(p.kind==='spark'&&f<.3)fxP(p.x,p.y+1,fxCol('K',.6));out.push(p)}FX.ps=out.length>600?out.slice(-600):out}
 const fxNight=()=>GR==='n'?1:GR==='d'?.6:.25;
 function fxEvery(id,a,b){const t=FX.t,e=FX.ev;if(e[id]===undefined){e[id]=t+fxR(a*.3,b*.6);return false}if(t>=e[id]){e[id]=t+fxR(a,b);return true}return false}
@@ -140,4 +140,12 @@ function fxLoc(dt){const k=SK,W=LCW,C=LKS[s.at]||{},dark=C.dark;
   if(!dark){fxStars(dt,80,W);fxShoot(dt,70,W);fxGulls(dt,20,70,W);if(C.sea){const[y0,y1]=C.sea;fxGlints(dt,GR==='n'?1:2,[0,y0+2,W,y1],(x,y)=>y>y0+1&&y<y1)}}
   for(const[x,y]of C.lt||[])if(Math.random()<dt*2.2)FX.ps.push({x:(x+fxR(-2,2))*k,y:y*k,vx:fxR(-6,6),vy:fxR(-26,-12),gr:-3,life:0,max:fxR(.6,1.3),kind:'spark'});
   if(s.at==='heart'){FX.vx=(FX.vx||0)+dt*.5;for(let i=0;i<40;i++){const t=i/40,an=t*6.283*3-FX.vx*(1.6-t),r=8+t*80;fxP((216+Math.cos(an)*r*1.8)*k,(170+Math.sin(an)*r*.55)*k,fxCol('u',.5*(1-t)))}}
-  if(s.at==='bog')fxWisps(dt,100,200,W)}
+  if(s.at==='bog')fxWisps(dt,100,200,W);
+  {const tp=lkTowerX();if(tp&&s.f.won&&GR!=='y'){const th=FX.t*.42,c=Math.cos(th),sn=Math.sin(th),L=8+140*Math.abs(c)*Math.max(.15,sn),sd=c>=0?1:-1,a0=.12+.45*Math.max(0,sn);
+    for(let i=1;i<L;i+=.5){const x=tp[0]+sd*i,y=tp[1]-i*.04,a=a0*(1-i/L);for(let w=-1;w<=1;w++)if(a*(w?.5:1)>bay((x*k)&3,((y+w*.5)*k)&3)*.6)fxP(x*k,(y+w*.5)*k,fxCol('h',a))}}}
+  const X=LKF[s.at]||{},t=FX.t;
+  for(const[x,y]of X.sm||[])if(Math.random()<dt*2.5)FX.ps.push({x:(x+fxR(-1,1))*k,y:y*k,vx:fxR(2,7),vy:fxR(-9,-5),gr:0,life:0,max:fxR(2.5,4),kind:'smoke'});
+  for(const[x0,x1,yy]of X.wv||[]){const y0=typeof yy==='function'?yy():yy;for(let hx=Math.round(x0*k);hx<x1*k;hx++){const x=hx/k,y=y0+Math.sin(x/7+t*1.2)*.7+Math.sin(x/3.1-t*.8)*.3,a=.35+.3*Math.sin(x/11-t*.9);if(hh2(hx,(t*2)|0)<.75)fxP(hx,Math.round(y*k),fxCol('u',a))}}
+  for(const[x,y]of X.sp||[])if(fxEvery('sp'+x,3,7))for(let i=0;i<10;i++)FX.ps.push({x:(x+fxR(-6,6))*k,y:y*k,vx:fxR(-25,25),vy:fxR(-60,-25),gr:200,life:0,max:fxR(.5,.9),kind:'splash'});
+  if(X.ff){FX.ffl=FX.ffl||Array.from({length:12},()=>({x:fxR(20,420),y:fxR(120,220),ph:fxR(0,6.3)}));for(const f of FX.ffl){f.x+=Math.sin(t*.7+f.ph)*dt*6;f.y+=Math.cos(t*.5+f.ph)*dt*4;const a=Math.max(0,Math.sin(t*1.6+f.ph));if(a>.2){fxP(f.x*k,f.y*k,fxCol('I',a));fxP(f.x*k+1,f.y*k,fxCol('J',a*.5))}}}
+  for(const[x,y]of X.dr||[]){const ph=((t+x*.013)%2.2)/2.2;if(ph<.7){fxP(x*k,(y+ph*60)*k,fxCol('U',.7))}else if(ph<.8){fxP(x*k-1,(y+42)*k,fxCol('U',.5));fxP(x*k+1,(y+42)*k,fxCol('U',.5))}}}

@@ -58,6 +58,10 @@ const BANC={forge:[174,146],smoke:[232,154],kiln:[270,158],dummy:[150,186],winch
 const HOUSES=[[20,186],[46,164],[16,232],[60,218]];
 const BSMK3={forge:'chim',smoke:'chim',kiln:'top',steel:'chim',coalpit:'top',house:'chim',render:'top'};
 /* Люди біля вогнища: стоять чи сидять обличчям до вогню; бік до вогню підсвічений жаром */
+/* Пісок плямами: великі темніші й світліші латки, рідкі камінці — без дрібного «зерна» */
+function vnz(i,j,S,sd){const x=i/S,y=j/S,x0=Math.floor(x),y0=Math.floor(y),fx=x-x0,fy=y-y0,u=fx*fx*(3-2*fx),v=fy*fy*(3-2*fy),g=(a,c)=>hh2(a+sd,c);return g(x0,y0)*(1-u)*(1-v)+g(x0+1,y0)*u*(1-v)+g(x0,y0+1)*(1-u)*v+g(x0+1,y0+1)*u*v}
+function sandC(i,j,base){const p=hh2(i,j);if(p<.005)return'O';if(p<.01)return'L';const v=vnz(i,j*1.8,14,3)*.65+vnz(i,j*1.8,5,9)*.35;
+  return v<.27?(base==='O'?'N':base==='N'?'M':'L'):v>.76?(base==='M'?'N':'O'):base}
 function villager3(b,x,y,i,fire){const C=[['W','X'],['Q','R'],['s','Z'],['t','v'],['L','M'],['P','Q'],['V','W'],['Z','r']][i%8],sit=i%3===1,lit=fire&&i<5,hat=['D','i','c','x','j','D','c','o'][i%8];
   const top=sit?y-9:y-12;
   if(sit){prect(b,x-2,y-2,6,2,'W');prect(b,x-2,y-2,6,1,'X');prect(b,x-4,y-4,3,1,'V');pset(b,x-4,y-3,'x');pset(b,x-4,y-2,'x')}
@@ -85,7 +89,7 @@ function yardBg3(st){const W=YW,H=YH,b=pbuf(W,H);
   rampV(b,0,120,W,120,['T','S','R','Q','P']);const R2=rng(9);
   {const kk=b.k||1;for(let i=0;i<520;i++){const x=Math.floor(R2()*W*kk),y=Math.floor((122+R2()*116)*kk),l=Math.round((2+R2()*7)*kk*(0.6+0.4*(y/kk-120)/120));for(let q=0;q<l;q++)phx(b,x+q,y,y/kk<150?'U':'T')}}
   const land=[[0,240],[0,160],[30,148],[60,140],[110,134],[170,130],[230,130],[285,132],[318,137],[342,146],[356,158],[366,176],[374,200],[380,240]];
-  polyFill(b,land,(x,y)=>{const n=hh2(EXX,EXY);pset(b,x,y,n<.05?'O':n<.12||.16>bay(EXX,EXY)?'L':y<160?'N':'M')});
+  polyFill(b,land,(x,y)=>pset(b,x,y,sandC(EXX,EXY,y<160?'N':'M')));
   polyFill(b,[[21,240],[27,192],[45,177],[135,174],[156,192],[165,240]],(x,y)=>pset(b,x,y,(x+y*3)%11<2?'D':((x*7+y)%9<4?'E':'F')));stones(b,24,180,141,60,31);
   const R3=rng(12);for(let i=0;i<110;i++){const x=Math.floor(R3()*300)+6,y=150+Math.floor(R3()*80);const c=pget(b,x,y);if(c==='M'||c==='N'||c==='L'){pset(b,x,y,'r');pset(b,x+1,y-1,'Z');pset(b,x-1,y-1,'r');if(i%3===0)pset(b,x,y-2,'Z')}}
   for(let i=0;i<land.length-1;i++){const[a,c]=[land[i],land[i+1]];if(a[0]<300)continue;const n=Math.max(Math.abs(c[0]-a[0]),Math.abs(c[1]-a[1]));for(let k=0;k<=n;k++){const x=Math.round(a[0]+(c[0]-a[0])*k/n),y=Math.round(a[1]+(c[1]-a[1])*k/n);pset(b,x+1,y,'u');pset(b,x+2,y,'U');if(k%3===0)pset(b,x+3,y,'u');if(k%5===0)pset(b,x+5,y,'U')}}
@@ -129,7 +133,7 @@ function yardFull3(st){const b=yardBg3(st);if(!st.looked)return b;const L=st.b||
 function shoreBg3(st){const W=SW,H=SH,b=pbuf(W,H),ph=st.ph||'n';rampV(b,0,0,W,24,ph==='y'?['5','6','6','5']:ph==='d'?['o','3','4','5']:['C','1','2','4']);
   rampV(b,0,21,W,60,['T','S','R','Q','R']);const R=rng(41),kk=b.k||1;for(let i=0;i<420;i++){const x=Math.floor(R()*W*kk),y=Math.floor((24+R()*54)*kk),l=Math.round((2+R()*8)*kk*(0.5+0.5*(y/kk-24)/54)),c=y/kk<36?'U':(R()<.5?'T':'S');for(let q=0;q<l;q++)phx(b,x+q,y,c)}
   for(const[yy,c]of[[66,'u'],[72,'U'],[76,'u']]){for(let hx=0;hx<W*kk;hx++){const x=hx/kk,y=Math.round((yy+Math.sin(x/12+yy)*1.6)*kk);phx(b,hx,y,c);if(hx%5)phx(b,hx,y+1,c==='u'?'U':'T');if(hx%9===0)phx(b,hx,y-1,'U');if(c==='u'&&hh2(hx,yy)<.25)phx(b,hx,y+2,'U')}}
-  rampV(b,0,78,W,12,['M','L','M']);rampV(b,0,87,W,33,['N','N','O']);pnoise(b,0,87,W,33,'M',0.1,44);pnoise(b,0,87,W,33,'L',0.04,45);pnoise(b,0,78,W,12,'T',0.06,46);
+  rampV(b,0,78,W,12,['M','L','M']);hiRect(b,0,87,W,33,(i,j,x,y)=>sandC(i,j,y<100?'N':'O'));pnoise(b,0,78,W,12,'T',0.06,46);
   for(let i=0;i<24;i++){const R3=rng(60+i),x=Math.floor(R3()*W),y=90+Math.floor(R3()*28);pset(b,x,y,'r');pset(b,x+1,y,'Z');pset(b,x+2,y-1,'r');if(i%3===0){pset(b,x+4,y+1,'G');pset(b,x+5,y+1,'H')}}
   {const bh=Math.round(5*kk),bw=Math.round(8*kk);hiRect(b,0,0,33,93,(i,j,x)=>{const row=Math.floor(j/bh),off=row%2?Math.round(bw/2):0,bi=Math.floor((i+off)/bw);if(j%bh===bh-1||(i+off)%bw===0)return'D';const sh=x<5?'G':x>26?'E':'F',v=hh2(bi,row);return v<.12?(sh==='G'?'F':'E'):(j%bh===0&&sh!=='E')?'G':sh})}
   stones(b,0,90,45,30,71);

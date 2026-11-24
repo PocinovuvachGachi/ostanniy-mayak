@@ -32,12 +32,12 @@ for(const f of['villageBg3','facBanner3','facNote3','shopBg3','shopItem3','shopS
 function folkScene(){const W=VLW,H=VLH;let h=`<span data-sk="bg" data-sig="bg" class="scbg">${VH(()=>pimg(pxURL('vlg4:'+GR,villageBg3),864,480,'scene','Причал'))}</span>`;
   const fs=Object.keys(FAC).filter(f=>FAC[f].known());let qi=0;
   fs.forEach((f,i)=>{const F=FAC[f],v=fac(f),lift=Math.round((v+100)/200*8)/8,[x,y]=FACXY[i%FACXY.length],q=(s.req||{})[f],ci=Object.keys(FAC).indexOf(f)%FACC.length;
-    h+=ob('fk:f:'+f,'bpop','fk:f:'+f,obURL('fkb3:'+ci+':'+lift,()=>facBanner3(ci,lift)),x,y,W,H,F.n,`<b>${F.n}</b><br>${RANKS[rankI(v)][1]}, довіра ${v}.`,{cls:'fkb',inner:`<img class="fkface" src="${faceURL(F.face)}" alt=""><span class="mpl">${F.n}</span>`});
+    h+=ob('fk:f:'+f,'bpop','fk:f:'+f,obURL('fkb3:'+ci+':'+lift,()=>facBanner3(ci,lift)),x,y,W,H,F.n,`<b>${F.n}</b><br>${RANKS[rankI(v)][1]}, довіра ${v}.`,{cls:'fkb',inner:`<img class="fkface" src="${faceMiniURL(F.face)}" alt=""><span class="mpl">${F.n}</span>`});
     if(q){const nx=156+(qi%5)*25,ny=108+Math.floor(qi/5)*30;qi++;h+=ob('fk:q:'+f,'bpop','fk:q:'+f,obURL('fkn3:'+ci,()=>facNote3(ci)),nx,ny,W,H,'Прохання: '+q.n,`<b>${q.n}</b><br>Від громади «${F.n}».`,{pulse:prev9['fq:'+f+q.n]?0:1,always:prev9['fq:'+f+q.n]?0:1})}});
   const L={fire:[],win:[{x:216,y:140,r:120,e:.8,c:WARM,a:.55},{x:20,y:84,r:26,c:WARM,a:.6},{x:316,y:72,r:26,c:WARM,a:.6}]};
   return`<div class="scn rm vl" data-scn="vl" style="${scnD()}">${h}${fxCanvas('vl',W,H)}${lightLayers(W,H,L)}</div>`}
 function tradeScene(){const W=VLW,H=VLH;let h=`<span data-sk="bg" data-sig="bg" class="scbg">${VH(()=>pimg(pxURL('shp4:'+GR,shopBg3),864,480,'scene','Крамниця Яреми'))}</span>`;
-  h+=`<img class="trface" data-sk="face" data-sig="1" src="${faceURL('yarema')}" alt="Ярема" style="${PCT(190,96,48,48,W,H)}">`;
+  h+=`<img class="trface" data-sk="face" data-sig="1" src="${faceSceneURL('yarema')}" alt="Ярема" style="${PCT(198,104,32,32,W,H)}">`;
   const its=SHOP.filter(it=>!it.show||it.show());its.slice(0,18).forEach((it,i)=>{const ik=IT[it.id]?it.id:(it.res?Object.keys(it.res)[0]:it.book?'lore':'crate'),x=106+(i%6)*38,y=30+Math.floor(i/6)*38,fr=!prev9['t:'+it.id];
     h+=ob('tr:b:'+it.id,'bpop','tr:b:'+it.id,obURL('tri3:'+ik,()=>shopItem3(ik)),x,y,W,H,it.n,`<b>${it.n}</b><br>${R('coin',price(it.p))}`,{pulse:fr?1:0,always:fr?1:0})});
   h+=ob('tr:sell','bpop','tr:sell',obURL('trs3',shopScale3),326,114,W,H,'Ваги: продати','<b>Ваги</b><br>Продати Яремі зайве.',{});
