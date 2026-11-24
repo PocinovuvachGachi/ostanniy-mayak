@@ -4,7 +4,7 @@
 - `docs-dev/PRINCIPLES.md` — **постулати розробки від автора: головні орієнтири, звіряй з ними кожну зміну**;
 - `docs-dev/ARCHITECTURE.md` — карта модулів і ключові механізми;
 - `docs-dev/DECISIONS.md` — що вже погоджено з автором (не перепитувати);
-- `docs-dev/BACKLOG.md` — що далі; баги — у GitHub Issues (`gh issue list`).
+- `docs-dev/BACKLOG.md` — як ведемо ідеї й баги в GitHub Issues (з сесії — лише REST: `gh api repos/PocinovuvachGachi/ostanniy-mayak/issues`).
 
 ## Правила
 - Мова гри, комітів і спілкування з автором — українська.
@@ -13,7 +13,7 @@
 - Пуш: `git -c push.negotiate=true push`.
 - `docs/` публікується через GitHub Pages; `dist/` у git не потрапляє.
 - Публікація на claude.ai (артефакт https://claude.ai/artifact/1f8nduYDt8JYFECHaMqPjZ) — з `dist/game.html`.
-- Нове погоджене рішення — дописати в `docs-dev/DECISIONS.md`; нова ідея на потім — у `BACKLOG.md`;
+- Нове погоджене рішення — дописати в `docs-dev/DECISIONS.md`; нова ідея на потім — issue з міткою «ідея» і мітками постулатів;
   новий модуль чи механізм — в `ARCHITECTURE.md`.
 
 ## Принципи гри (коротко; детально — DECISIONS.md)
