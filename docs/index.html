@@ -699,7 +699,7 @@ button.hs.zone:hover,button.hs.zone:focus-visible{background:transparent;border:
 .note .sig{display:block;text-align:right;font-weight:700}
 .note .no{font:11px var(--mono);opacity:.6;display:block;margin-bottom:4px}
 .pcard{display:flex;gap:12px;align-items:flex-start}
-.pcard img{width:64px;height:64px;flex:none;border:1px solid var(--rule);background:#16252e}
+.pcard img{width:96px;height:96px;flex:none;border:1px solid var(--rule);background:#16252e}
 .role{font:500 1.05rem var(--hand);color:var(--mute);display:block;margin-bottom:2px}
 .stats{display:grid;grid-template-columns:repeat(4,auto);gap:2px 10px;font:12px/1.5 var(--mono);margin:6px 0;color:var(--mute)}
 .stats b{color:var(--ink);display:block;font-size:14px}
@@ -903,6 +903,12 @@ body.th-home #main section.jr .m,body.th-home #main section.jr .hand{color:#4d5a
 body.th-home #main section.jr .jh,body.th-home #main section.chr .jh,body.th-home #main section.chrp .jh{color:#8f2f2b}
 body.th-home #main section.jr h3,body.th-home #main section.jr h4,body.th-home #main section.jr b{color:inherit}
 body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .foe{color:#8f2f2b}body.th-home #main section.jr .itm{color:#7a3f04}
+/* Сцена місця на мапі */
+.ob.lcp .mpl{position:absolute;left:50%;top:100%;transform:translateX(-50%);white-space:nowrap;font:italic 600 12px/1.1 var(--serif);color:#efe3c8;text-shadow:0 1px 0 #0b1418,0 0 3px #0b1418,0 0 6px #0b1418;pointer-events:none}
+.ob.lcp .lcface{position:absolute;left:10%;top:7.1%;width:80%;image-rendering:pixelated;pointer-events:none}
+.scn.lcd::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse at 12% 85%,transparent 0 12%,rgba(2,4,8,.92) 38%);pointer-events:none;z-index:900}
+.lcpf{display:flex;gap:10px;align-items:flex-start}.lcpf>div{min-width:0;flex:1}.lcpf img.face{flex:none;border:1px solid #3a2718;background:#16252e}
+@media (max-width:560px){.ob.lcp .mpl{font-size:10px}}
 </style>
 </head>
 <body>
@@ -1684,6 +1690,25 @@ const BLD3={
 const BANC={forge:[174,146],smoke:[232,154],kiln:[270,158],dummy:[150,186],winch:[318,152],boom:[402,186],traps:[410,236],pot:[322,224],render:[204,186],steel:[290,142],coalpit:[262,196],glass:[334,172],apoth:[240,222],garden:[100,236],sandpit:[296,224],shipyard:[364,186]};
 const HOUSES=[[20,186],[46,164],[16,232],[60,218]];
 const BSMK3={forge:'chim',smoke:'chim',kiln:'top',steel:'chim',coalpit:'top',house:'chim',render:'top'};
+/* Люди біля вогнища: стоять чи сидять обличчям до вогню; бік до вогню підсвічений жаром */
+function villager3(b,x,y,i,fire){const C=[['W','X'],['Q','R'],['s','Z'],['t','v'],['L','M'],['P','Q'],['V','W'],['Z','r']][i%8],sit=i%3===1,lit=fire&&i<5,hat=['D','i','c','x','j','D','c','o'][i%8];
+  const top=sit?y-9:y-12;
+  if(sit){prect(b,x-2,y-2,6,2,'W');prect(b,x-2,y-2,6,1,'X');prect(b,x-4,y-4,3,1,'V');pset(b,x-4,y-3,'x');pset(b,x-4,y-2,'x')}
+  else{prect(b,x-1,y-4,1,4,'x');prect(b,x+1,y-4,1,4,'V')}
+  hiRect(b,x-2.6,top+3,5.6,sit?5:7,(hx,hy,X,Y)=>{const t=(Y-top-3)/(sit?5:7),hw=1.9+t*.9,u=(X-x-.3)/hw;if(Math.abs(u)>1)return;return u<-.45?C[1]:u>.4?'x':C[0]});
+  pline(b,x-1.5,top+5,x-2.5,top+(sit?7:8),C[1]);
+  hiRect(b,x-1.6,top,3.4,3.4,(hx,hy,X,Y)=>{const d=Math.hypot(X-x-.1,Y-top-1.7);if(d>1.7)return;if(Y<top+1.1)return hat;return X<x-.2?'m':'n'});
+  if(lit){const hx0=Math.round((x-2.6)*b.k);for(let j=Math.round((top+.6)*b.k);j<Math.round((y-(sit?2:1))*b.k);j++){for(let hx=hx0;hx<hx0+8;hx++){const c=b.p[j*b.W+hx];if(c&&c!=='.'&&c!=='N'&&c!=='M'&&c!=='L'&&c!=='O'&&c!=='E'&&c!=='F'&&c!=='D'){if(hh2(hx,j)<.75)b.p[j*b.W+hx]=i<2?'J':'K';break}}}}}
+/* Човен на березі двору й шхуна на рейді */
+function boat3(b,x,y){polyFill(b,[[x,y],[x+33,y],[x+30,y+7],[x+4,y+8]],(px,py)=>{const t=(py-y)/8,band=Math.floor(t*3);if((t*3-band)<.18&&band)return pset(b,px,py,'V');pset(b,px,py,woodC(EXX,EXY,WD,.8-band*.2-(px-x)/80,band+2))});
+  prect(b,x,y,33,1,'Y');prect(b,x+15,y-24,2,24,'X');prect(b,x+16,y-24,1,24,'V');pline(b,x+16,y-24,x+2,y-1,'D');
+  polyFill(b,[[x+17,y-23],[x+32,y-3],[x+17,y-3]],(px,py)=>{const t=(px-x-17)/15;pset(b,px,py,t<.4?'6':t<.8?'5':'H')});pline(b,x+17,y-3,x+32,y-3,'G')}
+function schooner3(b,x,y){polyFill(b,[[x,y],[x+69,y-2],[x+60,y+12],[x+9,y+12]],(px,py)=>{const t=(py-y)/12,band=Math.floor(t*4);if((t*4-band)<.16&&band)return pset(b,px,py,'x');pset(b,px,py,woodC(EXX,EXY,WD,.75-band*.16,band+7))});
+  prect(b,x,y,69,1,'Y');for(let k=0;k<6;k++)prect(b,x+12+k*8,y+3,2,1,'x');
+  for(const[mx,mh]of[[x+25,44],[x+46,38]]){pline(b,mx,y-mh,x+2,y-1,'D');prect(b,mx-1,y-mh,2,mh,'X');pset(b,mx,y-mh,'Y')}
+  polyFill(b,[[x+27,y-41],[x+43,y-5],[x+27,y-5]],(px,py)=>{const t=(px-x-27)/16;pset(b,px,py,t<.35?'u':t<.75?'6':'5')});
+  polyFill(b,[[x+48,y-35],[x+63,y-5],[x+48,y-5]],(px,py)=>{const t=(px-x-48)/15;pset(b,px,py,t<.35?'6':t<.75?'5':'H')});
+  pline(b,x+46,y-38,x+68,y-3,'D');pset(b,x+25,y-46,'g');pset(b,x+25,y-45,'f')}
 function yardBg3(st){const W=YW,H=YH,b=pbuf(W,H);
   if(!st.looked){prect(b,0,0,W,H,'x');if(st.lk){for(let i=0;i<7;i++)prect(b,126+i*9,192-i*6,9,1,'B')}return b}
   const ph=st.ph||'n';rampV(b,0,0,W,120,ph==='y'?['4','5','5','6','6']:ph==='d'?['C','o','3','4','5']:st.won?['B','C','1','2','3']:['A','B','C','1','2']);
@@ -1701,10 +1726,9 @@ function yardBg3(st){const W=YW,H=YH,b=pbuf(W,H);
   if(st.hearth)logs2(b,150,226,Math.min(12,1+Math.floor((st.wood||0)/20)));
   if(st.won&&ph!=='y'&&st.rm){const kk=b.k||1;for(let hx=Math.round(68*kk);hx<Math.round(278*kk);hx++){const i=hx/kk-68,y0=33-i*0.22,hw=1.2+i*0.06,a=Math.max(.18,.75-i/320);for(let hy=Math.floor((y0-hw)*kk);hy<=(y0+hw)*kk;hy++){const e=1-Math.abs(hy/kk-y0)/hw;if(hy>=0&&e>0&&a*(.45+e)>bay(hx,hy))phx(b,hx,hy,i<70&&e>.5?'I':'h')}}
     for(let hx=Math.round(42*kk);hx>=0;hx--){const i=42-hx/kk,y0=33-i*0.22,hw=1.1+i*0.03,a=Math.max(.15,.55-i/200);for(let hy=Math.floor((y0-hw)*kk);hy<=(y0+hw)*kk;hy++){const e=1-Math.abs(hy/kk-y0)/hw;if(hy>=0&&e>0&&a*(.4+e)>bay(hx,hy))phx(b,hx,hy,'h')}}}
-  if(st.boat){prect(b,388,212,33,6,'W');prect(b,391,218,27,3,'V');prect(b,388,212,33,1,'Y');prect(b,403,188,3,24,'X');polyFill(b,[[406,188],[421,209],[406,209]],(x,y)=>pset(b,x,y,(x+y)%5?'6':'5'))}
-  if(st.schooner){const x=360,y=130;polyFill(b,[[x,y],[x+69,y],[x+60,y+12],[x+9,y+12]],(px,py)=>pset(b,px,py,py<y+3?'Y':'W'));prect(b,x+24,y-42,3,42,'X');prect(b,x+45,y-36,3,36,'X');
-    polyFill(b,[[x+27,y-39],[x+42,y-6],[x+27,y-6]],(px,py)=>pset(b,px,py,(px+py)%6?'u':'6'));polyFill(b,[[x+48,y-33],[x+63,y-6],[x+48,y-6]],(px,py)=>pset(b,px,py,(px+py)%6?'6':'5'));pset(b,x+25,y-45,'g')}
-  for(let i=0;i<Math.min(8,st.pop||0);i++){const x=176+i*16,y=232-(i%2)*4;prect(b,x,y-9,3,3,'m');prect(b,x-1,y-6,5,4,['X','S','r','v','Y','T','w','Z'][i]);prect(b,x,y-2,1,2,'x');prect(b,x+2,y-2,1,2,'x')}
+  if(st.boat)boat3(b,388,212);
+  if(st.schooner)schooner3(b,360,130);
+  for(let i=0;i<Math.min(8,st.pop||0);i++)villager3(b,170+i*15+(i%3)*2,233-(i%2)*4,i,st.hearth);
   return b}
 function towerObj3(st){const W=74,H=192,b=pbuf(W,H),F=st.floors||{},cx=37,hwAt=y=>Math.round(18+(y-45)*0.09);
   {const k=b.k||1,Y0=Math.round(45*k);hiRect(b,0,45,W,H-45,(i,j,x,y)=>{const hw=hwAt(Math.floor(y));if(x<cx-hw||x>=cx+hw)return;const ly=j-Y0,bh=Math.round(5*k),bw=Math.round(8*k),row=Math.floor(ly/bh),off=row%2?Math.round(bw/2):0,bi=Math.floor((i+off)/bw),mort=ly%bh===bh-1||(i+off)%bw===0;
@@ -1747,19 +1771,68 @@ function shoreBg3(st){const W=SW,H=SH,b=pbuf(W,H),ph=st.ph||'n';rampV(b,0,0,W,24
   if(st.fishSeen&&(st.fish||0)>=1){prect(b,132,99,21,12,'X');for(let x=132;x<153;x+=3)prect(b,x,99,1,12,'W');prect(b,132,99,21,1,'Y');for(let i=0;i<Math.min(5,Math.ceil(st.fish/8));i++){prect(b,135+i*3,96,3,3,'T');pset(b,135+i*3,96,'U')}}
   for(let i=0;i<Math.min(3,st.pot||0);i++){const x=87+i*15,y=75+(i%2)*3;prect(b,x,y,11,9,'z');for(let k=1;k<11;k+=2)prect(b,x+k,y+1,1,7,'H');prect(b,x,y,11,1,'G')}
   return b}
-function wreckObj3(){const b=pbuf(69,33);polyFill(b,[[0,21],[9,9],[45,6],[66,12],[60,27],[12,30]],(x,y)=>pset(b,x,y,y<13?'Y':(x+y)%9===0?'V':y<21?'X':'W'));
-  for(let i=0;i<8;i++){const x=15+i*6;pline(b,x,9,x+3,0+(i%2)*3,'W');pline(b,x+1,9,x+4,0+(i%2)*3,'X')}prect(b,24,15,6,4,'x');prect(b,42,18,4,3,'x');for(let x=6;x<60;x+=7)pset(b,x,18,'H');for(let x=10;x<56;x+=9)pline(b,x,13,x+4,26,'W');
-  prect(b,0,30,69,3,'L');return b}
-function rodObj3(){const b=pbuf(24,66);pline(b,3,65,12,6,'W');pline(b,4,65,13,6,'X');prect(b,0,60,9,6,'L');pline(b,12,6,20,36,'6');pset(b,13,6,'Y');prect(b,2,42,4,4,'G');pset(b,3,43,'H');return b}
-function pierObj3(st){const b=pbuf(57,30);prect(b,0,9,57,6,'X');prect(b,0,9,57,1,'Y');for(let x=0;x<57;x+=5)prect(b,x,10,1,4,'W');prect(b,0,14,57,1,'V');for(let x=4;x<57;x+=12)prect(b,x,15,3,15,'W');
-  if(!st.boatOut){prect(b,9,2,30,6,'W');prect(b,12,6,24,3,'V');prect(b,9,2,30,1,'Y');prect(b,23,0,2,2,'X')}return b}
-function shipObj3(){const b=pbuf(60,45);polyFill(b,[[0,30],[60,30],[51,42],[9,42]],(x,y)=>pset(b,x,y,y<33?'Y':y<37?'X':'W'));prect(b,27,0,3,30,'X');
-  polyFill(b,[[30,1],[51,26],[30,26]],(x,y)=>pset(b,x,y,(x+y)%6?'u':'6'));polyFill(b,[[26,4],[8,26],[26,26]],(x,y)=>pset(b,x,y,(x+y)%6?'6':'5'));prect(b,21,0,9,3,'j');for(let x=12;x<50;x+=6)prect(b,x,34,2,2,'x');return b}
-function flotObj3(k){const b=pbuf(24,18);if(k==='bottle'){prect(b,5,9,12,6,'r');prect(b,5,9,12,1,'U');prect(b,17,10,4,3,'u');prect(b,2,12,3,1,'X')}
-  else if(k==='barrel'||k==='cargo'){prect(b,5,3,12,13,'X');prect(b,5,3,2,13,'W');prect(b,15,3,2,13,'V');for(const y of[5,9,13])prect(b,5,y,12,1,'z');prect(b,8,3,6,1,'Y');if(k==='cargo'){prect(b,16,9,8,8,'X');prect(b,16,9,8,1,'Y')}}
-  else if(k==='survivor'){prect(b,0,12,24,4,'W');prect(b,3,8,12,4,'S');prect(b,15,6,4,4,'m');prect(b,15,5,4,1,'x')}
-  else{prect(b,3,4,18,13,'X');prect(b,3,4,18,2,'Y');prect(b,3,10,18,1,'W');prect(b,3,4,1,13,'W');prect(b,20,4,1,13,'V');pset(b,11,12,'g');for(const[x,y]of[[5,6],[18,6],[5,15],[18,15]])pset(b,x,y,'H')}return b}
-function log3Buf(){const b=pbuf(27,10);prect(b,3,1,21,8,'X');prect(b,3,1,21,2,'Y');prect(b,3,8,21,1,'V');prect(b,0,2,3,6,'O');pset(b,1,4,'M');pset(b,1,5,'M');prect(b,24,2,3,6,'N');pset(b,9,4,'W');pset(b,16,3,'W');pset(b,13,6,'W');return b}
+/* Дерево з волокнами: R — від темного до світлого; v — освітленість 0..1 (у точних пікселях EXX/EXY або hx/hy) */
+function woodC(hx,hy,R,v,seed){const n=hh2(Math.floor(hx/7)+seed,hy),g=hh2(hx>>1,Math.floor(hy/2)+seed*3);let t=v+(n<.12?-.28:n>.93?.18:0)+(g-.5)*.12;const m=R.length-1,f=Math.max(0,Math.min(.999,t))*m,k=Math.floor(f);return(f-k)>bay(hx,hy)?R[Math.min(m,k+1)]:R[k]}
+const WD=['x','V','W','X','Y'],WDG=['D','E','L','M','N','O'];
+function wreckObj3(){const b=pbuf(69,33);
+  const gun=x=>13-x/66*6,keel=x=>{const t=(x-30)/37;return 30-11*t*t*t*t};
+  const pts=[];for(let x=1;x<=64;x+=3)pts.push([x,gun(x)]);pts.push([67,8.5],[68.5,13]);for(let x=66;x>=1;x-=3)pts.push([x,keel(x)]);pts.push([0,20]);
+  polyFill(b,pts,(x,y)=>{const g=gun(x),k=Math.max(g+4,keel(x)),t=(y-g)/(k-g),band=Math.floor(t*5),ft=t*5-band;
+    const hole=(band===2&&x>17&&x<27)||(band===3&&x>40&&x<48)||(band===1&&x>50&&x<55)||(band===0&&x>8&&x<13);
+    if(hole){pset(b,x,y,Math.floor(EXX)%10<2?'W':Math.floor(EXX)%10<3?'V':'x');return}
+    if(ft<.17){pset(b,x,y,(Math.floor(EXX)%9===0&&band)?'v':'x');return}
+    if(ft<.3&&x>6){pset(b,x,y,'V');return}
+    if(band===4&&hh2(EXX,EXY)<.09){pset(b,x,y,hh2(EXY,EXX)<.5?'H':'6');return}
+    pset(b,x,y,woodC(EXX,EXY,WD,.78-band*.13-x/220-(ft>.85?.12:0),band*13))});
+  for(let i=0;i<7;i++){const x0=9+i*8,g=gun(x0),top=g-5-(i%3)*2.5,lean=i<3?-1.5:1.2;if(i===3)continue;
+    pline(b,x0,g,x0+lean*.5,g-(g-top)*.55,'X');pline(b,x0+lean*.5,g-(g-top)*.55,x0+lean,top,'X');pline(b,x0+1,g,x0+1+lean*.5,g-(g-top)*.55,'V');pline(b,x0+1+lean*.5,g-(g-top)*.55,x0+1+lean,top+1,'W');pset(b,x0+lean,top,'Y')}
+  pline(b,1,gun(1)-1,64,gun(64)-1,'Y');pline(b,1,gun(1),64,gun(64),'X');
+  for(const sx of[30,52,15]){for(let j=0;j<5;j++){pset(b,sx+(j%2),gun(sx)+1+j,j<3?'Z':'s')}}
+  polyFill(b,[[0,33],[0,27],[10,26],[24,29],[44,30.5],[58,28],[69,30],[69,33]],(x,y)=>{const v=hh2(EXX,EXY);pset(b,x,y,y<27.8?'L':v<.18?'L':v<.55?'M':'N')});
+  for(let i=0;i<6;i++)pset(b,6+i*11,31,'O');return b}
+function rodObj3(){const b=pbuf(24,66);
+  polyFill(b,[[0,66],[0,61],[4,58],[9,59],[13,62],[14,66]],(x,y)=>{const v=hh2(EXX,EXY);pset(b,x,y,v<.25?'L':v<.7?'M':'N')});
+  prect(b,1,60,4,3,'F');prect(b,1,60,4,1,'H');prect(b,9,61,4,3,'E');prect(b,9,61,3,1,'G');
+  pline(b,11,63,9,41,'V');pline(b,12,63,10,41,'W');pline(b,9,42,6,36,'W');pline(b,10,42,12,37,'V');pset(b,6,36,'X');pset(b,12,37,'X');
+  const k=b.k,ax=3,ay=62,bx=13,by=6;hiRect(b,0,4,16,60,(i,j,x,y)=>{const dx=bx-ax,dy=by-ay,L2=dx*dx+dy*dy,t=Math.max(0,Math.min(1,((x-ax)*dx+(y-ay)*dy)/L2)),px=ax+dx*t,py=ay+dy*t,d=(x-px)*(-dy)/Math.sqrt(L2)+(y-py)*(dx)/Math.sqrt(L2);
+    const w=t<.16?1.3:t<.5?.85:t<.85?.6:.45;if(Math.abs(d)>w||t<=0||t>=1)return;
+    if(t<.16)return(Math.floor(t*60)%4===0)?'V':d<-w*.2?'Y':'X';return d<-w*.15?'X':d>w*.4?'x':'W'});
+  for(const t of[.32,.5,.66,.8,.92])pset(b,ax+(bx-ax)*t+1,ay+(by-ay)*t,'H');
+  const rx=ax+(bx-ax)*.2+1.6,ry=ay+(by-ay)*.2;hiRect(b,rx-2.3,ry-2.3,4.6,4.6,(i,j,x,y)=>{const d=Math.hypot(x-rx,y-ry);return d<2.2?(d<.7?'q':d>1.6?'E':(x-rx)+(y-ry)<0?'H':'G'):''});pline(b,rx,ry,rx-2,ry+1.5,'q');
+  hiRect(b,12,5,10,32,(i,j,x,y)=>{const t=(y-6)/30;if(t<0||t>1)return;const lx=13+7*t+Math.sin(t*3.14)*1.8;return Math.abs(x-lx)<.34?(hh2(i,j)<.85?'6':''):''});
+  /* відро з уловом */
+  polyFill(b,[[14,56],[22,56],[21,65],[15,65]],(x,y)=>pset(b,x,y,woodC(EXX,EXY,WD,.75-(x-14)/12,5)));prect(b,14,58,8,1,'z');prect(b,14,63,8,1,'z');prect(b,14,56,8,1,'Y');
+  pset(b,16,54,'T');pset(b,17,55,'S');pset(b,15,53,'U');pset(b,19,55,'T');pset(b,20,54,'U');pline(b,14,56,18,51,'G');pline(b,18,51,22,56,'G');return b}
+function pierObj3(st){const b=pbuf(57,30);
+  for(let i=0;i<5;i++){const x=4+i*12;hiRect(b,x,13,3,17,(hx,hy,X,Y)=>{const wet=Y>22;return wet?(hh2(hx,hy)<.3?'s':hh2(hx,hy)<.6?'Z':'x'):X-x<1?'X':X-x>2?'x':'W'})}
+  hiRect(b,0,9,57,6,(hx,hy,x,y)=>{const pl=Math.floor(x/4.75);if(Math.floor(x*b.k)%Math.round(4.75*b.k)===0)return'x';if(y<10)return hh2(pl,1)<.5?'Y':'X';if(y>13.6)return'V';
+    if((Math.abs(x-pl*4.75-2.4)<.5)&&(Math.abs(y-10.6)<.5||Math.abs(y-13)<.5))return'H';return woodC(hx,hy,['V','W','X','L','Y'],.6-(y-10)*.07+(hh2(pl,7)-.5)*.25,pl)});
+  for(const x of[5,17,29,41,53]){pset(b,x,8,'X');pset(b,x,7,'Y')}
+  if(!st.boatOut){const by=1;polyFill(b,[[8,by+1],[40,by+1],[37,by+7.5],[12,by+7.5]],(x,y)=>{const t=(y-by-1)/6.5,band=Math.floor(t*3);if((t*3-band)<.18&&band)return pset(b,x,y,'V');pset(b,x,y,woodC(EXX,EXY,['V','W','t','v','w'],.75-band*.18-(x-8)/90,band))});
+    prect(b,8,by+1,32,1,'Y');prect(b,10,by,28,1,'X');for(const x of[16,30])prect(b,x,by-1,1,2,'H');pline(b,13,by,34,by-3,'X');pline(b,13,by+1,34,by-2,'W');pset(b,34,by-3,'Y');
+    pline(b,40,by+3,44,10,'N');pline(b,41,by+3,45,10,'M')}
+  return b}
+function shipObj3(){const b=pbuf(60,45);
+  polyFill(b,[[0,29],[6,30],[54,30],[60,27],[52,42],[9,42]],(x,y)=>{const t=(y-29)/13,band=Math.floor(t*4);if((t*4-band)<.16&&band)return pset(b,x,y,'x');pset(b,x,y,woodC(EXX,EXY,WD,.78-band*.15-Math.abs(x-30)/120,band*3))});
+  prect(b,0,27,12,3,'W');prect(b,0,27,12,1,'Y');prect(b,48,26,12,4,'W');prect(b,48,26,12,1,'Y');for(let x=13;x<48;x+=5)prect(b,x,31,2,2,'x');
+  for(let i=0;i<8;i++)pset(b,10+i*5.5,37,'v');
+  pline(b,29,1,4,27,'D');pline(b,29,1,56,26,'D');prect(b,28,1,2,29,'X');prect(b,29,1,1,29,'V');prect(b,16,3,26,1,'W');prect(b,16,22,26,1,'W');
+  polyFill(b,[[17,4],[41,4],[42,21],[16,21]],(x,y)=>{const t=(x-17)/24,bel=Math.sin((y-4)/17*3.14)*.8;let c=t<.35?'6':t<.8?'5':'H';if(bel>.6&&t>.2&&t<.7)c='6';
+    if((x>20&&x<26&&y>9&&y<14)||(x>32&&x<38&&y>14&&y<19))c=(Math.floor(EXX)+Math.floor(EXY))%3?'b':'a';if(Math.abs(y-12.5)<.3||Math.abs(x-29)<.3)c='5';pset(b,x,y,c)});
+  for(const[x0,y0]of[[20,9],[26,9],[32,14],[38,14],[20,14],[26,14],[32,19],[38,19]])pset(b,x0,y0,'a');
+  prect(b,26,0,6,2,'j');pset(b,31,0,'i');return b}
+function flotObj3(k){const b=pbuf(24,18);
+  if(k==='bottle'){hiRect(b,3,8,18,8,(i,j,x,y)=>{const neck=x>16.5,r=neck?1.4:2.9,cy=12;const d=Math.abs(y-cy);if(d>r||x>20.5)return;if(neck&&x>19.3)return'X';if(Math.abs(y-cy+r*.55)<.35&&x>5)return'u';const t=(y-cy+r)/(2*r);return t<.35?'r':t<.8?'Z':'s'});
+    prect(b,7,11,7,2,'O');prect(b,7,11,7,1,'N');pset(b,9,12,'i');pline(b,0,15,3,13,'U');pline(b,20,15,24,14,'U')}
+  else if(k==='barrel'||k==='cargo'){hiRect(b,4,2,14,15,(i,j,x,y)=>{const cx=11,bul=1+.6*Math.sin((y-2)/15*3.14),hw=5.6*bul/1.6+1.4;if(Math.abs(x-cx)>hw)return;const u=(x-cx)/hw;
+      if(Math.abs(y-5)<.5||Math.abs(y-13.5)<.5||Math.abs(y-9.3)<.4)return u<-.3?'H':u>.5?'E':'G';const st=Math.floor((u+1)*3.5);if(Math.abs((u+1)*3.5-st)<.08)return'V';return woodC(i,j,WD,.82-((u+.4)*(u+.4))*.6,st)});
+    prect(b,7,2,8,1,'Y');pset(b,10,1,'W');if(k==='cargo'){polyFill(b,[[15,9],[23,9],[23,17],[15,17]],(x,y)=>pset(b,x,y,woodC(EXX,EXY,WD,.75-(x-15)/18,9)));prect(b,15,9,8,1,'Y');prect(b,15,12.5,8,1,'V');pline(b,15,9,23,17,'W')}}
+  else if(k==='survivor'){polyFill(b,[[0,12],[24,11],[24,15],[0,16]],(x,y)=>pset(b,x,y,woodC(EXX,EXY,WD,.7,4)));prect(b,0,11,24,1,'Y');
+    polyFill(b,[[3,12],[14,10],[15,13],[4,14]],(x,y)=>pset(b,x,y,x<8?'R':'Q'));hiRect(b,14,5,6,6,(i,j,x,y)=>{const d=Math.hypot(x-17,y-8);return d<2.6?(y<7?'c':x<17?'m':'n'):''});pline(b,11,11,9,9,'n');pset(b,9,9,'m');pline(b,0,16,24,16,'U')}
+  else{polyFill(b,[[3,4],[21,4],[21,17],[3,17]],(x,y)=>{const pl=Math.floor((y-4)/4.3);if(((y-4)/4.3-pl)<.1)return pset(b,x,y,'V');pset(b,x,y,woodC(EXX,EXY,WD,.8-(x-3)/26-pl*.05,pl))});
+    prect(b,3,4,18,1,'Y');prect(b,3,4,1,13,'Y');prect(b,20,4,1,13,'V');pline(b,4,5,20,16,'W');pline(b,4,16,20,5,'W');pset(b,11,10,'g');pset(b,12,10,'f');for(const[x,y]of[[5,6],[18,6],[5,15],[18,15]])pset(b,x,y,'H');pline(b,2,17,22,17,'U')}return b}
+function log3Buf(){const b=pbuf(27,10);hiRect(b,3,1,21,8,(i,j,x,y)=>{const t=(y-1)/8;if(t<0||t>1)return;const v=.85-Math.abs(t-.3)*1.1;if(hh2(i>>2,j)<.08)return'D';return woodC(i,j,WDG,v,3)});
+  hiRect(b,0,1.5,4,7,(i,j,x,y)=>{const d=Math.hypot((x-2)*1.6,y-5);if(d>3.6)return;return Math.floor(d*1.3)%2?'M':'O'});prect(b,24,2,3,6,'L');pset(b,25,3,'M');pset(b,9,6,'E');pset(b,16,3,'E');pset(b,13,6,'E');return b}
 function doorObj3(){const b=pbuf(21,39);prect(b,0,0,21,3,'H');prect(b,1,3,19,36,'x');prect(b,3,5,15,34,'V');for(let x=6;x<18;x+=4)prect(b,x,5,1,34,'W');prect(b,3,18,15,1,'W');pset(b,15,21,'g');pset(b,15,22,'I');return b}
 
 
@@ -1771,6 +1844,177 @@ function anvilObj3(hot){const b=pbuf(18,14);prect(b,4,9,10,5,'W');prect(b,4,9,1,
 yardBg3=HI(yardBg3);towerObj3=HI(towerObj3);towerSil3=HI(towerSil3);hearthObj3=HI(hearthObj3);emberObj3=HI(emberObj3);flame3Strip=HI(flame3Strip);signObj3=HI(signObj3);fogBuf3=HI(fogBuf3);
 yardFull3=HI(yardFull3);shoreBg3=HI(shoreBg3);wreckObj3=HI(wreckObj3);rodObj3=HI(rodObj3);pierObj3=HI(pierObj3);shipObj3=HI(shipObj3);flotObj3=HI(flotObj3);log3Buf=HI(log3Buf);doorObj3=HI(doorObj3);
 for(const k in BLD3)BLD3[k]=HI(BLD3[k]);anvilObj3=HI(anvilObj3);
+/* ============ ПОРТРЕТИ 48×48 ============
+   Погруддя під лампою: тепле світло зліва-спереду, холодний місячний обрис справа, темне тло з відсвітом.
+   Голова, шия, одяг — об'ємні форми з освітленням і дизерингом (bay); волосся — пасмами;
+   кожен персонаж — набір рис (`FP`) і власні деталі (`draw`). Буфер k=1, без нічної градації. */
+Object.assign(PAL,{'!':'#f2c8a0','#':'#6e4434','$':'#5d5a78','&':'#4a2e24','(':'#2f2640',')':'#7d6a90','*':'#c7b99a','+':'#8a3a2c',':':'#8a573f',';':'#c38c69','<':'#5b3a2c','>':'#9a6a4e','=':'#3a2a24'});
+const PSZ=48;
+const pv=(v)=>Math.max(0,Math.min(1,v));
+let PSH=1.7;
+function prmp(b,x,y,R,v){const n=R.length-1,t=pv(v)*n,k=Math.min(n-1,Math.floor(t)),f=pv((t-k-.5)*PSH+.5);pset(b,x,y,f>bay(x,y)?R[Math.min(n,k+1)]:R[k])}
+const PLX=-.55,PLY=-.45,PLZ=.70;
+let PDIM=1;
+function plit(nx,ny){const q=nx*nx+ny*ny,nz=Math.sqrt(Math.max(0,1-q)),d=nx*PLX+ny*PLY+nz*PLZ;return pv((.05+1.05*d*d*Math.sign(d)+.1*d)*PDIM)}
+const PR={skin:['<','#',':','n',';','m','!'],tan:['=','&','<','#',':','>','n',';'],
+  white:['G','H','6','u'],grey:['8','9','a','H'],dark:['x','0','8','9'],brown:['V','c','d','e'],red:['t','v','w','j'],straw:['X','Y','e','b'],black:['x','0','1','8'],
+  navy:['x','P','Q','R','S'],leather:['V','W','X','Y'],wine:['V','t','i','v'],green:['x','s','Z','k'],wool:['x','D','E','F','G'],linen:['L','M','N','O','*'],
+  kred:['t','+','i','j'],kdark:['x','1','2','3'],ochre:['V','W','X','Y','e'],violet:['x','(','o',')'],hood:['x','A','D','E','F'],felt:['x','V','c','W']};
+function portrait2(o){const b=pbuf(PSZ,PSZ),cx=24+(o.dx||0),cy=o.cy||21,rx=o.rx||9.5,ry=o.ry||12,ey=cy+1,SK0=PR[o.skin||'skin'],age=o.age||0;
+  const G={b,cx,cy,rx,ry,ey,o};
+  /* тло: темрява з теплим відсвітом лампи зліва або холодом */
+  const BG=o.bg==='cold'?['x','A','P','Q']:['x','A','B','C'];
+  PSH=3.5;PDIM=o.dim||1;for(let y=0;y<PSZ;y++)for(let x=0;x<PSZ;x++){const d=Math.hypot(x-cx+3,(y-cy+2)*1.1),v=pv(.85-d/30)-Math.max(0,(y-32)/50);prmp(b,x,y,BG,v*.85)}PSH=1.7;
+  const fig=new Uint8Array(PSZ*PSZ),mark=(x,y)=>{fig[y*PSZ+x]=1};
+  /* одяг */
+  const top=x=>{const d=Math.abs(x+.5-cx);return d<9?36.5:36.5+(d-9)*(d-9)/(o.slope||16)};
+  const CR=PR[o.coat||'wool'];
+  for(let y=30;y<PSZ;y++)for(let x=0;x<PSZ;x++)if(y>=top(x)){const nx=(x+.5-cx)/24;prmp(b,x,y,CR,plit(nx*.9,-.15)*(1-(y-36)/34)+.05);mark(x,y)}
+  if(o.shirt||o.cut){const SR=PR[o.shirt||'linen'];for(let y=36;y<PSZ;y++){const hw=o.cut==='v'?Math.max(0,4.5-(y-36)*.42):o.cut==='open'?3:0;for(let x=Math.floor(cx-hw);x<cx+hw;x++)prmp(b,x,y,SR,plit((x+.5-cx)/12,-.2)*.8)}
+    if(o.cut==='v'){pline(b,cx-5,36,cx,46,CR[0]);pline(b,cx+4,36,cx,46,CR[0]);pline(b,cx-6,36,cx-1,46,CR[CR.length-1])}}
+  if(o.collar==='emb'){/* вишита пазуха */for(let x=cx-5;x<cx+5;x++){pset(b,x,37,((x-cx)&1)?'i':'t');pset(b,x,38,((x-cx)&1)?'t':'i')}for(let y=38;y<46;y++){pset(b,cx-1,y,y&1?'i':'t');pset(b,cx+1,y,y&1?'t':'i');pset(b,cx,y,'L')}}
+  if(o.buttons)for(const[bx,by]of o.buttons){pset(b,cx+bx,by,'g');pset(b,cx+bx,by+1,'f')}
+  /* шия */
+  for(let y=cy+7;y<38;y++)for(let x=cx-4;x<cx+4;x++){const nx=(x+.5-cx)/4.6;prmp(b,x,y,SK0,plit(nx,.1)*(y<cy+ry+1?.45:.68));mark(x,y)}
+  /* вуха */
+  for(const sx of[-1,1])for(let y=ey-3;y<ey+3;y++)for(let x=-2;x<1;x++){const X=Math.round(cx+sx*(rx-.5)+sx*x*-1)+(sx<0?-1:0),t=(y-ey+.5)/3,u=(x+1)/1.6;if(t*t+u*u<=1.15){prmp(b,X,y,SK0,(sx<0?.62:.3)-(x===0?.1:0));mark(X,y)}}
+  /* голова: яйце, що звужується до підборіддя */
+  const rxe=y=>{const t=(y-cy)/ry;return t>0?rx*(1-(o.jaw||.3)*t*t):rx};
+  const inH=(x,y)=>{const X=(x+.5-cx)/rxe(y+.5),Y=(y+.5-cy)/ry;return X*X+Y*Y<=1};
+  const shTop=o.shadeTop||-99;
+  for(let y=0;y<PSZ;y++)for(let x=0;x<PSZ;x++)if(inH(x,y)){const nx=(x+.5-cx)/rxe(y+.5),ny=(y+.5-cy)/ry;let v=plit(nx,ny)*.92+.08;if(y<shTop)v*=o.hood?.45:.7;
+    if(o.cheek&&Math.abs(Math.abs(x+.5-cx)-5)<1.6&&Math.abs(y-(ey+4))<1.5)v-=.12;prmp(b,x,y,SK0,v);mark(x,y)}
+  G.inH=inH;G.rxe=rxe;
+  /* риси обличчя */
+  const SD=SK0[1],DK=SK0[0];
+  const eye=(ex,side)=>{const st=o.eyes||'open';const iris=o.iris||'0';
+    if(st==='closed'){pline(b,ex,ey,ex+3,ey,DK);pset(b,ex+(side<0?0:3),ey+1,SD);return}
+    pline(b,ex,ey-1,ex+3,ey-1,DK);
+    if(st==='narrow'){pset(b,ex+1,ey,iris);pset(b,ex+2,ey,iris);pset(b,ex+(side<0?0:3),ey,SD);pset(b,ex+(side<0?3:0),ey,SD);return}
+    const W=side<0?'N':'b';pset(b,ex,ey,side<0?W:SD);pset(b,ex+3,ey,side<0?SD:W);pset(b,ex+1,ey,iris);pset(b,ex+2,ey,iris);pset(b,ex+1+(side<0?0:0),ey,iris);
+    if(st==='big'){pset(b,ex+1,ey+1,iris);pset(b,ex+2,ey+1,iris);pset(b,ex,ey+1,side<0?W:SD);pset(b,ex+3,ey+1,side<0?SD:W)}
+    if(side<0)pset(b,ex+1,ey,'y');else pset(b,ex+1,ey,'q');
+    pline(b,ex,ey+(st==='big'?2:1),ex+3,ey+(st==='big'?2:1),SD)};
+  eye(cx-6,-1);eye(cx+2,1);
+  /* брови */
+  const BR=PR[o.brow||o.hair||'dark'],bt=o.browT||0;
+  for(const[x0,sd]of[[cx-7,-1],[cx+2,1]])for(let i=0;i<5;i++){const yy=ey-3+(bt?Math.round((sd<0?i:4-i)*bt/4):0);pset(b,x0+i,yy,BR[sd<0?2:1]);if(o.browThick)pset(b,x0+i,yy-1,BR[1])}
+  /* ніс */
+  const nl=o.nose||5;for(let y=ey+1;y<ey+nl;y++){pset(b,cx+1,y,SD)}pset(b,cx,ey+nl-1,SK0[3]);pset(b,cx-1,ey+nl,SD);pset(b,cx+2,ey+nl,DK);pset(b,cx+1,ey+nl,SD);
+  /* рот */
+  const my=ey+nl+3,mw=o.mw||2;const mo=o.mouth||'flat';
+  for(let x=cx-mw;x<=cx+mw;x++){const e=Math.abs(x-cx)===mw;pset(b,x,my+(mo==='smile'&&e?-1:mo==='frown'&&e?1:0),DK)}
+  pset(b,cx,my-1,SD);for(let x=cx-mw+1;x<cx+mw;x++)pset(b,x,my+1,x<cx?SK0[3]:SK0[2]);pset(b,cx-1,my+3,SD);pset(b,cx,my+3,SD);
+  /* вік */
+  if(age>=1){pline(b,cx-3,ey+nl+1,cx-mw-1,my+1,SD);pline(b,cx+4,ey+nl+1,cx+mw+1,my+1,DK)}
+  if(age>=2){pline(b,cx-6,ey+2,cx-3,ey+2,SD);pline(b,cx+3,ey+2,cx+6,ey+2,SD);if(!o.noForehead){pline(b,cx-4,cy-5,cx+3,cy-5,SD);pline(b,cx-3,cy-3,cx+2,cy-3,SD)}}
+  if(age>=3){pset(b,cx-8,ey,SD);pset(b,cx+8,ey,DK);pset(b,cx-8,ey+1,SD);pline(b,cx-6,ey+3,cx-4,ey+4,SD);pline(b,cx+4,ey+4,cx+6,ey+3,DK)}
+  if(o.freckles)for(const[fx,fy]of[[-5,3],[-3,4],[-6,4],[4,3],[3,4],[6,4],[-4,3]])pset(b,cx+fx,ey+fy,SD);
+  if(o.blush)for(const sx of[-5,5]){pset(b,cx+sx,ey+3,'w');pset(b,cx+sx+(sx<0?1:-1),ey+3,'w')}
+  /* борода й вуса */
+  const HR=PR[o.beardC||o.hair||'dark'];
+  const strand=(x,y,sd)=>hh2(Math.floor(x+y*.35*(x<cx?-1:1)),sd||7)-.5;
+  if(o.beard){const len=o.beard==='long'?12:o.beard==='full'?5:o.beard==='short'?2:2,y0=ey+nl-1,cyB=cy+ry-1;
+    for(let y=y0;y<PSZ;y++)for(let x=0;x<PSZ;x++){const dx=(x+.5-cx),inFace=inH(x,y)&&Math.abs(dx)>(y<my-1?rx-3.2:0);
+      const below=y>=cy+ry-3&&(dx*dx)/((rx-1.5)*(rx-1.5))+((y+.5-cyB)*(y+.5-cyB))/(len*len)<=1&&y>=cyB-2;
+      const lips=Math.abs(dx)<=mw+.5&&y>=my-1&&y<=my+1&&o.beard!=='long';
+      if((inFace||below)&&!lips&&y>=my-2-(Math.abs(dx)>rx-3.2?6:0)){
+        if(o.beard==='stubble'){if(hh2(x*7,y*3)<.38)pset(b,x,y,HR[0]);continue}
+        const nx=dx/(rx+1),ny=(y-cyB)/(len+6);prmp(b,x,y,HR,plit(nx,ny)+strand(x,y,3)*.45);mark(x,y)}}}
+  if(o.mous){const ys=ey+nl+1,P=o.mous==='cossack'?[[0,0],[1,0],[2,0],[3,1],[mw+2,1],[mw+3,2],[mw+3,3],[mw+3,4],[mw+3,5],[mw+3,6]]:[[0,0],[1,0],[2,0],[mw+1,1],[mw+2,1]];
+    for(const sd of[-1,1])P.forEach(([dx,dy],i)=>{const X=sd<0?cx-1-dx:cx+dx,v=sd<0?.8:.42;prmp(b,X,ys+dy,HR,v-i*.03);if(i<5||o.mous==='cossack')prmp(b,X+(i>3?sd*-1:0),ys+dy+(i>3?0:1),HR,v-.25)})}
+  /* волосся */
+  const hs=o.hairS||'short',HC=PR[o.hair||'dark'];
+  const hl=x=>cy-(o.hairline||5.5)+2.5*Math.pow((x+.5-cx)/rx,2);
+  const outE=(x,y,ex2,ey2,dy)=>{const X=(x+.5-cx)/(rx+ex2),Y=(y+.5-cy+(dy||.6))/(ry+ey2);return X*X+Y*Y<=1};
+  const hairAt=(x,y)=>{const dx=Math.abs(x+.5-cx);
+    if(hs==='none')return false;
+    if(hs==='bald')return outE(x,y,.8,1)&&dx>rx-1.6&&y>cy-4&&y<ey-2+(dx>rx-.6?4:0)||(o.wisps&&outE(x,y,1.8,1.2)&&!inH(x,y)&&y<cy-1&&y>cy-8&&dx>rx-3&&hh2(x,y)<.55);
+    let h=outE(x,y,1.3,1.2)&&(y<hl(x)||(dx>rx-1.6&&y<ey-1));
+    if(hs==='messy'&&!h&&y<cy-ry+3&&outE(x,y,2.5,2.6,1.4)&&hh2(x,9)<.7)h=true;
+    if((hs==='long'||hs==='braid')&&!h){const w=hs==='long'?3.4-Math.max(0,y-ey-6)*.12+Math.sin(y*.7)*.6:1.2;h=dx>rx-1.8&&dx<rx+w&&y>=cy-2&&y<(hs==='long'?44:ey+5)&&!(inH(x,y)&&dx<rx-1)}
+    if(hs==='bun'&&!h)h=Math.hypot(x+.5-cx,y+.5-(cy-ry-1))<4.2;
+    return h};
+  for(let y=0;y<PSZ;y++)for(let x=0;x<PSZ;x++)if(hairAt(x,y)){const nx=(x+.5-cx)/(rx+2),ny=(y+.5-cy)/(ry+2);prmp(b,x,y,HC,plit(nx,ny)*.95+strand(x,y,5)*.5);mark(x,y)}
+  if(hs==='braid'){for(let i=0;i<7;i++){const bx=cx+rx-1+Math.round(i*.5),by=ey+3+i*2;for(let yy=0;yy<2;yy++)for(let xx=-1;xx<2;xx++){prmp(b,bx+xx,by+yy,HC,.55-xx*.2+(yy?-.15:.1));mark(bx+xx,by+yy)}}pset(b,cx+rx+2,ey+18,'i');pset(b,cx+rx+3,ey+18,'i')}
+  /* головні убори */
+  const hat=o.hat;
+  if(hat){const HT=PR[o.hatC||'felt'],dot=o.hatDot;
+    const put=(x,y,v)=>{if(x<0||y<0||x>=PSZ||y>=PSZ)return;let c=null;if(dot&&((x*3+y*5)%11===0))c=dot;if(c)pset(b,x,y,c);else prmp(b,x,y,HT,v);mark(x,y)};
+    if(hat==='kerchief'||hat==='kerchiefB'){const chin=hat==='kerchief';
+      for(let y=0;y<PSZ;y++)for(let x=0;x<PSZ;x++){const dx=Math.abs(x+.5-cx);const inO=outE(x,y,2.2,1.8,1);
+        const cover=inO&&(y<cy-4+1.4*Math.pow((x+.5-cx)/rx,2)||(chin?dx>rx-2.4&&y<cy+ry-1:dx>rx-1.4&&y<ey-2));
+        const knot=chin&&Math.hypot(x+.5-cx,(y+.5-(cy+ry+1))*1.3)<2.6;
+        const tail=chin&&y>=cy+ry&&y<cy+ry+7&&Math.abs(x+.5-cx-(y-cy-ry)*.45-1)<1.6;
+        if(cover||knot||tail){const nx=(x+.5-cx)/(rx+3),ny=(y+.5-cy+1)/(ry+3);put(x,y,plit(nx,ny)+(knot?.15:0))}}
+      if(hat==='kerchief')pline(b,cx-rx+1,cy-4,cx+rx-1,cy-4,HT[0])}
+    if(hat==='cap'||hat==='knit'){const yb=cy-ry+(hat==='knit'?6:5.5);
+      for(let y=0;y<PSZ;y++)for(let x=0;x<PSZ;x++){const X=(x+.5-cx)/(rx+(hat==='knit'?1.6:2.4)),Y=(y+.5-yb)/(hat==='knit'?ry*.85:7.5);if(X*X+Y*Y<=1&&y<yb+1.5){const nx=X,ny=Y;let v=plit(nx*.9,ny*.8);if(hat==='knit'&&y>yb-2.5)v+=((x&1)?-.2:.1);put(x,y,v)}}
+      if(hat==='cap'){for(let x=Math.round(cx-rx-1);x<cx+rx+1;x++){pset(b,x,Math.round(yb)+1,HT[0]);pset(b,x,Math.round(yb)+2,'x');}for(let x=Math.round(cx-rx);x<cx+rx;x++)pset(b,x,Math.round(yb),HT[1]);
+        for(let x=Math.round(cx-rx+1);x<cx+rx-1;x++)pset(b,x,Math.round(yb)+3,SK0[0])}
+      else{const Y=Math.round(yb)+1;for(let x=Math.round(cx-rx-1);x<cx+rx+1;x++)pset(b,x,Y,SK0[0])}}
+    if(hat==='brim'){const yb=cy-ry+5;for(let y=0;y<PSZ;y++)for(let x=0;x<PSZ;x++){const dx=x+.5-cx;
+        if(Math.abs(dx)<rx-.5&&y>=yb-9&&y<yb){put(x,y,plit(dx/(rx+1),-.3)-(y<yb-7?.0:0)-.05)}
+        const B=(dx/(rx+7))**2+((y+.5-yb)/2.2)**2;if(B<=1)put(x,y,plit(dx/(rx+7),(y+.5-yb)/2.2*-.4)+.1)}
+      for(let x=Math.round(cx-rx+1);x<cx+rx-1;x++){pset(b,x,yb-2,o.band||'i');pset(b,x,yb-1,o.band==='g'?'f':'t')}
+      for(let x=Math.round(cx-rx+1);x<cx+rx-1;x++){pset(b,x,yb+2,SK0[0]);if(hh2(x,2)<.5)pset(b,x,yb+3,SK0[1])}}
+    if(hat==='captain'){const yb=cy-ry+5;for(let y=0;y<PSZ;y++)for(let x=0;x<PSZ;x++){const dx=x+.5-cx,ad=Math.abs(dx);
+        const crown=ad<rx-1&&y>=yb-7&&y<yb+1&&(y+.5-(yb-7))>(ad/rx)*2;const wing=ad<rx+7&&y<yb+2&&y>=yb-5+Math.round(ad*.32)-((ad>rx+3)?0:0)&&y>yb-6+(ad*ad)/40;
+        if(crown||wing)put(x,y,plit(dx/(rx+8),-.2)+(crown?.05:-.05))}
+      for(let x=Math.round(cx-rx-6);x<cx+rx+6;x++){const ad=Math.abs(x+.5-cx);const y=Math.round(yb-5+ad*.32+(ad*ad)/40)-1;if(ad<rx+6.5)pset(b,x,Math.max(y,yb-6),'g')}
+      pset(b,cx-2,yb-3,'i');pset(b,cx-1,yb-3,'j');pset(b,cx-2,yb-2,'t');pset(b,cx-1,yb-2,'i');
+      for(let x=Math.round(cx-rx+1);x<cx+rx-1;x++)pset(b,x,yb+2,SK0[0])}
+    if(hat==='hood'){for(let y=0;y<PSZ;y++)for(let x=0;x<PSZ;x++){const dx=x+.5-cx,ad=Math.abs(dx);const X=dx/(rx+4.5),Y=(y+.5-cy+1)/(ry+4.5);
+        const inO=X*X+Y*Y<=1||(y>cy&&ad<rx+5.5-(y-cy)*.05&&y<40);const face=inH(x,y)&&!(y<cy-ry+5)&&ad<rx-.6;const opening=Math.abs(dx/(rx-.5))**2+((y+.5-ey-2)/(ry-1.5))**2<=1&&y>cy-ry+4.5;
+        if(inO&&!opening&&!face){put(x,y,plit(X,Y)*.9)}else if(opening&&!inH(x,y))put(x,y,.05)}
+      for(let x=0;x<PSZ;x++)for(let y=0;y<PSZ;y++){const dx=x+.5-cx;if(Math.abs(dx/(rx-.5))**2+((y+.5-ey-2)/(ry-1.5))**2>1&&Math.abs(dx/(rx-.5))**2+((y+.5-ey-2)/(ry-1.5))**2<=1.18&&y>cy-ry+4&&y<cy+ry+2)pset(b,x,y,HT[0])}}}
+  /* власні деталі */
+  if(o.draw)o.draw(b,G);
+  /* холодний обрис справа (місяць у вікні) */
+  const RIM=o.bg==='cold'?'4':'3';const p=b.p.slice();
+  for(let y=4;y<PSZ;y++)for(let x=PSZ-2;x>cx+3;x--){if(fig[y*PSZ+x]&&!fig[y*PSZ+x+1]){p[y*PSZ+x]=RIM;break}}
+  b.p=p;PDIM=1;return b}
+/* Риси персонажів */
+const FP={
+  ostap:{age:3,hair:'white',hairS:'bald',beard:'long',mous:'cossack',beardC:'white',brow:'white',coat:'navy',cut:'v',shirt:'linen',buttons:[[-7,40],[6,40],[-7,44],[6,44]],eyes:'narrow',mouth:'flat',
+    draw(b,G){/* шрам від мотузки на скроні, сивина */pset(b,G.cx-8,G.cy-4,'6');pset(b,G.cx-7,G.cy-5,'6')}},
+  hanna:{age:2,hair:'brown',hairS:'short',hat:'kerchief',hatC:'kred',hatDot:'O',coat:'wine',shirt:'linen',cut:'open',collar:'emb',mouth:'smile',eyes:'open',iris:'c',
+    draw(b,G){/* пучок трав за хусткою */for(let i=0;i<5;i++){pset(b,G.cx+G.rx+1+(i>>1),G.cy-6-i,'k');pset(b,G.cx+G.rx+2+(i>>1),G.cy-7-i,'l')}pset(b,G.cx+G.rx+4,G.cy-11,'o');pset(b,G.cx+G.rx+3,G.cy-11,')')}},
+  myron:{age:2,hair:'grey',hairS:'short',hat:'knit',hatC:'navy',beard:'stubble',beardC:'grey',coat:'ochre',cut:'open',shirt:'wool',mouth:'frown',browT:-1,eyes:'narrow',skin:'tan',
+    draw(b,G){/* мотузок сітей через плече */for(let i=0;i<14;i++){const x=G.cx-14+i,y=37+Math.round(i*.75);pset(b,x,y,(i&1)?'b':'N');pset(b,x,y+1,'X')}for(let i=0;i<4;i++)pset(b,G.cx-15+i*3,40+i*2,'M')}},
+  levko:{age:2,hair:'dark',hairS:'bald',mous:'cossack',brow:'dark',browThick:1,coat:'linen',collar:'emb',rx:10.5,jaw:.22,cheek:1,mouth:'smile',eyes:'narrow',
+    draw(b,G){/* чуб-оселедець, що спадає на ліве вухо, і фартух корчмаря */const P=[[1,-13],[1,-12],[0,-11],[-1,-10],[-2,-9],[-3,-8],[-4,-7],[-5,-6],[-6,-5],[-7,-4],[-8,-3],[-9,-2],[-9,-1],[-9,0]];P.forEach(([dx,dy],i)=>{const X=G.cx+dx,Y=G.cy+dy;pset(b,X-1,Y,i<9?'a':'9');pset(b,X,Y,'9');pset(b,X+1,Y,'8');pset(b,X+2,Y,i<11?'0':'.');if(i<9)pset(b,X+1,Y+1,'#')});
+      for(let y=41;y<48;y++)for(let x=G.cx-9;x<G.cx+9;x++)prmp(b,x,y,PR.leather,plit((x-G.cx)/12,0)*.8);for(const sx of[-9,8])pline(b,G.cx+sx,37,G.cx+sx+(sx<0?2:-2),41,'W')}},
+  yarema:{age:2,hair:'brown',hairS:'short',hat:'brim',hatC:'felt',band:'g',mous:'thin',beard:'short',beardC:'brown',coat:'wine',cut:'v',shirt:'linen',buttons:[[-6,42],[-6,46]],mouth:'smile',eyes:'narrow',browT:1,
+    draw(b,G){/* золота сережка й монета в пальцях */pset(b,G.cx+G.rx,G.ey+3,'g');pset(b,G.cx+G.rx,G.ey+4,'f');
+      for(const[x,y]of[[33,43],[34,43],[35,43],[33,44],[35,44],[33,45],[34,45],[35,45]])pset(b,x,y,'g');pset(b,34,44,'f');pset(b,32,44,'m');pset(b,32,45,'n');pset(b,36,45,'n')}},
+  tymish:{age:0,hair:'straw',hairS:'messy',coat:'linen',collar:'emb',rx:9,ry:11,cy:22,eyes:'big',iris:'3',freckles:1,mouth:'smile',nose:4,mw:1,blush:1,
+    draw(b,G){/* камінець у руці */pset(b,30,45,'9');pset(b,31,45,'a');pset(b,30,46,'8');pset(b,31,46,'9');pset(b,29,46,'m');pset(b,32,46,'n')}},
+  olesya:{age:0,hair:'brown',hairS:'braid',coat:'green',shirt:'linen',cut:'open',collar:'emb',eyes:'big',iris:'k',mouth:'flat',nose:4,mw:1,rx:9,jaw:.38,
+    draw(b,G){/* вінок із сухих трав */for(let x=G.cx-G.rx;x<G.cx+G.rx;x++){const y=Math.round(G.cy-G.ry+4+Math.pow((x-G.cx)/G.rx,2)*2.5);pset(b,x,y,(x&1)?'l':'k');if(x%3===0)pset(b,x,y-1,x%2?'g':'o')}
+      for(let i=0;i<6;i++){pset(b,13+i,44-i,'l');if(i&1)pset(b,12+i,43-i,'k')}pset(b,18,38,'g')}},
+  ustyna:{age:1,hair:'dark',hairS:'short',hat:'kerchiefB',hatC:'kdark',hatDot:'5',coat:'leather',cut:'open',shirt:'linen',mouth:'frown',browT:-1,browThick:1,eyes:'narrow',skin:'tan',rx:10,jaw:.25,
+    draw(b,G){/* хвостики хустки, сажа на щоці, сокира на плечі */for(let i=0;i<5;i++){prmp(b,G.cx+G.rx+i*.6,G.cy-3+i,PR.kdark,.5-i*.06);prmp(b,G.cx+G.rx+1+i*.6,G.cy-2+i,PR.kdark,.25)}for(const[x,y]of[[-6,4],[-5,5],[-7,5],[5,6]])pset(b,G.cx+x,G.ey+y,'#');pline(b,36,47,42,33,'X');pline(b,37,47,43,33,'W');for(let y=29;y<35;y++){pset(b,41,y,'p');pset(b,42,y,'q');pset(b,43,y,'p')}pset(b,44,30,'H')}},
+  kindrat:{age:2,hair:'black',hairS:'none',beard:'full',beardC:'black',brow:'brown',coat:'leather',shirt:'wool',cut:'open',rx:10.5,jaw:.2,mouth:'flat',eyes:'narrow',skin:'tan',slope:12,
+    draw(b,G){/* сажа, лиск на лисині, сліди кайданів на шиї */for(const[x,y]of[[-5,-6],[3,-7],[-7,3],[6,2]])pset(b,G.cx+x,G.ey+y,'#');pset(b,G.cx-4,G.cy-8,'!');pset(b,G.cx-3,G.cy-9,'!');
+      for(let x=G.cx-4;x<G.cx+4;x++)pset(b,x,35,(x&1)?'9':'8');for(const sx of[-8,7])for(let y=37;y<48;y++)pset(b,G.cx+sx+(y>42?(sx<0?1:-1):0),y,'V')}},
+  severyn:{age:3,hair:'white',hairS:'bald',wisps:1,coat:'leather',shirt:'linen',cut:'open',rx:8.5,jaw:.42,cheek:1,mouth:'flat',eyes:'open',iris:'4',beard:'stubble',beardC:'white',
+    draw(b,G){/* окуляри склодува */const ey=G.ey;for(const ex of[G.cx-7,G.cx+1]){for(let i=0;i<6;i++){pset(b,ex+i,ey-2,'q');pset(b,ex+i,ey+2,'p')}pset(b,ex,ey-1,'q');pset(b,ex,ey,'q');pset(b,ex,ey+1,'p');pset(b,ex+5,ey-1,'p');pset(b,ex+5,ey,'p');pset(b,ex+5,ey+1,'p');pset(b,ex+1,ey-1,'U')}
+      pset(b,G.cx-1,ey-1,'q');pset(b,G.cx,ey-1,'q')}},
+  zakhar:{age:3,hair:'white',hairS:'short',hat:'cap',hatC:'wool',beard:'full',beardC:'white',brow:'grey',coat:'navy',cut:'v',shirt:'linen',mouth:'flat',eyes:'narrow',skin:'tan',
+    draw(b,G){/* олівець за вухом */pline(b,G.cx+G.rx-1,G.ey-6,G.cx+G.rx+3,G.ey-2,'e');pset(b,G.cx+G.rx+3,G.ey-2,'0');pset(b,G.cx+G.rx-1,G.ey-6,'g')}},
+  marta:{age:1,hair:'red',hairS:'long',hat:'captain',hatC:'black',coat:'navy',cut:'v',shirt:'linen',buttons:[[-7,41],[6,41],[-7,45],[6,45]],mouth:'smile',eyes:'open',iris:'3',browT:1,jaw:.34,
+    draw(b,G){/* золоті еполети по лінії плечей */for(const x0 of[6,34])for(let i=0;i<8;i++){const x=x0+i,d=Math.abs(x+.5-G.cx),y=Math.ceil(d<9?36.5:36.5+(d-9)*(d-9)/16);pset(b,x,y,'g');pset(b,x,y+1,i&1?'f':'g');if(i%2===0)pset(b,x,y+2,'f')}}},
+  panas:{age:2,hair:'brown',hairS:'short',hat:'cap',hatC:'linen',mous:'cossack',brow:'straw',coat:'linen',collar:'emb',rx:10.5,jaw:.2,cheek:1,mouth:'smile',eyes:'narrow',blush:1,
+    draw(b,G){/* борошно на бровах і кашкеті */for(const[x,y]of[[-6,-3],[-4,-3],[3,-3],[5,-3],[-2,-12],[4,-13],[0,-14]])pset(b,G.cx+x,G.ey+y,'u');for(let i=0;i<10;i++)pset(b,8+i*3,38+(i%3),'O')}},
+  motrya:{age:3,hair:'white',hairS:'short',hat:'kerchief',hatC:'kdark',hatDot:'i',coat:'violet',eyes:'closed',mouth:'smile',rx:9,jaw:.42,cheek:1,
+    draw(b,G){/* пасмо сивини з-під хустки */pset(b,G.cx-5,G.cy-3,'6');pset(b,G.cx-4,G.cy-3,'u');pset(b,G.cx-6,G.cy-2,'6')}},
+  luka:{age:2,hair:'dark',hairS:'short',hat:'cap',hatC:'navy',mous:'thin',beard:'short',beardC:'dark',coat:'navy',cut:'v',shirt:'linen',buttons:[[-6,41],[-6,45]],mouth:'frown',eyes:'narrow',browT:-1,
+    draw(b,G){/* якір на кашкеті */const y=G.cy-G.ry+3;pset(b,G.cx,y-1,'g');pset(b,G.cx,y,'g');pset(b,G.cx,y+1,'g');pset(b,G.cx-1,y+1,'f');pset(b,G.cx+1,y+1,'f');pset(b,G.cx-1,y-1,'g');pset(b,G.cx+1,y-1,'g')}},
+  gnat:{age:2,hair:'grey',hairS:'short',hat:'hood',hatC:'hood',hood:1,shadeTop:22,dim:.95,skin:'tan',beard:'stubble',beardC:'grey',coat:'hood',mouth:'flat',eyes:'narrow',iris:'5',browT:-2,bg:'cold',
+    draw(b,G){/* шрам через око */pline(b,G.cx+2,G.ey-5,G.cx+6,G.ey+4,'+');pline(b,G.cx+3,G.ey-5,G.cx+7,G.ey+4,'t')}},
+};
+for(const id in FP)FACES[id]=()=>portrait2(FP[id]);
 /* ============ TEXT HELPERS ============ */
 const P=t=>`<span class="npc">${t}</span>`;
 const I=t=>`<span class="itm">${t}</span>`;
@@ -2481,7 +2725,7 @@ function rFolkList(){let h=`<section><h2>Громади шхер${ih(`Допом
   for(const f in FAC){const F=FAC[f];if(!F.known())continue;const v=fac(f),ri=rankI(v);
     const perks=F.perks.map(p=>{const on=p[0]>=0?v>=p[0]:v<=p[0];return`<li class="${on?'':'lk'}">${p[0]>=0?`від ${p[0]}: `:''}${p[1]}${on?' ✓':''}</li>`}).join('');
     const q=(s.req||{})[f];
-    h+=`<div class="fcard"><div class="fh">${pimg(faceURL(F.face),56,56,'',F.n)}<div><h3>${F.n}${fresh9('fq:'+f+(q?q.n:''))}</h3><span class="rank r${ri}">${RANKS[ri][1]}</span> <span class="m">довіра ${v}</span></div></div>
+    h+=`<div class="fcard"><div class="fh">${pimg(faceURL(F.face),48,48,'',F.n)}<div><h3>${F.n}${fresh9('fq:'+f+(q?q.n:''))}</h3><span class="rank r${ri}">${RANKS[ri][1]}</span> <span class="m">довіра ${v}</span></div></div>
       <div class="tbar" aria-hidden="true"><span class="zero"></span><span class="mk" style="left:${(v+100)/2}%"></span></div><p class="m" style="margin:0">${F.d}</p><ul class="perks">${perks}</ul>
       <div class="freq">${q?`<b>Прохання: ${q.n}</b><br><span class="m">Віддати ${costTxt(q.give)} → ${costTxt(q.rew)} і довіра +6${q.side?`, але ${q.side.map(([g,n])=>`${FAC[g].n} ${n}`).join(', ')}`:''}.</span><div class="act">${btn('Виконати','freq',f,{ok:()=>afford(q.give)})}${btn('Відмовитися','fdecl',f,{cls:'toggle'})}</div>`:(f==='silent'&&v<-39?'<span class="m">З тобою поки не розмовляють.</span>':'<span class="m">Зараз прохань немає. Загляни пізніше.</span>')}</div></div>`}
   return h+`</div>`}
@@ -3417,11 +3661,11 @@ function act0(a,i){
   case 'eat':if(s.r.fish>=1&&s.h.hp<maxHP()){s.r.fish--;s.h.hp=Math.min(maxHP(),s.h.hp+8)}break;
   case 'eatp':if(s.r.prov>=1&&s.h.hp<maxHP()){s.r.prov--;s.h.hp=Math.min(maxHP(),s.h.hp+15)}break;
   case 'scan':{const nx=SCAN.find(x=>!s.disc[x]);if(nx&&s.r.ember>=scanCost()){s.r.ember-=scanCost();s.scans++;reveal(nx);say(SCANMSG[nx]+' Місце з’явилося на мапі.','world')}break}
-  case 'go':{const[ok,why]=canGo(i);if(!ok){say(why);break}snap9('map');if(LOC[i].sea){const pv=seaCost(LOC[i]);s.r.prov-=pv;say(`Ти виходиш у море. Витрачено ${R('prov',pv)}.`,'world')}s.at=i;s.tab='map';if(!s.visited[i]){s.visited[i]=1;xp(5)}break}
-  case 'leave':s.at='';break;
+  case 'go':{const[ok,why]=canGo(i);if(!ok){say(why);break}snap9('map');if(LOC[i].sea){const pv=seaCost(LOC[i]);s.r.prov-=pv;say(`Ти виходиш у море. Витрачено ${R('prov',pv)}.`,'world')}s.at=i;s.tab='map';popB='';if(!s.visited[i]){s.visited[i]=1;xp(5)}break}
+  case 'leave':s.at='';popB='';break;
   case 'la':doLA(i);break;
   case 'qf':doLA(i,1);break;
-  case 'riddle':{const A=findA(i);if(s.done[i])break;const el=$('rd-'+i.replace(/\./g,'-'));const v=(el?el.value:'').trim().toLowerCase();
+  case 'riddle':{const A=findA(i);if(s.done[i])break;let el=null;try{const q=[...document.querySelectorAll(`input[data-rid="${i}"]`)];el=q.find(e=>e.value&&e.value.trim())||q[0]||null}catch(e){}if(!el)el=$('rd-'+i.replace(/\./g,'-'));const v=(el?el.value:'').trim().toLowerCase();
     if(v&&A.riddle.ans.some(x=>v.includes(x))){s.done[i]=1;const sn=snap(),q0=(s.dlg||[]).length,m=A.run();trustAct(i);say(m,'find');s.dlg=s.dlg||[];s.dlg.splice(q0,0,{k:'find',title:'Загадку розгадано',body:`<p>${m}</p>`,gains:gainsOf(sn)})}
     else if(!v)say('Спершу впиши відповідь.');
     else{s.wrong[i]=(s.wrong[i]||0)+1;say('Ні, відповідь не та. Подумай ще.')}break}
@@ -3799,21 +4043,10 @@ function rStones(){const top=s.stones.map(()=>'  ___  ').join(' '),mid=s.stones.
   return h}
 
 function rLoc(){const l=s.at,L=LOC[l];
-  let h=`<section><h2>${L.n}</h2>${l==='bay'?VH(()=>{SCENEOPT.bayOpen=!!s.f.bayChest;return sceneImg(lowTide()?'bayLow':'bayHigh')}):sceneImg(L.sc||l)}<p>${L.d}</p>${btn('Повернутися до маяка','leave')}</section>`;
-  for(const S of L.spots){if(S.show&&!S.show())continue;
-    const body=[];
-    body.push(`<h3>${S.n}</h3><p class="m">${typeof S.d==='function'?VH(S.d):S.d}</p>`);
-    if(S.dark&&!s.eq.light)body.push(`<p class="m">Тут темно хоч в око стрель. Без ліхтаря в руці нічого не зробиш.</p>`);
-    if(S.bells)body.push(rBells());
-    if(S.stones)body.push(rStones());
-    if(S.bog)body.push(rBog());
-    for(const A of S.acts||[]){const id=`${l}.${S.id}.${A.id}`;if(A.once&&s.done[id])continue;if(A.show&&!A.show())continue;
-      if(A.riddle){body.push(`<p class="quote">${A.riddle.q}</p>${s.wrong[id]?`<p class="hint">${A.riddle.hint()}</p>`:''}<div class="act"><input id="rd-${id.replace(/\./g,'-')}" data-rid="${id}" autocomplete="off" aria-label="Відповідь на загадку" placeholder="Твоя відповідь">${btn('Відповісти','riddle',id)}</div>`);continue}
-      let lab=A.t;if(A.c||A.it)lab+=` (${costTxt(A.c,A.it)})`;if(A.fight)lab+=' — бій';
-      const o={ok:()=>laOk(id)};if(A.cd){o.cd='la.'+id;o.cs=A.cd}
-      body.push(`<div class="act">${btn(lab,'la',id,o)}${fresh9('a:'+id)}${A.fight&&quickOk(A.fight)?btn('Швидкий бій','qf',id,{ok:()=>laOk(id)}):''}${A.chk?chk(A.chk[0],A.chk[1]):''}</div>`)}
-    h+=S.face?`<section class="spot">${pimg(faceURL(S.face),64,64,'face')}<div>${body.join('')}</div></section>`:`<section>${body.join('')}</section>`}
-  return h}
+  let h=`<section><h2>${L.n}</h2><p>${typeof L.d==='function'?VH(L.d):L.d}</p><p class="m">Ліхтарі позначають, куди можна піти; люди чекають біля своїх дощок.</p><div class="act">${btn('Повернутися до маяка','leave')}</div><details class="ledg"${s.ldOpen?' open':''}><summary>Усе списком</summary>`;
+  for(const S of L.spots){if(S.show&&!S.show())continue;const body=`<h3>${S.n}</h3>${spotBody(l,S)}`;
+    h+=S.face?`<div class="spot">${pimg(faceURL(S.face),48,48,'face')}<div>${body}</div></div>`:`<div>${body}</div>`}
+  return h+'</details></section>'}
 
 function rTrade(){return`<section><h2>Крамниця Яреми</h2><p class="m">Товари на полицях, ваги на прилавку — для продажу.${s.f.crateDone?' Ярема дає тобі знижку за повернений ящик.':''}</p><details class="ledg"${s.ldOpen?' open':''}><summary>Усе списком</summary>${rTradeList()}</details></section>`}
 function rTradeList(){let h=`<section class="spot">${pimg(faceURL('yarema'),64,64,'face')}<div><h2>Крамниця Яреми</h2><p>Монет: ${V(()=>fmt(s.r.coin))}.${s.f.crateDone?' Ярема дає тобі знижку за повернений ящик.':''}</p></div></section><section><div class="bag">`;
@@ -3840,7 +4073,7 @@ function rJournal(){const nOdd=Object.keys(s.odd).length,nOD=Object.keys(OD).len
       return`<li class="${dn?'':'new'}"><span class="dot">${ix+1}</span><b>${c.n}</b> <span class="stt ${dn?'dn':'on'}">${dn?'завершено':'триває'}</span><br><span class="m">${c.d}</span>${bd.length?`<ul class="beats">${bd.map(b=>`<li><b>${b[1]}.</b> ${b[3]}</li>`).join('')}</ul>`:''}${left?`<span class="m">Історія триває…</span>`:''}</li>`}).join('')}</ol>`;
     if(s.chs.length<CH.length)h+=`<p class="m">Далі — невідомо.</p>`}
   if(s.jt==='pages')h+=`<div class="notes">${s.pages.slice().sort().map(n=>`<div class="note"><span class="no">${n==='m'?'без номера':'аркуш '+n}</span>${PG[n].replace(/ — О\.$/,'')}<span class="sig">— О.</span></div>`).join('')}</div>`;
-  if(s.jt==='chars')h+=`<div class="cards">${CHAR.filter(c=>s.met[c[0]]).map(c=>`<div class="card pcard">${pimg(faceURL(c[0]),64,64,'',c[1])}<div><b class="npc">${c[1]}</b><span class="role">${ROLE[c[0]]||''}</span><span class="m">${c[2]()}</span></div></div>`).join('')}</div>`;
+  if(s.jt==='chars')h+=`<div class="cards">${CHAR.filter(c=>s.met[c[0]]).map(c=>`<div class="card pcard">${pimg(faceURL(c[0]),96,96,'',c[1])}<div><b class="npc">${c[1]}</b><span class="role">${ROLE[c[0]]||''}</span><span class="m">${c[2]()}</span></div></div>`).join('')}</div>`;
   if(s.jt==='foes')h+=`<div class="cards">${Object.keys(EN).filter(k=>s.seenE[k]&&!EN[k].obj&&!EN[k].ally).map(k=>{const e=EN[k];return`<div class="card"><div class="pcard">${pimg(sprURL(k),64,64,'',e.n)}<div><b class="foe">${e.n}</b><span class="m">${e.d}</span></div></div>
     <div class="stats"><span>здоров’я<b>${e.hp}</b></span><span>броня<b>${e.arm}</b></span><span>ухилення<b>${e.eva}%</b></span><span>хід<b>${e.mv}${e.fly?' лет':''}${e.swim?' вода':''}</b></span></div>
     <div>${e.p.map(x=>`<span class="habit">${x[2].toLowerCase()}${x[1]&&x[0]!=='heal'?' '+x[1]:''}</span>`).join('')}</div><p class="m" style="margin:6px 0 0">Переможено: ${s.kills[k]||0}</p></div>`}).join('')}</div>`;
@@ -3969,8 +4202,8 @@ function render(){B={};bn=0;
     if(s.tab==='map')markSeen('map',s.at?'a:'+s.at+'.':'L:');else if(s.tab!=='hero')markSeen(s.tab);if(s.newTab[s.tab])delete s.newTab[s.tab]}
   try{if(!texInit){texInit=1;const rs=document.documentElement.style;for(const k of['stone','sand','plank','board','paper','slate','ruled','roll']){const u=pxURL('tx:'+k,()=>texBuf(k));if(u)rs.setProperty('--tx-'+k,`url(${u})`)}}
     if(!texInit2){texInit2=1;const rs=document.documentElement.style;for(const k of['wood','drift','stone','paper','slate']){const u=pxURL('fr:'+k,()=>frameBuf(k));if(u)rs.setProperty('--fr-'+k,`url(${u})`)}}
-    const th=s.cb?'':['home','tower','work','study','hero','folk','trade','chron','journal'].includes(s.tab)||(s.tab==='map'&&!s.at)?'th-home':s.tab==='shore'?'th-shore':'';document.body.classList.toggle('th-home',th==='th-home');document.body.classList.toggle('th-shore',th==='th-shore')}catch(e){}
-  hideTip();const mn=$('main');const vw0=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:''),same0=vw0===lastView&&!s.cb,xs=same0?xSnap(mn):null,as0=same0?aSnap(mn):null;let tlx=null;try{const q=same0&&mn.querySelector('.chr-tl');if(q)tlx=q.scrollLeft>=q.scrollWidth-q.clientWidth-4?-1:q.scrollLeft}catch(e){}patchStage(s.cb?'':s.tab==='home'?homeScene():s.tab==='shore'?shoreScene():s.tab==='tower'?towerScene():s.tab==='work'?workScene():s.tab==='study'?studyScene():s.tab==='map'&&!s.at?mapScene():s.tab==='hero'?heroScene():s.tab==='folk'?folkScene():s.tab==='trade'?tradeScene():'');zoomRun();mn.innerHTML=h;if(tlx!==null){try{const q=mn.querySelector('.chr-tl');if(q)q.scrollLeft=tlx<0?q.scrollWidth:tlx}catch(e){}}glossify(mn);rDlg();if(xs)xFade(mn,xs,1);if(as0)aMark(mn,as0);
+    const th=s.cb?'':['home','tower','work','study','hero','folk','trade','chron','journal'].includes(s.tab)||s.tab==='map'?'th-home':s.tab==='shore'?'th-shore':'';document.body.classList.toggle('th-home',th==='th-home');document.body.classList.toggle('th-shore',th==='th-shore')}catch(e){}
+  hideTip();const mn=$('main');const vw0=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:''),same0=vw0===lastView&&!s.cb,xs=same0?xSnap(mn):null,as0=same0?aSnap(mn):null;let tlx=null;try{const q=same0&&mn.querySelector('.chr-tl');if(q)tlx=q.scrollLeft>=q.scrollWidth-q.clientWidth-4?-1:q.scrollLeft}catch(e){}patchStage(s.cb?'':s.tab==='home'?homeScene():s.tab==='shore'?shoreScene():s.tab==='tower'?towerScene():s.tab==='work'?workScene():s.tab==='study'?studyScene():s.tab==='map'?(s.at?locScene():mapScene()):s.tab==='hero'?heroScene():s.tab==='folk'?folkScene():s.tab==='trade'?tradeScene():'');zoomRun();mn.innerHTML=h;if(tlx!==null){try{const q=mn.querySelector('.chr-tl');if(q)q.scrollLeft=tlx<0?q.scrollWidth:tlx}catch(e){}}glossify(mn);rDlg();if(xs)xFade(mn,xs,1);if(as0)aMark(mn,as0);
   const view=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:'');const prevView=lastView;if(view!==lastView&&mn.classList&&!RM()){for(const e of[mn,$('stage')]){if(!e||!e.classList)continue;e.classList.remove('tin');void e.offsetWidth;e.classList.add('tin')}}lastView=view;
   placePop();
   if(hlT){const tg=hlT;hlT=null;try{const el=document.getElementById(tg);if(el){el.scrollIntoView({block:'center',behavior:RM()?'auto':'smooth'});el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash')}}catch(e){}}
@@ -4169,6 +4402,7 @@ function bpopHTML(){const id=popB;if(!id)return'';let nm,lvl,d,btns='',extra='';
   if(id.startsWith('fl:'))return flPopHTML(id.slice(3));
   if(id.startsWith('wk:')||id.startsWith('st:'))return roomPopHTML(id);
   if(id.startsWith('mp:'))return mapPopHTML(id);
+  if(id.startsWith('lc:'))return locPopHTML(id);
   if(id.startsWith('hr:'))return heroPopHTML(id);
   if(id.startsWith('fk:')||id.startsWith('tr:'))return villagePopHTML(id);
   if(id==='hearth'){const n=s.b.hearth||0,c=bCost(HEARTH);nm='Вогнище';lvl=n;d=`+${2*n} жару/с, спалює ${fr(0.12*n)} плавника/с.`;
@@ -4183,7 +4417,7 @@ function bpopHTML(){const id=popB;if(!id)return'';let nm,lvl,d,btns='',extra='';
   return html}
 function placePop(){try{let L=document.getElementById('popl');if(!popB||s.cb){if(L&&L.innerHTML){L.innerHTML='';L.dataset.sig=''}return}
   if(!L){L=document.createElement('div');L.id='popl';document.body.appendChild(L)}
-  const el=document.querySelector(popB==='hearth'?'.scn [data-k="hearth"]':/^(fl|wk|st|mp|hr|fk|tr):/.test(popB)?`#stage .scn [data-k="${popB}"]`:`.scn [data-k="b:${popB}"],.scn [data-k^="b:${popB}"]`);if(!el){L.innerHTML='';return}
+  const el=document.querySelector(popB==='hearth'?'.scn [data-k="hearth"]':/^(fl|wk|st|mp|hr|fk|tr|lc):/.test(popB)?`#stage .scn [data-k="${popB}"]`:`.scn [data-k="b:${popB}"],.scn [data-k^="b:${popB}"]`);if(!el){L.innerHTML='';return}
   const html=bpopHTML(),sg=hsh(html);if(L.dataset.sig!==sg){L.innerHTML=html;L.dataset.sig=sg}const c=L.firstElementChild;if(!c)return;
   if(innerWidth<=560||(window.matchMedia&&matchMedia('(max-width:560px)').matches)){c.classList.add('sheet');return}c.classList.remove('sheet');
   const r=el.getBoundingClientRect(),cw=c.offsetWidth,ch=c.offsetHeight;let x=r.left+r.width/2+scrollX-cw/2;x=Math.max(8,Math.min(x,document.documentElement.clientWidth-cw-8));
@@ -4264,6 +4498,146 @@ function flPopHTML(id){const nm=FLN[id],built=floorBuilt(id),U2=FLU[id]||[],tr=f
     else if(nx)ex+=`<p class="hand bph2">${tr?'Згодом тут можна буде зробити ще краще.':'Згодом цей поверх можна буде облаштувати краще.'}</p>`;else ex+=`<p class="hand bph2">Поверх облаштовано повністю.</p>`;
     const tb=FLTAB[id];if(tb&&s.tabs[tb]&&tb!=='home')bt+=btn('Зайти','tab',tb,{cls:'toggle'})}
   return`<div class="bpop" role="dialog" aria-label="${nm}"><div class="bph"><b>${nm}</b><span class="bplv">${built?(tr?'облаштовано: '+tr:'відновлено'):'у руїнах'}</span><button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div><p class="m">${FLD[id]}</p>${ex}<div class="act">${bt}</div></div>`}
+/* ============ МІСЦЕ НА МАПІ: сцена локації ============
+   Кожна локація — власне тло 432×240 (1,5×), складене з деталей (`lk*`): небо, море, земля, хати, башти, скелі.
+   Місця локації (spots) — ліхтарі на кілках або портрет людини на дошці; картка `lc:<місце>` з описом і діями.
+   Човен або вказівник — «Повернутися до маяка». Повний перелік — у «Усе списком». */
+const LCW=432,LCH=240;
+const cn=(x,y,s,sd)=>hh2(Math.floor(x/s)+(sd||0),Math.floor(y/s));
+function lkSky(b,h){const ph=GR;rampV(b,0,0,LCW,h,ph==='y'?['4','5','5','6']:ph==='d'?['C','o','3','4']:['A','B','C','1']);
+  if(ph!=='y'){const R=rng(h*7+3);for(let i=0;i<140;i++){const x=Math.floor(R()*LCW*SK),y=Math.floor(R()*(h-12)*SK);phx(b,x,y,R()<.1?'y':R()<.5?'6':'5')}}}
+function lkSea(b,y0,y1){rampV(b,0,y0,LCW,y1-y0,['T','S','R','Q','P']);const R=rng(y0*13+5),kk=b.k;
+  for(let i=0;i<260;i++){const x=Math.floor(R()*LCW*kk),yy=y0+1+R()*(y1-y0-1),y=Math.floor(yy*kk),l=Math.round((2+R()*8)*kk*(.4+.6*(yy-y0)/(y1-y0)));for(let q=0;q<l;q++)phx(b,x+q,y,yy<y0+10?'U':'T')}}
+function lkFar(b,y,seed){const R=rng(seed);for(let k=0;k<3;k++){const x=R()*LCW,w=50+R()*90,h=5+R()*9;polyFill(b,[[x-w/2,y],[x-w/4,y-h*.7],[x,y-h],[x+w/3,y-h*.6],[x+w/2,y]],(px,py)=>pset(b,px,py,'1'))}}
+const LKG={sand:(x,y)=>{const n=cn(x,y,3,1);return n<.12?'L':n<.62?'M':'N'},grass:(x,y)=>{const n=cn(x,y,2,2);return n<.1?'s':n<.6?'Z':'r'},
+  rock:(x,y)=>{const n=cn(x,y,3,3),st=cn(x,y*2.4,7,4);return st<.18?'D':n<.35?'E':'F'},heath:(x,y)=>{const n=cn(x,y,2,5),st=cn(x,y*2.4,7,6);return n<.14?'o':n<.3?'s':st<.2?'D':'E'},
+  bog:(x,y)=>{const n=cn(x,y,3,7);return n<.12?'Z':n<.55?'s':'x'},mud:(x,y)=>{const n=cn(x,y,3,8);return n<.1?'L':n<.55?'W':'V'},white:(x,y)=>{const n=cn(x,y,3,9);return n<.1?'M':n<.55?'N':'O'},
+  cave:(x,y)=>{const n=cn(x,y,4,10);return n<.1?'D':n<.6?'x':'A'},plank:(x,y)=>woodC(x,y,['V','W','X','Y'],.55,2)};
+function lkGround(b,pts,kind,rim){const f=LKG[kind];polyFill(b,pts,(x,y)=>pset(b,x,y,f(EXX,EXY)));if(rim)for(let i=0;i<pts.length-1;i++){const[a,c]=[pts[i],pts[i+1]];if(a[1]>=LCH-1&&c[1]>=LCH-1)continue;if(Math.abs(a[0]-c[0])<1)continue;pline(b,a[0],a[1],c[0],c[1],rim)}}
+function lkRock(b,cx,yb,w,h,sd){polyFill(b,[[cx-w/2,yb],[cx-w/2+w*.1,yb-h*.6],[cx-w*.15,yb-h],[cx+w*.2,yb-h*.9],[cx+w/2,yb-h*.3],[cx+w/2,yb]],(x,y)=>{const u=(x-cx)/w*2,v=(yb-y)/h,l=-u*.6+v*.5+(cn(EXX,EXY,3,sd)-.5)*.4;pset(b,x,y,l>.45?'G':l>.05?'F':l>-.35?'E':'D')})}
+function lkHut(b,x,yb,w,wallH,roofH,o){const hb=hut(w,wallH,roofH,Object.assign({wall:['V','W','X'],roof:['D','E','F'],door:1,win:[3],lit:1},o));blitTo(b,hb,x,yb-hb.h)}
+function lkPiles(b,x,y,w,len){for(let px=x+2;px<x+w;px+=7){prect(b,px,y,2,len,'V');prect(b,px,y,1,len,'W');prect(b,px,y+len-3,2,3,'Z')}}
+function lkTowerS(b,cx,yb,w,h,o={}){const top=yb-h;hiRect(b,cx-w/2,top,w,h,(i,j,x,y)=>{const k=b.k,bh=Math.round(4*k),bw=Math.round(7*k),row=Math.floor(j/bh),off=row%2?Math.round(bw/2):0,mort=j%bh===bh-1||(i+off)%bw===0,u=(x-cx)/w*2;
+    const sh=u<-.6?'G':u>.55?'D':u>.2?'E':'F';if(mort)return sh==='D'?'x':'D';return hh2(Math.floor((i+off)/bw),row)<.12?(sh==='G'?'F':'E'):sh});
+  if(o.win)for(const[wx,wy,lit]of o.win){prect(b,cx+wx-2,top+wy,4,6,lit?'J':'x');if(lit)prect(b,cx+wx-1,top+wy+2,2,3,'I')}
+  if(o.crown){for(let x=cx-w/2-2;x<cx+w/2+2;x+=4)prect(b,x,top-4,3,4,'F');prect(b,cx-w/2-2,top-1,w+4,2,'E')}
+  if(o.roof)polyFill(b,[[cx-w/2-3,top],[cx,top-o.roof],[cx+w/2+3,top]],(x,y)=>pset(b,x,y,x<cx?'E':'D'))}
+function lkPalis(b,x0,x1,yb,h){for(let x=x0;x<x1;x+=3.2){const hh=h-(hh2(Math.floor(x),3)*4|0);polyFill(b,[[x,yb],[x,yb-hh],[x+1.3,yb-hh-2.5],[x+2.7,yb-hh],[x+2.7,yb]],(px,py)=>pset(b,px,py,woodC(EXX,EXY,WD,px-x<1?.75:.45,Math.floor(x))))}prect(b,x0,yb-h*.4,x1-x0,1.5,'V');prect(b,x0,yb-h*.8,x1-x0,1.5,'V')}
+function lkFire(b,x,yb){prect(b,x-3,yb-1,6,2,'V');for(let i=0;i<5;i++){const h=3+((i*7)%4);prect(b,x-2+i,yb-1-h,1,h,i%2?'K':'J')}pset(b,x,yb-6,'I');pset(b,x-1,yb-4,'I');pset(b,x+1,yb-3,'y')}
+function lkReeds(b,x0,x1,yb,sd){const R=rng(sd);for(let x=x0;x<x1;x+=1.2+R()*2){const h=6+R()*12,l=(R()-.5)*3;pline(b,x,yb,x+l,yb-h,R()<.5?'X':'W');if(R()<.3)prect(b,x+l-.5,yb-h-2,1.5,3,'V')}}
+function lkPine(b,cx,yb,h){prect(b,cx-1,yb-h*.25,2,h*.25,'V');for(let k=0;k<4;k++){const y=yb-h*.2-k*h*.2,w=h*.45*(1-k*.2);polyFill(b,[[cx-w/2,y],[cx,y-h*.32],[cx+w/2,y]],(x,yy)=>pset(b,x,yy,x<cx-w*.15?'Z':x<cx+w*.15?'s':'x'))}}
+function lkArch(b,cx,yb,w,h){const t=4;polyFill(b,[[cx-w/2,yb],[cx-w/2,yb-h+w/2],[cx-w/4,yb-h+w/8],[cx,yb-h],[cx+w/4,yb-h+w/8],[cx+w/2,yb-h+w/2],[cx+w/2,yb],[cx+w/2-t,yb],[cx+w/2-t,yb-h+w/2+1],[cx,yb-h+t],[cx-w/2+t,yb-h+w/2+1],[cx-w/2+t,yb]],(x,y)=>pset(b,x,y,cn(EXX,EXY,3,11)<.2?'E':x<cx?'G':'F'))}
+function lkStatue(b,cx,yb,h){polyFill(b,[[cx-h*.16,yb],[cx-h*.14,yb-h*.6],[cx-h*.1,yb-h*.85],[cx,yb-h],[cx+h*.1,yb-h*.85],[cx+h*.14,yb-h*.6],[cx+h*.16,yb]],(x,y)=>{const u=(x-cx)/(h*.16);pset(b,x,y,cn(EXX,EXY,2,12)<.15?'E':u<-.3?'G':u>.4?'D':'F')});prect(b,cx-h*.2,yb-1,h*.4,2,'E');pset(b,cx-1,yb-h*.82,'x');pset(b,cx+1,yb-h*.82,'x')}
+function lkMill(b,cx,yb){polyFill(b,[[cx-10,yb],[cx-7,yb-30],[cx+7,yb-30],[cx+10,yb]],(x,y)=>pset(b,x,y,woodC(EXX,EXY,['V','W','X','Y'],x<cx-3?.75:.4,5)));polyFill(b,[[cx-9,yb-30],[cx,yb-40],[cx+9,yb-30]],(x,y)=>pset(b,x,y,x<cx?'v':'t'));
+  prect(b,cx-2,yb-9,4,9,'x');prect(b,cx-2,yb-22,3,3,'J');const hx=cx,hy=yb-31;for(let a=0;a<4;a++){const an=a*Math.PI/2+.4,ex=hx+Math.cos(an)*24,ey=hy+Math.sin(an)*24;pline(b,hx,hy,ex,ey,'W');pline(b,hx+Math.cos(an+.08)*6,hy+Math.sin(an+.08)*6,ex+Math.cos(an+1.57)*4,ey+Math.sin(an+1.57)*4,'N')}prect(b,hx-1,hy-1,2,2,'V')}
+function lkCrates(b,x,yb,n){for(let i=0;i<n;i++){const cx=x+(i%3)*11+(i>2?5:0),cy=yb-(i>2?10:0)-10;polyFill(b,[[cx,cy],[cx+10,cy],[cx+10,cy+10],[cx,cy+10]],(px,py)=>pset(b,px,py,woodC(EXX,EXY,WD,.7-(px-cx)/24,i)));prect(b,cx,cy,10,1,'Y');pline(b,cx,cy,cx+10,cy+10,'W')}}
+function lkGraves(b,x,yb,n){for(let i=0;i<n;i++){const cx=x+i*14,h=8+(i%2)*3;prect(b,cx,yb-h,2,h,'H');prect(b,cx-2,yb-h+2,6,2,'H');prect(b,cx+1,yb-h,1,h,'F');prect(b,cx-3,yb,8,1,'E')}}
+function lkBrig(b,x0,yb){const gun=x=>yb-58+(x-x0)*.12,keel=x=>{const t=(x-x0-110)/120;return yb-6-30*t*t*t*t};
+  const pts=[];for(let x=x0;x<=x0+220;x+=6)pts.push([x,gun(x)]);for(let x=x0+220;x>=x0;x-=6)pts.push([x,keel(x)]);
+  polyFill(b,pts,(x,y)=>{const g=gun(x),k=Math.max(g+6,keel(x)),t=(y-g)/(k-g),band=Math.floor(t*9),ft=t*9-band;
+    if((band===4&&x>x0+40&&x<x0+70)||(band===6&&x>x0+130&&x<x0+150)){pset(b,x,y,Math.floor(EXX)%14<3?'W':'x');return}
+    if(ft<.14){pset(b,x,y,'x');return}pset(b,x,y,woodC(EXX,EXY,WD,.8-band*.07-(x-x0)/700,band*5))});
+  pline(b,x0,gun(x0)-1,x0+220,gun(x0+220)-1,'Y');for(let i=0;i<14;i++){const x=x0+12+i*15,g=gun(x);if(i===5||i===9)continue;pline(b,x,g,x-2,g-10-(i%3)*5,'X');pline(b,x+1,g,x-1,g-10-(i%3)*5,'V')}
+  pline(b,x0+150,gun(x0+150),x0+190,gun(x0+150)-46,'W');pline(b,x0+151,gun(x0+150),x0+191,gun(x0+150)-46,'V');
+  prect(b,x0+196,gun(x0+196)+8,8,6,'x');prect(b,x0+197,gun(x0+196)+9,6,4,'B');prect(b,x0+200,gun(x0+196)+9,1,4,'V')}
+function lkVortex(b,cx,cy){for(let a=0;a<900;a++){const t=a/900,an=t*6.283*4,r=4+t*90,x=cx+Math.cos(an)*r*1.8,y=cy+Math.sin(an)*r*.55;if(y<100||y>LCH)continue;pset(b,x,y,t<.2?'u':t<.5?'U':'T');if(a%3===0)pset(b,x+1,y,'S')}
+  hiRect(b,cx-14,cy-5,28,10,(i,j,x,y)=>{const d=Math.hypot((x-cx)/2.6,y-cy);return d<4?(d<1.6?'x':'P'):''})}
+/* Тла локацій і місця (x — центр, y — низ позначки) */
+const LKS={
+  chaika:{sea:[96,170],bg(b){lkSky(b,100);lkSea(b,96,240);lkFar(b,98,3);lkBrig(b,150,186);lkGround(b,[[0,240],[0,196],[40,186],[90,190],[140,200],[220,206],[300,200],[432,208],[432,240]],'rock','G');lkRock(b,60,198,46,30,1);lkRock(b,380,214,40,22,2);lkRock(b,250,214,30,14,3)},
+    sp:{deck:[230,128],cabin:[338,158],hold:[205,186]}},
+  village:{sea:[96,190],bg(b){lkSky(b,100);lkSea(b,96,240);lkFar(b,98,7);
+      lkHut(b,30,142,52,22,16,{roof:['t','v','w'],win:[8,38],chim:1,chimX:40});lkPiles(b,30,142,52,40);lkHut(b,120,136,40,18,14,{roof:['D','E','F'],win:[6]});lkPiles(b,120,136,40,46);
+      lkHut(b,196,140,46,20,14,{roof:['V','W','X'],win:[6,34]});lkPiles(b,196,140,46,42);lkHut(b,360,150,44,18,12,{roof:['D','E','F'],win:[30],lit:0});lkPiles(b,360,150,44,34);
+      lkGround(b,[[0,240],[0,186],[30,182],[90,184],[160,188],[250,190],[270,196],[270,240]],'plank','Y');lkGround(b,[[250,198],[432,196],[432,206],[250,208]],'plank','Y');for(let x=256;x<432;x+=12){prect(b,x,206,2,34,'V')}},
+    sp:{tavern:[56,182],hut:[140,184],shop:[220,186],pier:[300,196],harbor:[400,194],boy:[350,232]}},
+  cliffs:{sea:[110,240],bg(b){lkSky(b,112);lkSea(b,110,240);lkFar(b,112,9);lkGround(b,[[0,240],[0,64],[40,56],[90,62],[140,82],[170,112],[176,140],[210,150],[240,140],[268,160],[300,176],[330,240]],'heath','H');
+      for(const[x,h]of[[206,22],[220,30],[234,20]]){prect(b,x,150-h,7,h,'F');prect(b,x,150-h,2,h,'G');prect(b,x+5,150-h,2,h,'D')}lkTowerS(b,410,118,6,16,{roof:4,win:[[0,4,1]]})},
+    sp:{nests:[70,60],slope:[120,120],stones:[220,152],gorge:[290,178]}},
+  bay:{sea:[100,200],bg(b){lkSky(b,100);const low=typeof lowTide==='function'&&lowTide();lkSea(b,96,240);lkFar(b,98,11);
+      if(low)lkGround(b,[[0,240],[0,180],[80,170],[200,176],[330,170],[432,178],[432,240]],'mud','X');else lkGround(b,[[0,240],[0,206],[90,200],[200,212],[300,206],[432,214],[432,240]],'mud','X');
+      for(const x of[50,96,150,206,262,318,372])prect(b,x,140,4,(low?44:70)+(x%3)*2,'V'),prect(b,x,140,1,(low?44:70),'W');
+      if(!s.f.bayChest&&low){prect(b,210,182,16,9,'W');prect(b,210,182,16,2,'Y');prect(b,210,185,16,1,'H');pset(b,217,187,'g')}},
+    sp:{shallow:[110,206],chest:[218,214],deep:[320,170]}},
+  cave:{dark:1,bg(b){prect(b,0,0,LCW,LCH,'x');lkGround(b,[[0,0],[432,0],[432,240],[380,240],[372,120],[330,60],[230,40],[120,52],[70,110],[60,240],[0,240]],'cave');
+      lkGround(b,[[60,240],[64,190],[200,180],[330,186],[376,200],[380,240]],'rock');polyFill(b,[[300,200],[372,196],[378,232],[296,236]],(x,y)=>pset(b,x,y,cn(EXX,EXY,2,13)<.08?'S':'P'));
+      lkCrates(b,150,196,5);for(const[x,y]of[[110,120],[250,100]]){prect(b,x,y,2,8,'V');pset(b,x,y-1,'K');pset(b,x,y-2,'J');pset(b,x+1,y-3,'I')}},
+    sp:{gate:[50,200],store:[170,196],depth:[260,180],lake:[340,220]},lt:[[111,116],[251,96]]},
+  reef:{sea:[100,240],bg(b){lkSky(b,104);lkSea(b,100,240);lkFar(b,102,13);lkGround(b,[[60,240],[80,196],[130,184],[220,180],[320,186],[380,206],[400,240]],'rock','G');
+      lkTowerS(b,226,186,28,96,{roof:18,win:[[0,22,0],[0,50,0]]});prect(b,219,96,14,14,'x');polyFill(b,[[222,98],[226,95],[230,98],[231,106],[221,106]],(x,y)=>pset(b,x,y,x<226?'q':'p'));prect(b,222,172,8,14,'x');lkGraves(b,300,204,4)},
+    sp:{bells:[226,112],crypt:[226,190],grave:[320,212]}},
+  fort:{sea:[100,200],bg(b){lkSky(b,104);lkSea(b,100,240);lkGround(b,[[0,240],[0,170],[100,160],[300,158],[432,164],[432,240]],'rock','G');
+      lkPalis(b,20,300,166,30);lkTowerS(b,370,166,30,112,{crown:1,win:[[0,26,0],[0,60,0]]});lkFire(b,370,52);prect(b,230,146,48,22,'E');prect(b,230,146,48,2,'G');for(let x=236;x<272;x+=6)prect(b,x,152,2,10,'x');
+      lkFire(b,60,164);lkFire(b,180,164);lkGround(b,[[0,240],[0,214],[90,210],[110,240]],'plank','Y')},
+    sp:{pier:[48,222],yard:[150,196],prison:[254,190],tower:[370,100]},lt:[[370,46],[60,158],[180,158]]},
+  warehouse:{bg(b){lkSky(b,96);lkFar(b,96,15);lkGround(b,[[0,240],[0,150],[432,146],[432,240]],'sand');
+      polyFill(b,[[70,150],[70,92],[360,88],[360,150]],(x,y)=>pset(b,x,y,woodC(EXX,EXY,['x','V','W','X'],.55-(y-90)/300,3)));for(let x=70;x<360;x+=6)prect(b,x,90,1,60,'V');
+      polyFill(b,[[60,94],[214,62],[370,90]],(x,y)=>pset(b,x,y,cn(EXX,EXY,2,14)<.1?'E':x<214?'F':'E'));prect(b,186,110,40,40,'x');prect(b,206,110,1,40,'V');prect(b,280,108,10,8,'J');pset(b,284,111,'I');
+      lkCrates(b,370,200,6);for(let i=0;i<5;i++){pline(b,90+i*8,150,96+i*8,120,'H')}},
+    sp:{yard:[90,206],contact:[150,152],hall:[206,152],cell:[300,152],crates:[390,212]},lt:[[285,112]]},
+  bog:{bg(b){lkSky(b,108);lkFar(b,108,17);lkGround(b,[[0,240],[0,110],[432,108],[432,240]],'bog');
+      for(const[x,y,w]of[[20,150,70],[140,200,90],[270,170,60],[60,220,50],[350,214,70]])polyFill(b,[[x,y],[x+w*.2,y-4],[x+w*.8,y-4],[x+w,y],[x+w*.8,y+4],[x+w*.2,y+4]],(px,py)=>pset(b,px,py,cn(EXX,EXY,2,15)<.08?'R':'P'));
+      lkReeds(b,0,120,150,5);lkReeds(b,200,260,172,6);lkReeds(b,380,432,210,7);lkHut(b,310,150,44,18,14,{roof:['W','X','Y'],win:[6]});
+      for(let i=0;i<14;i++){const x=110+i*14,y=210-i*4;prect(b,x,y,9,2,'W');prect(b,x,y,9,1,'X')}ditherBlend(b,0,100,LCW,40,'5',.22)},
+    sp:{edge:[60,208],path:[200,178],hut:[340,152]},lt:[[318,138]]},
+  shoal:{sea:[96,160],bg(b){lkSky(b,98);lkSea(b,96,240);lkFar(b,98,19);lkGround(b,[[0,240],[0,170],[120,160],[240,166],[330,158],[432,170],[432,240]],'sand','N');
+      for(let i=0;i<9;i++){const x=30+i*44,y=190+(i%3)*14;polyFill(b,[[x,y],[x+20,y-2],[x+26,y+2],[x+4,y+3]],(px,py)=>pset(b,px,py,'R'))}lkRock(b,330,168,60,26,4);lkRock(b,360,172,30,14,5);prect(b,316,160,10,6,'x')},
+    sp:{flats:[150,196],king:[330,170]}},
+  spit:{sea:[96,240],bg(b){lkSky(b,100);lkSea(b,96,240);lkFar(b,98,21);lkGround(b,[[0,240],[0,200],[100,186],[220,176],[330,160],[432,156],[432,240]],'white','u');
+      lkHut(b,320,160,44,20,14,{roof:['D','E','F'],win:[6],chim:0});prect(b,354,104,6,42,'F');prect(b,354,104,2,42,'G');prect(b,352,102,10,3,'E')},
+    sp:{sand:[110,196],shallows:[230,186],hut:[340,162]},lt:[[328,146]]},
+  mine:{dark:1,bg(b){prect(b,0,0,LCW,LCH,'x');lkGround(b,[[0,0],[432,0],[432,240],[400,240],[390,90],[300,50],[150,50],[60,100],[40,240],[0,240]],'cave');
+      lkGround(b,[[40,240],[44,190],[200,176],[380,180],[400,240]],'rock');for(const x of[90,180,270,350]){prect(b,x,90,5,96,'W');prect(b,x,90,2,96,'X')}prect(b,80,86,290,6,'W');prect(b,80,86,290,2,'X');
+      for(let x=60;x<400;x+=7)prect(b,x,214,4,2,'W');prect(b,50,212,360,1,'H');prect(b,50,218,360,1,'H');prect(b,140,198,26,12,'E');prect(b,140,198,26,2,'G');
+      polyFill(b,[[320,180],[352,180],[356,160],[316,160]],(x,y)=>pset(b,x,y,'D'));prect(b,326,166,20,10,'K');prect(b,330,169,12,6,'J');pset(b,336,171,'I')},
+    sp:{gate:[66,206],shaft:[220,186],forge:[336,184]},lt:[[336,170]]},
+  shipisle:{sea:[100,170],bg(b){lkSky(b,104);lkSea(b,100,240);lkFar(b,102,23);lkGround(b,[[0,240],[0,200],[140,190],[260,180],[432,150],[432,240]],'sand','N');lkGround(b,[[260,182],[300,150],[432,118],[432,170]],'grass');
+      for(const[x,h]of[[310,60],[340,72],[372,66],[404,78],[426,60]])lkPine(b,x,152,h);
+      for(let i=0;i<9;i++){const x=150+i*12;pline(b,x,190,x-6,150+Math.abs(4-i)*4,'X');pline(b,x+1,190,x-5,150+Math.abs(4-i)*4,'V')}prect(b,130,190,120,3,'W');prect(b,130,190,120,1,'Y')},
+    sp:{shore:[80,212],yard:[200,196],wood:[380,156]}},
+  monastery:{sea:[100,240],bg(b){lkSky(b,104);lkSea(b,100,240);lkFar(b,102,25);for(const[x,w,h]of[[90,40,70],[150,46,86],[214,46,96],[278,46,86],[342,40,70]])lkArch(b,x,190,w,h);lkTowerS(b,214,96,20,30,{roof:10});
+      for(let x=0;x<LCW;x+=3)pset(b,x,190+Math.sin(x/9)*1.2,'u')},
+    sp:{gate:[150,196],nave:[290,190]}},
+  guardians:{sea:[100,240],bg(b){lkSky(b,104);lkSea(b,100,240);lkGround(b,[[30,240],[60,180],[160,160],[300,156],[380,176],[410,240]],'rock','G');for(const[x,h]of[[150,64],[226,78],[300,64]])lkStatue(b,x,158,h);
+      for(let i=0;i<6;i++)prect(b,90+i*8,226-i*8,14,3,'F')},
+    sp:{steps:[110,226],altar:[226,170]}},
+  cape:{sea:[100,240],bg(b){lkSky(b,104);lkSea(b,100,240);lkFar(b,102,27);lkGround(b,[[0,240],[0,86],[80,80],[160,100],[240,124],[300,150],[340,176],[360,240]],'grass','r');
+      lkMill(b,100,82);lkHut(b,200,124,40,16,12,{roof:['t','v','w'],win:[6]});lkGround(b,[[330,206],[432,202],[432,212],[330,214]],'plank','Y');for(let x=336;x<432;x+=12)prect(b,x,212,2,28,'V')},
+    sp:{mill:[100,84],hut:[220,126],port:[380,204]},lt:[[99,61],[207,112]]},
+  heart:{sea:[96,240],bg(b){lkSky(b,100);lkSea(b,96,240);lkVortex(b,216,170);lkRock(b,60,210,70,40,6);lkRock(b,380,220,60,34,7)},
+    sp:{core:[216,166]}},
+};
+function lkBg3(l){const b=pbuf(LCW,LCH);const C=LKS[l];if(C)C.bg(b);else{lkSky(b,100);lkSea(b,96,240)}return b}
+function lkPin3(on){const b=pbuf(10,22);prect(b,4,6,2,16,'W');prect(b,4,6,1,16,'X');prect(b,2,5,6,1,'V');prect(b,6,5,1,3,'z');
+  prect(b,1,8,6,7,'z');prect(b,2,9,4,5,on?'J':'B');if(on){prect(b,3,10,2,3,'I');pset(b,3,10,'y')}prect(b,1,7,6,1,'E');prect(b,2,15,4,1,'E');return b}
+function lkPlq3(){const b=pbuf(20,28);prect(b,9,18,2,10,'W');prect(b,9,18,1,10,'X');prect(b,0,0,20,20,'V');prect(b,1,1,18,18,'W');prect(b,0,0,20,1,'Y');prect(b,2,2,16,16,'x');return b}
+function lkBoat3(sea){const b=pbuf(36,20);if(!sea){prect(b,16,4,3,16,'W');prect(b,16,4,1,16,'X');polyFill(b,[[2,2],[30,2],[35,7],[30,12],[2,12]],(x,y)=>pset(b,x,y,woodC(EXX,EXY,WD,.75,2)));prect(b,2,2,28,1,'Y');prect(b,6,6,18,1,'V');return b}
+  polyFill(b,[[0,9],[36,9],[31,17],[5,17]],(x,y)=>{const t=(y-9)/8,band=Math.floor(t*3);if((t*3-band)<.18&&band)return pset(b,x,y,'V');pset(b,x,y,woodC(EXX,EXY,WD,.8-band*.2,band))});prect(b,0,9,36,1,'Y');
+  pline(b,8,8,26,2,'X');pline(b,8,9,26,3,'W');pline(b,0,18,36,18,'U');pline(b,3,19,33,19,'T');return b}
+for(const f of['lkBg3','lkPin3','lkPlq3','lkBoat3'])globalThis[f]=HI(globalThis[f]);
+function lcSig(l){return l+':'+(l==='bay'?(lowTide()?1:0)+''+(s.f.bayChest?1:0):'')}
+/* Тіло місця: опис, головоломки, дії (одне для картки й для списку) */
+function spotBody(l,S,pre){const body=[];body.push(`<p class="m">${typeof S.d==='function'?VH(S.d):S.d}</p>`);
+  if(S.dark&&!s.eq.light)body.push(`<p class="m">Тут темно хоч в око стрель. Без ліхтаря в руці нічого не зробиш.</p>`);
+  if(S.bells)body.push(rBells());if(S.stones)body.push(rStones());if(S.bog)body.push(rBog());
+  for(const A of S.acts||[]){const id=`${l}.${S.id}.${A.id}`;if(A.once&&s.done[id])continue;if(A.show&&!A.show())continue;
+    if(A.riddle){body.push(`<p class="quote">${A.riddle.q}</p>${s.wrong[id]?`<p class="hint">${A.riddle.hint()}</p>`:''}<div class="act"><input id="${pre||'rd'}-${id.replace(/\./g,'-')}" data-rid="${id}" autocomplete="off" aria-label="Відповідь на загадку" placeholder="Твоя відповідь">${btn('Відповісти','riddle',id)}</div>`);continue}
+    let lab=A.t;if(A.c||A.it)lab+=` (${costTxt(A.c,A.it)})`;if(A.fight)lab+=' — бій';
+    const o={ok:()=>laOk(id)};if(A.cd){o.cd='la.'+id;o.cs=A.cd}
+    body.push(`<div class="act">${btn(lab,'la',id,o)}${fresh9('a:'+id)}${A.fight&&quickOk(A.fight)?btn('Швидкий бій','qf',id,{ok:()=>laOk(id)}):''}${A.chk?chk(A.chk[0],A.chk[1]):''}</div>`)}
+  return body.join('')}
+function spotNew(l,S){return(S.acts||[]).some(A=>{const id=`${l}.${S.id}.${A.id}`;return!(A.once&&s.done[id])&&(!A.show||A.show())&&!prev9['a:'+id]&&laOk(id)})}
+function locScene(){const l=s.at,L=LOC[l],C=LKS[l]||{sp:{}},W=LCW,H=LCH,dark=(L.dark||C.dark)&&!s.eq.light;
+  let h=`<span data-sk="bg" data-sig="bg" class="scbg">${VH(()=>pimg(pxURL('lc3:'+lcSig(l)+':'+GR,()=>lkBg3(l)),864,480,'scene',L.n))}</span>`;
+  const sps=L.spots.filter(S=>!S.show||S.show()),lights=[];let auto=0;
+  for(const S of sps){let p=C.sp[S.id];if(!p){p=[60+((auto++)*97)%320,200]}const[x,y]=p,nw=spotNew(l,S);
+    if(S.face){const sp=obURL('lcq3',lkPlq3);h+=ob('lc:'+S.id,'bpop','lc:'+S.id,sp,x-10,y-28,W,H,S.n,`<b>${S.n}</b>`,{cls:'lcp',pulse:nw,always:nw,inner:`<img class="lcface" src="${faceURL(S.face)}" alt=""><span class="mpl">${S.n}</span>`})}
+    else{const on=!(S.dark&&!s.eq.light);h+=ob('lc:'+S.id,'bpop','lc:'+S.id,obURL('lcp3:'+(on?1:0),()=>lkPin3(on)),x-5,y-22,W,H,S.n,`<b>${S.n}</b>`,{cls:'lcp',pulse:nw,always:nw,inner:`<span class="mpl">${S.n}</span>`});if(on)lights.push({x,y:y-11,r:26,c:WARM,a:.55})}}
+  h+=ob('lc:leave','leave','',obURL('lcb3:'+(L.sea?1:0),()=>lkBoat3(!!L.sea)),6,LCH-24,W,H,'Повернутися до маяка','<b>Назад</b><br>Повернутися до маяка.',{cls:'lcp',inner:'<span class="mpl">До маяка</span>'});
+  for(const[x,y]of C.lt||[])lights.push({x,y,r:34,c:FIRE,a:.6});
+  return`<div class="scn rm lc${dark?' lcd':''}" data-scn="lc:${l}" style="${scnD()}">${h}${fxCanvas('lc',W,H)}${lightLayers(W,H,{fire:[],win:lights})}</div>`}
+function locPopHTML(id){const l=s.at,L=LOC[l];if(!L)return'';const S=L.spots.find(x=>x.id===id.slice(3));if(!S||(S.show&&!S.show()))return'';
+  return`<div class="bpop wide" role="dialog" aria-label="${S.n}"><div class="bph"><b>${S.n}</b><button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div>${S.face?`<div class="lcpf">${pimg(faceURL(S.face),48,48,'face','')}<div>${spotBody(l,S,'rdp')}</div></div>`:spotBody(l,S,'rdp')}</div>`}
 /* ============ МАПА: морська карта на пергаменті ============
    Стара піксельна мапа (mapBuf, 160×108) — маска суші й деталей; поверх неї малюємо карту чорнилом:
    пергамент, штрихування моря, обведені береги, обмілини, румби, троянда вітрів. Нерозвідане ховається під вугільним туманом.
@@ -4315,7 +4689,7 @@ function mapPopHTML(id){const card=(nm,lv,body,act)=>`<div class="bpop" role="di
     if(s.floors.gallery)b+=`<div class="row"><span><b>Сигнальне вогнище</b><br><span class="m">Великий вогонь кличе кораблі, що минають шхери. Вони скидають вантаж. Раз на дві хвилини.</span></span>${btn('Запалити','signal','',{ok:()=>s.r.ember>=sigCost(),cd:'signal',cs:120})}<span class="ccs">${R('ember',fmt(sigCost()))}</span></div>`;
     if(!b)b='<p class="hand">Звідси видно лише найближчі береги. Вище, з оглядової, було б видно далі.</p>';return card('Маяк','',`<div class="rlist">${b}</div>`,a)}
   const L=LOC[k];if(!L||!s.disc[k])return'';const[ok,why]=canGo(k);const tags=[s.visited[k]?'відвідано':'нове',L.sea===2?'шхуна':L.sea?'море':'',L.dark?'темрява':''].filter(Boolean).map(t=>`<span class="chip">${t}</span>`).join(' ');
-  return card(L.n,'',`${pimg(sceneURL(LSC(k)),264,110,'thumb')}<div class="chips">${tags}</div><p class="m">${why||L.d}</p>${L.sea&&s.f.boat?`<p class="m">Вихід у море: ${R('prov',seaCost(L))}.</p>`:''}`,btn('Вирушити','go',k,{ok:()=>canGo(k)[0],cls:'main'}))}
+  return card(L.n,'',`${pimg(pxURL('lc3:'+lcSig(k)+':'+GR,()=>lkBg3(k)),264,147,'thumb')}<div class="chips">${tags}</div><p class="m">${why||L.d}</p>${L.sea&&s.f.boat?`<p class="m">Вихід у море: ${R('prov',seaCost(L))}.</p>`:''}`,btn('Вирушити','go',k,{ok:()=>canGo(k)[0],cls:'main'}))}
 /* ============ КІМНАТИ МАЯКА ЗБЛИЗЬКА: майстерня й кабінет ============
    Кожна кімната — жива сцена: речі на сцені відкривають картки з тими самими діями, що й списки нижче.
    Списки лишаються в «Усе списком» для тих, кому так зручніше. */
@@ -4455,7 +4829,7 @@ function fxReset(sc){FX.sc=sc;FX.ps=[];FX.walk=[];FX.crab=null;FX.ev={};FX.moth=
 function fxTick(ts){requestAnimationFrame(fxTick);if(typeof document==='undefined'||document.hidden)return;if(ts-FX.last<33)return;const dt=Math.min(.1,(ts-FX.last)/1000||.033);FX.last=ts;
   const cv=document.querySelector('#stage canvas.fx');if(!cv||RM()){if(FX.cv){FX.cv=null}return}
   if(cv!==FX.cv){FX.cv=cv;FX.g=cv.getContext('2d');FX.W=cv.width;FX.H=cv.height;FX.im=FX.g.createImageData(FX.W,FX.H);FX.u=new Uint32Array(FX.im.data.buffer);const sc=(cv.dataset.sig||'').slice(3);if(sc!==FX.sc)fxReset(sc)}
-  FX.t+=dt;FX.u.fill(0);try{if(FX.sc==='yd')fxYard(dt);else if(FX.sc==='sh')fxShore(dt);else if(FX.sc==='tw')fxTower(dt);else if(FX.sc==='wk'||FX.sc==='st')fxRoom(dt);else if(FX.sc==='mp')fxMap(dt);fxParts(dt)}catch(e){}FX.g.putImageData(FX.im,0,0)}
+  FX.t+=dt;FX.u.fill(0);try{if(FX.sc==='yd')fxYard(dt);else if(FX.sc==='sh')fxShore(dt);else if(FX.sc==='tw')fxTower(dt);else if(FX.sc==='wk'||FX.sc==='st')fxRoom(dt);else if(FX.sc==='mp')fxMap(dt);else if(FX.sc==='lc')fxLoc(dt);fxParts(dt)}catch(e){}FX.g.putImageData(FX.im,0,0)}
 /* Частинки: іскри, пил, бризки */
 function fxParts(dt){const out=[];for(const p of FX.ps){p.life+=dt;if(p.life>p.max)continue;p.vy+=(p.gr||0)*dt;p.vx*=1-.8*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;const f=p.life/p.max;
   if(p.kind==='flash'){const R=14*(1-f*.4),a=.55*(1-f);for(let j=-R;j<=R;j++)for(let i=-R;i<=R;i++){const d=Math.hypot(i,j)/R;if(d<1&&(1-d)*a>bay((p.x+i)|0,(p.y+j)|0))fxP(p.x+i,p.y+j,fxCol(d<.35?'I':'J',.5))}out.push(p);continue}
@@ -4570,6 +4944,12 @@ function fxMap(dt){const k=SK,[tx,ty]=MAPPT.tower.map(v=>v*MPK);
   /* маяк на карті світить, якщо запалено */
   if(s.f.won){const th=FX.t*.42,c=Math.cos(th),sn=Math.sin(th);for(let t=4;t<40;t+=1){const x=tx+c*t,y=ty-20+sn*t*.5;fxP(x*k,y*k,fxCol('g',.5*(1-t/40)))}}}
 if(typeof requestAnimationFrame==='function')requestAnimationFrame(fxTick);
+/* Місце на мапі: зорі, чайки, відблиски на воді, іскри від вогнів, вир у Серці Мли */
+function fxLoc(dt){const k=SK,W=LCW,C=LKS[s.at]||{},dark=C.dark;
+  if(!dark){fxStars(dt,80,W);fxShoot(dt,70,W);fxGulls(dt,20,70,W);if(C.sea){const[y0,y1]=C.sea;fxGlints(dt,GR==='n'?1:2,[0,y0+2,W,y1],(x,y)=>y>y0+1&&y<y1)}}
+  for(const[x,y]of C.lt||[])if(Math.random()<dt*2.2)FX.ps.push({x:(x+fxR(-2,2))*k,y:y*k,vx:fxR(-6,6),vy:fxR(-26,-12),gr:-3,life:0,max:fxR(.6,1.3),kind:'spark'});
+  if(s.at==='heart'){FX.vx=(FX.vx||0)+dt*.5;for(let i=0;i<40;i++){const t=i/40,an=t*6.283*3-FX.vx*(1.6-t),r=8+t*80;fxP((216+Math.cos(an)*r*1.8)*k,(170+Math.sin(an)*r*.55)*k,fxCol('u',.5*(1-t)))}}
+  if(s.at==='bog')fxWisps(dt,100,200,W)}
 /* ============ ВКЛАДКА «МАЯК»: розріз маяка як жива сцена ============
    Тло (небо, море, острів, кам'яна оболонка вежі, перекриття, балкон, ліхтарня) — одна картинка.
    Кожен поверх — окремий об'єкт-кімната: натиснув — картка поверху з відновленням і покращеннями.

@@ -319,21 +319,10 @@ function rStones(){const top=s.stones.map(()=>'  ___  ').join(' '),mid=s.stones.
   return h}
 
 function rLoc(){const l=s.at,L=LOC[l];
-  let h=`<section><h2>${L.n}</h2>${l==='bay'?VH(()=>{SCENEOPT.bayOpen=!!s.f.bayChest;return sceneImg(lowTide()?'bayLow':'bayHigh')}):sceneImg(L.sc||l)}<p>${L.d}</p>${btn('Повернутися до маяка','leave')}</section>`;
-  for(const S of L.spots){if(S.show&&!S.show())continue;
-    const body=[];
-    body.push(`<h3>${S.n}</h3><p class="m">${typeof S.d==='function'?VH(S.d):S.d}</p>`);
-    if(S.dark&&!s.eq.light)body.push(`<p class="m">Тут темно хоч в око стрель. Без ліхтаря в руці нічого не зробиш.</p>`);
-    if(S.bells)body.push(rBells());
-    if(S.stones)body.push(rStones());
-    if(S.bog)body.push(rBog());
-    for(const A of S.acts||[]){const id=`${l}.${S.id}.${A.id}`;if(A.once&&s.done[id])continue;if(A.show&&!A.show())continue;
-      if(A.riddle){body.push(`<p class="quote">${A.riddle.q}</p>${s.wrong[id]?`<p class="hint">${A.riddle.hint()}</p>`:''}<div class="act"><input id="rd-${id.replace(/\./g,'-')}" data-rid="${id}" autocomplete="off" aria-label="Відповідь на загадку" placeholder="Твоя відповідь">${btn('Відповісти','riddle',id)}</div>`);continue}
-      let lab=A.t;if(A.c||A.it)lab+=` (${costTxt(A.c,A.it)})`;if(A.fight)lab+=' — бій';
-      const o={ok:()=>laOk(id)};if(A.cd){o.cd='la.'+id;o.cs=A.cd}
-      body.push(`<div class="act">${btn(lab,'la',id,o)}${fresh9('a:'+id)}${A.fight&&quickOk(A.fight)?btn('Швидкий бій','qf',id,{ok:()=>laOk(id)}):''}${A.chk?chk(A.chk[0],A.chk[1]):''}</div>`)}
-    h+=S.face?`<section class="spot">${pimg(faceURL(S.face),64,64,'face')}<div>${body.join('')}</div></section>`:`<section>${body.join('')}</section>`}
-  return h}
+  let h=`<section><h2>${L.n}</h2><p>${typeof L.d==='function'?VH(L.d):L.d}</p><p class="m">Ліхтарі позначають, куди можна піти; люди чекають біля своїх дощок.</p><div class="act">${btn('Повернутися до маяка','leave')}</div><details class="ledg"${s.ldOpen?' open':''}><summary>Усе списком</summary>`;
+  for(const S of L.spots){if(S.show&&!S.show())continue;const body=`<h3>${S.n}</h3>${spotBody(l,S)}`;
+    h+=S.face?`<div class="spot">${pimg(faceURL(S.face),48,48,'face')}<div>${body}</div></div>`:`<div>${body}</div>`}
+  return h+'</details></section>'}
 
 function rTrade(){return`<section><h2>Крамниця Яреми</h2><p class="m">Товари на полицях, ваги на прилавку — для продажу.${s.f.crateDone?' Ярема дає тобі знижку за повернений ящик.':''}</p><details class="ledg"${s.ldOpen?' open':''}><summary>Усе списком</summary>${rTradeList()}</details></section>`}
 function rTradeList(){let h=`<section class="spot">${pimg(faceURL('yarema'),64,64,'face')}<div><h2>Крамниця Яреми</h2><p>Монет: ${V(()=>fmt(s.r.coin))}.${s.f.crateDone?' Ярема дає тобі знижку за повернений ящик.':''}</p></div></section><section><div class="bag">`;
@@ -360,7 +349,7 @@ function rJournal(){const nOdd=Object.keys(s.odd).length,nOD=Object.keys(OD).len
       return`<li class="${dn?'':'new'}"><span class="dot">${ix+1}</span><b>${c.n}</b> <span class="stt ${dn?'dn':'on'}">${dn?'завершено':'триває'}</span><br><span class="m">${c.d}</span>${bd.length?`<ul class="beats">${bd.map(b=>`<li><b>${b[1]}.</b> ${b[3]}</li>`).join('')}</ul>`:''}${left?`<span class="m">Історія триває…</span>`:''}</li>`}).join('')}</ol>`;
     if(s.chs.length<CH.length)h+=`<p class="m">Далі — невідомо.</p>`}
   if(s.jt==='pages')h+=`<div class="notes">${s.pages.slice().sort().map(n=>`<div class="note"><span class="no">${n==='m'?'без номера':'аркуш '+n}</span>${PG[n].replace(/ — О\.$/,'')}<span class="sig">— О.</span></div>`).join('')}</div>`;
-  if(s.jt==='chars')h+=`<div class="cards">${CHAR.filter(c=>s.met[c[0]]).map(c=>`<div class="card pcard">${pimg(faceURL(c[0]),64,64,'',c[1])}<div><b class="npc">${c[1]}</b><span class="role">${ROLE[c[0]]||''}</span><span class="m">${c[2]()}</span></div></div>`).join('')}</div>`;
+  if(s.jt==='chars')h+=`<div class="cards">${CHAR.filter(c=>s.met[c[0]]).map(c=>`<div class="card pcard">${pimg(faceURL(c[0]),96,96,'',c[1])}<div><b class="npc">${c[1]}</b><span class="role">${ROLE[c[0]]||''}</span><span class="m">${c[2]()}</span></div></div>`).join('')}</div>`;
   if(s.jt==='foes')h+=`<div class="cards">${Object.keys(EN).filter(k=>s.seenE[k]&&!EN[k].obj&&!EN[k].ally).map(k=>{const e=EN[k];return`<div class="card"><div class="pcard">${pimg(sprURL(k),64,64,'',e.n)}<div><b class="foe">${e.n}</b><span class="m">${e.d}</span></div></div>
     <div class="stats"><span>здоров’я<b>${e.hp}</b></span><span>броня<b>${e.arm}</b></span><span>ухилення<b>${e.eva}%</b></span><span>хід<b>${e.mv}${e.fly?' лет':''}${e.swim?' вода':''}</b></span></div>
     <div>${e.p.map(x=>`<span class="habit">${x[2].toLowerCase()}${x[1]&&x[0]!=='heal'?' '+x[1]:''}</span>`).join('')}</div><p class="m" style="margin:6px 0 0">Переможено: ${s.kills[k]||0}</p></div>`}).join('')}</div>`;
@@ -489,8 +478,8 @@ function render(){B={};bn=0;
     if(s.tab==='map')markSeen('map',s.at?'a:'+s.at+'.':'L:');else if(s.tab!=='hero')markSeen(s.tab);if(s.newTab[s.tab])delete s.newTab[s.tab]}
   try{if(!texInit){texInit=1;const rs=document.documentElement.style;for(const k of['stone','sand','plank','board','paper','slate','ruled','roll']){const u=pxURL('tx:'+k,()=>texBuf(k));if(u)rs.setProperty('--tx-'+k,`url(${u})`)}}
     if(!texInit2){texInit2=1;const rs=document.documentElement.style;for(const k of['wood','drift','stone','paper','slate']){const u=pxURL('fr:'+k,()=>frameBuf(k));if(u)rs.setProperty('--fr-'+k,`url(${u})`)}}
-    const th=s.cb?'':['home','tower','work','study','hero','folk','trade','chron','journal'].includes(s.tab)||(s.tab==='map'&&!s.at)?'th-home':s.tab==='shore'?'th-shore':'';document.body.classList.toggle('th-home',th==='th-home');document.body.classList.toggle('th-shore',th==='th-shore')}catch(e){}
-  hideTip();const mn=$('main');const vw0=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:''),same0=vw0===lastView&&!s.cb,xs=same0?xSnap(mn):null,as0=same0?aSnap(mn):null;let tlx=null;try{const q=same0&&mn.querySelector('.chr-tl');if(q)tlx=q.scrollLeft>=q.scrollWidth-q.clientWidth-4?-1:q.scrollLeft}catch(e){}patchStage(s.cb?'':s.tab==='home'?homeScene():s.tab==='shore'?shoreScene():s.tab==='tower'?towerScene():s.tab==='work'?workScene():s.tab==='study'?studyScene():s.tab==='map'&&!s.at?mapScene():s.tab==='hero'?heroScene():s.tab==='folk'?folkScene():s.tab==='trade'?tradeScene():'');zoomRun();mn.innerHTML=h;if(tlx!==null){try{const q=mn.querySelector('.chr-tl');if(q)q.scrollLeft=tlx<0?q.scrollWidth:tlx}catch(e){}}glossify(mn);rDlg();if(xs)xFade(mn,xs,1);if(as0)aMark(mn,as0);
+    const th=s.cb?'':['home','tower','work','study','hero','folk','trade','chron','journal'].includes(s.tab)||s.tab==='map'?'th-home':s.tab==='shore'?'th-shore':'';document.body.classList.toggle('th-home',th==='th-home');document.body.classList.toggle('th-shore',th==='th-shore')}catch(e){}
+  hideTip();const mn=$('main');const vw0=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:''),same0=vw0===lastView&&!s.cb,xs=same0?xSnap(mn):null,as0=same0?aSnap(mn):null;let tlx=null;try{const q=same0&&mn.querySelector('.chr-tl');if(q)tlx=q.scrollLeft>=q.scrollWidth-q.clientWidth-4?-1:q.scrollLeft}catch(e){}patchStage(s.cb?'':s.tab==='home'?homeScene():s.tab==='shore'?shoreScene():s.tab==='tower'?towerScene():s.tab==='work'?workScene():s.tab==='study'?studyScene():s.tab==='map'?(s.at?locScene():mapScene()):s.tab==='hero'?heroScene():s.tab==='folk'?folkScene():s.tab==='trade'?tradeScene():'');zoomRun();mn.innerHTML=h;if(tlx!==null){try{const q=mn.querySelector('.chr-tl');if(q)q.scrollLeft=tlx<0?q.scrollWidth:tlx}catch(e){}}glossify(mn);rDlg();if(xs)xFade(mn,xs,1);if(as0)aMark(mn,as0);
   const view=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:'');const prevView=lastView;if(view!==lastView&&mn.classList&&!RM()){for(const e of[mn,$('stage')]){if(!e||!e.classList)continue;e.classList.remove('tin');void e.offsetWidth;e.classList.add('tin')}}lastView=view;
   placePop();
   if(hlT){const tg=hlT;hlT=null;try{const el=document.getElementById(tg);if(el){el.scrollIntoView({block:'center',behavior:RM()?'auto':'smooth'});el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash')}}catch(e){}}

@@ -178,6 +178,27 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await p.close();
   }
 
+  // 11. Місце на мапі: ліхтар чи дошка відкриває картку з діями; загадку читаємо з поля в картці
+  {
+    const p = await page(1100, 1000);
+    await p.evaluate(() => { window.dlg = () => {}; storyCheck = () => {}; s.f.looked = 1; s.met.levko = 1; s.disc.village = 1; s.tabs = { home: 1, map: 1 }; s.dlg = []; s.tab = 'map'; s.at = 'village'; render(); });
+    await p.waitForTimeout(300);
+    const t = await p.$('.scn [data-k="lc:tavern"]');
+    A(!!t, 'дошка корчми в сцені Причалу');
+    if (t) { await t.click(); await p.waitForTimeout(300); }
+    A(!!await p.$('#popl [data-a="la"]'), 'картка місця з діями');
+    const inp = await p.$('#popl input[data-rid]');
+    if (inp) {
+      const rid = await inp.getAttribute('data-rid');
+      await inp.fill('камінь'); await p.click('#popl [data-a="riddle"]'); await p.waitForTimeout(200);
+      A(await p.evaluate(r => !!(s.wrong[r] || s.done[r]), rid), 'відповідь на загадку з картки прочитано');
+    }
+    const lv = await p.$('.scn [data-k="lc:leave"]');
+    if (lv) { await lv.click(); await p.waitForTimeout(200); }
+    A(await p.evaluate(() => !s.at), 'човен чи вказівник веде назад');
+    await p.close();
+  }
+
   // 10. Дзвіночок
   {
     const p = await page(390, 844);

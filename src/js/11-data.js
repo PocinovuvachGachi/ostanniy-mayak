@@ -681,7 +681,7 @@ function rFolkList(){let h=`<section><h2>Громади шхер${ih(`Допом
   for(const f in FAC){const F=FAC[f];if(!F.known())continue;const v=fac(f),ri=rankI(v);
     const perks=F.perks.map(p=>{const on=p[0]>=0?v>=p[0]:v<=p[0];return`<li class="${on?'':'lk'}">${p[0]>=0?`від ${p[0]}: `:''}${p[1]}${on?' ✓':''}</li>`}).join('');
     const q=(s.req||{})[f];
-    h+=`<div class="fcard"><div class="fh">${pimg(faceURL(F.face),56,56,'',F.n)}<div><h3>${F.n}${fresh9('fq:'+f+(q?q.n:''))}</h3><span class="rank r${ri}">${RANKS[ri][1]}</span> <span class="m">довіра ${v}</span></div></div>
+    h+=`<div class="fcard"><div class="fh">${pimg(faceURL(F.face),48,48,'',F.n)}<div><h3>${F.n}${fresh9('fq:'+f+(q?q.n:''))}</h3><span class="rank r${ri}">${RANKS[ri][1]}</span> <span class="m">довіра ${v}</span></div></div>
       <div class="tbar" aria-hidden="true"><span class="zero"></span><span class="mk" style="left:${(v+100)/2}%"></span></div><p class="m" style="margin:0">${F.d}</p><ul class="perks">${perks}</ul>
       <div class="freq">${q?`<b>Прохання: ${q.n}</b><br><span class="m">Віддати ${costTxt(q.give)} → ${costTxt(q.rew)} і довіра +6${q.side?`, але ${q.side.map(([g,n])=>`${FAC[g].n} ${n}`).join(', ')}`:''}.</span><div class="act">${btn('Виконати','freq',f,{ok:()=>afford(q.give)})}${btn('Відмовитися','fdecl',f,{cls:'toggle'})}</div>`:(f==='silent'&&v<-39?'<span class="m">З тобою поки не розмовляють.</span>':'<span class="m">Зараз прохань немає. Загляни пізніше.</span>')}</div></div>`}
   return h+`</div>`}

@@ -20,7 +20,7 @@ function fxReset(sc){FX.sc=sc;FX.ps=[];FX.walk=[];FX.crab=null;FX.ev={};FX.moth=
 function fxTick(ts){requestAnimationFrame(fxTick);if(typeof document==='undefined'||document.hidden)return;if(ts-FX.last<33)return;const dt=Math.min(.1,(ts-FX.last)/1000||.033);FX.last=ts;
   const cv=document.querySelector('#stage canvas.fx');if(!cv||RM()){if(FX.cv){FX.cv=null}return}
   if(cv!==FX.cv){FX.cv=cv;FX.g=cv.getContext('2d');FX.W=cv.width;FX.H=cv.height;FX.im=FX.g.createImageData(FX.W,FX.H);FX.u=new Uint32Array(FX.im.data.buffer);const sc=(cv.dataset.sig||'').slice(3);if(sc!==FX.sc)fxReset(sc)}
-  FX.t+=dt;FX.u.fill(0);try{if(FX.sc==='yd')fxYard(dt);else if(FX.sc==='sh')fxShore(dt);else if(FX.sc==='tw')fxTower(dt);else if(FX.sc==='wk'||FX.sc==='st')fxRoom(dt);else if(FX.sc==='mp')fxMap(dt);fxParts(dt)}catch(e){}FX.g.putImageData(FX.im,0,0)}
+  FX.t+=dt;FX.u.fill(0);try{if(FX.sc==='yd')fxYard(dt);else if(FX.sc==='sh')fxShore(dt);else if(FX.sc==='tw')fxTower(dt);else if(FX.sc==='wk'||FX.sc==='st')fxRoom(dt);else if(FX.sc==='mp')fxMap(dt);else if(FX.sc==='lc')fxLoc(dt);fxParts(dt)}catch(e){}FX.g.putImageData(FX.im,0,0)}
 /* Частинки: іскри, пил, бризки */
 function fxParts(dt){const out=[];for(const p of FX.ps){p.life+=dt;if(p.life>p.max)continue;p.vy+=(p.gr||0)*dt;p.vx*=1-.8*dt;p.x+=p.vx*dt;p.y+=p.vy*dt;const f=p.life/p.max;
   if(p.kind==='flash'){const R=14*(1-f*.4),a=.55*(1-f);for(let j=-R;j<=R;j++)for(let i=-R;i<=R;i++){const d=Math.hypot(i,j)/R;if(d<1&&(1-d)*a>bay((p.x+i)|0,(p.y+j)|0))fxP(p.x+i,p.y+j,fxCol(d<.35?'I':'J',.5))}out.push(p);continue}
@@ -135,3 +135,9 @@ function fxMap(dt){const k=SK,[tx,ty]=MAPPT.tower.map(v=>v*MPK);
   /* маяк на карті світить, якщо запалено */
   if(s.f.won){const th=FX.t*.42,c=Math.cos(th),sn=Math.sin(th);for(let t=4;t<40;t+=1){const x=tx+c*t,y=ty-20+sn*t*.5;fxP(x*k,y*k,fxCol('g',.5*(1-t/40)))}}}
 if(typeof requestAnimationFrame==='function')requestAnimationFrame(fxTick);
+/* Місце на мапі: зорі, чайки, відблиски на воді, іскри від вогнів, вир у Серці Мли */
+function fxLoc(dt){const k=SK,W=LCW,C=LKS[s.at]||{},dark=C.dark;
+  if(!dark){fxStars(dt,80,W);fxShoot(dt,70,W);fxGulls(dt,20,70,W);if(C.sea){const[y0,y1]=C.sea;fxGlints(dt,GR==='n'?1:2,[0,y0+2,W,y1],(x,y)=>y>y0+1&&y<y1)}}
+  for(const[x,y]of C.lt||[])if(Math.random()<dt*2.2)FX.ps.push({x:(x+fxR(-2,2))*k,y:y*k,vx:fxR(-6,6),vy:fxR(-26,-12),gr:-3,life:0,max:fxR(.6,1.3),kind:'spark'});
+  if(s.at==='heart'){FX.vx=(FX.vx||0)+dt*.5;for(let i=0;i<40;i++){const t=i/40,an=t*6.283*3-FX.vx*(1.6-t),r=8+t*80;fxP((216+Math.cos(an)*r*1.8)*k,(170+Math.sin(an)*r*.55)*k,fxCol('u',.5*(1-t)))}}
+  if(s.at==='bog')fxWisps(dt,100,200,W)}

@@ -70,11 +70,11 @@ function act0(a,i){
   case 'eat':if(s.r.fish>=1&&s.h.hp<maxHP()){s.r.fish--;s.h.hp=Math.min(maxHP(),s.h.hp+8)}break;
   case 'eatp':if(s.r.prov>=1&&s.h.hp<maxHP()){s.r.prov--;s.h.hp=Math.min(maxHP(),s.h.hp+15)}break;
   case 'scan':{const nx=SCAN.find(x=>!s.disc[x]);if(nx&&s.r.ember>=scanCost()){s.r.ember-=scanCost();s.scans++;reveal(nx);say(SCANMSG[nx]+' Місце з’явилося на мапі.','world')}break}
-  case 'go':{const[ok,why]=canGo(i);if(!ok){say(why);break}snap9('map');if(LOC[i].sea){const pv=seaCost(LOC[i]);s.r.prov-=pv;say(`Ти виходиш у море. Витрачено ${R('prov',pv)}.`,'world')}s.at=i;s.tab='map';if(!s.visited[i]){s.visited[i]=1;xp(5)}break}
-  case 'leave':s.at='';break;
+  case 'go':{const[ok,why]=canGo(i);if(!ok){say(why);break}snap9('map');if(LOC[i].sea){const pv=seaCost(LOC[i]);s.r.prov-=pv;say(`Ти виходиш у море. Витрачено ${R('prov',pv)}.`,'world')}s.at=i;s.tab='map';popB='';if(!s.visited[i]){s.visited[i]=1;xp(5)}break}
+  case 'leave':s.at='';popB='';break;
   case 'la':doLA(i);break;
   case 'qf':doLA(i,1);break;
-  case 'riddle':{const A=findA(i);if(s.done[i])break;const el=$('rd-'+i.replace(/\./g,'-'));const v=(el?el.value:'').trim().toLowerCase();
+  case 'riddle':{const A=findA(i);if(s.done[i])break;let el=null;try{const q=[...document.querySelectorAll(`input[data-rid="${i}"]`)];el=q.find(e=>e.value&&e.value.trim())||q[0]||null}catch(e){}if(!el)el=$('rd-'+i.replace(/\./g,'-'));const v=(el?el.value:'').trim().toLowerCase();
     if(v&&A.riddle.ans.some(x=>v.includes(x))){s.done[i]=1;const sn=snap(),q0=(s.dlg||[]).length,m=A.run();trustAct(i);say(m,'find');s.dlg=s.dlg||[];s.dlg.splice(q0,0,{k:'find',title:'Загадку розгадано',body:`<p>${m}</p>`,gains:gainsOf(sn)})}
     else if(!v)say('Спершу впиши відповідь.');
     else{s.wrong[i]=(s.wrong[i]||0)+1;say('Ні, відповідь не та. Подумай ще.')}break}
