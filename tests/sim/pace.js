@@ -11,9 +11,21 @@ const PROF=${JSON.stringify(prof)},LIMIT=${LIMIT};
 const P=PROF==='casual'?{click:2.5,act:5,read:12,fightStep:4,travel:25,think:180,idle:20}:{click:1.1,act:3,read:7,fightStep:3,travel:15,think:120,idle:10};
 let T=0,acts=0;const tried={};const ev=[],seen=new Set();
 /* час іде: годинник, виробництво, перевірки — як у головному циклі */
-function wait(sec,present=true){while(sec>0){const d=Math.min(5,sec);__adv(d*1000);s.t+=d;produce(d);if(present)s.lastAct=Date.now();checks();sec-=d;T+=d}}
+function wait(sec,present=true){while(sec>0){const d=Math.min(5,sec);__adv(d*1000);s.t+=d;produce(d);if(present)s.lastAct=Date.now();checks();sec-=d;T+=d;spTick()}}
 function A(a,i,cost){acts++;act(a,i);wait(cost==null?P.act:cost)}
 const mins=()=>(T/60).toFixed(1);
+/* SIMSPOIL=1: шукає в показаному тексті назви місць, людей і громад, яких гравець ще не знає (#39) */
+const SPN=[[/Причал/,()=>KN('village')],[/«Чайк/,()=>KN('chaika')],[/Вересов/,()=>KN('cliffs')],[/Затока Мулу|Затоці Мулу|Затоку Мулу/,()=>KN('bay')],[/Мовчун/,()=>FAC.silent.known()],[/Гнат/,()=>KN('gnat')],
+  [/Ярем/,()=>KN('yarema')],[/Левк/,()=>KN('levko')],[/Ганн[аиіу]/,()=>KN('hanna')],[/Мирон/,()=>KN('myron')],[/Тиміш/,()=>KN('tymish')],[/Март[аиіу](?![а-яіїєґ])/,()=>KN('marta')],[/Олес[яюі]/,()=>KN('olesya')],
+  [/Устин/,()=>KN('ustyna')],[/Кіндрат/,()=>KN('kindrat')],[/Северин/,()=>KN('severyn')],[/Захар/,()=>KN('zakhar')],[/Острів Хибних|Острова Хибних|Острові Хибних/,()=>KN('fort')],[/Скляна коса|Скляній косі|Скляну косу/,()=>KN('spit')],[/Торф’ян/,()=>KN('bog')]];
+const SPOIL=${!!process.env.SIMSPOIL},spQ=[],spSeen=new Set(),heard=new Set();
+/* назва, яку гравцеві вже сказали в розмові чи записці, або яку видно на місці, де він стоїть, — почута; у вкладках шукаємо лише не почуті */
+function spHeard(txt){const plain=String(txt||'').replace(/<[^>]*>/g,' ');SPN.forEach(([re],i)=>{if(re.test(plain))heard.add(i)})}
+function spCheck(txt,where){if(!txt)return;const ui=where.startsWith('вкладка');const plain=String(txt).replace(/<[^>]*>/g,' ');for(const[j,[re,kn]]of SPN.entries()){const m=plain.match(re);if(!m||kn()||ui&&heard.has(j))continue;const i=m.index,ex=plain.slice(Math.max(0,i-50),i+40).replace(/\\s+/g,' ').trim();
+  const key=re+'|'+ex.slice(0,30);if(spSeen.has(key))continue;spSeen.add(key);console.log(ui?'SPOIL':'SPOIL-TEXT',mins(),'хв',where,'«'+m[0]+'»:',ex)}if(!ui)spHeard(plain)}
+if(SPOIL){const _say=say;say=(m,t)=>{spQ.push([m,'say']);return _say(m,t)};const _dlg=dlg;dlg=d=>{spQ.push([(d.title||'')+' '+(d.body||'')+' '+(d.gains||[]).join(' '),'dlg']);return _dlg(d)}}
+let spT=0;function spTick(){if(!SPOIL)return;while(spQ.length>4){const[m,w]=spQ.shift();spCheck(m,w)}
+  if(T-spT>=120){spT=T;while(spQ.length){const[m,w]=spQ.shift();spCheck(m,w)}if(s.at&&LOC[s.at])for(const S of LOC[s.at].spots)if(!S.show||S.show())spHeard(S.n+' '+(typeof S.d==='function'?S.d():S.d||''));if(!s.cb){const t0=s.tab;for(const t in s.tabs){s.tab=t;render();for(const k in els)if(k==='main'||k==='stage'||k==='top')spCheck(els[k].innerHTML,'вкладка '+t)}s.tab=t0}}}
 /* що вважаємо відкриттям */
 function mark(k,label,major){if(seen.has(k))return;seen.add(k);ev.push({t:T,k,label,major})}
 function scan(){for(const t in s.tabs)mark('tab:'+t,'вкладка «'+(TABS.find(x=>x[0]===t)||[t,SUBT[t]||t])[1]+'»',1);

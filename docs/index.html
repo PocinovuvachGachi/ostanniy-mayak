@@ -2114,7 +2114,7 @@ const IT={
   potion:{n:'Вересове зілля',ic:'(!)',use:'heal',v:30,d:'Відновлює 30 здоров’я. У бою з поясу за 1 ОД.'},
   bomb:{n:'Масляна бомба',ic:'(*)~',use:'bomb',v:12,d:'Лише в бою, з поясу: 12 урону всім у квадраті 3×3 і підпал. 2 ОД.'},
   cshell:{n:'Крабовий панцир',ic:'(^^)',d:'Матеріал для обладунків.'},
-  feather:{n:'Пір’я чайки',ic:'~//',d:'Ярема купує його по 2 монети.'},
+  feather:{n:'Пір’я чайки',ic:'~//',get d(){return KN('yarema')?'Ярема купує його по 2 монети.':'Легке сіре пір’я. Хтось колись, певно, за нього заплатить.'}},
   glass:{n:'Корабельне скло',ic:'[ ]',d:'Товстий шматок корабельного скла.'},
   elixir:{n:'Еліксир Олесі',ic:'(!!)',use:'heal',v:50,d:'Відновлює 50 здоров’я. У бою з поясу за 1 ОД.'},
   spyglass:{n:'Підзорна труба',ic:'o==',slot:'charm',per:2,d:'+2 Пильність. Скло Северина, латунь Кіндрата.'},
@@ -2564,7 +2564,7 @@ const CH=[
     ['work','Майстерня',()=>!!s.floors.work,'Майстерня знову пахне смолою й залізом.'],
     ['crab','Перша кров',()=>!!s.tabs.hero,'Із прибою виліз краб завбільшки з відро. Ти відбився. Тіло пам’ятає більше, ніж розум: колись тебе вчили битися.'],
     ['horizon','Обрій',()=>!!s.floors.gallery,'З оглядової видно шхери. Туман лежить на воді, але старий далекогляд пробиває його.']]},
-  {id:'c3',n:'Гнилий Причал',img:{t:'scene',id:'village'},d:'Уламки чужого корабля й люди з селища знають про Остапа більше, ніж ти.',beats:[
+  {id:'c3',n:'Гнилий Причал',n0:'За протокою',nk:()=>KN('village'),img:{t:'scene',id:'village'},d:'Уламки чужого корабля й люди з селища знають про Остапа більше, ніж ти.',beats:[
     ['chaika','«Чайка»',()=>s.pages.includes(2),'Капітан «Чайки» бачив світло маяка тієї ночі, коли маяк мовчав. Хтось запалив фальшивий вогонь і заманив корабель на скелі.'],
     ['village','Люди селища',()=>!!(s.met.hanna||s.met.levko||s.met.myron),'У селищі ще живуть люди. Вони пам’ятають Остапа й бояться говорити про Мовчунів.'],
     ['shard1','Перший уламок',()=>s.pages.includes(3),'Остап розколов лінзу на три частини, щоб Мовчуни не забрали її цілою. Одну ти вже тримаєш у руках.'],
@@ -2606,7 +2606,7 @@ const GO=[
   [()=>'Відбудуй майстерню на другому поверсі.',()=>s.tabs.tower,()=>s.floors.work],
   [()=>'Зроби вудку й налови риби.',()=>s.floors.work,()=>s.tabs.hero],
   [()=>'Відбудуй оглядову.',()=>s.tabs.hero,()=>s.floors.gallery],
-  [()=>'Оглянь обрій і досліди уламки «Чайки».',()=>s.floors.gallery,()=>s.pages.includes(2)],
+  [()=>KN('chaika')?'Досліди уламки «Чайки».':'Оглянь обрій з оглядової: що там, у тумані?',()=>s.floors.gallery,()=>s.pages.includes(2)],
   [()=>'Знайди людей, які знали Остапа.',()=>s.pages.includes(2)||s.disc.village,()=>s.met.hanna],
   [()=>'Відчини кабінет Остапа.',()=>s.met.hanna,()=>s.floors.study],
   [()=>`Знайди уламки лінзи (${shards()}/3).`,()=>s.pages.includes(3)||shards()>0,()=>shards()>=3||has('lens')||s.floors.lantern],
@@ -2641,7 +2641,7 @@ const SQ=[
   ['Ліки для селища',()=>s.mst.olesya,()=>s.f.medDone,()=>`Принеси Ганні 10 ліків з аптеки (маєш ${Math.floor(s.r.med)}).`],
   ['Краб-велетень',()=>s.disc.shoal,()=>s.f.crabking,()=>'Здолай краба на мілині. До нього можна дійти лише у відплив.'],
   ['Склодув зі Скляної коси',()=>s.disc.spit,()=>s.mst.severyn,()=>'Пробийся крізь акул до хатини Северина.'],
-  ['Полонений коваль',()=>s.disc.mine,()=>s.mst.kindrat,()=>'Визволи коваля Кіндрата з копальні Мовчунів.'],
+  ['Полонений коваль',()=>s.disc.mine,()=>s.mst.kindrat,()=>KN('kindrat')?'Визволи коваля Кіндрата з копальні Мовчунів.':'Кажуть, у копальні Мовчунів тримають коваля. Визволи його.'],
   ['Люди маяка',()=>s.f.people,()=>(s.pop||0)>=6,()=>`Збудуй хати й прийми шістьох поселенців (зараз ${s.pop||0}).`],
   ['Вовки біля млина',()=>s.met.panas,()=>s.f.millSafe,()=>'Прожени туманних вовків від млина на Вітряному Мисі.'],
   ['Загадка Мотрі',()=>s.met.motrya,()=>s.f.motrya,()=>'Відгадай загадку старої Мотрі.'],
@@ -2731,7 +2731,7 @@ function beamTick(){if(!s.f.won)return;const now=Date.now();if(s.lost&&away())s.
   else if(now>s.lost.until){trust('sails',-3,'корабель розбився');say('Ріжок замовк. Корабель розбився об рифи, і скоро прибій винесе його уламки на берег.','world');s.lost=null;s.lostT=now+(90+Math.random()*90)*1000;if(s.floors.gallery&&!s.flot){s.flot={k:'cargo',until:now+180000}}dirty=1}}
 const FAC={
   rot:{n:'Гнилий Причал',face:'hanna',d:'Рибалки, знахарка й корчмар. Бідні, налякані, але пам’ятають добро.',known:()=>!!(s.met.levko||s.met.hanna),
-    perks:[[20,'Ярема продає на 10% дешевше'],[50,'Ганна лікує задарма, як свого'],[80,'Поселенці з Причалу приходять на 30% швидше']]},
+    perks:[{0:20,get 1(){return KN('yarema')?'Ярема продає на 10% дешевше':'Крамар на Причалі продає на 10% дешевше'}},[50,'Ганна лікує задарма, як свого'],[80,'Поселенці з Причалу приходять на 30% швидше']]},
   cape:{n:'Вітряний Мис',face:'panas',d:'Мірошники й моряки з заходу. Горді, але слова дотримують.',known:()=>!!s.disc.cape,
     perks:[[20,'Сухарі в Панаса дешевші'],[50,'Мірошник ділиться секретом: коптильня дає на 25% більше провізії'],[80,'Лоцмани Луки: вихід у море коштує на 1 провізію менше']]},
   sails:{n:'Мореплавці',face:'marta',d:'Капітани й купці, що ходять повз шхери. Їм потрібне світло й чесна торгівля.',known:()=>!!(s.met.marta||(s.saved||0)>0||(s.sig||0)>0),
@@ -3227,7 +3227,7 @@ function checks(){const F=s.f;novTick();mgHelpCheck();if(!s.tabs.chron&&s.chs.le
   storyCheck(false);
   if(F.people){const cap=2*(s.b.house||0);
     if((s.pop||0)<cap&&s.r.prov>=5){if(!s.popT)s.popT=Date.now()+60000/(1+0.1*st('speech'))*(fac('rot')>=80?0.7:1);else if(Date.now()>=s.popT){s.popT=0;s.pop=(s.pop||0)+1;s.r.prov-=5;
-      const who=['рибалка з Гнилого Причалу','вдова з хутора за скелями','юнга з розбитої «Чайки»','бондар, що втік від Мовчунів','двоє братів-сітярів','стара пряля','колишній вартовий Гната, що каже, що покаявся'][(s.pop-1)%7];
+      const who=settlerWho((s.pop-1)%7);
       say(`До маяка прийшов поселенець: ${who}. Він з’їв ${R('prov',5)} і питає, де працювати.`,'world');
       if(s.pop===1)dlg({k:'world',title:'Перший поселенець',img:{t:'yard'},body:`<p>До маяка прийшов ${who}. Каже, що бачив, як тут горить вогонь, і що біля вогню не так страшно.</p>`,gains:['Поселенців можна ставити на роботу в господарстві: кожен додає +50% до рівня будівлі','Вільні поселенці збирають плавник','Усі люди маяка їдять провізію; голодні працюють удвічі гірше']})}}
     else s.popT=0}
@@ -3240,6 +3240,17 @@ function checks(){const F=s.f;novTick();mgHelpCheck();if(!s.tabs.chron&&s.chs.le
   raidCheck();
 }
 
+
+/* хто приходить до маяка — без назв місць і людей, яких гравець ще не знає (#39) */
+function settlerWho(k){const S=KN('silent')||KN('gnat')||!!s.seenE.scout;return[
+  KN('village')?'рибалка з Гнилого Причалу':'рибалка із селища за протокою',
+  KN('cliffs')?'вдова з хутора за скелями':'вдова з далекого хутора',
+  KN('chaika')?'юнга з розбитої «Чайки»':'юнга з розбитого корабля',
+  S?'бондар, що втік від Мовчунів':'бондар, що від когось утік і не каже, від кого',
+  'двоє братів-сітярів','стара пряля',
+  KN('gnat')?'колишній вартовий Гната, що каже, що покаявся':'похмурий чолов’яга, що каже, що покаявся'][k]}
+/* назва розділу — лише коли гравець уже знає, про що він (#39) */
+const chName=c=>c.nk&&!c.nk()?c.n0:c.n;
 /* ============ TACTICAL COMBAT ============ */
 let GW=11,GH=7;
 function setGrid(c){const m=(c&&c.map)||ARENA[c.a];GH=m.length;GW=m[0].length}
@@ -3831,7 +3842,7 @@ Object.assign(SHF,{
       say(`Бурштин приніс ${g[2]}. Петрик чухає йому за вухом.`,'find')},
     art:b=>sealArt(b,1)},
   signal:{n:'Вогник за протокою',npc:1,tip:'Натисни, щоб відповісти вогнем.',pos:[66,12],
-    d:'По той бік протоки, де Причал, хтось розмахує ліхтарем: три рази, пауза, ще три.',once:1,
+    d:'По той бік протоки, де темніють хати, хтось розмахує ліхтарем: три рази, пауза, ще три.',once:1,
     ok:()=>{if(!s.f.siege1)return false;s.sigT=s.sigT||Date.now();return Date.now()-s.sigT>3*60000},
     go(){s.f.signal=1;xp(12);
       dlg({k:'story',title:'Вогник за протокою',img:{t:'face',id:'horpyna'},body:`<p>Ти береш жарину з вогнища й тричі ведеш нею з галереї. По той бік протоки ліхтар завмирає — і відповідає: три рази, пауза, ще три. Там живі люди, і вони бачать маяк.</p><p>Горпина стискає поруччя. ${Q('Так у нас кличуть човни додому. Так завжди махав мій брат, Мирон. Він рибалить на Причалі… Він живий')}.</p>${(s.ford||{}).lamp?'':`<p>${Q('Доведи брід до кінця, хранителю. Я мушу його побачити')}.</p>`}`,gains:['На Причалі живуть люди']})},
@@ -4832,7 +4843,7 @@ function rJournal(){const nOdd=Object.keys(s.odd).length,nOD=Object.keys(OD).len
     if(sq.length)h+=`<p class="jh">Доручення й таємниці</p><div class="cards">${sq.map(q=>{const dn=q[2]();return`<div class="card${dn?' done':''}"><h4>${q[0]}<span class="stt ${dn?'dn':'on'}">${dn?'виконано':'триває'}</span></h4><span class="m">${dn?'Справу зроблено.':q[3]()}</span></div>`}).join('')}</div>`}
   if(s.jt==='story'){const st0=CH.map((c,ix)=>ix).filter(chStarted);
     h+=`<ol class="tl">${st0.map(ix=>{const c=CH[ix],dn=chDone(ix),bd=c.beats.filter(b=>s.bts[b[0]]),left=c.beats.length-bd.length;
-      return`<li class="${dn?'':'new'}"><span class="dot">${ix+1}</span><b>${c.n}</b> <span class="stt ${dn?'dn':'on'}">${dn?'завершено':'триває'}</span><br><span class="m">${c.d}</span>${bd.length?`<ul class="beats">${bd.map(b=>`<li><b>${b[1]}.</b> ${b[3]}</li>`).join('')}</ul>`:''}${left?`<span class="m">Історія триває…</span>`:''}</li>`}).join('')}</ol>`;
+      return`<li class="${dn?'':'new'}"><span class="dot">${ix+1}</span><b>${chName(c)}</b> <span class="stt ${dn?'dn':'on'}">${dn?'завершено':'триває'}</span><br><span class="m">${c.d}</span>${bd.length?`<ul class="beats">${bd.map(b=>`<li><b>${b[1]}.</b> ${b[3]}</li>`).join('')}</ul>`:''}${left?`<span class="m">Історія триває…</span>`:''}</li>`}).join('')}</ol>`;
     if(s.chs.length<CH.length)h+=`<p class="m">Далі — невідомо.</p>`}
   if(s.jt==='pages')h+=`<div class="notes">${s.pages.slice().sort().map(n=>`<div class="note"><span class="no">${n==='m'?'без номера':'аркуш '+n}</span>${PG[n].replace(/ — О\.$/,'')}<span class="sig">— О.</span></div>`).join('')}</div>`;
   if(s.jt==='chars')h+=`<div class="cards">${CHAR.filter(c=>s.met[c[0]]).map(c=>`<div class="card pcard">${pimg(faceURL(c[0]),96,96,'',c[1])}<div><b class="npc">${c[1]}</b><span class="role">${ROLE[c[0]]||''}</span><span class="m">${c[2]()}</span></div></div>`).join('')}</div>`;
@@ -6241,7 +6252,7 @@ function rChron(){const M=s.mom||[],E=s.eraT||[0],now=s.play||0,ei=E.length-1;
     h+=`<div class="chr-era e${e}"><div class="chr-eh" ${TA(`<b>${ERA[e].n}</b><br>${ERA[e].d}`)}><span class="chr-en">доба ${ROM(e+1)}</span><b>${ERA[e].n}</b><span class="m">з ${dateShort(E[e]||0)}${e===ei?' й донині':` по ${dateShort(E[e+1])}`}</span></div><div class="chr-row">${ms.map(card).join('')}${e===ei?`<div class="chr-now">сьогодні<br>день ${dayOf(now)}</div>`:''}</div></div>`}
   h+=`</div></section>`;
   const st0=CH.map((c,ix)=>ix).filter(chStarted);
-  h+=`<section class="chrp"><h2>Розділи</h2><ol class="chr-chs">${st0.map(ix=>{const c=CH[ix],m=M.find(x=>x.k==='chap'&&x.cid===c.id),dn=s.chs.includes(c.id);return`<li class="e${m?m.e||0:ei}"><span class="no">${ROM(ix+1)}</span><span><b>${c.n}</b>${c.side?' <span class="m">· побічний</span>':''}</span><span class="when">${dn?(m?`${m.ap?'≈ ':''}день ${dayOf(m.t)}, ${dateShort(m.t)}`:'завершено'):'триває'}</span></li>`}).join('')}</ol>${s.chs.length<CH.length?'<p class="m">Що буде далі, ще не записано.</p>':''}</section>`;
+  h+=`<section class="chrp"><h2>Розділи</h2><ol class="chr-chs">${st0.map(ix=>{const c=CH[ix],m=M.find(x=>x.k==='chap'&&x.cid===c.id),dn=s.chs.includes(c.id);return`<li class="e${m?m.e||0:ei}"><span class="no">${ROM(ix+1)}</span><span><b>${chName(c)}</b>${c.side?' <span class="m">· побічний</span>':''}</span><span class="when">${dn?(m?`${m.ap?'≈ ':''}день ${dayOf(m.t)}, ${dateShort(m.t)}`:'завершено'):'триває'}</span></li>`}).join('')}</ol>${s.chs.length<CH.length?'<p class="m">Що буде далі, ще не записано.</p>':''}</section>`;
   return h}
 
 /* ============ ЗВУК: ембієнт, тиха музика, звуки дій ============
