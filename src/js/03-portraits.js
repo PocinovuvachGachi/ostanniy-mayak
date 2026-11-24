@@ -91,6 +91,9 @@ function portrait3(o){const b=pbuf(PSZ,PSZ),cx=16,cy=o.cy||13.5,rx=o.rx||6.6,ry=
   b.p=p;return b}
 /* Риси персонажів (координати — сітка 32×32) */
 const FP={
+  zinovii:{age:2,hair:'dark',hairS:'bald',hat:'knit',hatC:'linen',mous:'cossack',beard:'stubble',coat:'linen',collar:'emb',rx:7.4,jaw:.16,mouth:'smile',eyes:'narrow',blush:1,
+    draw(b,G){for(let y=28;y<32;y++)for(let x=G.cx-6;x<G.cx+6;x++)G.put(x,y,PR.wool,plit((x-G.cx)/8,0)*.9)}},
+  horpyna:{age:2,hair:'brown',hat:'kerchief',hatC:'green',hatDot:'k',coat:'wool',cut:'open',collar:'emb',mouth:'frown',browT:-1,iris:'c',jaw:.36},
   ostap:{age:3,hair:'white',hairS:'bald',beard:'long',mous:'cossack',beardC:'white',brow:'white',coat:'navy',cut:'v',buttons:[[-5,27],[4,27],[-5,30],[4,30]],eyes:'narrow'},
   hanna:{age:2,hair:'brown',hat:'kerchief',hatC:'kred',hatDot:'O',coat:'wine',cut:'open',collar:'emb',mouth:'smile',iris:'c',
     draw(b,G){for(let i=0;i<4;i++)G.put(G.cx+8+(i>>1),Math.round(G.cy-4-i),PR.green,.6);G.put(G.cx+10,Math.round(G.cy-8),PR.violet,.9)}},

@@ -906,3 +906,5 @@ body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .
 .dial.px{background:#0a0c10;border:2px solid #3a2718;overflow:visible}
 .dial.px .bch{position:absolute;inset:0;width:100%;height:100%;border-radius:50%;image-rendering:pixelated}
 .dial.px .wedge{mix-blend-mode:screen}
+
+.ocard.empty{border:1px dashed rgba(200,180,140,.35);background:transparent;min-height:60px}

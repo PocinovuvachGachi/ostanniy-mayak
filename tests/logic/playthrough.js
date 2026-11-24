@@ -13,7 +13,7 @@ s.r.wood+=60;s.r.scrap+=20;s.r.ember+=200;act('floor','work');A(s.floors.work,'w
 act('craft','rod');A(s.f.rod,'rod');act('craft','oar');A(s.eq.weapon==='oar','oar eq');
 clickN('fishing','',5);act('fightGo','crab1');A(s.cb,'crab fight');botFight();A(!s.cb&&s.tabs.hero,'hero');console.log('after crab lvl',s.h.lvl,'hp',Math.round(s.h.hp));
 s.r.wood+=100;s.r.scrap+=60;act('bld','forge');act('bld','smoke');A(s.b.forge&&s.b.smoke,'conv built');s.r.fish+=10;const e0=s.r.ember,i0=s.r.iron;T(10);A(s.r.iron>i0,'iron made');A(s.r.prov>0,'prov made');act('tog','forge');const i1=s.r.iron;T(5);A(s.r.iron===i1,'forge off');act('tog','forge');act('ht','bag');render();act('ht','grow');render();act('ht','gear');render();act('craft','sling');A(s.eq.ranged==='sling','sling');allTabs();
-s.r.wood+=200;s.r.scrap+=100;s.r.ember+=600;act('floor','gallery');A(s.floors.gallery,'gallery');
+s.f.horpyna=1;s.r.wood+=260;s.r.scrap+=130;s.r.ember+=1000;act('floor','gallery');A(s.floors.gallery,'gallery');
 s.dbgTide='low';s.r.fish+=40;s.r.oil+=20;s.r.wood+=200;s.r.scrap+=100;s.r.ember+=500;for(const p of['poles','steps','rope'])act('ford',p);A(!s.f.fordDone,'ford waits for the siege');s.f.siege1=1;act('ford','lamp');delete s.f.siege1;A(s.f.fordDone&&s.tabs.map,'ford opens the map');s.dbgTide='';s.dlg=[];
 s.r.ember+=500;act('scan');act('scan');act('scan');A(s.disc.chaika&&s.disc.village&&s.disc.cliffs,'scans');
 act('craft','lamp');A(s.eq.light==='lamp','lamp');

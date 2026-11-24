@@ -177,7 +177,7 @@ const BD=[
   {id:'winch',n:'Лебідка на уламках',d:()=>'+0,3 брухту/с за рівень',base:{wood:28,scrap:21},mult:1.6,show:()=>s.rs.mech},
   {id:'shelves',n:'Книжкові полиці',d:()=>'+25% знань за рівень',base:{wood:35},mult:1.6,show:()=>s.rs.order},
   {id:'dummy',n:'Тренувальний манекен',d:()=>'+0,08 досвіду/с за рівень',base:{wood:21,scrap:10},mult:1.7,show:()=>s.rs.tactics},
-  {id:'house',n:'Хата поселенців',nw:1,d:()=>'Житло для двох поселенців за рівень. Поселенці приходять самі, коли є дах і провізія.',base:{wood:40,tar:3},mult:1.6,show:()=>s.f.people},
+  {id:'house',n:'Хата поселенців',nw:1,d:()=>'Житло для двох поселенців за рівень. Поселенці приходять самі, коли є дах і провізія.',base:{wood:40,scrap:8},mult:1.6,show:()=>s.f.people},
   {id:'garden',n:'Грядки трав',d:()=>'+0,12 трав/с за рівень. Олеся знає, що садити.',base:{wood:15,herb:5},mult:1.5,show:()=>s.mst.olesya},
   {id:'apoth',n:'Аптека',conv:1,d:()=>'Трави 0,1 і олія 0,05 → ліки 0,04 щосекунди за рівень. Ліки йдуть на еліксири й добре продаються.',base:{wood:25,tar:4},mult:1.6,show:()=>s.mst.olesya},
   {id:'coalpit',n:'Вуглярня',conv:1,d:()=>'Плавник 0,4 → вугілля 0,2 щосекунди за рівень.',base:{wood:30,scrap:10},mult:1.5,show:()=>s.mst.ustyna},
@@ -189,7 +189,7 @@ const BD=[
 
 const FL=[
   {id:'work',n:'Майстерня',d:'Другий поверх. Верстак, лещата й старі інструменти Остапа.',c:{wood:50,scrap:15,ember:160}},
-  {id:'gallery',n:'Оглядова',d:'Галерея з далекоглядом. Звідси видно всі шхери.',c:{wood:110,scrap:40,ember:550},req:()=>!!s.tabs.hero,why:'Звідси поки нема чого оглядати: ти ще ледь знаєш власний берег. Подбай спершу про те, що діється біля води.'},
+  {id:'gallery',n:'Оглядова',d:'Галерея з далекоглядом. Звідси видно всі шхери.',c:{wood:160,scrap:60,ember:900},req:()=>!!s.tabs.hero&&!!s.f.horpyna,why:'Звідси поки нема чого оглядати: ти ще ледь знаєш власний берег. Подбай спершу про те, що діється біля води, і про тих, кого вона приносить.'},
   {id:'study',n:'Кабінет',d:'Кімната Остапа з книгами й записами.',c:{wood:200,scrap:80,iron:15,ember:1300},it:{key:1},why:'Двері замкнено. Ключ має бути в когось, хто знав Остапа.'},
   {id:'lantern',n:'Ліхтарня',d:'Вершина маяка, де горів великий вогонь.',c:{wood:380,iron:55,tar:25,oil:140,ember:5000},it:{lens:1,wick:1},use:{lens:1,wick:1},req:()=>!!s.rs.beacon,why:()=>{const L=[];if(!has('lens'))L.push(U('{lens:велика лінза|щось, що збере світло в промінь}'));if(!has('wick'))L.push(U('{wick:вічний гніт|полум’я, яке не згасає}'));if(!s.rs.beacon)L.push(s.rs.optics&&s.rs.render?'знання «Маякової справи» з Кабінету':'знання, як усе це поєднати');return L.length?'Ліхтарні бракує: '+L.join('; ')+'.':''}},
 ];
@@ -263,6 +263,8 @@ const relHint=r=>{const w=RELW[r][0];return KN(w)?IT[r].h:'Річ непрост
 const wfCost=tr=>{const c=WFC[tr];if(!c||fuL('work')<3)return c;const o={};for(const k in c)o[k]=Math.ceil(c[k]*0.75);return o};
 const fuL=id=>+((s.fu||{})[id]||0);
 const MST={
+  zinovii:{n:'Зиновій',role:'корабельний кок',b:['house','smoke'],d:'Кок із розбитого судна. Коптильня з ним працює вдвічі краще, а за юшкою він розповідає про кораблі, що зникають у тумані.',g:['Коптильня працює вдвічі краще']},
+  horpyna:{n:'Горпина',role:'плетільниця сітей',b:['traps'],d:'Втекла з малим Петриком зі спаленого хутора на півночі. Плете сіті й ятері; Петрик нишпорить по калюжах і приносить дивовижі.',g:['Нова будівля: ятері','Петрик частіше знаходить дивини в калюжах']},
   olesya:{n:'Олеся',role:'травниця',b:['apoth','garden'],d:'Учениця Ганни. Варить ліки з трав і олії, доглядає грядки й перев’язує хранителя.',g:['Нові будівлі: аптека й грядки трав','Рецепт еліксиру в майстерні','Олеся перев’язує тебе задарма раз на дві хвилини']},
   ustyna:{n:'Устина',role:'смолярка',b:['coalpit','kiln'],d:'Знає, як випалити вугілля з будь-якого плавника. Смоловарня з нею працює вдвічі краще.',g:['Нова будівля: вуглярня','Смоловарня працює вдвічі краще']},
   kindrat:{n:'Кіндрат',role:'коваль',b:['steel','forge'],d:'Коваль, якого Мовчуни тримали в копальні. Варить сталь і знає, як прикласти до зброї рідкісну знахідку.',g:['Нова будівля: сталеварня','Кузня працює вдвічі краще','Рецепт сталевого обладунку']},
@@ -276,7 +278,7 @@ const wF=id=>(s.wf||{})[id]||0;
 const wN=id=>WF[id]&&wF(id)?WF[id][wF(id)-1].n:IT[id].n;
 const WFRC=[{},{d:'9',e:'a',c:'8'},{d:'4',e:'6',c:'3',a:'g',9:'5'}];
 const wIco=id=>{const f=wF(id);if(!f||!WF[id])return icoURL(id);return pxURL('wi:'+id+f,()=>{const b=sprBuf(ICO[id],12,12),m=WFRC[f];b.p=b.p.map(c=>m[c]||c);pset(b,11,0,'g');pset(b,11,1,'f');if(f>1){pset(b,9,0,'g');pset(b,9,1,'f')}return b})};
-const PPL=['ostap','hanna','myron','levko','yarema','tymish','gnat','marta','olesya','ustyna','kindrat','severyn','zakhar'];
+const PPL=['zinovii','horpyna','ostap','hanna','myron','levko','yarema','tymish','gnat','marta','olesya','ustyna','kindrat','severyn','zakhar'];
 function KN(id){if(PPL.includes(id))return!!(s.met[id]||(id==='gnat'&&s.seenE.gnat));if(EN[id])return!!s.seenE[id];if(IT[id])return!!((s.seenI||{})[id]||has(id));if(LOC[id])return!!s.disc[id];return false}
 const U=x=>String(x==null?'':x).replace(/\{(\w+):([^|{}]*)\|([^{}]*)\}/g,(m,id,a,b)=>KN(id)?a:b);
 const ODI={gull:'o_gull',compass:'o_compass',flute:'o_flute',tooth:'o_tooth',eye:'o_eye',button:'o_button',fogbottle:'o_fog',star:'o_star',pipe:'o_pipe',holestone:'o_hole',minerlamp:'o_lamp',crabcrown:'o_crown',monkbell:'o_bell'};
@@ -446,8 +448,10 @@ const FACE={
   gnat:'  ___\n (x o)\n  \\_/',
 };
 
-const ROLE={panas:'мірошник',motrya:'знахарка з Мису',luka:'начальник пристані',olesya:'травниця',ustyna:'смолярка',kindrat:'коваль',severyn:'склодув',zakhar:'корабел',marta:'капітанка «Вітрильниці»',ostap:'старий хранитель',hanna:'знахарка',myron:'рибалка',levko:'корчмар',yarema:'торговець',tymish:'хлопчик із пірсу',gnat:'ватажок Мовчунів'};
+const ROLE={zinovii:'корабельний кок',horpyna:'плетільниця сітей',panas:'мірошник',motrya:'знахарка з Мису',luka:'начальник пристані',olesya:'травниця',ustyna:'смолярка',kindrat:'коваль',severyn:'склодув',zakhar:'корабел',marta:'капітанка «Вітрильниці»',ostap:'старий хранитель',hanna:'знахарка',myron:'рибалка',levko:'корчмар',yarema:'торговець',tymish:'хлопчик із пірсу',gnat:'ватажок Мовчунів'};
 const CHAR=[
+  ['zinovii','Зиновій',()=>'Кок із розбитого «Мартина». Тепер варить юшку біля маяка й пильнує коптильню. Пам’ятає ніч, коли туман накрив їхній корабель.'],
+  ['horpyna','Горпина',()=>'Утекла з малим Петриком зі спаленого хутора на півночі. Плете сіті й ятері; Петрик знаходить у калюжах дивовижі.'],
   ['ostap','Остап',()=>s.f.ostap?'Старий хранитель маяка. Ти визволив його з полону, і тепер він розбирає записи в кабінеті.':'Старий хранитель маяка. Зник у ніч, коли згас великий вогонь.'],
   ['hanna','Ганна',()=>'Знахарка з Гнилого Причалу. Знала Остапа замолоду й берегла його ключ.'],
   ['myron','Мирон',()=>'Рибалка, майстер сітей і човнів. Бурчить, але допомагає.'],
@@ -620,10 +624,10 @@ const EXP={
 const NOTES=['«Якщо хтось знайде цю пляшку — передайте Марічці з Гнилого Причалу, що я живий». Підпису немає.','«Сім днів дрейфуємо в тумані. Бачили вогонь на півночі, але він брехав». Чорнило розпливлося.','На папері намальовано острів і хрест. Острова ти не впізнаєш, але хрест стоїть посеред моря.','«Хранителю: дякуємо за світло. Команда «Ластівки»». Усередині — кілька монет.','Дитячий малюнок маяка з усміхненим сонцем замість лінзи.'];
 const OFFERS=[{give:{coin:30},get:{steel:4}},{give:{coin:25},get:{gls:5}},{give:{fish:30},get:{coin:30}},{give:{coin:20},get:{iron:8}},{give:{scrap:40},get:{coin:25}},{give:{coin:40},get:{med:4}},{give:{tar:10},get:{coin:22}},{give:{coin:15},get:{oil:15}},{give:{prov:10},get:{coin:25}},{give:{coin:30},get:{coal:20}}];
 function flotTake(k,mul=1){let m='';const M=v=>Math.round(v*mul);
-  if(k==='crate'){const g={scrap:M(15+rnd(10)),iron:M(2+rnd(4)),tar:M(2+rnd(3))};for(const x in g)add(x,g[x]);m=`Ящик із розбитого корабля: ${costTxt(g)}.`}
+  if(k==='crate'){const g={scrap:M(15+rnd(10)),iron:M(2+rnd(4)),tar:M(2+rnd(3))};for(const x in g)add(x,g[x]);m=`Ящик із розбитого корабля: ${costTxt(g)}.`;if(Math.random()<.15)collFind('flot')}
   else if(k==='barrel'){const v=M(10+rnd(9));add('oil',v);m=`Бочка ще повна: +${R('oil',v)}.`}
   else if(k==='cargo'){const g={prov:M(6),fish:M(10),coin:M(10+rnd(15))};for(const x in g)add(x,g[x]);m=`Вантаж, змитий з палуби: ${costTxt(g)}.`}
-  else if(k==='bottle'){const n=NOTES[rnd(NOTES.length)];const g=s.floors.study?{lore:15+rnd(15),coin:5}:{coin:15};for(const x in g)add(x,g[x]);dlg({k:'find',title:'Пляшка з запискою',img:{t:'scene',id:'shore'},body:`<div class="note">${n}</div>`,gains:[costTxt(g)]});return}
+  else if(k==='bottle'){if(Math.random()<.35&&collFind('flot'))return;const n=NOTES[rnd(NOTES.length)];const g=s.floors.study?{lore:15+rnd(15),coin:5}:{coin:15};for(const x in g)add(x,g[x]);dlg({k:'find',title:'Пляшка з запискою',img:{t:'scene',id:'shore'},body:`<div class="note">${n}</div>`,gains:[costTxt(g)]});return}
   else if(k==='survivor'){if(mul>1){add('coin',20);add('prov',5)}if((s.pop||0)<2*(s.b.house||0)){s.pop=(s.pop||0)+1;m=`На уламку щогли — живий моряк! Він відігрівся біля вогнища й лишився жити біля маяка.${mul>1?` На радощах віддав тобі ${R('coin',20)} і ${R('prov',5)}.`:''}`}else{add('coin',15);m=`На уламку щогли — живий моряк. Ти відігрів його й нагодував. Для нього немає хати, тож він пішов до селища, лишивши ${R('coin',15)}.`;if(s.r.prov>=3)s.r.prov-=3}}
   if(mul>1&&m)m+=' Спритно впорався!';say(m,'find')}
 function shoreTick(){const now=Date.now();for(const[k,m]of[['bite','Велика риба зірвалася й пішла в глибину. Нічого, ще клюне.'],['hot','Заготовка охолола. Нічого, метал ще розжариться.']])if(s[k]){if(away())s[k].until=Math.max(s[k].until,now+20000);else if(now>s[k].until){s[k]=null;say(m,'world')}}if(!s.floors.gallery)return;if(s.flot&&away()&&!mgHelp('flot'))s.flot.until=Math.max(s.flot.until,now+30000);

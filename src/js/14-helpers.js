@@ -21,7 +21,7 @@ function dlg(o){s.dlg=s.dlg||[];if(s.dlg.length>14)return;if(o.k==='fight')s.dlg
 function unlock(t){if(!s.tabs[t]){s.tabs[t]=1;s.newTab[t]=1;dirty=1;if(t==='hero'){if(s.h.xpb){const b=s.h.xpb;s.h.xpb=0;xp(b)}}const nm=(TABS.find(x=>x[0]===t)||[0,''])[1];if(t!=='shore')dlg({k:'world',title:`Відкрито: ${nm}`,body:`<p>${TABV[t]||TABINFO[t]||''}${TABV[t]&&TABINFO[t]?ih(TABINFO[t]):''}</p>`,gains:[`Відкрилася вкладка «${nm}».`]})}}
 function page(n){if(!s.pages.includes(n)){s.pages.push(n);if(n===1)s.met.ostap=1;dlg({k:'story',title:n==='m'?'Записка Остапа без номера':`Записка Остапа, аркуш ${n}`,body:`<div class="note">${PG[n].replace(/ — О\.$/,'')}<span class="sig">— О.</span></div>`,gains:['Записку збережено в журналі.']});unlock('journal');dirty=1}}
 function book(id){if(!s.books.includes(id)){s.books.push(id);dirty=1}}
-function odd(id,pre){if(s.odd[id])return;s.odd[id]=1;xp(20);say((pre?pre+' ':'')+`Дивина: ${I(OD[id].n)}. +20 досвіду.`,'find');const ik=ODI[id];dlg({k:'find',title:`Дивина: ${OD[id].n}`,img:{t:'icon',id:ik},body:`<p>${pre?pre+' ':''}${OD[id].d}</p>`,gains:['+20 досвіду',`Знайдено дивин: ${Object.keys(s.odd).length}`]})}
+function odd(id,pre){if(s.odd[id])return;s.odd[id]=1;s.oddNew=(s.oddNew||0)+1;xp(20);say((pre?pre+' ':'')+`Дивина: ${I(OD[id].n)}. +20 досвіду.`,'find');const ik=ODI[id];dlg({k:'find',title:`Дивина: ${OD[id].n}`,img:{t:'icon',id:ik},body:`<p>${pre?pre+' ':''}${OD[id].d}</p>`,gains:['+20 досвіду',`Знайдено дивин: ${Object.keys(s.odd).length}`]})}
 function reveal(id){if(!s.disc[id]){s.disc[id]=1;dirty=1;const L=LOC[id];mom('disc',L.n,L.d,{t:'scene',id:id==='bay'?'bayHigh':id});dlg({k:'world',title:`Нове місце: ${L.n}`,img:{t:'scene',id:id==='bay'?'bayHigh':id},body:`<p>${L.d}</p>`,gains:['Нове місце на мапі.',L.sea?'Туди можна дістатися лише човном, і вихід у море коштує провізію.':'',L.dark?'Там темно: візьми в руку ліхтар.':''].filter(Boolean)})}}
 function boat(){s.f.boat=1;reveal('reef')}
 function logOf(x){return typeof x==='string'?{m:x,t:'info'}:x}
@@ -88,7 +88,7 @@ function flow(dt,dry){const L=s.b,d={};for(const k of RES)d[k]=0;const av=k=>s.r
   if(s.f.won)d.coin+=((s.f.won2?5:2)+(fuL('lantern')>=3?2:0))*dt;
   d.ember+=dt;
   const hn=L.hearth||0;if(hn&&s.on.hearth!==false){const need=0.12*hn*dt*(fuL('hall')>=2?0.7:1),ratio=Math.min(1,Math.max(0,av('wood'))/need);d.wood-=need*ratio;d.ember+=2*hn*dt*ratio*(fuL('hall')>=1?1.25:1)}
-  for(const id in CONV){const n=E(id)*((id==='smoke'||id==='render')&&s.rs.a_eel?1.5:1)*(id==='smoke'&&fac('cape')>=50?1.25:1)*(id==='glass'&&s.rs.a_shark?1.25:1);if(!n||s.on[id]===false)continue;const C=CONV[id];let ratio=1;
+  for(const id in CONV){const n=E(id)*((id==='smoke'||id==='render')&&s.rs.a_eel?1.5:1)*(id==='smoke'&&fac('cape')>=50?1.25:1)*(id==='smoke'&&(s.mst||{}).zinovii?2:1)*(id==='glass'&&s.rs.a_shark?1.25:1);if(!n||s.on[id]===false)continue;const C=CONV[id];let ratio=1;
     for(const k in C.in)ratio=Math.min(ratio,Math.max(0,av(k))/(C.in[k]*n*dt));
     if(!(ratio>0))continue;for(const k in C.in)d[k]-=C.in[k]*n*dt*ratio;for(const k in C.out)d[k]+=C.out[k]*n*dt*ratio}
   if(!dry)for(const k of RES)if(d[k]){add(k,d[k]);if(s.r[k]<0)s.r[k]=0}

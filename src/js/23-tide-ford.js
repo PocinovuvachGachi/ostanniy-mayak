@@ -16,7 +16,7 @@ const FORD=[
   {id:'poles',n:'Вішки',d:'Жердини вздовж каміння, щоб не збитися зі стежки.',c:{wood:60}},
   {id:'steps',n:'Сходинки',d:'Плаский камінь і дошки на слизьких місцях.',c:{wood:40,scrap:30}},
   {id:'rope',n:'Поруччя',d:'Мотузка між вішками: тримає, коли хвиля б’є під ноги.',c:{wood:30,fish:20,scrap:20}},
-  {id:'lamp',n:'Ліхтар на дальньому кінці',d:'Світло, що веде бродом і в тумані.',c:{oil:15,scrap:40,ember:300},req:()=>!!s.f.siege1,reqT:'Спершу треба вистояти, коли Мла прийде до маяка.'}];
+  {id:'lamp',n:'Ліхтар на дальньому кінці',d:'Світло, що веде бродом і в тумані.',c:{oil:6,scrap:40,ember:300},req:()=>!!s.f.siege1,reqT:'Спершу треба вистояти, коли Мла прийде до маяка.'}];
 const fordN=()=>FORD.filter(p=>(s.ford||{})[p.id]).length;
 function fordPart(id){const P=FORD.find(p=>p.id===id);if(!P||!s.f.fordSeen||(s.ford||{})[id])return false;if(!tideLow()){say('Брід під водою. Працювати можна лише на відпливі.','info');return false}
   if(P.req&&!P.req()){say(P.reqT,'info');return false}if(!afford(P.c))return false;pay(P.c);s.ford=s.ford||{};s.ford[id]=1;xp(15);
@@ -25,7 +25,7 @@ function fordPart(id){const P=FORD.find(p=>p.id===id);if(!P||!s.f.fordSeen||(s.f
   else say(`${P.n}: готово. Брід стає надійнішим.`,'build');return true}
 /* Калюжі на відпливі */
 function poolPick(){if(!tideLow()||onCd('pool'))return;setCd('pool',4);s.c.pool=(s.c.pool||0)+1;const n=1+(Math.random()<.4?1:0);add('fish',n);
-  if(typeof collFind==='function'&&Math.random()<.07)collFind('pool');}
+  if(typeof collFind==='function'&&Math.random()<((s.mst||{}).horpyna?.14:.07))collFind('pool');}
 /* Об'єкти берега: калюжа між камінням і кілок біля броду */
 function poolObj3(){const b=pbuf(34,14);hiRect(b,0,0,34,14,(i,j,x,y)=>{const d=((x-17)/16)**2+((y-8)/6)**2;if(d>1)return;const r=vnz(i,j,4,21);if(d>.62||r>.7)return r>.5?'F':'E';if(d>.5)return'D';return hh2(i,j)<.06?'u':y<7?'T':'S'});
   for(const[x,y]of[[8,7],[22,9],[14,10]]){pset(b,x,y,'x');pset(b,x+1,y,'D')}pset(b,26,5,'v');pset(b,27,5,'t');return b}
