@@ -2425,7 +2425,7 @@ const EN={
 };
 Object.assign(EN,{
   rat:{n:'Трюмний пацюк',ch:'р',hp:10,arm:0,eva:20,mv:4,xp:6,d:'Сірий, жирний і сміливий, поки їх багато.',p:[['hit',3,'Укус'],['hit',4,'Гризе']]},
-  hound:{n:'Пес контрабандистів',ch:'с',hp:24,arm:0,eva:10,mv:5,xp:16,d:'Швидкий і злий. Від нього не втечеш, тож краще стати спиною до каменя.',p:[['hit',6,'Хапає'],['hit',6,'Хапає'],['hit',9,'Рве']]},
+  hound:{n:'Пес контрабандистів',ch:'с',hp:24,arm:0,eva:10,mv:5,xp:16,grip:1,d:'Швидкий і злий. Вчіплюється в ногу — і поки тримає, не відійдеш: бий його першим.',p:[['hit',6,'Хапає'],['hit',6,'Хапає'],['hit',9,'Рве']]},
   smuggler:{n:'Контрабандист-стрілець',ch:'з',hp:34,arm:1,eva:10,mv:3,xp:26,d:'Мушкет б’є далеко, але перед пострілом він довго цілиться.',p:[['aim',0,'Звіряє мушку',5],['shoot',12,'Мушкет',5],['hit',6,'Приклад']],loot(){add('coin',8)}},
   drowned:{n:'Утопленик',ch:'у',hp:40,arm:1,eva:0,mv:2,xp:28,mist:1,d:'Ті, кого забрала Мла. Повільні, але вчепляться — не відпустять.',p:[['hit',8,'Мокрі руки'],['wrap',7,'Тягне на дно'],['hit',10,'Хапає за горло']]},
   shark:{n:'Сіра акула',ch:'а',hp:48,arm:1,eva:10,mv:4,swim:1,xp:38,d:'Кружляє біля коси. На березі не дістане, але з води дістає далеко.',p:[['hit',10,'Укус'],['dive',0,'Пірнає'],['hit',14,'Рве']]},
@@ -3150,7 +3150,7 @@ function rcCost(rc){const m=(s.h.ft.smith?0.75:1)*(fuL('work')>=1?0.85:1);if(m==
 const scanCost=()=>28*Math.pow(2,s.scans);
 const sigCost=()=>Math.round(200*Math.pow(1.5,Math.min(s.sig||0,6))*(s.rs.signals?0.7:1)*(fuL('gallery')>=2?0.7:1)*(fac('sails')>=80?0.7:1));
 const SEAFOOD=2;
-const price=p=>Math.ceil(p*(s.f.crateDone?0.8:1)*(s.h.ft.trader?0.8:1)*(fac('rot')>=20?0.9:1));
+const price=p=>Math.ceil(p*(s.f.crateDone?0.8:1)*(s.h.ft.trader?0.8:1)*(fac('rot')>=20?0.9:1)*(s.f.coinSet?0.9:1));
 const sellG=g=>Math.round(g*(s.h.ft.trader?1.3:1));
 const mstOf=b=>Object.keys(MST).some(m=>s.mst&&s.mst[m]&&MST[m].b.includes(b));
 const people=()=>(s.pop||0)+Object.keys(s.mst||{}).length;
@@ -3283,7 +3283,7 @@ function shotCh(u,bonus=0){const c=s.cb,d=dist(c.hx,c.hy,u.x,u.y);if(isObj(u))re
   return clamp(60+4*st('per')+3*s.h.a.dex+(s.h.ft.steady?5:0)+(s.h.ft.eye?10:0)+(famRs(u)?10:0)+(s.eq.ranged==='crossbow'&&wmLv('crossbow')>=3?10:0)+(s.eq.ranged==='pistol'&&wF('pistol')>=1?15:0)+bonus-4*Math.max(0,d-3)-(s.eq.ranged==='pistol'?0:cover(c,u.x,u.y,c.hx,c.hy))-evaOf(u,1)-(c.sand?30:0),5,95)}
 function canShoot(u){const c=s.cb;if(!s.eq.ranged)return false;const d=dist(c.hx,c.hy,u.x,u.y);return d>1&&d<=rngOf()&&los(c,c.hx,c.hy,u.x,u.y)}
 function canBomb(u){const c=s.cb;const d=dist(c.hx,c.hy,u.x,u.y);return has('bomb')&&d<=4&&(d<=1||los(c,c.hx,c.hy,u.x,u.y))}
-function dmgTo(u,base,mult,pierce,src){const T=EN[u.t],c=s.cb;let d=base+(famRs(u)?1:0);const w=src==='r'?s.eq.ranged:src==='m'?s.eq.weapon:'';
+function dmgTo(u,base,mult,pierce,src){const T=EN[u.t],c=s.cb;gripFree(c,u);let d=base+(famRs(u)?1:0);const w=src==='r'?s.eq.ranged:src==='m'?s.eq.weapon:'';
   let crit=Math.random()*100<critCh()+(w==='knife'&&wmLv('knife')>=5?20:0);if(s.h.ft.ambush&&!u.acted&&!T.obj)crit=true;if(c&&c.hidden&&(src==='m'||src==='r')){crit=true;c.hidden=0;cbLog('Удар з тіні!')}
   if(w==='harpoon'&&wmLv('harpoon')>=3&&(T.fly||T.swim))d+=2;
   if(w==='sling'&&T.fly)d*=2;
@@ -3336,7 +3336,10 @@ function heroBomb(u){const c=s.cb;if(c.ap<2||!canBomb(u)||!beltHas('bomb'))retur
   cbLog(`Бомба вибухає біля цілі: ${d} урону всім поруч.`);fxP({t:'shot',x0:c.hx,y0:c.hy,x1:u.x,y1:u.y,d:260},240);fxP({t:'boom',x:u.x,y:u.y},150);addFire(c,u.x,u.y);
   for(const v of c.u.slice())if(v.hp>0&&dist(v.x,v.y,u.x,u.y)<=1){const T=EN[v.t];const x=Math.max(1,d-T.arm);v.hp-=x;v.burn=2;if(!T.obj){cbLog(`${E(T.n)}: −${x}, горить.`);fxP({t:'txt',x:v.x,y:v.y,v:'−'+x,k:'hit'},40)}if(v.hp<=0)kill(v)}
   if(dist(c.hx,c.hy,u.x,u.y)<=1){const x=Math.max(1,Math.round(d/2)-armor());s.h.hp-=x;cbLog(`Тебе теж зачепило: −${x} здоров’я.`)}}
-function heroMove(x,y){const c=s.cb;if(x===c.hx&&y===c.hy)return;if(!canStand(c,x,y,'walk')||unitAt(c,x,y))return;
+/* хватка пса: поки тримає, герой не може відійти; будь-який удар по псу (твій чи союзника) його скидає */
+function gripU(c){if(!c||c.grip==null)return null;const u=c.u[c.grip];if(!u||u.hp<=0||dist(u.x,u.y,c.hx,c.hy)>1){c.grip=null;return null}return u}
+function gripFree(c,u){if(c&&c.grip!=null&&c.u[c.grip]===u){c.grip=null;cbLog(`${E(EN[u.t].n)} розтискає щелепи.`)}}
+function heroMove(x,y){const c=s.cb;if(x===c.hx&&y===c.hy)return;const gp=gripU(c);if(gp){cbLog(`${E(EN[gp.t].n)} тримає тебе за ногу. Спершу вдар його.`);return}if(!canStand(c,x,y,'walk')||unitAt(c,x,y))return;
   const D=costMap(c,c.hx,c.hy,'walk');if(D[y][x]>c.ap)return;c.ap-=D[y][x];fxP({t:'mv',x0:c.hx,y0:c.hy,x1:x,y1:y,d:Math.min(420,110+70*D[y][x])},Math.min(420,110+70*D[y][x]));c.hx=x;c.hy=y}
 
 /* abilities: from weapons and talents */
@@ -3444,7 +3447,7 @@ function moveTo(c,u,tx,ty){if(u.pin>0)return;const T=EN[u.t],mode=T.fly?'fly':T.
 function allyAct(c,u){const foes=alive(c).filter(v=>!v.hid);if(!foes.length)return;let tg=foes.reduce((a,b)=>dist(u.x,u.y,a.x,a.y)<=dist(u.x,u.y,b.x,b.y)?a:b);
   if(dist(u.x,u.y,tg.x,tg.y)>1)moveTo(c,u,tg.x,tg.y);if(dist(u.x,u.y,tg.x,tg.y)>1)return;
   fxP({t:'bump',x0:u.x,y0:u.y,x1:tg.x,y1:tg.y},110);if(Math.random()<0.25+0.05*0){cbLog(`${E(u.nm||EN[u.t].n)} промахується.`);return}
-  const d=Math.max(1,Math.round(((u.p0||(EN[u.t].p&&EN[u.t].p[0]?EN[u.t].p[0][1]:6))+s.h.lvl*0.5)*(s.h.ft.leader?1.5:1))-uArm(tg));tg.hp-=d;fxP({t:'txt',x:tg.x,y:tg.y,v:'−'+d,k:'hit'},130);cbLog(`${E(u.nm||EN[u.t].n)} б’є: ${E(EN[tg.t].n)} −${d}.`);if(tg.hp<=0)kill(tg)}
+  const d=Math.max(1,Math.round(((u.p0||(EN[u.t].p&&EN[u.t].p[0]?EN[u.t].p[0][1]:6))+s.h.lvl*0.5)*(s.h.ft.leader?1.5:1))-uArm(tg));tg.hp-=d;gripFree(c,tg);fxP({t:'txt',x:tg.x,y:tg.y,v:'−'+d,k:'hit'},130);cbLog(`${E(u.nm||EN[u.t].n)} б’є: ${E(EN[tg.t].n)} −${d}.`);if(tg.hp<=0)kill(tg)}
 function roleAct(c,u){const T=EN[u.t];const structs=c.u.filter(v=>v.hp>0&&EN[v.t].struct);
   if(u.role==='thief'&&u.loot){if(u.x>=GW-1){u.hp=0;u.gone=1;const g={};for(const k of['wood','fish','prov','scrap']){const v=Math.floor(s.r[k]*0.1);if(v>0){s.r[k]-=v;g[k]=v}}c.stolen=Object.assign(c.stolen||{},g);cbLog(`${E(T.n)} тікає в туман із награбованим: ${costTxt(g)||'нічого цінного'}.`);fxP({t:'die',x:u.x,y:u.y,spr:u.t},0);return true}
     moveTo(c,u,GW-1,u.y);cbLog(`${E(T.n)} тягне награбоване до води.`);return true}
@@ -3469,7 +3472,7 @@ function enemyAct(c,u){const T=EN[u.t];if(T.obj)return;if(T.ally){allyAct(c,u);r
     if(Math.random()*100>=ch){cbLog(`${E(T.n)}: ${nm.toLowerCase()} — мимо.`);fxP({t:'txt',x:c.hx,y:c.hy,v:'мимо',k:'miss'},140);u.wind=0;u.weak=0;
       if(s.eq.weapon&&Math.random()*100<3*s.h.k.melee+(s.h.ft.riposte?15:0)){cbLog('Контрудар!');dmgTo(u,wDmg()+s.h.a.str-1,1,0,'m')}return false}
     if(s.eq.weapon==='sabre'&&Math.random()*100<(wmLv('sabre')>=3?40:25)){u.wind=0;u.weak=0;fxP({t:'txt',x:c.hx,y:c.hy,v:'відбито',k:'heal'},120);cbLog(`Шабля відбиває удар! Відповідь:`);dmgTo(u,wDmg()+s.h.a.str-1,1,0,'m');if(wF('sabre')>=1&&u.hp>0)dmgTo(u,wDmg()+s.h.a.str-1,1,0,'m');return false}
-    const x=hurtHero(dmg*(u.wind?2:1),ign);u.wind=0;cbLog(`${E(T.n)}: ${nm.toLowerCase()}, −${x} здоров’я${pinc?' (кліщі)':''}.`);if(T.drain){u.hp=Math.min(u.max,u.hp+x);cbLog(`${E(T.n)} п’є кров: +${x}.`)}if(T.poison&&!s.h.ft.iron){c.poison=3}return true};
+    const x=hurtHero(dmg*(u.wind?2:1),ign);u.wind=0;cbLog(`${E(T.n)}: ${nm.toLowerCase()}, −${x} здоров’я${pinc?' (кліщі)':''}.`);if(T.grip&&x>0&&!gripU(c)){c.grip=c.u.indexOf(u);cbLog(`${E(T.n)} вчепився в ногу! Не відійдеш, доки не вдариш його.`)}if(T.drain){u.hp=Math.min(u.max,u.hp+x);cbLog(`${E(T.n)} п’є кров: +${x}.`)}if(T.poison&&!s.h.ft.iron){c.poison=3}return true};
   const al=c.u.find(v=>EN[v.t].ally&&v.hp>0&&dist(v.x,v.y,u.x,u.y)<=1);
   if(al&&['hit','cold','wrap','charge'].includes(k)&&(!near()||Math.random()<0.35)){fxP({t:'bump',x0:u.x,y0:u.y,x1:al.x,y1:al.y},110);const d=Math.max(1,Math.round(v*(c.mult||1)*DIFF_DMG)-1);al.hp-=d;fxP({t:'txt',x:al.x,y:al.y,v:'−'+d,k:'hurt'},130);cbLog(`${E(T.n)} б’є: ${E(EN[al.t].n.toLowerCase())} −${d}.`);if(al.hp<=0)kill(al);u.acted=1;if(u.pin>0)u.pin--;u.step++;return}
   if(STANCE[k]){}
@@ -3884,7 +3887,7 @@ function vgMake(){const L=VGT.filter(T=>T.k!=='give'||Object.keys(T.r).every(k=>
 function vgTick(){if(!vgOn()||away())return;s.vg=s.vg||{list:[],c:0,t:0};const now=Date.now();
   if(s.vg.list.length<2&&now>=(s.vg.t||0)){const q=vgMake();if(q){s.vg.list.push(q);s.vg.t=now+(6+Math.random()*4)*60000;if(s.at!=='village')say(`На Причалі просять допомоги: ${q.n.toLowerCase()}.`,'world');dirty=1}}
   if(s.floors.study&&s.disc.fort&&!s.f.reefmap){s.f.reefmap=1;dlg({k:'find',title:'Карта рифів',img:{t:'icon',id:'lore'},body:`<p>Між Остаповими книгами — лоцманська карта, вся в олівцевих позначках. Навколо Острова Хибних Вогнів вона показує прохід між рифами: ${Q('лише на світанку, коли вода стоїть')}.</p>`,gains:['Тепер можна дістатися Острова Хибних Вогнів']})}}
-function vgDone(q,msg){s.vg.list=s.vg.list.filter(x=>x!==q);s.vg.t=Math.max(s.vg.t||0,Date.now()+4*60000);s.c.vg=(s.c.vg||0)+1;trust('rot',q.k==='fight'?4:3);return msg}
+function vgDone(q,msg){s.vg.list=s.vg.list.filter(x=>x!==q);s.vg.t=Math.max(s.vg.t||0,Date.now()+4*60000);s.c.vg=(s.c.vg||0)+1;if(Math.random()<.12&&typeof collFind==='function')collFind('errand');trust('rot',q.k==='fight'?4:3);return msg}
 for(const k of[0,1])LOC.village.spots.push({id:'g'+k,quest:1,pos:[[124,228],[212,232]][k],get n(){const q=((s.vg||{}).list||[])[k];return q?q.n:'Справа'},show:()=>!!((s.vg||{}).list||[])[k],
   get d(){const q=s.vg.list[k];if(!q)return'';return`${q.d}${q.k==='work'?` <span class="m">Зроблено ${q.done} з ${q.need}.</span>`:''}${q.coin?` <span class="m">Віддячать: ${R('coin',q.coin)}.</span>`:''}`},
   acts:[{id:'give',t:'Допомогти',get c(){const q=(s.vg.list||[])[k];return q&&q.k==='give'?q.give:undefined},show:()=>{const q=(s.vg.list||[])[k];return!!q&&q.k==='give'},
@@ -3965,6 +3968,30 @@ function wolfPopHTML(){const w=s.wolf;if(!w)return'';const k=wolfSt(),nm=w.name|
   ${w.name?'':`<div class="act"><input data-wname maxlength="16" autocomplete="off" aria-label="Ім’я вовченяти" placeholder="Ім’я">${btn('Назвати','wname','')}</div>`}
   <div class="act">${btn(`Нагодувати (${costTxt(c)})`,'wfeed','',{ok:()=>afford(c)&&Date.now()>=(s.wolf.sat||0)-5*60000})}</div>
   <p class="hint">${k?'Іде з тобою в бій і кидається на найближчого ворога. Накази — коли навчиш.':'Підросте — ходитиме з тобою в бій.'}</p></div>`}
+/* ============ ЕТАП II, КРОК 4: КОМОРА ОСТАПА Й СХОВОК КОНТРАБАНДИСТІВ ============
+   Ключ хранителя зі сховку етапу I відмикає старий човновий сарай Остапа на Причалі. Усередині — його записка:
+   скарб контрабандистів під третьою палею в Затоці Мулу, але дорогу знає той, хто відгадав три загадки —
+   Левкову (сіль), Тимішеву (обіцянка) й Остапову. Набір «Монети потонулих королівств» — зі сховку, зі справ і від Тиміша;
+   разом дають знижку в Яреми. */
+Object.assign(OD,{
+  crowncoin:{n:'Шеляг із короною',d:'Важкий срібний шеляг. Корона на ньому — королівства, якого немає на жодній мапі.',set:'coins'},
+  wavecoin:{n:'Монета з хвилею',d:'Мідна, позеленіла. Замість профілю короля — хвиля й зірка.',src:'errand',set:'coins'},
+  fishcoin:{n:'Монета з рибою',d:'Маленька, тонка, з дірочкою для шнурка. На ній — риба, що ковтає власний хвіст.',set:'coins'}});
+Object.assign(ODI,{crowncoin:'coin',wavecoin:'coin',fishcoin:'coin'});
+OSET.coins={n:'Монети потонулих королівств',gain:()=>{s.f.coinSet=1},gt:'Ярема продає на 10% дешевше'};
+LOC.village.spots.push({id:'shed',n:'Сарай на палях',pos:[22,214],show:()=>!!s.met.levko&&rotRank()>=3,
+  d:()=>s.f.shed?'Остапів човновий сарай: старі весла, сіті, ліхтар без скла. На стіні — його записка.':'Старий човновий сарай на палях, замкнений. На дужці замка — маленький вибитий маяк.',
+  acts:[{id:'open',t:'Відімкнути ключем хранителя',once:1,show:()=>!s.f.shed,ok:()=>!!s.odd.keeperkey,run(){s.f.shed=1;xp(20);add('coin',10);
+      dlg({k:'story',title:'Комора Остапа',img:{t:'icon',id:'key'},body:`<p>Ключ зі сховку під вогнищем повертається туго — і замок клацає. Тут Остап тримав свій човен: весла, сіті, банку смоли, ліхтар без скла. На стіні — записка, приколота риб’ячою кісткою.</p><p class="quote">«Ті, хто ходить без світла, сховали награбоване під третьою палею в Затоці Мулу. Дорогу знайде той, хто знає, що солоне, що ламається без дотику — і що світить, а не гріє. Перші два питай у Причалі. Третє — моє. — О.»</p>`,gains:['Загадка Остапа']});return''}},
+    {id:'riddle',once:1,show:()=>!!s.f.shed,riddle:{q:'Світить, а не гріє; ходить небом, а ніг не має. Що це?',ans:['місяц','місяч'],hint:()=>'Остап дописав дрібно: «Дивися вгору, коли вода спаде».'},run(){s.f.riddle2=1;xp(15);return stashHint()}}]});
+function stashHint(){const L=!!s.done['village.tavern.riddle'],T=!!s.f.riddle1;return L&&T?'Місяць! Сіль, обіцянка, місяць — тепер ясно, де шукати: під третьою палею, коли спаде вода.':`Місяць. ${!L?'Але Левкова загадка ще не відгадана. ':''}${!T?'І Тиміш свою ще загадує.':''}`}
+const stashReady=()=>!!s.f.riddle2&&!!s.done['village.tavern.riddle']&&!!s.f.riddle1;
+LOC.bay.spots.push({id:'pile',n:'Третя паля',show:()=>stashReady()&&!s.f.stash,d:()=>lowTide()?'Вода спала. Біля третьої палі старого причалу з мулу стирчить ріг окутої скрині.':'Третя паля старого причалу. Зараз вона по пояс у воді — треба чекати відпливу.',
+  acts:[{id:'dig',t:'Відкопати скриню',once:1,ok:()=>lowTide(),run(){s.f.stash=1;add('coin',40);add('oil',6);xp(30);odd('crowncoin');setCheck('crowncoin');
+    return 'Скриня важка, мул тримає її, як живий. Усередині — монети, фляга олії й срібний шеляг із короною невідомого королівства. Хтось шукатиме цей скарб. Але знайшов його ти.'}}]});
+/* Тиміш дарує монету тому, кого Причал вважає сусідом */
+LOC.village.spots.find(S=>S.id==='boy').acts.push({id:'coin',t:'Сісти поруч на пірсі',once:1,show:()=>rotRank()>=4&&!!s.met.tymish,run(){odd('fishcoin');setCheck('fishcoin');xp(10);
+  return `${P('Тиміш')} довго мовчить, а тоді розтискає кулак: на долоні — тонка монетка з рибою. ${Q('Знайшов у піску, коли вода спала. Тримай. Дід казав, хранителям щастить на такі')}.`}});
 /* ============ ACTIONS ============ */
 function act0(a,i){
   if(a.indexOf('c_')===0){cAct(a,i);return}
@@ -4488,7 +4515,7 @@ function rCombat(){const c=s.cb;setGrid(c);const u0=selU(),hv=heavyAP(),fl=AFL[c
     if(u&&EN[u.t].struct)return`<b>${u.nm||EN[u.t].n}</b><br>Міцність ${u.hp}/${u.max}. ${EN[u.t].d}${st('mech')>=1?'<br>Стань поруч і натисни, щоб полагодити (2 ОД).':''}`;
     if(u){const T=EN[u.t];if(T.obj)return`<b>${T.n}</b><br>${T.d}`;const d=dist(c.hx,c.hy,u.x,u.y);
       const sts=[u.armDown?`броня −${u.armDown}`:'',u.burn?'горить':'',u.bleed?'кровотеча':'',u.stun?'оглушений':'',u.pin?'притиснутий':'',u.weak?'вагається':'',u.wind?'замахнувся':'',u.veil?'у тумані':'',u.ward?'під щитом':''].filter(Boolean);
-      return`<b>${T.n}</b><br>Здоров’я ${u.hp}/${u.max}, броня ${Math.max(0,uArm(u)-(u.armDown||0))}, ухилення ${evaOf(u)}%${u.el?`<br><b>Ветеран: ${ELITE[u.el].n}</b> (${ELITE[u.el].d})`:''}${u.role?`<br>${u.role==='thief'?(u.loot?'Несе награбоване!':'Лізе до складу по припаси.'):'Хоче ламати будівлі.'}`:''}${T.thorns?'<br>Колючий: удар упритул ранить і тебе.':''}${T.burst?'<br>Помираючи, вибухає холодом.':''}${T.fly?', літає':''}${T.swim?', плаває':''}.<br>${intentTxt(u)}.<br>Відстань ${d}. ${inReach(u)?`Удар влучить на ${meleeCh(u)}%`:'Задалеко для удару'}${s.eq.ranged?(canShoot(u)?`, постріл — на ${shotCh(u)}%`:', пострілом не дістати'):''}.${sts.length?`<br>Стан: ${sts.join(', ')}.`:''}`}
+      return`<b>${T.n}</b><br>Здоров’я ${u.hp}/${u.max}, броня ${Math.max(0,uArm(u)-(u.armDown||0))}, ухилення ${evaOf(u)}%${u.el?`<br><b>Ветеран: ${ELITE[u.el].n}</b> (${ELITE[u.el].d})`:''}${u.role?`<br>${u.role==='thief'?(u.loot?'Несе награбоване!':'Лізе до складу по припаси.'):'Хоче ламати будівлі.'}`:''}${T.thorns?'<br>Колючий: удар упритул ранить і тебе.':''}${T.grip?'<br>Вчіплюється: поки тримає, ти не можеш відійти. Удар по ньому скидає хватку.':''}${T.burst?'<br>Помираючи, вибухає холодом.':''}${T.fly?', літає':''}${T.swim?', плаває':''}.<br>${intentTxt(u)}.<br>Відстань ${d}. ${inReach(u)?`Удар влучить на ${meleeCh(u)}%`:'Задалеко для удару'}${s.eq.ranged?(canShoot(u)?`, постріл — на ${shotCh(u)}%`:', пострілом не дістати'):''}.${sts.length?`<br>Стан: ${sts.join(', ')}.`:''}`}
     const cvx=shooters.length&&!solid(t)?coverAt(x,y):-2;
     return(TT[t]||TT['.'])+(c.fire&&c.fire.some(q=>q.x===x&&q.y===y)?'<br><b>Горить!</b> Хто стоїть тут наприкінці ходу ворогів, отримує 3 урону.':'')+(cvx===-1?'<br>Звідси тебе не побачить жоден стрілець: огляд закриває перешкода.':cvx===-3?'<br>Стрільці сюди не дістануть.':cvx>0?`<br>Укриття від стрільців: −${cvx}%.`:cvx===0?'<br>Тут ти відкритий для пострілу.':'')+(c.traps.some(q=>q.x===x&&q.y===y)?'<br>Тут твій капкан.':'')+(solid(t)?'':D[y][x]<=c.ap?`<br>Дійдеш за ${D[y][x]} ОД.`:'<br>Цього ходу не дійдеш.')};
   const reachMap=costMap(c,c.hx,c.hy,'walk');const isTrap=(x,y)=>c.traps.some(t=>t.x===x&&t.y===y);let g='';const usePx=!!tileURL('floor',fl),arU=usePx?arenaURL(c):'';
@@ -4526,7 +4553,7 @@ const inR=u0&&inReach(u0),cv=u0?cover(c,c.hx,c.hy,u0.x,u0.y):0;
   <p class="ap" aria-label="Очки дії: ${c.ap}">${'●'.repeat(c.ap)}${'○'.repeat(Math.max(0,maxAP()-c.ap))}</p>
   ${c.win==='raid'?'<p class="m"><b>Оборона маяка.</b> Захисти склад і будівлі: злодії тягнуть припаси до води праворуч, руйнівники ламають будівлі. Поруч із пошкодженою будівлею її можна полагодити.</p>':''}
   ${c.u.some(u=>EN[u.t].ally&&u.hp>0)?`<p class="m">Союзники: ${c.u.filter(u=>EN[u.t].ally&&u.hp>0).map(u=>`${u.nm||EN[u.t].n.toLowerCase()} ${u.hp}/${u.max}`).join(', ')}.</p>`:''}
-  <p class="m">${[c.hidden?'<b>Ти в тіні:</b> тебе не бачать, наступний удар критичний.':'',c.poison?`Отруєний: −2 здоров’я ще ${c.poison} х.`:'',c.smoke?'У диму: постріли ворогів мимо.':'',c.guard?`Захисна стійка: зблизька −${guardPct(1)}%, здалеку −${guardPct(0)}%.`:'',c.sand?'Засліплений: влучність −30%.':'',cv?`Укриття від цілі: її постріли −${cv}%.`:''].filter(Boolean).join(' ')||'Натисни на ворога, щоб вибрати ціль, і ще раз, щоб атакувати. На клітинку — щоб піти туди.'}</p>
+  <p class="m">${[c.hidden?'<b>Ти в тіні:</b> тебе не бачать, наступний удар критичний.':'',c.poison?`Отруєний: −2 здоров’я ще ${c.poison} х.`:'',c.smoke?'У диму: постріли ворогів мимо.':'',c.guard?`Захисна стійка: зблизька −${guardPct(1)}%, здалеку −${guardPct(0)}%.`:'',c.sand?'Засліплений: влучність −30%.':'',gripU(c)?`<b>${EN[gripU(c).t].n} тримає тебе за ногу:</b> не відійдеш, доки не вдариш його.`:'',cv?`Укриття від цілі: її постріли −${cv}%.`:''].filter(Boolean).join(' ')||'Натисни на ворога, щоб вибрати ціль, і ще раз, щоб атакувати. На клітинку — щоб піти туди.'}</p>
   <ul class="foes">${c.u.map((u,ix)=>u.hp>0&&!isObj(u)&&!EN[u.t].ally&&!u.hid?`<li class="${u===u0?'on':''}" ${TA(`<b>${EN[u.t].n}</b><br>${EN[u.t].d}`)}>${usePx?`<img class="fimg" src="${sprURL(u.t)}" alt="">`:''}<div>${btn(EN[u.t].n+(u.el?' ★':''),'c_sel',ix,{cls:u===u0?'on':''})}${u.el?`<span class="elchip">${ELITE[u.el].n}</span>`:''}${u.role?`<span class="habit">${u.role==='thief'?(u.loot?'несе здобич':'злодій'):'руйнівник'}</span>`:''}<span class="m">${u.hp}/${u.max}</span>${[u.armDown?`броня −${u.armDown}`:'',u.burn?'горить':'',u.bleed?'кровотеча':'',u.stun?'оглушений':'',u.pin?'притиснутий':'',u.weak?'вагається':'',u.wind?'замахнувся':'',u.veil?'у тумані':'',u.ward?'під щитом':''].filter(Boolean).map(x=>`<span class="habit">${x}</span>`).join('')}<br><span class="m">${intentTxt(u)}</span></div></li>`:'').join('')}</ul>`;
   const trs=w=>w&&WT[w]?U([WT[w].tr,...WF[w].slice(0,wF(w)).map(f=>f.tr)].join(' ')):'';
   const tip=(n,ap,L,w)=>`<b>${n}</b>${ap?` <span class="tap">· ${ap} ОД</span>`:''}${L.filter(Boolean).map(x=>'<br>'+x).join('')}${w?`<span class="twhy">${w}</span>`:''}`;

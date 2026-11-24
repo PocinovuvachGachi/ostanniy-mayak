@@ -25,7 +25,7 @@ shfTick();A(s.shf==='myronvisit','Мирон іде бродом');act('shfgo');
 s.at='village';s.lastAct=Date.now();s.vg=null;for(const k of RES)s.seen[k]=1;for(const k of RES)s.r[k]=Math.max(s.r[k],300);vgTick();A(s.vg.list.length===1,'перша справа');vgTick();A(s.vg.list.length===1,'не всі одразу');
 __adv(11*60000);s.lastAct=Date.now();vgTick();A(s.vg.list.length===2,'друга справа згодом');let done=0;
 for(let g=0;g<40&&done<6;g++){s.lastAct=Date.now();for(const k of[0,1]){const q=s.vg.list[k];if(!q)continue;const t0=fac('rot'),c0=s.c.vg||0;
-  if(q.k==='give')la('village.g'+k+'.give');else if(q.k==='work'){for(let i=0;i<3;i++)la('village.g'+k+'.work')}else{s.h.hp=maxHP();la('village.g'+k+'.fight');botFight()}
+  if(q.k==='give')la('village.g'+k+'.give');else if(q.k==='work'){for(let i=0;i<3;i++)la('village.g'+k+'.work')}else{s.h.hp=maxHP();la('village.g'+k+'.fight');if(s.cb){for(const u of s.cb.u)if(!EN[u.t].ally)u.hp=1;s.h.hp=500}botFight()}
   if((s.c.vg||0)>c0)done++;else A(0,'справа не виконалась: '+q.k+' '+q.n)}
   __adv(11*60000);s.lastAct=Date.now();vgTick()}
 A(done>=6,'справи йдуть одна за одною: '+done);
@@ -34,6 +34,6 @@ s.tabs.map=1;s.disc.fort=1;s.f.boat=1;A(!canGo('fort')[0],'острів — ли
 /* крок 3: хибний вогонь, коза, рибалки в тумані */
 s.disc.cliffs=1;s.dbgPh='n';la('cliffs.edge.look');A(s.f.falsefire,'хибний вогонь уночі');s.dbgPh='';
 s.vq.t.roof=Date.now()-10*60000;A(vis('q_goat'),'коза втекла');la('village.q_goat.go');A(s.f.goatQ&&!vis('q_goat'),'шукати козу');
-s.eq.weapon='oar';s.h.lvl=Math.max(s.h.lvl,5);s.h.hp=maxHP();la('cliffs.goat.fight');A(s.cb&&s.cb.enc==='goatwolf','бій із вовками');for(const u of s.cb.u)if(!EN[u.t].ally)u.hp=1;botFight();A(s.f.goatDone,'коза вдома '+JSON.stringify([s.h.hp,s.h.lvl,!!s.cb,s.log.slice(0,3).map(x=>(x.m||x).toString().slice(0,80))]));
-__adv(5*60000);A(vis('q_fog'),'човни в тумані');s.h.hp=maxHP();la('village.q_fog.fight');A(s.cb&&s.cb.u.filter(u=>u.t==='fisher').length===2,'рибалки поруч у бою');for(const u of s.cb.u)if(!EN[u.t].ally)u.hp=1;botFight();A(s.vq.t.fog&&!vis('q_fog'),'рибалки вдома');
+s.eq.weapon='oar';s.h.lvl=Math.max(s.h.lvl,5);s.h.hp=maxHP();la('cliffs.goat.fight');A(s.cb&&s.cb.enc==='goatwolf','бій із вовками');for(const u of s.cb.u)if(!EN[u.t].ally)u.hp=1;s.h.hp=500;botFight();A(s.f.goatDone,'коза вдома '+JSON.stringify([s.h.hp,s.h.lvl,!!s.cb,s.log.slice(0,3).map(x=>(x.m||x).toString().slice(0,80))]));
+__adv(5*60000);A(vis('q_fog'),'човни в тумані');s.h.hp=maxHP();la('village.q_fog.fight');A(s.cb&&s.cb.u.filter(u=>u.t==='fisher').length===2,'рибалки поруч у бою');for(const u of s.cb.u)if(!EN[u.t].ally)u.hp=1;s.h.hp=500;botFight();A(s.vq.t.fog&&!vis('q_fog'),'рибалки вдома');
 console.log('fails',fails)`);

@@ -74,7 +74,7 @@ function shotCh(u,bonus=0){const c=s.cb,d=dist(c.hx,c.hy,u.x,u.y);if(isObj(u))re
   return clamp(60+4*st('per')+3*s.h.a.dex+(s.h.ft.steady?5:0)+(s.h.ft.eye?10:0)+(famRs(u)?10:0)+(s.eq.ranged==='crossbow'&&wmLv('crossbow')>=3?10:0)+(s.eq.ranged==='pistol'&&wF('pistol')>=1?15:0)+bonus-4*Math.max(0,d-3)-(s.eq.ranged==='pistol'?0:cover(c,u.x,u.y,c.hx,c.hy))-evaOf(u,1)-(c.sand?30:0),5,95)}
 function canShoot(u){const c=s.cb;if(!s.eq.ranged)return false;const d=dist(c.hx,c.hy,u.x,u.y);return d>1&&d<=rngOf()&&los(c,c.hx,c.hy,u.x,u.y)}
 function canBomb(u){const c=s.cb;const d=dist(c.hx,c.hy,u.x,u.y);return has('bomb')&&d<=4&&(d<=1||los(c,c.hx,c.hy,u.x,u.y))}
-function dmgTo(u,base,mult,pierce,src){const T=EN[u.t],c=s.cb;let d=base+(famRs(u)?1:0);const w=src==='r'?s.eq.ranged:src==='m'?s.eq.weapon:'';
+function dmgTo(u,base,mult,pierce,src){const T=EN[u.t],c=s.cb;gripFree(c,u);let d=base+(famRs(u)?1:0);const w=src==='r'?s.eq.ranged:src==='m'?s.eq.weapon:'';
   let crit=Math.random()*100<critCh()+(w==='knife'&&wmLv('knife')>=5?20:0);if(s.h.ft.ambush&&!u.acted&&!T.obj)crit=true;if(c&&c.hidden&&(src==='m'||src==='r')){crit=true;c.hidden=0;cbLog('Удар з тіні!')}
   if(w==='harpoon'&&wmLv('harpoon')>=3&&(T.fly||T.swim))d+=2;
   if(w==='sling'&&T.fly)d*=2;
@@ -127,7 +127,10 @@ function heroBomb(u){const c=s.cb;if(c.ap<2||!canBomb(u)||!beltHas('bomb'))retur
   cbLog(`Бомба вибухає біля цілі: ${d} урону всім поруч.`);fxP({t:'shot',x0:c.hx,y0:c.hy,x1:u.x,y1:u.y,d:260},240);fxP({t:'boom',x:u.x,y:u.y},150);addFire(c,u.x,u.y);
   for(const v of c.u.slice())if(v.hp>0&&dist(v.x,v.y,u.x,u.y)<=1){const T=EN[v.t];const x=Math.max(1,d-T.arm);v.hp-=x;v.burn=2;if(!T.obj){cbLog(`${E(T.n)}: −${x}, горить.`);fxP({t:'txt',x:v.x,y:v.y,v:'−'+x,k:'hit'},40)}if(v.hp<=0)kill(v)}
   if(dist(c.hx,c.hy,u.x,u.y)<=1){const x=Math.max(1,Math.round(d/2)-armor());s.h.hp-=x;cbLog(`Тебе теж зачепило: −${x} здоров’я.`)}}
-function heroMove(x,y){const c=s.cb;if(x===c.hx&&y===c.hy)return;if(!canStand(c,x,y,'walk')||unitAt(c,x,y))return;
+/* хватка пса: поки тримає, герой не може відійти; будь-який удар по псу (твій чи союзника) його скидає */
+function gripU(c){if(!c||c.grip==null)return null;const u=c.u[c.grip];if(!u||u.hp<=0||dist(u.x,u.y,c.hx,c.hy)>1){c.grip=null;return null}return u}
+function gripFree(c,u){if(c&&c.grip!=null&&c.u[c.grip]===u){c.grip=null;cbLog(`${E(EN[u.t].n)} розтискає щелепи.`)}}
+function heroMove(x,y){const c=s.cb;if(x===c.hx&&y===c.hy)return;const gp=gripU(c);if(gp){cbLog(`${E(EN[gp.t].n)} тримає тебе за ногу. Спершу вдар його.`);return}if(!canStand(c,x,y,'walk')||unitAt(c,x,y))return;
   const D=costMap(c,c.hx,c.hy,'walk');if(D[y][x]>c.ap)return;c.ap-=D[y][x];fxP({t:'mv',x0:c.hx,y0:c.hy,x1:x,y1:y,d:Math.min(420,110+70*D[y][x])},Math.min(420,110+70*D[y][x]));c.hx=x;c.hy=y}
 
 /* abilities: from weapons and talents */
@@ -235,7 +238,7 @@ function moveTo(c,u,tx,ty){if(u.pin>0)return;const T=EN[u.t],mode=T.fly?'fly':T.
 function allyAct(c,u){const foes=alive(c).filter(v=>!v.hid);if(!foes.length)return;let tg=foes.reduce((a,b)=>dist(u.x,u.y,a.x,a.y)<=dist(u.x,u.y,b.x,b.y)?a:b);
   if(dist(u.x,u.y,tg.x,tg.y)>1)moveTo(c,u,tg.x,tg.y);if(dist(u.x,u.y,tg.x,tg.y)>1)return;
   fxP({t:'bump',x0:u.x,y0:u.y,x1:tg.x,y1:tg.y},110);if(Math.random()<0.25+0.05*0){cbLog(`${E(u.nm||EN[u.t].n)} промахується.`);return}
-  const d=Math.max(1,Math.round(((u.p0||(EN[u.t].p&&EN[u.t].p[0]?EN[u.t].p[0][1]:6))+s.h.lvl*0.5)*(s.h.ft.leader?1.5:1))-uArm(tg));tg.hp-=d;fxP({t:'txt',x:tg.x,y:tg.y,v:'−'+d,k:'hit'},130);cbLog(`${E(u.nm||EN[u.t].n)} б’є: ${E(EN[tg.t].n)} −${d}.`);if(tg.hp<=0)kill(tg)}
+  const d=Math.max(1,Math.round(((u.p0||(EN[u.t].p&&EN[u.t].p[0]?EN[u.t].p[0][1]:6))+s.h.lvl*0.5)*(s.h.ft.leader?1.5:1))-uArm(tg));tg.hp-=d;gripFree(c,tg);fxP({t:'txt',x:tg.x,y:tg.y,v:'−'+d,k:'hit'},130);cbLog(`${E(u.nm||EN[u.t].n)} б’є: ${E(EN[tg.t].n)} −${d}.`);if(tg.hp<=0)kill(tg)}
 function roleAct(c,u){const T=EN[u.t];const structs=c.u.filter(v=>v.hp>0&&EN[v.t].struct);
   if(u.role==='thief'&&u.loot){if(u.x>=GW-1){u.hp=0;u.gone=1;const g={};for(const k of['wood','fish','prov','scrap']){const v=Math.floor(s.r[k]*0.1);if(v>0){s.r[k]-=v;g[k]=v}}c.stolen=Object.assign(c.stolen||{},g);cbLog(`${E(T.n)} тікає в туман із награбованим: ${costTxt(g)||'нічого цінного'}.`);fxP({t:'die',x:u.x,y:u.y,spr:u.t},0);return true}
     moveTo(c,u,GW-1,u.y);cbLog(`${E(T.n)} тягне награбоване до води.`);return true}
@@ -260,7 +263,7 @@ function enemyAct(c,u){const T=EN[u.t];if(T.obj)return;if(T.ally){allyAct(c,u);r
     if(Math.random()*100>=ch){cbLog(`${E(T.n)}: ${nm.toLowerCase()} — мимо.`);fxP({t:'txt',x:c.hx,y:c.hy,v:'мимо',k:'miss'},140);u.wind=0;u.weak=0;
       if(s.eq.weapon&&Math.random()*100<3*s.h.k.melee+(s.h.ft.riposte?15:0)){cbLog('Контрудар!');dmgTo(u,wDmg()+s.h.a.str-1,1,0,'m')}return false}
     if(s.eq.weapon==='sabre'&&Math.random()*100<(wmLv('sabre')>=3?40:25)){u.wind=0;u.weak=0;fxP({t:'txt',x:c.hx,y:c.hy,v:'відбито',k:'heal'},120);cbLog(`Шабля відбиває удар! Відповідь:`);dmgTo(u,wDmg()+s.h.a.str-1,1,0,'m');if(wF('sabre')>=1&&u.hp>0)dmgTo(u,wDmg()+s.h.a.str-1,1,0,'m');return false}
-    const x=hurtHero(dmg*(u.wind?2:1),ign);u.wind=0;cbLog(`${E(T.n)}: ${nm.toLowerCase()}, −${x} здоров’я${pinc?' (кліщі)':''}.`);if(T.drain){u.hp=Math.min(u.max,u.hp+x);cbLog(`${E(T.n)} п’є кров: +${x}.`)}if(T.poison&&!s.h.ft.iron){c.poison=3}return true};
+    const x=hurtHero(dmg*(u.wind?2:1),ign);u.wind=0;cbLog(`${E(T.n)}: ${nm.toLowerCase()}, −${x} здоров’я${pinc?' (кліщі)':''}.`);if(T.grip&&x>0&&!gripU(c)){c.grip=c.u.indexOf(u);cbLog(`${E(T.n)} вчепився в ногу! Не відійдеш, доки не вдариш його.`)}if(T.drain){u.hp=Math.min(u.max,u.hp+x);cbLog(`${E(T.n)} п’є кров: +${x}.`)}if(T.poison&&!s.h.ft.iron){c.poison=3}return true};
   const al=c.u.find(v=>EN[v.t].ally&&v.hp>0&&dist(v.x,v.y,u.x,u.y)<=1);
   if(al&&['hit','cold','wrap','charge'].includes(k)&&(!near()||Math.random()<0.35)){fxP({t:'bump',x0:u.x,y0:u.y,x1:al.x,y1:al.y},110);const d=Math.max(1,Math.round(v*(c.mult||1)*DIFF_DMG)-1);al.hp-=d;fxP({t:'txt',x:al.x,y:al.y,v:'−'+d,k:'hurt'},130);cbLog(`${E(T.n)} б’є: ${E(EN[al.t].n.toLowerCase())} −${d}.`);if(al.hp<=0)kill(al);u.acted=1;if(u.pin>0)u.pin--;u.step++;return}
   if(STANCE[k]){}

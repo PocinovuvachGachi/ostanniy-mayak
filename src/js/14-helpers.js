@@ -69,7 +69,7 @@ function rcCost(rc){const m=(s.h.ft.smith?0.75:1)*(fuL('work')>=1?0.85:1);if(m==
 const scanCost=()=>28*Math.pow(2,s.scans);
 const sigCost=()=>Math.round(200*Math.pow(1.5,Math.min(s.sig||0,6))*(s.rs.signals?0.7:1)*(fuL('gallery')>=2?0.7:1)*(fac('sails')>=80?0.7:1));
 const SEAFOOD=2;
-const price=p=>Math.ceil(p*(s.f.crateDone?0.8:1)*(s.h.ft.trader?0.8:1)*(fac('rot')>=20?0.9:1));
+const price=p=>Math.ceil(p*(s.f.crateDone?0.8:1)*(s.h.ft.trader?0.8:1)*(fac('rot')>=20?0.9:1)*(s.f.coinSet?0.9:1));
 const sellG=g=>Math.round(g*(s.h.ft.trader?1.3:1));
 const mstOf=b=>Object.keys(MST).some(m=>s.mst&&s.mst[m]&&MST[m].b.includes(b));
 const people=()=>(s.pop||0)+Object.keys(s.mst||{}).length;
