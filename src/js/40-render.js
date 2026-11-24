@@ -330,7 +330,7 @@ function rLoc(){const l=s.at,L=LOC[l];
     h+=S.face?`<div class="spot">${pimg(faceURL(S.face),48,48,'face')}<div>${body}</div></div>`:`<div>${body}</div>`}
   return h+'</details></section>'}
 
-function rTrade(){return`<section><h2>Крамниця Яреми</h2><p class="m">Товари на полицях, ваги на прилавку — для продажу.${s.f.crateDone?' Ярема дає тобі знижку за повернений ящик.':''}</p><details class="ledg"${s.ldOpen?' open':''}><summary>Усе списком</summary>${rTradeList()}</details></section>`}
+function rTrade(){return`<section><h2>Крамниця Яреми</h2>${curHTML()}<p class="m">Товари на полицях, ваги на прилавку — для продажу.${s.f.crateDone?' Ярема дає тобі знижку за повернений ящик.':''}</p><details class="ledg"${s.ldOpen?' open':''}><summary>Усе списком</summary>${rTradeList()}</details></section>`}
 function rTradeList(){let h=`<section class="spot">${pimg(faceURL('yarema'),64,64,'face')}<div><h2>Крамниця Яреми</h2><p>Монет: ${V(()=>fmt(s.r.coin))}.${s.f.crateDone?' Ярема дає тобі знижку за повернений ящик.':''}</p></div></section><section><div class="bag">`;
   for(const it of SHOP){if(it.show&&!it.show())continue;const p=price(it.p),ik=IT[it.id]?it.id:(it.res?Object.keys(it.res)[0]:it.book?'lore':'crate');
     h+=`<div class="cell" ${IT[it.id]?itemTip(it.id):''}><div class="ic" aria-hidden="true">${pimg(icoURL(ik),36,36)}</div><b>${it.n}</b>${fresh9('t:'+it.id)}<span class="m">${IT[it.id]?itemShort(it.id):it.d}</span>${btn(`Купити (${R('coin',p)})`,'buy',it.id,{ok:()=>s.r.coin>=p})}</div>`}
@@ -363,7 +363,7 @@ function rJournal(){const nOdd=Object.keys(s.odd).length,nOD=Object.keys(OD).len
   if(s.jt==='gloss')h+=`<p class="m">Старі морські слова, які трапляються в записах. У тексті вони підкреслені пунктиром: наведи курсор або торкнися, щоб побачити пояснення.</p><dl class="gloss">${GLOS.filter(g=>(s.glSeen||{})[g[0]]).map(g=>`<dt><b>${g[1]}</b></dt><dd class="m" style="margin:0 0 8px">${g[2].charAt(0).toUpperCase()+g[2].slice(1)}</dd>`).join('')}</dl>`;
   if(s.jt==='log')h+=`<ul class="logl">${s.log.slice(0,40).map(x=>{x=logOf(x);return`<li><span class="tag t-${x.t}">${TAGN[x.t]}</span><span class="ev-text">${x.m}</span><time>${ago(x.at)}</time></li>`}).join('')}</ul>`;
   return h+`</section>`}
-const AFL={pierfog:'plank',yardA:'sand',shoreL:'sand',heartL:'stone',shore:'sand',hold:'plank',cliff:'grass',bay:'sand',cave:'stone',fort:'grass',tower:'stone',store:'plank',bog:'grass',mine:'stone',shoal:'sand',spit:'sand',isle:'sand',monastery:'stone',guard:'stone',heartA:'stone'};
+const AFL={pierv:'sand',pierfog:'plank',yardA:'sand',shoreL:'sand',heartL:'stone',shore:'sand',hold:'plank',cliff:'grass',bay:'sand',cave:'stone',fort:'grass',tower:'stone',store:'plank',bog:'grass',mine:'stone',shoal:'sand',spit:'sand',isle:'sand',monastery:'stone',guard:'stone',heartA:'stone'};
 const TK={'#':'rock','+':'crate','~':'water','E':'exit','f':'floor'};
 const INDOOR={hold:1,cave:1,tower:1,store:1,mine:1,monastery:1};
 function rCombat(){const c=s.cb;setGrid(c);const u0=selU(),hv=heavyAP(),fl=AFL[c.a]||'sand';
@@ -417,6 +417,7 @@ const inR=u0&&inReach(u0),cv=u0?cover(c,c.hx,c.hy,u0.x,u0.y):0;
   <ul class="clog" aria-live="polite">${c.log.map(x=>`<li>${x}</li>`).join('')}</ul></div><div>
   <p class="m">Здоров’я ${Math.max(0,Math.ceil(s.h.hp))} / ${maxHP()}, броня ${armor()}</p><div class="bar"><i style="width:${Math.max(0,s.h.hp/maxHP()*100)}%"></i></div>
   <p class="ap" aria-label="Очки дії: ${c.ap}">${'●'.repeat(c.ap)}${'○'.repeat(Math.max(0,maxAP()-c.ap))}</p>
+  ${c.enc==='rsiege'?'<p class="m"><b>Оборона Причалу.</b> Утопленики йдуть ламати хати, вовки кидаються на людей. Бережи рибалок і хати.</p>':''}
   ${c.win==='raid'?'<p class="m"><b>Оборона маяка.</b> Захисти склад і будівлі: злодії тягнуть припаси до води праворуч, руйнівники ламають будівлі. Поруч із пошкодженою будівлею її можна полагодити.</p>':''}
   ${c.u.some(u=>EN[u.t].ally&&u.hp>0)?`<p class="m">Союзники: ${c.u.filter(u=>EN[u.t].ally&&u.hp>0).map(u=>`${u.nm||EN[u.t].n.toLowerCase()} ${u.hp}/${u.max}`).join(', ')}.</p>`:''}
   <p class="m">${[c.hidden?'<b>Ти в тіні:</b> тебе не бачать, наступний удар критичний.':'',c.poison?`Отруєний: −2 здоров’я ще ${c.poison} х.`:'',c.smoke?'У диму: постріли ворогів мимо.':'',c.guard?`Захисна стійка: зблизька −${guardPct(1)}%, здалеку −${guardPct(0)}%.`:'',c.sand?'Засліплений: влучність −30%.':'',gripU(c)?`<b>${EN[gripU(c).t].n} тримає тебе за ногу:</b> не відійдеш, доки не вдариш його.`:'',cv?`Укриття від цілі: її постріли −${cv}%.`:''].filter(Boolean).join(' ')||'Натисни на ворога, щоб вибрати ціль, і ще раз, щоб атакувати. На клітинку — щоб піти туди.'}</p>

@@ -3213,7 +3213,7 @@ function checks(){const F=s.f;novTick();mgHelpCheck();if(!s.tabs.chron&&s.chs.le
     else s.popT=0}
   if(!s.disc.heart&&has('mlens')&&has('gkey')){reveal('heart');dlg({k:'story',title:'Острів, якого немає',img:{t:'face',id:'marta'},body:`<p>Крізь Лінзу Мли видно те, чого не видно оком: на півночі з води б’є стовп туману. ${P('Марта')}: ${Q('Ось воно. Ключ вартових відімкне шлях. Пливімо')}.</p>`})}
   if(s.tabs.hero&&!s.h.bg&&(s.nv||{}).grow)offerBg();
-  shoreTick();shfTick();beamTick();folkTick();wolfTick();kitTick();
+  shoreTick();shfTick();beamTick();folkTick();wolfTick();kitTick();rsiegeTick();curTick();
   s.bdSeen=s.bdSeen||{};{const nb=BD.filter(b=>!s.bdSeen[b.id]&&b.show());if(nb.length){nb.forEach(b=>s.bdSeen[b.id]=1);bpDlg(nb)}}
   s.rcSeen=s.rcSeen||{};if(s.floors.work){const nw=[];for(const rc of RC)if(!s.rcSeen[rc.id]&&rcVisible(rc)){s.rcSeen[rc.id]=1;nw.push(rc)}if(nw.length)rcDlg(nw)}
   if(F.crabWarn&&!F.crab1&&!s.cb&&!(s.dlg||[]).some(d=>d.crabw))crabWarn();
@@ -4114,6 +4114,36 @@ function ttGo(i){s.tt=i;delete s.newTab[i];if(s.ttNew&&typeof s.ttNew==='object'
 function ttBar(){const L=[['cut','Маяк','ember'],['kitchen','Кухня','soup'],['work','Майстерня','rake'],['study','Кабінет','lore']].filter(x=>x[0]==='cut'||s.tabs[x[0]]);if(L.length<2)return'';
   const nw=typeof s.ttNew==='object'&&s.ttNew?s.ttNew:{},cur=ttCur();
   return`<div class="sub2" role="tablist">${L.map(x=>btn(`${pimg(icoURL(x[2]),18,18)}${x[1]}${nw[x[0]]?'<span class="dot"></span>':''}`,'tt',x[0],{cls:cur===x[0]?'on':''})).join('')}</div>`}
+/* ============ ЕТАП II, КРОКИ 5–7: ОБЛОГА ПРИЧАЛУ, ТИМІШ-ПОСИЛЬНИЙ, КЛЮЧ ============
+   Коли Причал уже вважає тебе сусідом, а печера контрабандистів позаду, Мла йде на селище: там тепер теж світло й гомін.
+   Бій-захист: рибалки поруч, утопленики ламають хати, туманні вовки кидаються на людей, згодом із води лізуть ще.
+   Перемога — Причал запалює сигнальне вогнище (видно з маяка) і довіряє, як своєму; тоді Ганна віддає ключ.
+   Свій на Причалі — Тиміш бігає бродом і носить Яремі надлишки, які ти відклав на продаж. */
+ARENA.pierv=['~~~~~~~~~~~','..+....~~~~','.....+...~~','E..........','..+......#.','.....+.....','#.........#'];
+ENC.rsiege={a:'pierv',h:[1,3],noElite:1,e:[['bld',2,1,undefined,{nm:'Хата Луки'}],['bld',2,5,undefined,{nm:'Хата Оксани'}],['fisher',3,2],['fisher',3,4],
+  ['drowned',8,1,'wreck'],['drowned',9,5,'wreck'],['wolf',8,3],['wolf',9,4]],waves:[[3,[['drowned',10,2],['drowned',10,4]]]]};
+const rsiegeReady=()=>!!s.f.siege1&&rotRank()>=4&&!!(s.f.caveIn||s.f.stash||(s.mst||{}).olesya);
+function rsiegeTick(){if(s.f.rsiege||s.f.rsiegeOn||!rsiegeReady()||away()||s.cb)return;s.f.rsiegeOn=1;
+  if(s.at!=='village')dlg({k:'fight',title:'Дзвін на Причалі',img:{t:'scene',id:'village'},body:'<p>З-за протоки долинає дзвін — часто, тривожно. Туман котиться на Причал, і в ньому щось ворушиться. Люди чекають на тебе.</p>',gains:['Мла йде на Причал']});dirty=1}
+LOC.village.spots.push({id:'siege',n:'Туман над Причалом',pos:[260,200],show:()=>!!s.f.rsiegeOn&&!s.f.rsiege,
+  d:'Туман сунеться з моря просто на хати. Рибалки з острогами й веслами стоять на пірсі. З туману виходять ті, кого забрала Мла, і сірі вовки.',
+  acts:[{id:'fight',t:'Стати з рибалками',fight:'rsiege',win(){const c=s.cb,hb=c?c.u.filter(u=>EN[u.t].struct&&u.hp<=0).length:0,fs=c?c.u.filter(u=>u.t==='fisher'&&u.hp>0).length:2;
+    s.f.rsiege=1;s.f.rsiegeOn=0;xp(60);add('coin',30);trust('rot',hb?14:20,'Причал вистояв');
+    dlg({k:'story',title:'Вогонь Причалу',img:{t:'scene',id:'village'},body:`<p>Туман відкочується до води, залишаючи на пірсі мокрі сліди.${hb?' Одну хату доведеться латати всім гуртом — але люди живі.':''}${fs<2?' Пораненого рибалку Ганна вже перев’язує.':''}</p><p>Тієї ж ночі на краю пірсу рибалки складають велике вогнище. ${P('Мирон')} киває на маяк: ${Q('Тепер і в нас є свій вогонь. Побачиш — знатимеш, що тут живі')}. З галереї маяка його видно через протоку.</p>`,gains:['Сигнальне вогнище Причалу']});
+    return hb?'Причал вистояв, хоч одна хата й постраждала.':'Причал вистояв — жодної хати не віддали.'}}]});
+/* ключ Ганни — лише після облоги */
+{const hut=LOC.village.spots.find(S=>S.id==='hut'),K=hut.acts.find(a=>a.id==='key'),sh=K.show;K.show=()=>sh()&&!!s.f.rsiege}
+/* Тиміш-посильний: продає Яремі надлишки, які ти відклав, кожні кілька хвилин, поки ти в грі */
+const CUR=['fish','prov','scrap','tar','herb','coal'];
+const curOn=()=>rotRank()>=5&&!!s.met.tymish;
+function curTick(){if(!curOn()||away())return;s.cur=s.cur||{on:{},t:0,gain:0};const now=Date.now();
+  if(!s.f.curMet){s.f.curMet=1;dlg({k:'story',title:'Тиміш-посильний',img:{t:'face',id:'tymish'},body:`<p>${P('Тиміш')} перебігає брід із порожнім кошиком. ${Q('Ярема каже, ти тепер свій. То давай я носитиму твоє добро на продаж! Ти тільки скажи, що зайве — а я вже знаю, як із Яремою торгуватися')}.</p>`,gains:['Тиміш носить надлишки Яремі (у картці крамниці на Причалі й у Торгу)']});s.cur.t=now+4*60000;return}
+  if(now<s.cur.t)return;s.cur.t=now+4*60000;let got=0,sold={};
+  for(const k of CUR){if(!s.cur.on[k])continue;const S=SELL.find(x=>x.id===k);if(!S)continue;const q=S.r[k],keep=k==='fish'||k==='prov'?Math.floor(capOf(k)*.5):50;let n=0;
+    while(n<3&&s.r[k]-q>=keep){s.r[k]-=q;got+=sellG(S.g);sold[k]=(sold[k]||0)+q;n++}}
+  if(got){add('coin',got);s.cur.gain+=got;say(`Тиміш збігав до Яреми: ${costTxt(sold)} → ${R('coin',got)}.`,'find')}}
+function curHTML(){if(!curOn()||!s.f.curMet)return'';const on=(s.cur||{}).on||{};
+  return`<div class="freq"><b>Посилки Тиміша</b><br><span class="m">Тиміш раз на кілька хвилин носить Яремі те, що ти відклав. Риби й провізії лишає половину комори, решти — по 50.</span><div class="act">${CUR.filter(k=>s.seen[k]).map(k=>btn(`${RN[k]}${on[k]?' ✓':''}`,'curt',k,{cls:on[k]?'on':''})).join('')}</div>${s.cur&&s.cur.gain?`<span class="m">Уже приніс: ${R('coin',s.cur.gain)}.</span>`:''}</div>`}
 /* ============ ACTIONS ============ */
 function act0(a,i){
   if(a.indexOf('c_')===0){cAct(a,i);return}
@@ -4193,6 +4223,7 @@ function act0(a,i){
   case 'eatfull':eatFull();break;
   case 'cook':cook(i);break;
   case 'cookp':cook(i,'plain');break;
+  case 'curt':if(CUR.includes(i)){s.cur=s.cur||{on:{},t:0,gain:0};s.cur.on[i]=!s.cur.on[i]}break;
   case 'tt':popB='';if(i==='cut'||s.tabs[i]){zoomPrep(i);ttGo(i)}break;
   case 'eat':if(s.r.fish>=1&&s.h.hp<maxHP()){s.r.fish--;s.h.hp=Math.min(maxHP(),s.h.hp+8)}break;
   case 'eatp':if(s.r.prov>=1&&s.h.hp<maxHP()){s.r.prov--;s.h.hp=Math.min(maxHP(),s.h.hp+15)}break;
@@ -4590,7 +4621,7 @@ function rLoc(){const l=s.at,L=LOC[l];
     h+=S.face?`<div class="spot">${pimg(faceURL(S.face),48,48,'face')}<div>${body}</div></div>`:`<div>${body}</div>`}
   return h+'</details></section>'}
 
-function rTrade(){return`<section><h2>Крамниця Яреми</h2><p class="m">Товари на полицях, ваги на прилавку — для продажу.${s.f.crateDone?' Ярема дає тобі знижку за повернений ящик.':''}</p><details class="ledg"${s.ldOpen?' open':''}><summary>Усе списком</summary>${rTradeList()}</details></section>`}
+function rTrade(){return`<section><h2>Крамниця Яреми</h2>${curHTML()}<p class="m">Товари на полицях, ваги на прилавку — для продажу.${s.f.crateDone?' Ярема дає тобі знижку за повернений ящик.':''}</p><details class="ledg"${s.ldOpen?' open':''}><summary>Усе списком</summary>${rTradeList()}</details></section>`}
 function rTradeList(){let h=`<section class="spot">${pimg(faceURL('yarema'),64,64,'face')}<div><h2>Крамниця Яреми</h2><p>Монет: ${V(()=>fmt(s.r.coin))}.${s.f.crateDone?' Ярема дає тобі знижку за повернений ящик.':''}</p></div></section><section><div class="bag">`;
   for(const it of SHOP){if(it.show&&!it.show())continue;const p=price(it.p),ik=IT[it.id]?it.id:(it.res?Object.keys(it.res)[0]:it.book?'lore':'crate');
     h+=`<div class="cell" ${IT[it.id]?itemTip(it.id):''}><div class="ic" aria-hidden="true">${pimg(icoURL(ik),36,36)}</div><b>${it.n}</b>${fresh9('t:'+it.id)}<span class="m">${IT[it.id]?itemShort(it.id):it.d}</span>${btn(`Купити (${R('coin',p)})`,'buy',it.id,{ok:()=>s.r.coin>=p})}</div>`}
@@ -4623,7 +4654,7 @@ function rJournal(){const nOdd=Object.keys(s.odd).length,nOD=Object.keys(OD).len
   if(s.jt==='gloss')h+=`<p class="m">Старі морські слова, які трапляються в записах. У тексті вони підкреслені пунктиром: наведи курсор або торкнися, щоб побачити пояснення.</p><dl class="gloss">${GLOS.filter(g=>(s.glSeen||{})[g[0]]).map(g=>`<dt><b>${g[1]}</b></dt><dd class="m" style="margin:0 0 8px">${g[2].charAt(0).toUpperCase()+g[2].slice(1)}</dd>`).join('')}</dl>`;
   if(s.jt==='log')h+=`<ul class="logl">${s.log.slice(0,40).map(x=>{x=logOf(x);return`<li><span class="tag t-${x.t}">${TAGN[x.t]}</span><span class="ev-text">${x.m}</span><time>${ago(x.at)}</time></li>`}).join('')}</ul>`;
   return h+`</section>`}
-const AFL={pierfog:'plank',yardA:'sand',shoreL:'sand',heartL:'stone',shore:'sand',hold:'plank',cliff:'grass',bay:'sand',cave:'stone',fort:'grass',tower:'stone',store:'plank',bog:'grass',mine:'stone',shoal:'sand',spit:'sand',isle:'sand',monastery:'stone',guard:'stone',heartA:'stone'};
+const AFL={pierv:'sand',pierfog:'plank',yardA:'sand',shoreL:'sand',heartL:'stone',shore:'sand',hold:'plank',cliff:'grass',bay:'sand',cave:'stone',fort:'grass',tower:'stone',store:'plank',bog:'grass',mine:'stone',shoal:'sand',spit:'sand',isle:'sand',monastery:'stone',guard:'stone',heartA:'stone'};
 const TK={'#':'rock','+':'crate','~':'water','E':'exit','f':'floor'};
 const INDOOR={hold:1,cave:1,tower:1,store:1,mine:1,monastery:1};
 function rCombat(){const c=s.cb;setGrid(c);const u0=selU(),hv=heavyAP(),fl=AFL[c.a]||'sand';
@@ -4677,6 +4708,7 @@ const inR=u0&&inReach(u0),cv=u0?cover(c,c.hx,c.hy,u0.x,u0.y):0;
   <ul class="clog" aria-live="polite">${c.log.map(x=>`<li>${x}</li>`).join('')}</ul></div><div>
   <p class="m">Здоров’я ${Math.max(0,Math.ceil(s.h.hp))} / ${maxHP()}, броня ${armor()}</p><div class="bar"><i style="width:${Math.max(0,s.h.hp/maxHP()*100)}%"></i></div>
   <p class="ap" aria-label="Очки дії: ${c.ap}">${'●'.repeat(c.ap)}${'○'.repeat(Math.max(0,maxAP()-c.ap))}</p>
+  ${c.enc==='rsiege'?'<p class="m"><b>Оборона Причалу.</b> Утопленики йдуть ламати хати, вовки кидаються на людей. Бережи рибалок і хати.</p>':''}
   ${c.win==='raid'?'<p class="m"><b>Оборона маяка.</b> Захисти склад і будівлі: злодії тягнуть припаси до води праворуч, руйнівники ламають будівлі. Поруч із пошкодженою будівлею її можна полагодити.</p>':''}
   ${c.u.some(u=>EN[u.t].ally&&u.hp>0)?`<p class="m">Союзники: ${c.u.filter(u=>EN[u.t].ally&&u.hp>0).map(u=>`${u.nm||EN[u.t].n.toLowerCase()} ${u.hp}/${u.max}`).join(', ')}.</p>`:''}
   <p class="m">${[c.hidden?'<b>Ти в тіні:</b> тебе не бачать, наступний удар критичний.':'',c.poison?`Отруєний: −2 здоров’я ще ${c.poison} х.`:'',c.smoke?'У диму: постріли ворогів мимо.':'',c.guard?`Захисна стійка: зблизька −${guardPct(1)}%, здалеку −${guardPct(0)}%.`:'',c.sand?'Засліплений: влучність −30%.':'',gripU(c)?`<b>${EN[gripU(c).t].n} тримає тебе за ногу:</b> не відійдеш, доки не вдариш його.`:'',cv?`Укриття від цілі: її постріли −${cv}%.`:''].filter(Boolean).join(' ')||'Натисни на ворога, щоб вибрати ціль, і ще раз, щоб атакувати. На клітинку — щоб піти туди.'}</p>
@@ -4841,7 +4873,7 @@ function bpDlg(L){dlg({k:'plan',title:L.length>1?'Нові креслення':`
    валуни з тінню, вода з глибиною й піною, рамка й притемнені краї. Клітинки поверх неї прозорі:
    видно лише, куди можна піти й кого вдарити. Надворі арена тоне в синяві ночі, як і сцени (градація GR);
    усередині (трюм, печера) — завжди напівтемрява, а світло несе герой. */
-const ARK={pierfog:{fl:'plank'},shore:{fl:'sand'},pools:{fl:'sand'},rack:{fl:'sand'},shoal:{fl:'sand'},spit:{fl:'sand',lt:1},isle:{fl:'sand'},shoreL:{fl:'sand'},
+const ARK={pierv:{fl:'sand'},pierfog:{fl:'plank'},shore:{fl:'sand'},pools:{fl:'sand'},rack:{fl:'sand'},shoal:{fl:'sand'},spit:{fl:'sand',lt:1},isle:{fl:'sand'},shoreL:{fl:'sand'},
   yardA:{fl:'sand',col0:'brick'},bay:{fl:'mud'},hold:{fl:'plank',wall:'hull',in:1},store:{fl:'plank',wall:'barn',in:1},
   cave:{fl:'rock',wall:'cave',in:1},mine:{fl:'rock',wall:'cave',in:1},tower:{fl:'flag',wall:'brick',in:1},
   monastery:{fl:'flag',wall:'arch'},guard:{fl:'flag'},cliff:{fl:'heath'},fort:{fl:'heath'},bog:{fl:'bog'},heartL:{fl:'ice'},heartA:{fl:'ice'}};

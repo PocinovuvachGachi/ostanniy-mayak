@@ -17,7 +17,7 @@ __adv(3*60000);A(vis('q_nets'),'сіті');const f0=s.r.fish;la('village.q_nets.
 __adv(3*60000);s.r.wood=50;s.r.scrap=20;A(vis('q_roof'),'дах після шторму');la('village.q_roof.give');A(!vis('q_roof'),'дах полатано');
 /* ключ — лише коли свій */
 la('village.hut.talk');s.r.herb=9;la('village.hut.give');A(s.f.herbsDone&&!has('key'),'за трави — не ключ');
-s.fac.rot=85;A(LOC.village.spots.find(S=>S.id==='hut').acts.find(a=>a.id==='key').show(),'ключ для свого');la('village.hut.key');A(has('key'),'ключ від кабінету');
+s.fac.rot=85;s.f.rsiege=1;A(LOC.village.spots.find(S=>S.id==='hut').acts.find(a=>a.id==='key').show(),'ключ для свого');la('village.hut.key');A(has('key'),'ключ від кабінету');
 /* Мирон у гостях */
 s.at='';s.tab='shore';s.dbgTide='low';s.shf='';s.lastAct=Date.now();s.shfT={};for(const k of['seal','tracks','signal','gullrack','zinovii','rats','drown1','horpyna'])s.f[k]=1;s.f.crab1=0;s.sealCyc=tideCyc();
 shfTick();A(s.shf==='myronvisit','Мирон іде бродом');act('shfgo');A(s.c.myron===1,'брат і сестра');

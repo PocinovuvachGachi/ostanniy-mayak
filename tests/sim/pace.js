@@ -27,7 +27,7 @@ function scan(){for(const t in s.tabs)mark('tab:'+t,'вкладка «'+(TABS.fi
   for(const k of RES)if(s.seen[k])mark('res:'+k,'ресурс: '+k,1);
   if(s.vq&&s.vq.t)for(const k in s.vq.t)mark('vq:'+k,'прохання: '+k,1);if(s.c&&s.c.vg)mark('vg:'+s.c.vg,'справа на Причалі №'+s.c.vg,1);if(s.f.reefmap)mark('reefmap','карта рифів',1);if(s.met.levko)mark('rot:'+rotRank(),'Причал: '+RW[rotRank()],1);if(has('key'))mark('key','ключ Ганни',1);for(const k in s.odd)mark('odd:'+k,'дивина: '+OD[k].n,1);for(const k in s.runes||{})mark('rune:'+k,'камінь з написом',1);for(const k in s.ford||{})mark('ford:'+k,'брід: '+k,1);
   mark('lvl:'+s.h.lvl,'рівень героя '+s.h.lvl,0);
-  for(const k of ['rod','wreck','people','boat','schooner','won','siege1','ostap','chest','crypt','stones','fordSeen','fordDone','gullrack','rats','drown1','zinovii','horpyna','cache','tracks','seal','signal','martinSet','reunion','herbsDone'])if(s.f[k])mark('f:'+k,'подія: '+k,1)}
+  for(const k of ['rod','wreck','people','boat','schooner','won','siege1','ostap','chest','crypt','stones','fordSeen','fordDone','gullrack','rats','drown1','zinovii','horpyna','cache','tracks','seal','signal','martinSet','reunion','herbsDone','rsiege','curMet','goatDone'])if(s.f[k])mark('f:'+k,'подія: '+k,1)}
 /* діалоги: читаємо й тиснемо першу кнопку */
 function dialogs(){let g=0;while((s.dlg||[]).length&&g++<30){const d=s.dlg[0];wait(P.read);
   if(d.bgsel){act('bg',Object.keys(BGS)[0]);continue}

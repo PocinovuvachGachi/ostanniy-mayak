@@ -77,6 +77,7 @@ function act0(a,i){
   case 'eatfull':eatFull();break;
   case 'cook':cook(i);break;
   case 'cookp':cook(i,'plain');break;
+  case 'curt':if(CUR.includes(i)){s.cur=s.cur||{on:{},t:0,gain:0};s.cur.on[i]=!s.cur.on[i]}break;
   case 'tt':popB='';if(i==='cut'||s.tabs[i]){zoomPrep(i);ttGo(i)}break;
   case 'eat':if(s.r.fish>=1&&s.h.hp<maxHP()){s.r.fish--;s.h.hp=Math.min(maxHP(),s.h.hp+8)}break;
   case 'eatp':if(s.r.prov>=1&&s.h.hp<maxHP()){s.r.prov--;s.h.hp=Math.min(maxHP(),s.h.hp+15)}break;

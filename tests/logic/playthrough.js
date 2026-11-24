@@ -31,7 +31,7 @@ act('stonesTry');act('stonesTry');render();act('stone',0);act('stone',0);act('st
 s.h.a.per=4;act('la','cliffs.gorge.stash');A(shards()===1,'shard1');
 s.h.hp=maxHP();act('la','cliffs.nests.fight');botFight();
 act('leave');act('go','village');act('la','village.hut.give');A(!has('key')&&s.pages.includes(5),'трави — не ключ');s.r.coin+=10;act('la','village.tavern.pay');A(s.disc.cave,'cave after herbs');
-s.fac.rot=80;act('la','village.hut.key');A(has('key'),'key');
+s.fac.rot=80;s.f.rsiege=1;act('la','village.hut.key');A(has('key'),'key');
 s.r.iron+=20;s.r.wood+=200;s.r.scrap+=100;s.r.ember+=1500;act('floor','study');A(s.floors.study,'study');T(5);allTabs();
 for(let k=0;k<3;k++)act('chestTry');render();
 for(let k=0;k<3;k++)act('dial',0);act('dial',1);act('chestTry');A(s.f.chest&&s.f.bpCrossbow,'chest');
