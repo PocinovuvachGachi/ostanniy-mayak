@@ -51,7 +51,7 @@ function hannaKey(){dlg({k:'story',title:'Ключ Ганни',img:{t:'face',id:
 
 /* Дрібні справи Причалу: генеруються періодично (до двох одразу), щоб завжди було чим допомогти.
    Віддати припаси, попрацювати руками або відігнати непрошених гостей. Чекають, поки гравець візьметься. */
-Object.assign(ENC,{vrats:{a:'store',h:[1,3],xpm:.5,e:[['rat',7,2],['rat',8,4],['rat',6,5]]},
+Object.assign(ENC,{vrats:{a:'store',h:[1,3],xpm:.5,e:[['rat',7,2],['rat',8,4],['rat',6,5],['rat',9,1]]},
   vgulls:{a:'rack',h:[1,3],xpm:.5,e:[['gull',8,1],['gull',9,4],['gull',10,2]]}});
 const VGV={fish:.8,oil:2,wood:.5,scrap:.8,herb:2.5,prov:1.5,tar:3,med:8,iron:2};
 const VGT=[

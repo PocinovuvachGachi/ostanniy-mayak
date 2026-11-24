@@ -27,7 +27,10 @@ function scan(){for(const t in s.tabs)mark('tab:'+t,'вкладка «'+(TABS.fi
   for(const k of RES)if(s.seen[k])mark('res:'+k,'ресурс: '+k,1);
   if(s.vq&&s.vq.t)for(const k in s.vq.t)mark('vq:'+k,'прохання: '+k,1);if(s.c&&s.c.vg)mark('vg:'+s.c.vg,'справа на Причалі №'+s.c.vg,1);if(s.f.reefmap)mark('reefmap','карта рифів',1);if(s.met.levko)mark('rot:'+rotRank(),'Причал: '+RW[rotRank()],1);if(has('key'))mark('key','ключ Ганни',1);for(const k in s.odd)mark('odd:'+k,'дивина: '+OD[k].n,1);for(const k in s.runes||{})mark('rune:'+k,'камінь з написом',1);for(const k in s.ford||{})mark('ford:'+k,'брід: '+k,1);
   mark('lvl:'+s.h.lvl,'рівень героя '+s.h.lvl,0);
+  for(const[n,ok]of[['I',()=>s.f.fordDone],['II',()=>has('key')||s.floors.study],['III',()=>s.f.ostap],['IV',()=>s.f.schooner],['V',()=>s.f.won2]])if(!PROG[n]&&ok())PROG[n]=progSnap();
   for(const k of ['rod','wreck','people','boat','schooner','won','siege1','ostap','chest','crypt','stones','fordSeen','fordDone','gullrack','rats','drown1','zinovii','horpyna','cache','tracks','seal','signal','martinSet','reunion','herbsDone','rsiege','curMet','goatDone'])if(s.f[k])mark('f:'+k,'подія: '+k,1)}
+const PROG={},A0=Object.values(s.h.a).reduce((a,b)=>a+b,0);
+function progSnap(){const at=Object.values(s.h.a).reduce((a,b)=>a+b,0)-A0+(s.h.pts||0),sk=Object.values(s.h.k).reduce((a,b)=>a+b,0)+(s.h.sp||0),tl=Object.keys(s.h.ft).filter(k=>s.h.ft[k]).length+(s.h.fp||0);let xt=s.h.xp;for(let l=1;l<s.h.lvl;l++)xt+=need(l);return{t:T,lvl:s.h.lvl,at,sk,tl,xt:Math.round(xt)}}
 /* діалоги: читаємо й тиснемо першу кнопку */
 function dialogs(){let g=0;while((s.dlg||[]).length&&g++<30){const d=s.dlg[0];wait(P.read);
   if(d.bgsel){act('bg',Object.keys(BGS)[0]);continue}
@@ -80,7 +83,9 @@ function explore(){const ls=Object.keys(s.disc).filter(l=>LOC[l]);for(const l of
       const w0=s.c.wins||0,sig0=JSON.stringify([s.done,s.f,s.inv,s.disc]).length;A('la',x.id);dialogs();if(s.cb){fight();if((s.c.wins||0)>w0)s.done['win:'+x.id]=1}
       else if(JSON.stringify([s.done,s.f,s.inv,s.disc]).length===sig0)skipT[x.id]=T+900}
     if(s.at)A('leave','',P.travel);return 1}return 0}
-function misc(){let d=0;if(s.floors.gallery&&s.tabs.map&&SCAN.some(x=>!s.disc[x])&&s.r.ember>=scanCost()){A('scan');d=1}
+function misc(){let d=0;if(s.wolf){if(!s.wolf.name)A('wname','Сірко',1);if(!wolfSated()&&afford(wolfFood())){A('wfeed','',1);d=1}}
+  if(s.tabs.kitchen&&s.h.hp<maxHP()*.6)for(const D of DISH)if(rcpKnown(D.id)&&afford(D.c)&&(s.r.fish>20)){A('cookp',D.id,1);d=1;break}
+  if(s.floors.gallery&&s.tabs.map&&SCAN.some(x=>!s.disc[x])&&s.r.ember>=scanCost()){A('scan');d=1}
   for(const f in s.req||{}){if(afford(s.req[f].give)){A('freq',f);d=1}}
   if(s.tabs.trade)for(const it of SHOP){if((it.show&&!it.show())||s.bought&&s.bought[it.id])continue;const p=price(it.p);if(IT[it.id]&&has(it.id))continue;if(s.r.coin>=p*1.5){A('buy',it.id);s.bought=s.bought||{};s.bought[it.id]=1;d=1}}
   if(s.shf&&(SHF[s.shf].npc||s.h.hp>=maxHP()*.7)){A('shfgo','',2);if(s.cb)fight();d=1}
@@ -122,6 +127,8 @@ const maj=ev.filter(e=>e.major);maj.push({t:T,label:'(кінець симуля�
 /* м'які орієнтири, не пороги: ~10 хв на початку гри, ~20 хв далі (рішення автора) */
 const soft=t=>t<3600*3?10:20;let prev=0;const gaps=[];for(const e of maj){const g=(e.t-prev)/60;if(g>=soft(prev))gaps.push([prev/60,e.t/60,g,e.label]);prev=e.t}
 console.log('\\nВідкриття (хвилина → що):');for(const e of maj)console.log(String((e.t/60).toFixed(1)).padStart(6),' ',e.label);
+console.log('\\nПрогресія героя на кінці етапів (ціль рівня: I→4, II→9, III→14, IV→19, V→24; пули: характеристики 40, уміння 50, таланти 41):');
+for(const[n,g]of[['I',4],['II',9],['III',14],['IV',19],['V',24]]){const p=PROG[n];if(!p){console.log('  ',n,'— не дійшов');continue}console.log('  ',n.padEnd(3),String((p.t/60).toFixed(0)).padStart(4),'хв  рівень',String(p.lvl).padStart(2),'(ціль',g+')  характеристики',Math.round(p.at/40*100)+'%  уміння',Math.round(p.sk/50*100)+'%  таланти',Math.round(p.tl/41*100)+'%  досвід усього',p.xt)}
 console.log('\\nДовгі провали (орієнтир: ~10 хв у перші 3 год, ~20 хв далі; це підказка, не помилка):');for(const[a,b,g,l]of gaps)console.log('  ',a.toFixed(1),'→',b.toFixed(1),'хв (',g.toFixed(1),') до:',l);
 const bursts=[];for(let i=0;i<maj.length;i++){const w=maj.filter(e=>e.t>=maj[i].t&&e.t<maj[i].t+120);if(w.length>=6&&!bursts.some(b=>Math.abs(b[0]-maj[i].t)<120))bursts.push([maj[i].t,w.map(e=>e.label)])}
 console.log('\\nРивки (6+ відкриттів за 2 хв):');for(const[t,l]of bursts)console.log('  ',(t/60).toFixed(1),'хв:',l.join('; '));

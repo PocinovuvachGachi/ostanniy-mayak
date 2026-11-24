@@ -40,7 +40,7 @@ const pierceBonus=()=>(s.h.ft.crack?1:0)+(s.rs.weak?1:0)+(s.rs.a_stone?1:0);
 const lastStand=()=>s.h.ft.last&&s.h.hp<maxHP()/3?1.5:1;
 
 function startFight(encId,win){const E0=ENC[encId];
-  const mult=E0.mult||1,sn=snap(),hpm=win==='raid'&&fuL('hall')>=3?0.85:1;const u=E0.e.map(([t,x,y,role,ex])=>{const T=EN[t];if(!T.obj&&!T.ally)s.seenE[t]=1;const v=mkUnit(t,x,y,mult*hpm,{elite:!E0.noElite&&Math.random()<eliteCh()});if(role)v.role=role;if(ex)Object.assign(v,ex);if(T.ally&&s.h.ft.leader){v.hp=v.max=Math.round(v.max*1.5)}return v});
+  const mult=(E0.mult||1)*(E0.fixed?1:E0.boss?1+(FOEST[stageNo()]-1)*.4:FOEST[stageNo()]),sn=snap(),hpm=win==='raid'&&fuL('hall')>=3?0.85:1;const u=E0.e.map(([t,x,y,role,ex])=>{const T=EN[t];if(!T.obj&&!T.ally)s.seenE[t]=1;const v=mkUnit(t,x,y,mult*hpm,{elite:!E0.noElite&&Math.random()<eliteCh()});if(role)v.role=role;if(ex)Object.assign(v,ex);if(T.ally&&s.h.ft.leader){v.hp=v.max=Math.round(v.max*1.5)}return v});
   const foes=u.filter(x=>!EN[x.t].obj&&!EN[x.t].ally);
   s.cb={enc:encId,a:E0.a,map:ARENA[E0.a].slice(),round:0,fire:[],fx:[],fxt:0,hx:E0.h[0],hy:E0.h[1],u,ap:maxAP()+(s.h.ft.shadow?2:0),guard:0,sand:0,wrap:0,breath:0,sel:u.indexOf(foes[0]),win,boss:!!E0.boss,cds:{},traps:[],mode:'',mult,sn,wmg:{},
     title:win==='raid'?'Набіг Мли':win==='crab1'?'Перша сутичка':win&&win.indexOf('S:')===0?SHF[win.slice(2)].n:(win&&win.indexOf('L:')===0?(()=>{const id=win.slice(2);return`${LOC[id.split('.')[0]].n}`})():'Бій'),
@@ -367,5 +367,5 @@ function raidResolve(go){const L=s.h.lvl;if(!go){for(const k of['wood','fish','p
   const nm=Math.min(freeW(),defL('militia')+(defL('militia')&&s.h.ft.leader?1:0));for(let k=0;k<nm;k++)e.push(['militia',3,k?5:3]);if(fac('silent')>=80)e.push(['militia',2,1]);
   const pal=[[6,2],[6,4],[6,6],[7,1],[7,7],[5,3],[5,5]].slice(0,[0,3,5,7][defL('palisade')]+(s.h.ft.engineer&&defL('palisade')?1:0));
   const tr=[[9,3],[9,5],[8,4],[10,2],[10,6],[9,1]].slice(0,2*defL('dtraps'));
-  ENC.raid={a:'yardA',h:[3,4],e,mult:1+0.1*Math.max(0,L-4),palis:pal,traps:tr,bell:defL('bell')>0,waves:L>=12?[[4,[['drowned',14,4]]]]:undefined};s.at='';startFight('raid','raid')}
+  ENC.raid={a:'yardA',h:[3,4],fixed:1,e,mult:1+0.1*Math.max(0,L-4),palis:pal,traps:tr,bell:defL('bell')>0,waves:L>=12?[[4,[['drowned',14,4]]]]:undefined};s.at='';startFight('raid','raid')}
 

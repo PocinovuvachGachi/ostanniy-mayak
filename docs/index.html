@@ -2483,12 +2483,12 @@ const ARENA={
 };
 const ENC={
   crab1:{a:'shore',h:[1,3],e:[['crab',8,1]]},
-  hold:{a:'hold',h:[1,3],e:[['bigcrab',8,2],['crab',8,5],['barrel',5,1]]},
-  gulls:{a:'cliff',h:[1,3],e:[['gull',8,0],['gull',10,2],['gull',10,4]]},
+  hold:{a:'hold',h:[1,3],e:[['bigcrab',8,2],['crab',8,5],['crab',9,1],['barrel',5,1]]},
+  gulls:{a:'cliff',h:[1,3],e:[['gull',8,0],['gull',10,2],['gull',10,4],['gull',9,6]]},
   eel:{a:'bay',h:[1,3],e:[['eel',6,3],['urchin',2,5]]},
   cavegate:{a:'cave',h:[1,3],e:[['scout',9,2]]},
   brute:{a:'cave',h:[1,3],e:[['brute',8,3],['scout',9,1],['barrel',7,2]],mult:0.92},
-  wraith:{a:'cave',h:[1,3],e:[['wraith',8,3]]},
+  wraith:{a:'cave',h:[1,3],e:[['wraith',8,2],['wraith',9,5]]},
   fortpier:{a:'fort',h:[1,3],e:[['scout',8,2],['scout',8,4],['barrel',6,4]]},
   fortyard:{a:'fort',h:[1,3],e:[['brute',8,3],['barrel',6,2]]},
   gnat:{a:'tower',h:[5,5],e:[['gnat',5,1],['scout',2,1],['barrel',5,3],['barrel',8,4]],boss:1,noElite:1,mult:0.92},
@@ -2497,14 +2497,14 @@ const ENC={
   bogfight:{a:'bog',h:[1,3],e:[['drowned',8,1],['toad',9,4],['leech',6,3]]},
   mine1:{a:'mine',mult:1.2,h:[1,3],e:[['smuggler',9,1],['hound',8,3],['harpooner',9,5]]},
   mine2:{a:'mine',mult:1.2,h:[1,3],e:[['brute',8,3],['smuggler',9,1],['barrel',6,2]],waves:[[3,[['smuggler',9,5]]]]},
-  crabking:{a:'shoal',h:[1,3],tide:1,e:[['crabking',8,3],['crab',7,1]]},
+  crabking:{a:'shoal',h:[1,3],tide:1,e:[['crabking',8,3],['crab',7,1],['crab',7,5],['bigcrab',9,1]]},
   spit:{a:'spit',h:[1,3],e:[['shark',7,1],['shark',8,4]]},
   isle1:{a:'isle',mult:1.3,h:[1,3],e:[['drowned',8,1],['icedrowned',9,4],['drowned',6,5]]},
   monastery:{a:'monastery',mult:1.4,h:[1,3],e:[['witch',9,3],['drowned',8,1],['drowned',8,5]],waves:[[4,[['drowned',10,3]]]]},
   sentinels:{a:'guard',mult:1.3,h:[1,3],e:[['sentinel',8,2],['sentinel',8,4]]},
   mill:{a:'cliff',mult:1.6,h:[1,3],e:[['wolf',8,1],['wolf',9,3],['wolf',8,5]]},
   cove:{a:'shore',mult:1.6,h:[1,3],e:[['harpooner',8,3],['medic',9,1],['smuggler',9,5],['barrel',6,4]]},
-  heart:{a:'heartL',noElite:1,mult:1.4,h:[1,4],e:[['heart',9,4],['drowned',8,1],['drowned',8,7]],boss:1},
+  heart:{a:'heartL',noElite:1,fixed:1,mult:1.55,h:[1,4],e:[['heart',9,4],['drowned',8,1],['drowned',8,7]],boss:1},
 };
 
 const FACE={
@@ -3114,7 +3114,7 @@ function dlg(o){s.dlg=s.dlg||[];if(s.dlg.length>14)return;if(o.k==='fight')s.dlg
 function unlock(t){if(!s.tabs[t]){s.tabs[t]=1;s.newTab[t]=1;if(SUBT[t]){s.newTab.tower=1;s.ttNew=typeof s.ttNew==='object'&&s.ttNew?s.ttNew:{};s.ttNew[t]=1}dirty=1;if(t==='hero'){if(s.h.xpb){const b=s.h.xpb;s.h.xpb=0;xp(b)}}const nm=(TABS.find(x=>x[0]===t)||[0,SUBT[t]||''])[1];if(t!=='shore')dlg({k:'world',title:`Відкрито: ${nm}`,body:`<p>${TABV[t]||TABINFO[t]||''}${TABV[t]&&TABINFO[t]?ih(TABINFO[t]):''}</p>`,gains:[SUBT[t]?`«${nm}» — у вкладці «Маяк».`:`Відкрилася вкладка «${nm}».`]})}}
 function page(n){if(!s.pages.includes(n)){s.pages.push(n);if(n===1)s.met.ostap=1;dlg({k:'story',title:n==='m'?'Записка Остапа без номера':`Записка Остапа, аркуш ${n}`,body:`<div class="note">${PG[n].replace(/ — О\.$/,'')}<span class="sig">— О.</span></div>`,gains:['Записку збережено в журналі.']});unlock('journal');dirty=1}}
 function book(id){if(!s.books.includes(id)){s.books.push(id);dirty=1}}
-function odd(id,pre){if(s.odd[id])return;s.odd[id]=1;s.oddNew=(s.oddNew||0)+1;xp(20);say((pre?pre+' ':'')+`Дивина: ${I(OD[id].n)}. +20 досвіду.`,'find');const ik=ODI[id];dlg({k:'find',title:`Дивина: ${OD[id].n}`,img:{t:'icon',id:ik},body:`<p>${pre?pre+' ':''}${OD[id].d}</p>`,gains:['+20 досвіду',`Знайдено дивин: ${Object.keys(s.odd).length}`]})}
+function odd(id,pre){if(s.odd[id])return;s.odd[id]=1;s.oddNew=(s.oddNew||0)+1;xp(20);say((pre?pre+' ':'')+`Дивина: ${I(OD[id].n)}. +${Math.round(20*XPST[stageNo()])} досвіду.`,'find');const ik=ODI[id];dlg({k:'find',title:`Дивина: ${OD[id].n}`,img:{t:'icon',id:ik},body:`<p>${pre?pre+' ':''}${OD[id].d}</p>`,gains:['+20 досвіду',`Знайдено дивин: ${Object.keys(s.odd).length}`]})}
 function reveal(id){if(!s.disc[id]){s.disc[id]=1;dirty=1;const L=LOC[id];mom('disc',L.n,L.d,{t:'scene',id:id==='bay'?'bayHigh':id});dlg({k:'world',title:`Нове місце: ${L.n}`,img:{t:'scene',id:id==='bay'?'bayHigh':id},body:`<p>${L.d}</p>`,gains:['Нове місце на мапі.',L.sea?'Туди можна дістатися лише човном, і вихід у море коштує провізію.':'',L.dark?'Там темно: візьми в руку ліхтар.':''].filter(Boolean)})}}
 function boat(){s.f.boat=1;reveal('reef')}
 function logOf(x){return typeof x==='string'?{m:x,t:'info'}:x}
@@ -3151,7 +3151,12 @@ const rsCost=r=>Math.ceil(r.c*(s.h.ft.pupil?0.8:1)*(fuL('study')>=2?0.85:1));
 const rsReady=r=>(r.r||[]).every(q=>s.rs[q])&&(!r.kill||s.kills[r.kill]>0);
 function featOk(f){if(s.h.ft[f.id])return false;for(const k in f.req)if(st(k)<f.req[k])return false;return(f.pre||[]).every(q=>s.h.ft[q])}
 const critCh=()=>5+3*st('per')+eqv('crit')+(s.h.ft.eye?15:0);
-function xp(n){if(!n)return;if(s.h.ft.curious)n*=1.1;if(fuL('study')>=3)n*=1.1;if(!s.tabs.hero){s.h.xpb=(s.h.xpb||0)+n;return}s.h.xp+=n;while(s.h.xp>=need(s.h.lvl)){s.h.xp-=need(s.h.lvl);s.h.lvl++;if(s.h.lvl%5===0)mom('lvl',`Рівень ${s.h.lvl}`,'Хранитель став сильнішим і досвідченішим.',{t:'hero'});s.h.pts++;const sp=(s.h.lvl%2===0?2:1)+(s.h.a.int>=4?1:0);s.h.sp+=sp;s.h.fp++;s.h.hp=maxHP();say(`Новий рівень: ${s.h.lvl}.`,'lvl');
+/* етап гри для прогресії: досвід за дії на пізніших етапах росте, щоб рівні йшли рівно (ціль I→4, II→9, III→14, IV→19, V→24) */
+const stageNo=()=>!s.f.fordDone?1:!(has('key')||s.floors.study)?2:!s.f.ostap?3:!s.f.schooner?4:5;
+const XPST=[1,1,3,7,10,11];
+/* Мла сильнішає з етапами: вороги міцніші й б'ють сильніше (сюжетні бої етапу I — без змін) */
+const FOEST=[1,1,1.3,1.4,1.5,1.5];
+function xp(n){if(!n)return;n*=XPST[stageNo()];if(s.h.ft.curious)n*=1.1;if(fuL('study')>=3)n*=1.1;if(!s.tabs.hero){s.h.xpb=(s.h.xpb||0)+n;return}s.h.xp+=n;while(s.h.xp>=need(s.h.lvl)){s.h.xp-=need(s.h.lvl);s.h.lvl++;if(s.h.lvl%5===0)mom('lvl',`Рівень ${s.h.lvl}`,'Хранитель став сильнішим і досвідченішим.',{t:'hero'});s.h.pts++;const sp=1+(s.h.lvl%3===0?1:0)+(s.h.a.int>=4&&s.h.lvl%4===0?1:0);s.h.sp+=sp;s.h.fp++;s.h.hp=maxHP();say(`Новий рівень: ${s.h.lvl}.`,'lvl');
   const q=s.dlg||[],last=q[q.length-1],g=[s.nv.grow?`Вільних очок характеристик: ${s.h.pts}`:'',s.nv.grow?`Вільних очок умінь: ${s.h.sp}`:'',s.nv.tal?`Талантів до вибору: ${s.h.fp}`:'',s.nv.grow?`Стеля вмінь тепер ${skillCap()}`:'','Здоров’я відновлено повністю'].filter(Boolean);
   if(last&&last.lvup){last.title=`Новий рівень: ${s.h.lvl}`;last.gains=g}else dlg({k:'lvl',lvup:1,title:`Новий рівень: ${s.h.lvl}`,img:{t:'hero'},body:s.nv.grow?'<p>Ти став сильнішим. Розподіли очки у вкладці «Герой → Розвиток».</p>':'<p>Ти став сильнішим і витривалішим. Тіло пригадує, як воно колись рухалося.</p>',gains:g})}}
 
@@ -3262,7 +3267,7 @@ const pierceBonus=()=>(s.h.ft.crack?1:0)+(s.rs.weak?1:0)+(s.rs.a_stone?1:0);
 const lastStand=()=>s.h.ft.last&&s.h.hp<maxHP()/3?1.5:1;
 
 function startFight(encId,win){const E0=ENC[encId];
-  const mult=E0.mult||1,sn=snap(),hpm=win==='raid'&&fuL('hall')>=3?0.85:1;const u=E0.e.map(([t,x,y,role,ex])=>{const T=EN[t];if(!T.obj&&!T.ally)s.seenE[t]=1;const v=mkUnit(t,x,y,mult*hpm,{elite:!E0.noElite&&Math.random()<eliteCh()});if(role)v.role=role;if(ex)Object.assign(v,ex);if(T.ally&&s.h.ft.leader){v.hp=v.max=Math.round(v.max*1.5)}return v});
+  const mult=(E0.mult||1)*(E0.fixed?1:E0.boss?1+(FOEST[stageNo()]-1)*.4:FOEST[stageNo()]),sn=snap(),hpm=win==='raid'&&fuL('hall')>=3?0.85:1;const u=E0.e.map(([t,x,y,role,ex])=>{const T=EN[t];if(!T.obj&&!T.ally)s.seenE[t]=1;const v=mkUnit(t,x,y,mult*hpm,{elite:!E0.noElite&&Math.random()<eliteCh()});if(role)v.role=role;if(ex)Object.assign(v,ex);if(T.ally&&s.h.ft.leader){v.hp=v.max=Math.round(v.max*1.5)}return v});
   const foes=u.filter(x=>!EN[x.t].obj&&!EN[x.t].ally);
   s.cb={enc:encId,a:E0.a,map:ARENA[E0.a].slice(),round:0,fire:[],fx:[],fxt:0,hx:E0.h[0],hy:E0.h[1],u,ap:maxAP()+(s.h.ft.shadow?2:0),guard:0,sand:0,wrap:0,breath:0,sel:u.indexOf(foes[0]),win,boss:!!E0.boss,cds:{},traps:[],mode:'',mult,sn,wmg:{},
     title:win==='raid'?'Набіг Мли':win==='crab1'?'Перша сутичка':win&&win.indexOf('S:')===0?SHF[win.slice(2)].n:(win&&win.indexOf('L:')===0?(()=>{const id=win.slice(2);return`${LOC[id.split('.')[0]].n}`})():'Бій'),
@@ -3589,7 +3594,7 @@ function raidResolve(go){const L=s.h.lvl;if(!go){for(const k of['wood','fish','p
   const nm=Math.min(freeW(),defL('militia')+(defL('militia')&&s.h.ft.leader?1:0));for(let k=0;k<nm;k++)e.push(['militia',3,k?5:3]);if(fac('silent')>=80)e.push(['militia',2,1]);
   const pal=[[6,2],[6,4],[6,6],[7,1],[7,7],[5,3],[5,5]].slice(0,[0,3,5,7][defL('palisade')]+(s.h.ft.engineer&&defL('palisade')?1:0));
   const tr=[[9,3],[9,5],[8,4],[10,2],[10,6],[9,1]].slice(0,2*defL('dtraps'));
-  ENC.raid={a:'yardA',h:[3,4],e,mult:1+0.1*Math.max(0,L-4),palis:pal,traps:tr,bell:defL('bell')>0,waves:L>=12?[[4,[['drowned',14,4]]]]:undefined};s.at='';startFight('raid','raid')}
+  ENC.raid={a:'yardA',h:[3,4],fixed:1,e,mult:1+0.1*Math.max(0,L-4),palis:pal,traps:tr,bell:defL('bell')>0,waves:L>=12?[[4,[['drowned',14,4]]]]:undefined};s.at='';startFight('raid','raid')}
 
 /* ============ LOCATIONS LOGIC ============ */
 function snap(){return{r:Object.assign({},s.r),inv:Object.assign({},s.inv),xp:totXP()}}
@@ -3872,7 +3877,7 @@ function hannaKey(){dlg({k:'story',title:'Ключ Ганни',img:{t:'face',id:
 
 /* Дрібні справи Причалу: генеруються періодично (до двох одразу), щоб завжди було чим допомогти.
    Віддати припаси, попрацювати руками або відігнати непрошених гостей. Чекають, поки гравець візьметься. */
-Object.assign(ENC,{vrats:{a:'store',h:[1,3],xpm:.5,e:[['rat',7,2],['rat',8,4],['rat',6,5]]},
+Object.assign(ENC,{vrats:{a:'store',h:[1,3],xpm:.5,e:[['rat',7,2],['rat',8,4],['rat',6,5],['rat',9,1]]},
   vgulls:{a:'rack',h:[1,3],xpm:.5,e:[['gull',8,1],['gull',9,4],['gull',10,2]]}});
 const VGV={fish:.8,oil:2,wood:.5,scrap:.8,herb:2.5,prov:1.5,tar:3,med:8,iron:2};
 const VGT=[

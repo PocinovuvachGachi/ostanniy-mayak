@@ -414,12 +414,12 @@ const ARENA={
 };
 const ENC={
   crab1:{a:'shore',h:[1,3],e:[['crab',8,1]]},
-  hold:{a:'hold',h:[1,3],e:[['bigcrab',8,2],['crab',8,5],['barrel',5,1]]},
-  gulls:{a:'cliff',h:[1,3],e:[['gull',8,0],['gull',10,2],['gull',10,4]]},
+  hold:{a:'hold',h:[1,3],e:[['bigcrab',8,2],['crab',8,5],['crab',9,1],['barrel',5,1]]},
+  gulls:{a:'cliff',h:[1,3],e:[['gull',8,0],['gull',10,2],['gull',10,4],['gull',9,6]]},
   eel:{a:'bay',h:[1,3],e:[['eel',6,3],['urchin',2,5]]},
   cavegate:{a:'cave',h:[1,3],e:[['scout',9,2]]},
   brute:{a:'cave',h:[1,3],e:[['brute',8,3],['scout',9,1],['barrel',7,2]],mult:0.92},
-  wraith:{a:'cave',h:[1,3],e:[['wraith',8,3]]},
+  wraith:{a:'cave',h:[1,3],e:[['wraith',8,2],['wraith',9,5]]},
   fortpier:{a:'fort',h:[1,3],e:[['scout',8,2],['scout',8,4],['barrel',6,4]]},
   fortyard:{a:'fort',h:[1,3],e:[['brute',8,3],['barrel',6,2]]},
   gnat:{a:'tower',h:[5,5],e:[['gnat',5,1],['scout',2,1],['barrel',5,3],['barrel',8,4]],boss:1,noElite:1,mult:0.92},
@@ -428,14 +428,14 @@ const ENC={
   bogfight:{a:'bog',h:[1,3],e:[['drowned',8,1],['toad',9,4],['leech',6,3]]},
   mine1:{a:'mine',mult:1.2,h:[1,3],e:[['smuggler',9,1],['hound',8,3],['harpooner',9,5]]},
   mine2:{a:'mine',mult:1.2,h:[1,3],e:[['brute',8,3],['smuggler',9,1],['barrel',6,2]],waves:[[3,[['smuggler',9,5]]]]},
-  crabking:{a:'shoal',h:[1,3],tide:1,e:[['crabking',8,3],['crab',7,1]]},
+  crabking:{a:'shoal',h:[1,3],tide:1,e:[['crabking',8,3],['crab',7,1],['crab',7,5],['bigcrab',9,1]]},
   spit:{a:'spit',h:[1,3],e:[['shark',7,1],['shark',8,4]]},
   isle1:{a:'isle',mult:1.3,h:[1,3],e:[['drowned',8,1],['icedrowned',9,4],['drowned',6,5]]},
   monastery:{a:'monastery',mult:1.4,h:[1,3],e:[['witch',9,3],['drowned',8,1],['drowned',8,5]],waves:[[4,[['drowned',10,3]]]]},
   sentinels:{a:'guard',mult:1.3,h:[1,3],e:[['sentinel',8,2],['sentinel',8,4]]},
   mill:{a:'cliff',mult:1.6,h:[1,3],e:[['wolf',8,1],['wolf',9,3],['wolf',8,5]]},
   cove:{a:'shore',mult:1.6,h:[1,3],e:[['harpooner',8,3],['medic',9,1],['smuggler',9,5],['barrel',6,4]]},
-  heart:{a:'heartL',noElite:1,mult:1.4,h:[1,4],e:[['heart',9,4],['drowned',8,1],['drowned',8,7]],boss:1},
+  heart:{a:'heartL',noElite:1,fixed:1,mult:1.55,h:[1,4],e:[['heart',9,4],['drowned',8,1],['drowned',8,7]],boss:1},
 };
 
 const FACE={

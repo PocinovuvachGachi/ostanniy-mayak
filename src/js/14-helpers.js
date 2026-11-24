@@ -21,7 +21,7 @@ function dlg(o){s.dlg=s.dlg||[];if(s.dlg.length>14)return;if(o.k==='fight')s.dlg
 function unlock(t){if(!s.tabs[t]){s.tabs[t]=1;s.newTab[t]=1;if(SUBT[t]){s.newTab.tower=1;s.ttNew=typeof s.ttNew==='object'&&s.ttNew?s.ttNew:{};s.ttNew[t]=1}dirty=1;if(t==='hero'){if(s.h.xpb){const b=s.h.xpb;s.h.xpb=0;xp(b)}}const nm=(TABS.find(x=>x[0]===t)||[0,SUBT[t]||''])[1];if(t!=='shore')dlg({k:'world',title:`Відкрито: ${nm}`,body:`<p>${TABV[t]||TABINFO[t]||''}${TABV[t]&&TABINFO[t]?ih(TABINFO[t]):''}</p>`,gains:[SUBT[t]?`«${nm}» — у вкладці «Маяк».`:`Відкрилася вкладка «${nm}».`]})}}
 function page(n){if(!s.pages.includes(n)){s.pages.push(n);if(n===1)s.met.ostap=1;dlg({k:'story',title:n==='m'?'Записка Остапа без номера':`Записка Остапа, аркуш ${n}`,body:`<div class="note">${PG[n].replace(/ — О\.$/,'')}<span class="sig">— О.</span></div>`,gains:['Записку збережено в журналі.']});unlock('journal');dirty=1}}
 function book(id){if(!s.books.includes(id)){s.books.push(id);dirty=1}}
-function odd(id,pre){if(s.odd[id])return;s.odd[id]=1;s.oddNew=(s.oddNew||0)+1;xp(20);say((pre?pre+' ':'')+`Дивина: ${I(OD[id].n)}. +20 досвіду.`,'find');const ik=ODI[id];dlg({k:'find',title:`Дивина: ${OD[id].n}`,img:{t:'icon',id:ik},body:`<p>${pre?pre+' ':''}${OD[id].d}</p>`,gains:['+20 досвіду',`Знайдено дивин: ${Object.keys(s.odd).length}`]})}
+function odd(id,pre){if(s.odd[id])return;s.odd[id]=1;s.oddNew=(s.oddNew||0)+1;xp(20);say((pre?pre+' ':'')+`Дивина: ${I(OD[id].n)}. +${Math.round(20*XPST[stageNo()])} досвіду.`,'find');const ik=ODI[id];dlg({k:'find',title:`Дивина: ${OD[id].n}`,img:{t:'icon',id:ik},body:`<p>${pre?pre+' ':''}${OD[id].d}</p>`,gains:['+20 досвіду',`Знайдено дивин: ${Object.keys(s.odd).length}`]})}
 function reveal(id){if(!s.disc[id]){s.disc[id]=1;dirty=1;const L=LOC[id];mom('disc',L.n,L.d,{t:'scene',id:id==='bay'?'bayHigh':id});dlg({k:'world',title:`Нове місце: ${L.n}`,img:{t:'scene',id:id==='bay'?'bayHigh':id},body:`<p>${L.d}</p>`,gains:['Нове місце на мапі.',L.sea?'Туди можна дістатися лише човном, і вихід у море коштує провізію.':'',L.dark?'Там темно: візьми в руку ліхтар.':''].filter(Boolean)})}}
 function boat(){s.f.boat=1;reveal('reef')}
 function logOf(x){return typeof x==='string'?{m:x,t:'info'}:x}
@@ -58,7 +58,12 @@ const rsCost=r=>Math.ceil(r.c*(s.h.ft.pupil?0.8:1)*(fuL('study')>=2?0.85:1));
 const rsReady=r=>(r.r||[]).every(q=>s.rs[q])&&(!r.kill||s.kills[r.kill]>0);
 function featOk(f){if(s.h.ft[f.id])return false;for(const k in f.req)if(st(k)<f.req[k])return false;return(f.pre||[]).every(q=>s.h.ft[q])}
 const critCh=()=>5+3*st('per')+eqv('crit')+(s.h.ft.eye?15:0);
-function xp(n){if(!n)return;if(s.h.ft.curious)n*=1.1;if(fuL('study')>=3)n*=1.1;if(!s.tabs.hero){s.h.xpb=(s.h.xpb||0)+n;return}s.h.xp+=n;while(s.h.xp>=need(s.h.lvl)){s.h.xp-=need(s.h.lvl);s.h.lvl++;if(s.h.lvl%5===0)mom('lvl',`Рівень ${s.h.lvl}`,'Хранитель став сильнішим і досвідченішим.',{t:'hero'});s.h.pts++;const sp=(s.h.lvl%2===0?2:1)+(s.h.a.int>=4?1:0);s.h.sp+=sp;s.h.fp++;s.h.hp=maxHP();say(`Новий рівень: ${s.h.lvl}.`,'lvl');
+/* етап гри для прогресії: досвід за дії на пізніших етапах росте, щоб рівні йшли рівно (ціль I→4, II→9, III→14, IV→19, V→24) */
+const stageNo=()=>!s.f.fordDone?1:!(has('key')||s.floors.study)?2:!s.f.ostap?3:!s.f.schooner?4:5;
+const XPST=[1,1,3,7,10,11];
+/* Мла сильнішає з етапами: вороги міцніші й б'ють сильніше (сюжетні бої етапу I — без змін) */
+const FOEST=[1,1,1.3,1.4,1.5,1.5];
+function xp(n){if(!n)return;n*=XPST[stageNo()];if(s.h.ft.curious)n*=1.1;if(fuL('study')>=3)n*=1.1;if(!s.tabs.hero){s.h.xpb=(s.h.xpb||0)+n;return}s.h.xp+=n;while(s.h.xp>=need(s.h.lvl)){s.h.xp-=need(s.h.lvl);s.h.lvl++;if(s.h.lvl%5===0)mom('lvl',`Рівень ${s.h.lvl}`,'Хранитель став сильнішим і досвідченішим.',{t:'hero'});s.h.pts++;const sp=1+(s.h.lvl%3===0?1:0)+(s.h.a.int>=4&&s.h.lvl%4===0?1:0);s.h.sp+=sp;s.h.fp++;s.h.hp=maxHP();say(`Новий рівень: ${s.h.lvl}.`,'lvl');
   const q=s.dlg||[],last=q[q.length-1],g=[s.nv.grow?`Вільних очок характеристик: ${s.h.pts}`:'',s.nv.grow?`Вільних очок умінь: ${s.h.sp}`:'',s.nv.tal?`Талантів до вибору: ${s.h.fp}`:'',s.nv.grow?`Стеля вмінь тепер ${skillCap()}`:'','Здоров’я відновлено повністю'].filter(Boolean);
   if(last&&last.lvup){last.title=`Новий рівень: ${s.h.lvl}`;last.gains=g}else dlg({k:'lvl',lvup:1,title:`Новий рівень: ${s.h.lvl}`,img:{t:'hero'},body:s.nv.grow?'<p>Ти став сильнішим. Розподіли очки у вкладці «Герой → Розвиток».</p>':'<p>Ти став сильнішим і витривалішим. Тіло пригадує, як воно колись рухалося.</p>',gains:g})}}
 
