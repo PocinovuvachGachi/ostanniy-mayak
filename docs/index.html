@@ -875,6 +875,34 @@ button.hs.zone:hover,button.hs.zone:focus-visible{background:transparent;border:
 .scn .trface{position:absolute;image-rendering:pixelated;z-index:40;pointer-events:none}
 .scn .trcoin{position:absolute;z-index:80;color:#fff0b0;font:700 13px var(--mono);display:flex;align-items:center;gap:4px;text-shadow:0 1px 0 #0b1418;pointer-events:none;line-height:1}
 .scn .trcoin img{image-rendering:pixelated}
+/* ===== Літопис — сувій, Журнал — зошит ===== */
+body.th-home #main section.chr,body.th-home #main section.chrp{--ink:#2b1d12;--panel:#d6cba9;--mute:#5a4630;--rule:#8a6a44;--lamp:#7a3f04;color:#2b1d12;background:#d6cba9 var(--tx-paper);border:0;border-image:none;
+  position:relative;padding:18px 34px;box-shadow:0 8px 0 rgba(0,0,0,.4);image-rendering:pixelated}
+body.th-home #main section.chr::before,body.th-home #main section.chr::after,body.th-home #main section.chrp::before,body.th-home #main section.chrp::after{content:"";position:absolute;top:-10px;bottom:-10px;width:22px;background:var(--tx-roll) repeat-y;background-size:22px 22px;box-shadow:0 0 0 2px #2b1d12;image-rendering:pixelated}
+body.th-home #main section.chr::before,body.th-home #main section.chrp::before{left:-6px}
+body.th-home #main section.chr::after,body.th-home #main section.chrp::after{right:-6px}
+body.th-home #main section.chr h2,body.th-home #main section.chrp h2{color:#3a2718}
+body.th-home #main section.chr .chip,body.th-home #main section.chrp .chip{background:rgba(58,39,24,.08);color:#3a2718;border-color:#8a6a44}
+body.th-home #main section.jr{--ink:#22313a;--panel:#e8e2cf;--mute:#4d5a60;--rule:#8a9aa0;--lamp:#8f2f2b;color:#22313a;background:#e8e2cf var(--tx-ruled);background-size:32px 32px;border:0;border-image:none;position:relative;
+  padding:18px 18px 18px 56px;box-shadow:0 8px 0 rgba(0,0,0,.4);image-rendering:pixelated}
+body.th-home #main section.jr::before{content:"";position:absolute;left:0;top:0;bottom:0;width:26px;background:#3a2718 var(--tx-plank);border-right:3px solid #1d140d;
+  -webkit-mask:radial-gradient(circle at 13px 50%,transparent 4px,#000 5px) 0 0/26px 28px repeat-y;mask:radial-gradient(circle at 13px 50%,transparent 4px,#000 5px) 0 0/26px 28px repeat-y}
+body.th-home #main section.jr::after{content:"";position:absolute;left:44px;top:0;bottom:0;width:4px;border-left:1px solid rgba(143,47,43,.55);border-right:1px solid rgba(143,47,43,.55);pointer-events:none}
+body.th-home #main section.jr h2{color:#22313a}
+body.th-home #main section.jr .chip{background:rgba(34,49,58,.06);color:#22313a;border-color:#8a9aa0}
+body.th-home #main section.jr .bm{display:flex;flex-wrap:wrap;gap:4px;margin:10px 0 12px}
+body.th-home #main section.jr .bm button{background:#c9584a;color:#fff0b0;border:0;border-bottom:3px solid #8f2f2b;padding:4px 10px;font:600 12px var(--mono)}
+body.th-home #main section.jr .bm button:nth-child(3n+2){background:#4a7486;border-bottom-color:#2f5163}
+body.th-home #main section.jr .bm button:nth-child(3n){background:#6f8a4c;border-bottom-color:#3d5a34}
+body.th-home #main section.jr .bm button.on{transform:translateY(-3px);box-shadow:0 3px 0 rgba(0,0,0,.25)}
+body.th-home #main section.jr .card,body.th-home #main section.jr .note,body.th-home #main section.jr .ocard{background:rgba(255,255,255,.35);border:1px solid #8a9aa0}
+@media (max-width:560px){body.th-home #main section.jr{padding-left:40px}body.th-home #main section.jr::before{width:20px}body.th-home #main section.jr::after{left:32px}body.th-home #main section.chr,body.th-home #main section.chrp{padding:14px 26px}}
+body.th-home #main section.jr .note{color:#22313a;background:#f3eedf;border:1px solid #8a9aa0;box-shadow:0 3px 0 rgba(0,0,0,.12)}
+body.th-home #main section.jr .note .no,body.th-home #main section.jr .note .sig{color:#8f2f2b}
+body.th-home #main section.jr .m,body.th-home #main section.jr .hand{color:#4d5a60}
+body.th-home #main section.jr .jh,body.th-home #main section.chr .jh,body.th-home #main section.chrp .jh{color:#8f2f2b}
+body.th-home #main section.jr h3,body.th-home #main section.jr h4,body.th-home #main section.jr b{color:inherit}
+body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .foe{color:#8f2f2b}body.th-home #main section.jr .itm{color:#7a3f04}
 </style>
 </head>
 <body>
@@ -1415,6 +1443,8 @@ function texBuf(k){const S=32,b=pbuf(S,S);
   else if(k==='sand'){prect(b,0,0,S,S,'b');pnoise(b,0,0,S,S,'a',0.13,11);pnoise(b,0,0,S,S,'6',0.025,12);pnoise(b,0,0,S,S,'e',0.012,13)}
   else if(k==='plank'){prect(b,0,0,S,S,'c');for(let r=0;r<4;r++){const y=r*8;prect(b,0,y+7,S,1,'8');const R=rng(30+r);for(let i=0;i<3;i++){const x=Math.floor(R()*S),w=4+Math.floor(R()*8);prect(b,x,y+2+Math.floor(R()*4),w,1,'8')}pset(b,(r*13+4)%S,y+3,'9')}}
   else if(k==='paper'){prect(b,0,0,S,S,'O');pnoise(b,0,0,S,S,'b',0.07,71);pnoise(b,0,0,S,S,'N',0.12,72);pnoise(b,0,0,S,S,'u',0.03,73);for(let i=0;i<3;i++){const R=rng(80+i),y=Math.floor(R()*S),x=Math.floor(R()*S);prect(b,x,y,5+Math.floor(R()*7),1,'N')}}
+  else if(k==='ruled'){prect(b,0,0,S,S,'O');pnoise(b,0,0,S,S,'N',0.08,95);for(let y=7;y<S;y+=8)for(let x=0;x<S;x++)if(hh2(x,y)>.15)pset(b,x,y,'5')}
+  else if(k==='roll'){for(let x=0;x<S;x++){const t=Math.abs(x-S/2)/(S/2),c=t<.2?'Y':t<.55?'X':t<.85?'W':'V';prect(b,x,0,1,S,c)}for(let y=0;y<S;y+=8)prect(b,0,y,S,1,'V')}
   else if(k==='slate'){prect(b,0,0,S,S,'1');pnoise(b,0,0,S,S,'0',0.12,91);pnoise(b,0,0,S,S,'2',0.06,92)}
   else if(k==='board'){prect(b,0,0,S,S,'6');for(let r=0;r<4;r++){const y=r*8;prect(b,0,y+7,S,1,'5');const R=rng(60+r);for(let i=0;i<3;i++){const x=Math.floor(R()*S),w=4+Math.floor(R()*9);prect(b,x,y+2+Math.floor(R()*4),w,1,'5')}pset(b,(r*11+6)%S,y+3,'p')}}
   return b}
@@ -3937,9 +3967,9 @@ function render(){B={};bn=0;
     if(!s.tabs[s.tab])s.tab='home';
     h+=TR[s.tab]();
     if(s.tab==='map')markSeen('map',s.at?'a:'+s.at+'.':'L:');else if(s.tab!=='hero')markSeen(s.tab);if(s.newTab[s.tab])delete s.newTab[s.tab]}
-  try{if(!texInit){texInit=1;const rs=document.documentElement.style;for(const k of['stone','sand','plank','board','paper','slate']){const u=pxURL('tx:'+k,()=>texBuf(k));if(u)rs.setProperty('--tx-'+k,`url(${u})`)}}
+  try{if(!texInit){texInit=1;const rs=document.documentElement.style;for(const k of['stone','sand','plank','board','paper','slate','ruled','roll']){const u=pxURL('tx:'+k,()=>texBuf(k));if(u)rs.setProperty('--tx-'+k,`url(${u})`)}}
     if(!texInit2){texInit2=1;const rs=document.documentElement.style;for(const k of['wood','drift','stone','paper','slate']){const u=pxURL('fr:'+k,()=>frameBuf(k));if(u)rs.setProperty('--fr-'+k,`url(${u})`)}}
-    const th=s.cb?'':['home','tower','work','study','hero','folk','trade'].includes(s.tab)||(s.tab==='map'&&!s.at)?'th-home':s.tab==='shore'?'th-shore':'';document.body.classList.toggle('th-home',th==='th-home');document.body.classList.toggle('th-shore',th==='th-shore')}catch(e){}
+    const th=s.cb?'':['home','tower','work','study','hero','folk','trade','chron','journal'].includes(s.tab)||(s.tab==='map'&&!s.at)?'th-home':s.tab==='shore'?'th-shore':'';document.body.classList.toggle('th-home',th==='th-home');document.body.classList.toggle('th-shore',th==='th-shore')}catch(e){}
   hideTip();const mn=$('main');const vw0=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:''),same0=vw0===lastView&&!s.cb,xs=same0?xSnap(mn):null,as0=same0?aSnap(mn):null;let tlx=null;try{const q=same0&&mn.querySelector('.chr-tl');if(q)tlx=q.scrollLeft>=q.scrollWidth-q.clientWidth-4?-1:q.scrollLeft}catch(e){}patchStage(s.cb?'':s.tab==='home'?homeScene():s.tab==='shore'?shoreScene():s.tab==='tower'?towerScene():s.tab==='work'?workScene():s.tab==='study'?studyScene():s.tab==='map'&&!s.at?mapScene():s.tab==='hero'?heroScene():s.tab==='folk'?folkScene():s.tab==='trade'?tradeScene():'');zoomRun();mn.innerHTML=h;if(tlx!==null){try{const q=mn.querySelector('.chr-tl');if(q)q.scrollLeft=tlx<0?q.scrollWidth:tlx}catch(e){}}glossify(mn);rDlg();if(xs)xFade(mn,xs,1);if(as0)aMark(mn,as0);
   const view=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:'');const prevView=lastView;if(view!==lastView&&mn.classList&&!RM()){for(const e of[mn,$('stage')]){if(!e||!e.classList)continue;e.classList.remove('tin');void e.offsetWidth;e.classList.add('tin')}}lastView=view;
   placePop();
@@ -4886,7 +4916,7 @@ function rChron(){const M=s.mom||[],E=s.eraT||[0],now=s.play||0,ei=E.length-1;
     h+=`<div class="chr-era e${e}"><div class="chr-eh" ${TA(`<b>${ERA[e].n}</b><br>${ERA[e].d}`)}><span class="chr-en">доба ${ROM(e+1)}</span><b>${ERA[e].n}</b><span class="m">з ${dateShort(E[e]||0)}${e===ei?' й донині':` по ${dateShort(E[e+1])}`}</span></div><div class="chr-row">${ms.map(card).join('')}${e===ei?`<div class="chr-now">сьогодні<br>день ${dayOf(now)}</div>`:''}</div></div>`}
   h+=`</div></section>`;
   const st0=CH.map((c,ix)=>ix).filter(chStarted);
-  h+=`<section><h2>Розділи</h2><ol class="chr-chs">${st0.map(ix=>{const c=CH[ix],m=M.find(x=>x.k==='chap'&&x.cid===c.id),dn=s.chs.includes(c.id);return`<li class="e${m?m.e||0:ei}"><span class="no">${ROM(ix+1)}</span><span><b>${c.n}</b>${c.side?' <span class="m">· побічний</span>':''}</span><span class="when">${dn?(m?`${m.ap?'≈ ':''}день ${dayOf(m.t)}, ${dateShort(m.t)}`:'завершено'):'триває'}</span></li>`}).join('')}</ol>${s.chs.length<CH.length?'<p class="m">Що буде далі, ще не записано.</p>':''}</section>`;
+  h+=`<section class="chrp"><h2>Розділи</h2><ol class="chr-chs">${st0.map(ix=>{const c=CH[ix],m=M.find(x=>x.k==='chap'&&x.cid===c.id),dn=s.chs.includes(c.id);return`<li class="e${m?m.e||0:ei}"><span class="no">${ROM(ix+1)}</span><span><b>${c.n}</b>${c.side?' <span class="m">· побічний</span>':''}</span><span class="when">${dn?(m?`${m.ap?'≈ ':''}день ${dayOf(m.t)}, ${dateShort(m.t)}`:'завершено'):'триває'}</span></li>`}).join('')}</ol>${s.chs.length<CH.length?'<p class="m">Що буде далі, ще не записано.</p>':''}</section>`;
   return h}
 
 /* ============ ЗВУК: ембієнт, тиха музика, звуки дій ============

@@ -518,6 +518,8 @@ function texBuf(k){const S=32,b=pbuf(S,S);
   else if(k==='sand'){prect(b,0,0,S,S,'b');pnoise(b,0,0,S,S,'a',0.13,11);pnoise(b,0,0,S,S,'6',0.025,12);pnoise(b,0,0,S,S,'e',0.012,13)}
   else if(k==='plank'){prect(b,0,0,S,S,'c');for(let r=0;r<4;r++){const y=r*8;prect(b,0,y+7,S,1,'8');const R=rng(30+r);for(let i=0;i<3;i++){const x=Math.floor(R()*S),w=4+Math.floor(R()*8);prect(b,x,y+2+Math.floor(R()*4),w,1,'8')}pset(b,(r*13+4)%S,y+3,'9')}}
   else if(k==='paper'){prect(b,0,0,S,S,'O');pnoise(b,0,0,S,S,'b',0.07,71);pnoise(b,0,0,S,S,'N',0.12,72);pnoise(b,0,0,S,S,'u',0.03,73);for(let i=0;i<3;i++){const R=rng(80+i),y=Math.floor(R()*S),x=Math.floor(R()*S);prect(b,x,y,5+Math.floor(R()*7),1,'N')}}
+  else if(k==='ruled'){prect(b,0,0,S,S,'O');pnoise(b,0,0,S,S,'N',0.08,95);for(let y=7;y<S;y+=8)for(let x=0;x<S;x++)if(hh2(x,y)>.15)pset(b,x,y,'5')}
+  else if(k==='roll'){for(let x=0;x<S;x++){const t=Math.abs(x-S/2)/(S/2),c=t<.2?'Y':t<.55?'X':t<.85?'W':'V';prect(b,x,0,1,S,c)}for(let y=0;y<S;y+=8)prect(b,0,y,S,1,'V')}
   else if(k==='slate'){prect(b,0,0,S,S,'1');pnoise(b,0,0,S,S,'0',0.12,91);pnoise(b,0,0,S,S,'2',0.06,92)}
   else if(k==='board'){prect(b,0,0,S,S,'6');for(let r=0;r<4;r++){const y=r*8;prect(b,0,y+7,S,1,'5');const R=rng(60+r);for(let i=0;i<3;i++){const x=Math.floor(R()*S),w=4+Math.floor(R()*9);prect(b,x,y+2+Math.floor(R()*4),w,1,'5')}pset(b,(r*11+6)%S,y+3,'p')}}
   return b}
