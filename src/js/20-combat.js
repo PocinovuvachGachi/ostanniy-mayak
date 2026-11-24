@@ -43,7 +43,7 @@ function startFight(encId,win){const E0=ENC[encId];
   const mult=E0.mult||1,sn=snap(),hpm=win==='raid'&&fuL('hall')>=3?0.85:1;const u=E0.e.map(([t,x,y,role,ex])=>{const T=EN[t];if(!T.obj&&!T.ally)s.seenE[t]=1;const v=mkUnit(t,x,y,mult*hpm,{elite:!E0.noElite&&Math.random()<eliteCh()});if(role)v.role=role;if(ex)Object.assign(v,ex);if(T.ally&&s.h.ft.leader){v.hp=v.max=Math.round(v.max*1.5)}return v});
   const foes=u.filter(x=>!EN[x.t].obj&&!EN[x.t].ally);
   s.cb={enc:encId,a:E0.a,map:ARENA[E0.a].slice(),round:0,fire:[],fx:[],fxt:0,hx:E0.h[0],hy:E0.h[1],u,ap:maxAP()+(s.h.ft.shadow?2:0),guard:0,sand:0,wrap:0,breath:0,sel:u.indexOf(foes[0]),win,boss:!!E0.boss,cds:{},traps:[],mode:'',mult,sn,wmg:{},
-    title:win==='raid'?'Набіг Мли':win==='crab1'?'Перша сутичка':(win&&win.indexOf('L:')===0?(()=>{const id=win.slice(2);return`${LOC[id.split('.')[0]].n}`})():'Бій'),
+    title:win==='raid'?'Набіг Мли':win==='crab1'?'Перша сутичка':win&&win.indexOf('S:')===0?SHF[win.slice(2)].n:(win&&win.indexOf('L:')===0?(()=>{const id=win.slice(2);return`${LOC[id.split('.')[0]].n}`})():'Бій'),
     log:[`${foes.filter(x=>!x.hid).map(x=>E(EN[x.t].n)).join(', ')} — бій починається!${s.h.ft.shadow?' Ти діяв першим: +2 ОД.':''}${E0.waves?' Схоже, вони тут не самі.':''}${E0.tide?' Вода прибуває.':''}${foes.some(x=>x.el)?' Серед них є ветерани.':''}`]};setGrid(s.cb);
   if(E0.palis)s.cb.map=s.cb.map.map((r,y)=>r.split('').map((ch,x)=>E0.palis.some(q=>q[0]===x&&q[1]===y)&&ch==='.'?'+':ch).join(''));
   if(E0.traps)s.cb.traps=E0.traps.map(([x,y])=>({x,y}));if(E0.bell)s.cb.ap+=2;
@@ -271,7 +271,8 @@ function enemyAct(c,u){const T=EN[u.t];if(T.obj)return;if(T.ally){allyAct(c,u);r
   else if(k==='ward'){const tg=c.u.filter(v=>v!==u&&v.hp>0&&!isObj(v)&&!EN[v.t].ally).sort((a,b)=>a.hp/a.max-b.hp/b.max)[0];if(tg){tg.ward=1;cbLog(`${E(T.n)} прикриває щитом: ${E(EN[tg.t].n)} +2 броні.`)}else cbLog(`${E(T.n)} чекає.`)}
   else if(k==='call2'){const n=c.u.filter(v=>v.hp>0&&v.t==='gull').length;if(n<3){const q=freeNear(c,u.x,u.y);if(q){const nu=mkUnit('gull',q[0],q[1],c.mult||1);c.u.push(nu);s.seenE.gull=1;fxP({t:'appear',x:q[0],y:q[1]},160);cbLog(`${E(T.n)} скликає зграю: прилітає ${E('чайка')}.`)}}else cbLog(`${E(T.n)} кружляє над зграєю.`)}
   else if(k==='hit'||k==='cold'||k==='wrap'){if(!near())moveUnit(c,u,'melee');if(u.hp<=0)return;
-    if(near()){const ok=strike(k==='cold'&&s.rs.a_fog?Math.ceil(v/2):v,k==='cold');if(ok&&k==='wrap'){c.wrap=1;cbLog(`${E(T.n)} обвиває тебе: наступного ходу −2 очки дії.`)}}else cbLog(`${E(T.n)} не дістає до тебе.`)}
+    const pk=T.pack?c.u.filter(o=>o!==u&&o.hp>0&&EN[o.t].pack&&dist(o.x,o.y,c.hx,c.hy)<=1).length:0;if(pk&&near())cbLog(`${E(T.n)} сміливішає поруч зі своїми: +${pk}.`);
+    if(near()){const ok=strike((k==='cold'&&s.rs.a_fog?Math.ceil(v/2):v)+pk,k==='cold');if(ok&&k==='wrap'){c.wrap=1;cbLog(`${E(T.n)} обвиває тебе: наступного ходу −2 очки дії.`)}}else cbLog(`${E(T.n)} не дістає до тебе.`)}
   else if(k==='wind'){if(!near())moveUnit(c,u,'melee');if(u.hp<=0)return;u.wind=1;cbLog(`${E(T.n)} замахується. Наступний його удар подвійний.`)}
   else if(k==='veil'){for(const v of c.u)if(v.hp>0&&!isObj(v))v.veil=1;cbLog(`${E(T.n)}: ${nm.toLowerCase()}. Влучити в них важче.`)}
   else if(k==='mend'){const tg=c.u.filter(v=>v.hp>0&&!isObj(v)&&v.hp<v.max).sort((a,b)=>a.hp/a.max-b.hp/b.max)[0];if(tg){const h=Math.round(v*(c.mult||1));tg.hp=Math.min(tg.max,tg.hp+h);fxP({t:'txt',x:tg.x,y:tg.y,v:'+'+h,k:'heal'},150);cbLog(`${E(T.n)}: ${nm.toLowerCase()}, ${E(EN[tg.t].n)} +${h}.`)}else cbLog(`${E(T.n)} чекає.`)}
@@ -304,6 +305,7 @@ function finishWin(w){let m='';
   else if(w==='raid'){const L=s.h.lvl,k2=s.lure?2:1,c=lastCb||{};add('coin',5*L*k2);add('scrap',3*L*k2);xp(20*L*k2);if(s.lure){const x=['bomb','potion','net'][Math.floor(Math.random()*3)];giveI(x)}
     const br=[...new Set(c.broken||[])];s.dmgB=s.dmgB||{};for(const b of br)s.dmgB[b]=1;
     m=`${s.f.siege1?'':'Перша облога витримана. '}Мла відкочується від маяка. На піску лишилося те, що принесли нападники.${br.length?` Але зламано: ${br.map(b=>BD.find(x=>x.id===b).n.toLowerCase()).join(', ')}. Полагодь у вкладці «Вогнище».`:''}${c.stolen&&Object.keys(c.stolen).length?` Злодії винесли ${costTxt(c.stolen)}.`:''}`;raidEnd();say(m,'fight');s.c.raids=(s.c.raids||0)+1;if(s.c.raids===1||s.c.raids%5===0)mom('raid',s.c.raids===1?'Перша облога':`Відбито ${s.c.raids}-й набіг`,'Мла відкотилася від маяка, не взявши його.',{t:'scene',id:'shore'})}
+  else if(w&&w.indexOf('S:')===0){m=shfWin(w.slice(2));say(m,'fight')}
   else if(w&&w.indexOf('L:')===0){const id=w.slice(2),A=findA(id);trustAct(id);const dr=thrOn()?thrDrop(A.fight,A.once||ENC[A.fight].boss):0;if(dr)s.threat=Math.max(0,(s.threat||0)-dr);if(A.once)s.done[id]=1;m=A.win&&A.win();if(dr&&(s.threat||0)>=0)m=(m||'')+` <span class="m">Мла відступила від маяка на ${dr}.</span>`;say(m,'find');relicFor(A.fight)}
   dirty=1;return m}
 function lose(){const c=s.cb,lost=Math.floor(s.r.coin*0.2);s.r.coin-=lost;s.h.hp=Math.max(1,Math.round(maxHP()*0.3));s.cb=null;s.at='';

@@ -597,8 +597,8 @@ const BOGP=[[['Кочка під оксамитовим зеленим кили�
   [['Темна гладенька пляма',0],['Стара колода, обросла слизом',0],['Подушка сфагнуму, м’яка на вигляд',1]],
   [['Світла піщана латка',0],['Купина, поросла густим мохом',1],['Пучок осоки над самою водою',0]]];
 const LENSMAP=['#########','#*..A...#','#.......#','#.D.B..C#','#########'];
-const lowTide=()=>Math.floor(Date.now()/45000)%2===0;
-const tideLeft=()=>45-Math.floor(Date.now()/1000)%45;
+/* один приплив на весь світ — див. 23-tide-ford.js */
+const lowTide=()=>tideLow();
 
 function rescue(id,text){const first=!s.f.people;s.mst=s.mst||{};if(!s.mst[id])mom('people',MST[id].n,`${MST[id].role}: тепер живе біля маяка.`,{t:'face',id});s.mst[id]=1;s.met[id]=1;s.f.people=1;xp(50);
   dlg({k:'story',title:`${MST[id].n} іде до маяка`,img:{t:'face',id},body:`<p>${text}</p><p class="m">${MST[id].n}, ${MST[id].role}: ${MST[id].d}</p>`,gains:[...MST[id].g,...(first?['Можна будувати хати для поселенців. Поселенці працюють у господарстві й їдять провізію.']:[])]});return text}

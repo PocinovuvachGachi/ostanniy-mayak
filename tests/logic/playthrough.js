@@ -14,6 +14,7 @@ act('craft','rod');A(s.f.rod,'rod');act('craft','oar');A(s.eq.weapon==='oar','oa
 clickN('fishing','',5);act('fightGo','crab1');A(s.cb,'crab fight');botFight();A(!s.cb&&s.tabs.hero,'hero');console.log('after crab lvl',s.h.lvl,'hp',Math.round(s.h.hp));
 s.r.wood+=100;s.r.scrap+=60;act('bld','forge');act('bld','smoke');A(s.b.forge&&s.b.smoke,'conv built');s.r.fish+=10;const e0=s.r.ember,i0=s.r.iron;T(10);A(s.r.iron>i0,'iron made');A(s.r.prov>0,'prov made');act('tog','forge');const i1=s.r.iron;T(5);A(s.r.iron===i1,'forge off');act('tog','forge');act('ht','bag');render();act('ht','grow');render();act('ht','gear');render();act('craft','sling');A(s.eq.ranged==='sling','sling');allTabs();
 s.r.wood+=200;s.r.scrap+=100;s.r.ember+=600;act('floor','gallery');A(s.floors.gallery,'gallery');
+s.dbgTide='low';s.r.fish+=40;s.r.oil+=20;s.r.wood+=200;s.r.scrap+=100;s.r.ember+=500;for(const p of['poles','steps','rope'])act('ford',p);A(!s.f.fordDone,'ford waits for the siege');s.f.siege1=1;act('ford','lamp');delete s.f.siege1;A(s.f.fordDone&&s.tabs.map,'ford opens the map');s.dbgTide='';s.dlg=[];
 s.r.ember+=500;act('scan');act('scan');act('scan');A(s.disc.chaika&&s.disc.village&&s.disc.cliffs,'scans');
 act('craft','lamp');A(s.eq.light==='lamp','lamp');
 s.h.a.str=4;act('go','chaika');A(s.at==='chaika','at chaika');allTabs();
@@ -37,7 +38,7 @@ s.r.lore+=500;['currents','herbal','render','metal','order','tactics','mech','op
 s.h.k.craft=3;s.r.scrap+=100;s.r.ember+=500;s.r.wood+=50;s.r.iron+=60;s.r.tar+=20;act('craft','cleaver');act('equip','cleaver');act('craft','crossbow');act('equip','crossbow');
 s.h.a.con=5;s.h.hp=maxHP();act('go','bay');render();
 act('la','bay.deep.eel');botFight();A(s.f.eel,'eel');
-s.cd={};const tide=lowTide();act('la','bay.chest.pull');A(!!s.f.bayChest===tide,'tide chest');
+s.cd={};s.dbgTide='low';const tide=lowTide();act('la','bay.chest.pull');A(!!s.f.bayChest===tide,'tide chest');
 act('leave');act('go','village');act('la','village.pier.report');s.h.k.speech=3;act('la','village.pier.boat2');A(s.f.boat&&s.disc.reef,'boat');
 act('leave');act('go','cave');act('la','cave.gate.fight');s.h.hp=maxHP();botFight();A(s.f.caveIn,'caveIn');
 act('la','cave.store.loot');s.h.k.mech=3;act('la','cave.store.chest');s.h.hp=maxHP();act('la','cave.depth.brute');botFight();A(s.f.pass&&s.disc.fort&&shards()===2,'brute');

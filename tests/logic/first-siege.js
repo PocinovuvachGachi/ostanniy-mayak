@@ -8,7 +8,7 @@ giveI('bandage',2);T(2);dd();console.log('after bandage:',log.splice(0).join(' |
 s.tab='hero';s.ht='bag';render();
 s.h.lvl=3;T(2);dd();console.log('lvl3:',log.splice(0).join(' | '));A(s.h.bg==='fisher','bg chosen at lvl3');
 s.tab='hero';s.ht='grow';render();s.h.lvl=4;T(2);dd();console.log('lvl4:',log.splice(0).join(' | '));A(s.nv.tal,'talents');
-s.tab='hero';s.ht='talents';render();s.floors.gallery=1;unlock('map');dd();T(2);A(!s.f.mlaNote,'no note before map visit');s.tab='map';render();for(let g=0;g<10&&!s.f.mlaNote;g++){T(1);dd()}console.log('map:',log.splice(0).join(' | '));A(s.f.mlaNote&&s.pages.includes('m'),'mla note');
+s.tab='hero';s.ht='talents';render();s.floors.gallery=1;s.f.fordSeen=1;dd();T(2);A(!s.f.mlaNote,'no note before the ford');s.dbgTide='low';s.r.wood+=300;s.r.scrap+=200;act('ford','poles');act('ford','steps');for(let g=0;g<10&&!s.f.mlaNote;g++){T(1);dd()}console.log('map:',log.splice(0).join(' | '));A(s.f.mlaNote&&s.pages.includes('m'),'mla note');
 A(!thrOn(),'no gauge yet');T(110);console.log('t110:',log.splice(0).join(' | '));T(50);
 console.log('siege:',s.raid,s.cb?s.cb.u.map(u=>u.t).join(','):'',s.dlg.map(d=>d.title).join('|'));dd();T(2);dd();console.log('after:',log.splice(0).join(' | '));
 A(s.f.siege1&&thrOn(),'gauge on after siege');const th0=s.threat||0;T(120);A((s.threat||0)===th0,'Mla does not grow on its own');s.cd={};act('gather');A((s.threat||0)>th0,'Mla grows from actions');

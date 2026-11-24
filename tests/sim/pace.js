@@ -26,7 +26,7 @@ function scan(){for(const t in s.tabs)mark('tab:'+t,'вкладка «'+(TABS.fi
   for(const k in s.inv)if(s.inv[k]&&IT[k])mark('it:'+k,'річ: '+IT[k].n,0);
   for(const k of RES)if(s.seen[k])mark('res:'+k,'ресурс: '+k,1);
   mark('lvl:'+s.h.lvl,'рівень героя '+s.h.lvl,0);
-  for(const k of ['rod','wreck','people','boat','schooner','won','siege1','ostap','chest','crypt','stones'])if(s.f[k])mark('f:'+k,'подія: '+k,1)}
+  for(const k of ['rod','wreck','people','boat','schooner','won','siege1','ostap','chest','crypt','stones','fordSeen','fordDone'])if(s.f[k])mark('f:'+k,'подія: '+k,1)}
 /* діалоги: читаємо й тиснемо першу кнопку */
 function dialogs(){let g=0;while((s.dlg||[]).length&&g++<30){const d=s.dlg[0];wait(P.read);
   if(d.bgsel){act('bg',Object.keys(BGS)[0]);continue}
@@ -42,16 +42,18 @@ const want=()=>{const L=[];const fi=FL.findIndex(f=>!s.floors[f.id]);const f=FL[
   if(s.tabs.study)for(const r of RS)if(!s.rs[r.id]&&rsReady(r))L.push(['rs',r.id,{lore:rsCost(r)}]);
   if((s.b.hearth||0)<8)L.push(['bld','hearth',bCost(HEARTH)]);
   for(const b of BD)if(b.show()&&!(b.max&&(s.b[b.id]||0)>=b.max)&&(s.b[b.id]||0)<6)L.push(['bld',b.id,bCost(b)]);
+  if(s.f.fordSeen&&!s.f.fordDone)for(const P of FORD)if(!(s.ford||{})[P.id]&&(!P.req||P.req()))L.unshift(['ford',P.id,P.c]);
   /* провізія на походи: якщо є куди плисти, а нема з чим */
   for(const l in s.disc){const Lc=LOC[l];if(!Lc||!Lc.sea||l===s.at)continue;if(typeof locTodo==='function'&&!locTodo(l).length)continue;const need=seaCost(Lc)*2;if(s.r.prov<need){L.push(['trip',l,{prov:need}]);break}}
   return L};
-function buy(){let did=0;const tg=target();for(const[a,i,c,it]of want()){if(a==='trip')continue;
+function buy(){let did=0;const tg=target();for(const[a,i,c,it]of want()){if(a==='trip'||a==='ford'&&!tideLow())continue;
     /* покращення не з'їдають запас на головну ціль */
     if(a==='bld'&&(s.b[i]||0)>=1&&tg&&tg[1]!==i&&Object.keys(c).some(k=>tg[2][k]&&s.r[k]-c[k]<tg[2][k]))continue;
     if(afford(c,it||{})){A(a,i);did=1;if(a==='craft'){const rc=RC.find(x=>x.id===i);if(rc&&rc.out&&IT[rc.out]&&IT[rc.out].slot)A('equip',rc.out,1)}}}return did}
 /* чим зайнятися руками: збирати те, чого бракує на найближчу ціль */
 function gatherFor(){const L=want();let best=null,bv=1e9;for(const[a,i,c]of L){let need=0;for(const k in c)need+=Math.max(0,c[k]-s.r[k])/(k==='ember'?3:1);if(need>0&&need<bv){bv=need;best=c}}
   /* цікавість: нову дію гравець пробує кілька разів, навіть якщо вона ще не потрібна */
+  if(tideLow()&&!onCd('pool')&&(tried.pool||0)<30){tried.pool=(tried.pool||0)+1;A('pool','',P.click);return 1}
   for(const a of ['fishing','scrapw','gather']){if(a==='scrapw'&&!s.f.wreck||a==='fishing'&&!s.f.rod||!s.tabs.shore)continue;if((tried[a]||0)<15&&!onCd(a)){tried[a]=(tried[a]||0)+1;A(a,'',P.click);return 1}}
   const LS=lackSet(),lack=(best?Object.keys(best).filter(k=>s.r[k]<best[k]):[]).concat([...LS]);
   const src={wood:'gather',scrap:'scrapw',fish:'fishing',ember:'blow'};for(const k of lack.concat(['wood','scrap','fish'])){const a=src[k];if(!a)continue;
@@ -76,9 +78,10 @@ function explore(){const ls=Object.keys(s.disc).filter(l=>LOC[l]);for(const l of
       const w0=s.c.wins||0,sig0=JSON.stringify([s.done,s.f,s.inv,s.disc]).length;A('la',x.id);dialogs();if(s.cb){fight();if((s.c.wins||0)>w0)s.done['win:'+x.id]=1}
       else if(JSON.stringify([s.done,s.f,s.inv,s.disc]).length===sig0)skipT[x.id]=T+900}
     if(s.at)A('leave','',P.travel);return 1}return 0}
-function misc(){let d=0;if(s.floors.gallery&&SCAN.some(x=>!s.disc[x])&&s.r.ember>=scanCost()){A('scan');d=1}
+function misc(){let d=0;if(s.floors.gallery&&s.tabs.map&&SCAN.some(x=>!s.disc[x])&&s.r.ember>=scanCost()){A('scan');d=1}
   for(const f in s.req||{}){if(afford(s.req[f].give)){A('freq',f);d=1}}
   if(s.tabs.trade)for(const it of SHOP){if((it.show&&!it.show())||s.bought&&s.bought[it.id])continue;const p=price(it.p);if(IT[it.id]&&has(it.id))continue;if(s.r.coin>=p*1.5){A('buy',it.id);s.bought=s.bought||{};s.bought[it.id]=1;d=1}}
+  if(s.shf&&s.h.hp>=maxHP()*.7){A('shfgo','',2);if(s.cb)fight();d=1}
   if(s.flot){A('flot',1);d=1}if(s.bite){A('bigfish','',8);d=1}if(s.hot){A('smithhot','',8);d=1}
   if(s.lost&&s.f.won){A('beam',s.lost.sec,2);d=1}
   if(s.floors.lantern&&!s.f.won){wait(P.think);const ks=Object.keys(s.mirrors);for(let mask=0;mask<1<<ks.length&&!s.f.won;mask++){const want=ks.map((k,i)=>mask>>i&1?'/':'\\\\');ks.forEach((k,i)=>{if(s.mirrors[k]!==want[i])A('mirror',k,1)})}d=1}
@@ -89,7 +92,7 @@ function misc(){let d=0;if(s.floors.gallery&&SCAN.some(x=>!s.disc[x])&&s.r.ember
   return d}
 /* перетворювачі (кузня, коптильня…) з'їдають ресурси: гравець вимикає їх, коли копить на ціль */
 /* ціль — найближча за нестачею (походи — у пріоритеті), сировина — лише під неї */
-function target(){const L=want();const tr=L.find(x=>x[0]==='trip');if(tr)return tr;let best=null,bv=1e9;for(const w of L){let need=0;for(const k in w[2])need+=Math.max(0,w[2][k]-s.r[k])/Math.max(1,w[2][k]);if(need>0&&need<bv){bv=need;best=w}}return best}
+function target(){const L=want();const tr=L.find(x=>x[0]==='trip'||x[0]==='ford');if(tr)return tr;let best=null,bv=1e9;for(const w of L){let need=0;for(const k in w[2])need+=Math.max(0,w[2][k]-s.r[k])/Math.max(1,w[2][k]);if(need>0&&need<bv){bv=need;best=w}}return best}
 function lackSet(){const lack=new Set(),tg=target();if(tg)for(const k in tg[2])if(s.r[k]<tg[2][k])lack.add(k);
   /* ланцюжки: якщо бракує того, що робить перетворювач, бракує і його сировини */
   for(let g=0;g<3;g++){if(lack.has('ember')&&s.b.hearth)lack.add('wood');for(const id in CONV){if(!s.b[id])continue;const C=CONV[id];if(Object.keys(C.out).some(k=>lack.has(k)))for(const k in C.in)if(s.r[k]<50)lack.add(k)}}return lack}
@@ -98,7 +101,9 @@ function convs(){const lack=lackSet();for(const id in CONV){if(!s.b[id])continue
   const should=need||!eats;if(should!==on){togT[id]=T;acts++;act('tog',id);wait(1)}}}
 /* головний цикл гравця */
 act('look');let lastNew=0,stuck=0,nEv=0;
-while(T<LIMIT*60){dialogs();if(s.cb)fight();hero();scan();buy();convs();
+/* гравець заглядає в нові вкладки й підвкладки — це знімає позначки новизни */
+function looks(){s.nvU=s.nvU||{};for(const t in s.tabs)s.nvU[t]=1;if(s.tabs.hero)for(const k of['gear','bag','arms','grow','talents'])s.nvU[k]=1}
+while(T<LIMIT*60){looks();dialogs();if(s.cb)fight();hero();scan();buy();convs();
   if(ev.length>nEv){nEv=ev.length}
   if(!s.f.looked&&s.tot.ember>=10)A('look');
   let did=buy()||misc();if(!did&&(s.h.hp>=maxHP()*.8||!Object.keys(s.disc).length))did=explore();

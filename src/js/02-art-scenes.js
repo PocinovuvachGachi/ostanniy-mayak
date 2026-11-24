@@ -133,7 +133,18 @@ function yardFull3(st){const b=yardBg3(st);if(!st.looked)return b;const L=st.b||
 function shoreBg3(st){const W=SW,H=SH,b=pbuf(W,H),ph=st.ph||'n';rampV(b,0,0,W,24,ph==='y'?['5','6','6','5']:ph==='d'?['o','3','4','5']:['C','1','2','4']);
   rampV(b,0,21,W,60,['T','S','R','Q','R']);const R=rng(41),kk=b.k||1;for(let i=0;i<420;i++){const x=Math.floor(R()*W*kk),y=Math.floor((24+R()*54)*kk),l=Math.round((2+R()*8)*kk*(0.5+0.5*(y/kk-24)/54)),c=y/kk<36?'U':(R()<.5?'T':'S');for(let q=0;q<l;q++)phx(b,x+q,y,c)}
   for(const[yy,c]of[[66,'u'],[72,'U'],[76,'u']]){for(let hx=0;hx<W*kk;hx++){const x=hx/kk,y=Math.round((yy+Math.sin(x/12+yy)*1.6)*kk);phx(b,hx,y,c);if(hx%5)phx(b,hx,y+1,c==='u'?'U':'T');if(hx%9===0)phx(b,hx,y-1,'U');if(c==='u'&&hh2(hx,yy)<.25)phx(b,hx,y+2,'U')}}
+  /* відплив: вода відступає, відкриваються мокрі плити з калюжами й водоростями */
+  const td=st.tide||0;if(td>0){const top=x=>78-15*td+Math.sin(x/9)*1.4+Math.sin(x/23+1)*2;
+    hiRect(b,0,58,W,22,(i,j,x,y)=>{if(y<top(x))return;const n=vnz(i,j*2,12,5),r=vnz(i,j*2.2,8,11);if(y<top(x)+1.2)return hh2(i,j)<.6?'u':'U';
+      if(r>.72)return r>.8?'F':'E';if(r>.69)return'D';if(n<.25)return n<.21?'S':'R';if(n>.78&&r<.5)return'Z';return'M'})}
   rampV(b,0,78,W,12,['M','L','M']);hiRect(b,0,87,W,33,(i,j,x,y)=>sandC(i,j,y<100?'N':'O'));pnoise(b,0,78,W,12,'T',0.06,46);
+  /* брід: камені від підніжжя маяка до обрію; на повній воді видно лише верхівки */
+  if(st.fordSeen||td>.5){const F=st.ford||{},P=[];for(let k=0;k<26;k++){const t=k/25,x=44+t*58+Math.sin(t*7)*4,y=88-t*64,sz=Math.max(.8,4.6*(1-t*.85));P.push([x,y,sz,t,k])}
+    for(const[x,y,sz,t,k]of P){const wet=td>.5||y>78;if(!wet&&hh2(Math.round(x),9)>.35)continue;hiRect(b,x-sz,y-sz*.55,sz*2,sz*1.1,(i,j,px,py)=>{const u=(px-x)/sz,v=(py-y)/(sz*.55);if(u*u+v*v>1)return;return v<-.3?'G':u>.4||v>.4?'D':'F'});
+      if(F.steps&&k%3===1&&t<.8)prect(b,x-sz*.8,y-sz*.6,sz*1.6,Math.max(.7,sz*.3),'Y')}
+    if(F.poles||F.rope){const PL=P.filter((p,k)=>k%4===2);for(let k=0;k<PL.length;k++){const[x,y,sz]=PL[k],h=Math.max(2,sz*2.6);if(F.poles){prect(b,x+sz,y-h,Math.max(.7,sz*.25),h,'W');pset(b,x+sz,y-h,'Y')}
+        if(F.rope&&k+1<PL.length){const[x2,y2,s2]=PL[k+1],h2=Math.max(2,s2*2.6);pline(b,x+sz,y-h*.8,x2+s2,y2-h2*.8,'L')}}}
+    if(F.lamp){const[x,y]=P[P.length-1];prect(b,x,y-6,.8,6,'W');prect(b,x-.7,y-7.5,2.2,2,'J');pset(b,x,y-7,'I')}}
   for(let i=0;i<24;i++){const R3=rng(60+i),x=Math.floor(R3()*W),y=90+Math.floor(R3()*28);pset(b,x,y,'r');pset(b,x+1,y,'Z');pset(b,x+2,y-1,'r');if(i%3===0){pset(b,x+4,y+1,'G');pset(b,x+5,y+1,'H')}}
   {const bh=Math.round(5*kk),bw=Math.round(8*kk);hiRect(b,0,0,33,93,(i,j,x)=>{const row=Math.floor(j/bh),off=row%2?Math.round(bw/2):0,bi=Math.floor((i+off)/bw);if(j%bh===bh-1||(i+off)%bw===0)return'D';const sh=x<5?'G':x>26?'E':'F',v=hh2(bi,row);return v<.12?(sh==='G'?'F':'E'):(j%bh===0&&sh!=='E')?'G':sh})}
   stones(b,0,90,45,30,71);

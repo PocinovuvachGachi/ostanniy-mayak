@@ -7,7 +7,7 @@ function gainsOf(sn){const g=[];const dx=Math.round(totXP()-sn.xp);if(dx>0)g.pus
 function findA(id){const[l,sp,a]=id.split('.');return LOC[l].spots.find(x=>x.id===sp).acts.find(x=>x.id===a)}
 function findS(id){const[l,sp]=id.split('.');return LOC[l].spots.find(x=>x.id===sp)}
 const seaCost=L=>Math.max(1,SEAFOOD*(L.sea||0)-(fac('cape')>=80?1:0));
-function canGo(id){const L=LOC[id];if(L.sea===2&&!s.f.schooner)return[false,'Так далеко на північ дійде лише шхуна.'];if(L.sea===2&&s.r.prov<seaCost(L))return[false,`Для походу на шхуні потрібно ${seaCost(L)} провізії.`];if(L.sea&&!s.f.boat)return[false,'Туди можна дістатися лише човном.'];if(L.sea&&s.r.prov<seaCost(L))return[false,`Для виходу в море потрібно ${seaCost(L)} провізії.`];if(L.dark&&!s.eq.light)return[false,'Там темно. Візьми в руку ліхтар.'];return[true,'']}
+function canGo(id){const L=LOC[id];if(!s.tabs.map)return[false,'Спершу треба дістатися великого острова.'];if(L.sea===2&&!s.f.schooner)return[false,'Так далеко на північ дійде лише шхуна.'];if(L.sea===2&&s.r.prov<seaCost(L))return[false,`Для походу на шхуні потрібно ${seaCost(L)} провізії.`];if(L.sea&&!s.f.boat)return[false,'Туди можна дістатися лише човном.'];if(L.sea&&s.r.prov<seaCost(L))return[false,`Для виходу в море потрібно ${seaCost(L)} провізії.`];if(L.dark&&!s.eq.light)return[false,'Там темно. Візьми в руку ліхтар.'];return[true,'']}
 function laOk(id){const A=findA(id),S=findS(id);
   if(A.cd&&onCd('la.'+id))return false;
   if(A.chk&&st(A.chk[0])<A.chk[1])return false;

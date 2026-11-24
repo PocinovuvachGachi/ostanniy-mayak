@@ -12,7 +12,7 @@ const DBG=[
   ['Знахідка в прибої',()=>{s.floors.gallery=1;const ks=['crate','barrel','cargo','bottle','survivor'];s.flot={k:ks[Math.floor(Math.random()*ks.length)],until:Date.now()+180000};s.tab='shore'}],
   ['Мла +25',()=>{s.threat=Math.min(100,(s.threat||0)+25)}],
   ['Набіг зараз',()=>{s.f.siege1=1;s.threat=100;s.lastAct=Date.now();raidCheck()}],
-  ['Ніч',()=>{s.dbgPh='n'}],['Сутінки',()=>{s.dbgPh='d'}],['День',()=>{s.dbgPh='y'}],['Справжній час',()=>{s.dbgPh=''}],['+10 хв',()=>dbgSkip(600)],['+1 год',()=>dbgSkip(3600)],
+  ['Ніч',()=>{s.dbgPh='n'}],['Сутінки',()=>{s.dbgPh='d'}],['День',()=>{s.dbgPh='y'}],['Справжній час',()=>{s.dbgPh=''}],['Відплив',()=>{s.dbgTide='low'}],['Повна вода',()=>{s.dbgTide='high'}],['Справжній приплив',()=>{s.dbgTide=''}],['+10 хв',()=>dbgSkip(600)],['+1 год',()=>dbgSkip(3600)],
   ['Події в дзвіночок',()=>{dlg({k:'info',title:'Перевірка дзвіночка',body:'<p>Перша подія.</p>'});dlg({k:'world',title:'Ще одна подія',body:'<p>Друга.</p>'});s.bellHold=1}],
   ['Скинути звички',()=>{s.mgW={};s.mgUn={};s.mgHab={};s.mgSeen={}}],
 ];
