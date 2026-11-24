@@ -5,6 +5,7 @@
 - `docs-dev/ARCHITECTURE.md` — карта модулів і ключові механізми;
 - `docs-dev/ROADMAP.md` — скелет гри на 30–40 год: етапи, години, наскрізні системи;
 - `docs-dev/DECISIONS.md` — що вже погоджено з автором (не перепитувати);
+- `docs-dev/NEXT.md` — **де ми зупинились: що зроблено, що далі, що вирішити з автором** (оновлювати наприкінці кожного блоку);
 - `docs-dev/BACKLOG.md` — як ведемо ідеї й баги в GitHub Issues (з сесії — лише REST: `gh api repos/PocinovuvachGachi/ostanniy-mayak/issues`).
 
 ## Правила
@@ -14,6 +15,7 @@
 - Пуш: `git -c push.negotiate=true push`.
 - `docs/` публікується через GitHub Pages; `dist/` у git не потрапляє.
 - Публікація на claude.ai (артефакт https://claude.ai/artifact/1f8nduYDt8JYFECHaMqPjZ) — з `dist/game.html`.
+- Наприкінці блоку роботи — оновити `docs-dev/NEXT.md`.
 - Нове погоджене рішення — дописати в `docs-dev/DECISIONS.md`; нова ідея на потім — issue з міткою «ідея» і мітками постулатів;
   новий модуль чи механізм — в `ARCHITECTURE.md`.
 
