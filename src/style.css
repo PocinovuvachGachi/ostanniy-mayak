@@ -313,7 +313,7 @@ button.hs.no:hover{border-color:#8a8f96;background:rgba(138,143,150,.12)}
 .ob .bob{position:absolute;left:79%;top:53%;width:13%;height:4%;background:#c9584a;box-shadow:0 -3px 0 #e3ebe6;animation:bob 1.3s ease-in-out infinite;pointer-events:none}
 .hs:not([style*="--p: 0"]) .bob{}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(35%)}}
-.bang{position:absolute;left:60%;top:30%;font:700 15px/1 var(--mono);color:#fff0b0;background:#c9584a;border:2px solid #0b1418;padding:1px 4px;opacity:calc(1 - min(1,var(--p,0)*100));animation:bang .6s ease-in-out infinite alternate;pointer-events:none;font-style:normal}
+.bang{position:absolute;left:60%;top:30%;font:700 15px/1 var(--mono);color:#fff0b0;background:#c9584a;border:2px solid #0b1418;padding:1px 4px;opacity:0;animation:bang .6s ease-in-out infinite alternate;pointer-events:none;font-style:normal}
 @keyframes bang{to{transform:translateY(-4px)}}
 .spk{position:absolute;left:40%;top:30%;width:8%;aspect-ratio:1;background:#fff0b0;box-shadow:12px 6px 0 #f0b84a,-9px 10px 0 #f0b84a,4px -8px 0 #fff0b0;opacity:min(1,calc(var(--p,0)*100));animation:spk .3s steps(2,end) infinite;pointer-events:none}
 @keyframes spk{50%{transform:translate(3px,-3px) scale(.6)}}
@@ -947,3 +947,6 @@ body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .
 .mgwolf .ex{position:absolute;top:10px;left:50%;font:700 28px var(--mono);color:#f0b84a;opacity:0;transition:opacity .1s}
 .mgwolf.sig .ex{opacity:1}
 .wtr{border-top:1px dashed var(--rule);margin-top:8px;padding-top:6px}
+/* шанс влучити на цілі */
+.grid button .chb{position:absolute;right:-4px;top:-8px;z-index:4;font:700 11px/1 var(--mono);font-style:normal;padding:2px 3px;color:#fff0b0;background:#2b3a44;border:1px solid #0b1418;pointer-events:none}
+.grid button .chb.hi{background:#3d5a2e}.grid button .chb.lo{background:#7a2e28}

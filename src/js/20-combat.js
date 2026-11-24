@@ -69,9 +69,11 @@ function uStance(u){const k=uIntent(u)[0];return STANCE[k]?k:''}
 function selU(){const c=s.cb;let u=c.u[c.sel];if(!u||u.hp<=0||u.hid||EN[u.t].ally||EN[u.t].struct){c.sel=c.u.findIndex(x=>x.hp>0&&!isObj(x)&&!x.hid&&!EN[x.t].ally);if(c.sel<0)c.sel=c.u.findIndex(x=>x.hp>0);u=c.u[c.sel]}return u}
 const fadeEva=()=>s.rs.a_fog?0:(s.eq.light?20:40);
 function evaOf(u,rg){const T=EN[u.t],sv=uStance(u),w=rg?s.eq.ranged:s.eq.weapon;if(u.pin>0)return 0;if(!rg&&w==='knife')return 0;return(u.veil?30:0)+(u.el==='swift'?10:0)+(u.el==='mist'?20:0)-(T.mist&&s.cb&&s.cb.win==='raid'&&s.def&&s.def.brazier?20:0)+T.eva+(sv==='dive'&&!(!rg&&w==='harpoon')?60:0)+(sv==='fade'?fadeEva():0)}
-function meleeCh(u,pen=0){const c=s.cb;if(isObj(u))return 97;return clamp(70+4*s.h.a.dex+5*s.h.k.melee+(s.h.ft.grip?5:0)+(famRs(u)?10:0)-evaOf(u)-(c.sand?30:0)-pen,5,97)}
+/* «Зосередження»: кожен промах — +15 % до наступного удару (до +45), влучання скидає */
+function focusMiss(c){if(!c)return;c.focus=Math.min(45,(c.focus||0)+15);cbLog(`Ти зосереджуєшся: +${c.focus}% до наступного удару.`)}
+function meleeCh(u,pen=0){const c=s.cb;if(isObj(u))return 97;return clamp(80+(c.focus||0)+4*s.h.a.dex+5*s.h.k.melee+(s.h.ft.grip?5:0)+(famRs(u)?10:0)-evaOf(u)-(c.sand?30:0)-pen,5,97)}
 function shotCh(u,bonus=0){const c=s.cb,d=dist(c.hx,c.hy,u.x,u.y);if(isObj(u))return 95;
-  return clamp(60+4*st('per')+3*s.h.a.dex+(s.h.ft.steady?5:0)+(s.h.ft.eye?10:0)+(famRs(u)?10:0)+(s.eq.ranged==='crossbow'&&wmLv('crossbow')>=3?10:0)+(s.eq.ranged==='pistol'&&wF('pistol')>=1?15:0)+bonus-4*Math.max(0,d-3)-(s.eq.ranged==='pistol'?0:cover(c,u.x,u.y,c.hx,c.hy))-evaOf(u,1)-(c.sand?30:0),5,95)}
+  return clamp(70+(c.focus||0)+4*st('per')+3*s.h.a.dex+(s.h.ft.steady?5:0)+(s.h.ft.eye?10:0)+(famRs(u)?10:0)+(s.eq.ranged==='crossbow'&&wmLv('crossbow')>=3?10:0)+(s.eq.ranged==='pistol'&&wF('pistol')>=1?15:0)+bonus-4*Math.max(0,d-3)-(s.eq.ranged==='pistol'?0:cover(c,u.x,u.y,c.hx,c.hy))-evaOf(u,1)-(c.sand?30:0),5,95)}
 function canShoot(u){const c=s.cb;if(!s.eq.ranged)return false;const d=dist(c.hx,c.hy,u.x,u.y);return d>1&&d<=rngOf()&&los(c,c.hx,c.hy,u.x,u.y)}
 function canBomb(u){const c=s.cb;const d=dist(c.hx,c.hy,u.x,u.y);return has('bomb')&&d<=4&&(d<=1||los(c,c.hx,c.hy,u.x,u.y))}
 function dmgTo(u,base,mult,pierce,src){const T=EN[u.t],c=s.cb;gripFree(c,u);let d=base+(famRs(u)?1:0);const w=src==='r'?s.eq.ranged:src==='m'?s.eq.weapon:'';
@@ -105,7 +107,7 @@ function bleedOn(u){const w=s.eq.weapon;if(((s.h.ft.bleed&&['knife','sabre','cle
 function heroMelee(u,heavy,free){const c=s.cb;if(!u||EN[u.t].struct||EN[u.t].ally||u.hid)return false;let cost=free?0:(heavy?heavyAP():wAP());const kf=!free&&!heavy&&s.eq.weapon==='knife'&&wmLv('knife')>=3&&!c.kfree;if(kf)cost=0;
   if(c.ap<cost||!inReach(u))return false;c.ap-=cost;if(kf)c.kfree=1;
   fxP({t:'bump',x0:c.hx,y0:c.hy,x1:u.x,y1:u.y},110);
-  if(Math.random()*100>=meleeCh(u,heavy?10:0)){cbLog('Промах.');fxP({t:'txt',x:u.x,y:u.y,v:'мимо',k:'miss'},120);return false}
+  if(Math.random()*100>=meleeCh(u,heavy?10:0)){focusMiss(s.cb);cbLog('Промах.');fxP({t:'txt',x:u.x,y:u.y,v:'мимо',k:'miss'},120);return false}s.cb.focus=0;
   const W=s.eq.weapon?IT[s.eq.weapon]:{},w=s.eq.weapon,base=wDmg()+s.h.a.str-1+(Math.random()<.5?1:0);dmgTo(u,base,heavy?1.8:1,W.pierce||0,'m');bleedOn(u);
   if(EN[u.t].thorns){const x=EN[u.t].thorns;s.h.hp-=x;fxP({t:'txt',x:c.hx,y:c.hy,v:'−'+x,k:'hurt'},60);cbLog(`Голки впиваються в руку: −${x} здоров’я.`)}
   if(w==='oar'&&wF('oar')>=2){c.oarN=(c.oarN||0)+1;if(c.oarN%3===0&&u.hp>0&&!isObj(u)){u.stun=1;cbLog(`Підсік: ${E(EN[u.t].n)} оглушений.`)}}
@@ -116,7 +118,7 @@ function heroMelee(u,heavy,free){const c=s.cb;if(!u||EN[u.t].struct||EN[u.t].all
 const rangedDmg=()=>IT[s.eq.ranged].dmg+2*wF(s.eq.ranged)+Math.floor(st('per')/2)+(s.rs.a_gull?1:0)+(s.eq.ranged==='sling'&&wmLv('sling')>=5?2:0);
 function heroShoot(u,o={}){const c=s.cb,cost=o.cost||shotAP();if(!u||EN[u.t].struct||EN[u.t].ally||u.hid||c.ap<cost||!canShoot(u))return false;c.ap-=cost;const w=s.eq.ranged;
   fxP({t:'shot',x0:c.hx,y0:c.hy,x1:u.x,y1:u.y},170);
-  if(Math.random()*100>=shotCh(u,o.bonus||0)){cbLog('Постріл мимо.');fxP({t:'txt',x:u.x,y:u.y,v:'мимо',k:'miss'},120);return false}
+  if(Math.random()*100>=shotCh(u,o.bonus||0)){focusMiss(s.cb);cbLog('Постріл мимо.');fxP({t:'txt',x:u.x,y:u.y,v:'мимо',k:'miss'},120);return false}s.cb.focus=0;
   const pr=(IT[w].pierce||0)+(w==='crossbow'&&wmLv('crossbow')>=5?2:0)+(w==='crossbow'&&wF('crossbow')>=1?1:0);dmgTo(u,rangedDmg()+(s.h.ft.sniper&&dist(c.hx,c.hy,u.x,u.y)>=5?5:0),o.mult||1,pr,'r');
   if(w==='sling'&&wF('sling')>=1){const v=c.u.find(x=>x!==u&&x.hp>0&&!isObj(x)&&dist(x.x,x.y,u.x,u.y)<=1);if(v){cbLog('Рикошет!');dmgTo(v,Math.ceil(rangedDmg()/2),1,0,'r')}}
   if(w==='pistol'&&wF('pistol')>=2&&u.hp>0){cbLog('Другий пістоль!');dmgTo(u,Math.ceil(rangedDmg()/2),1,pr,'r')}

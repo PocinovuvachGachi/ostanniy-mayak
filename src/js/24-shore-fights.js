@@ -8,7 +8,7 @@ Object.assign(ARENA,{
 Object.assign(ENC,{
   poolcrab:{a:'pools',h:[1,3],xpm:.25,e:[['crab',7,2],['crab',8,4]]},
   gullrack:{a:'rack',h:[1,3],e:[['gull',8,1],['gull',9,4],['gull',10,2]]},
-  rats:{a:'hold',h:[1,3],e:[['rat',7,2],['rat',8,4],['rat',6,5],['rat',9,1]]},
+  rats:{a:'hold',h:[1,3],e:[['rat',7,2],['rat',8,4],['rat',6,5]]},
   drown1:{a:'shore',h:[1,3],e:[['drowned',7,1]]}});
 EN.rat.pack=1;EN.rat.d='Сірий, жирний і сміливий, поки їх багато: кожен сусід-пацюк додає йому зухвалості.';
 const SHF={
