@@ -162,7 +162,23 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await p.close();
   }
 
-  // 9. Дзвіночок
+  // 9. Громади й крамниця: прохання на дошці й ваги на прилавку
+  {
+    const p = await page(1100, 1000);
+    await p.evaluate(() => { window.dlg = () => {}; storyCheck = () => {}; s.f.looked = 1; s.met.hanna = 1; s.req = { rot: { n: 'Трави', give: { herb: 1 }, rew: { coin: 5 } } }; s.tabs = { home: 1, folk: 1, trade: 1 }; s.dlg = []; s.tab = 'folk'; render(); });
+    await p.waitForTimeout(300);
+    const q = await p.$('.scn [data-k="fk:q:rot"]');
+    if (q) { await q.click(); await p.waitForTimeout(300); }
+    A(!!await p.$('#popl [data-a="freq"]'), 'прохання на дошці');
+    await p.evaluate(() => { popB = ''; s.tab = 'trade'; render(); });
+    await p.waitForTimeout(300);
+    const sc = await p.$('.scn [data-k="tr:sell"]');
+    if (sc) { await sc.click(); await p.waitForTimeout(300); }
+    A(!!await p.$('#popl .bpop'), 'ваги для продажу');
+    await p.close();
+  }
+
+  // 10. Дзвіночок
   {
     const p = await page(390, 844);
     const r = await p.evaluate(() => {

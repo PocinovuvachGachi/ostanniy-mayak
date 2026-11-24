@@ -854,3 +854,10 @@ button.hs.zone:hover,button.hs.zone:focus-visible{background:transparent;border:
 .scn .hrch{display:grid;grid-template-columns:1fr 1fr;gap:.2em .6em;margin-top:.6em;font-size:.92em}
 .scn .hrch i{color:#5a4630}
 .scn .hrttl{font-size:clamp(10px,2.4cqw,17px);font-style:italic;text-align:center}
+/* Громади й крамниця */
+.scn.vl .scene,.scn.tr .scene{aspect-ratio:432/240}
+.ob.fkb .fkface{position:absolute;left:24%;top:-30%;width:62%;image-rendering:pixelated;pointer-events:none;border:1px solid #3a2718;background:#16252e}
+.ob.fkb .mpl{position:absolute;left:50%;top:100%;transform:translateX(-50%);white-space:nowrap;font:italic 600 11px/1.1 var(--serif);color:#efe3c8;text-shadow:0 1px 0 #0b1418,0 0 3px #0b1418;pointer-events:none}
+.scn .trface{position:absolute;image-rendering:pixelated;z-index:40;pointer-events:none}
+.scn .trcoin{position:absolute;z-index:80;color:#fff0b0;font:700 13px var(--mono);display:flex;align-items:center;gap:4px;text-shadow:0 1px 0 #0b1418;pointer-events:none;line-height:1}
+.scn .trcoin img{image-rendering:pixelated}
