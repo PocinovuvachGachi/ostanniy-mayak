@@ -110,9 +110,10 @@ while(T<LIMIT*60){dialogs();if(s.cb)fight();hero();scan();buy();convs();
 scan();
 /* звіт */
 const maj=ev.filter(e=>e.major);maj.push({t:T,label:'(кінець симуляції)'});console.log('Профіль:',PROF,'· зіграно',mins(),'хв · дій',acts,'· розділів',s.chs.length,'· рівень',s.h.lvl,'· перемог',s.c.wins||0);
-let prev=0;const gaps=[];for(const e of maj){const g=(e.t-prev)/60;if(g>=8)gaps.push([prev/60,e.t/60,g,e.label]);prev=e.t}
+/* м'які орієнтири, не пороги: ~10 хв на початку гри, ~20 хв далі (рішення автора) */
+const soft=t=>t<3600*3?10:20;let prev=0;const gaps=[];for(const e of maj){const g=(e.t-prev)/60;if(g>=soft(prev))gaps.push([prev/60,e.t/60,g,e.label]);prev=e.t}
 console.log('\\nВідкриття (хвилина → що):');for(const e of maj)console.log(String((e.t/60).toFixed(1)).padStart(6),' ',e.label);
-console.log('\\nПровали (8+ хв без нового):');for(const[a,b,g,l]of gaps)console.log('  ',a.toFixed(1),'→',b.toFixed(1),'хв (',g.toFixed(1),') до:',l);
+console.log('\\nДовгі провали (орієнтир: ~10 хв у перші 3 год, ~20 хв далі; це підказка, не помилка):');for(const[a,b,g,l]of gaps)console.log('  ',a.toFixed(1),'→',b.toFixed(1),'хв (',g.toFixed(1),') до:',l);
 const bursts=[];for(let i=0;i<maj.length;i++){const w=maj.filter(e=>e.t>=maj[i].t&&e.t<maj[i].t+120);if(w.length>=6&&!bursts.some(b=>Math.abs(b[0]-maj[i].t)<120))bursts.push([maj[i].t,w.map(e=>e.label)])}
 console.log('\\nРивки (6+ відкриттів за 2 хв):');for(const[t,l]of bursts)console.log('  ',(t/60).toFixed(1),'хв:',l.join('; '));
 console.log('\\nДе застряг: розділів',s.chs.length,'вкладки',Object.keys(s.tabs).join(','),'поверхи',Object.keys(s.floors).filter(f=>s.floors[f]).join(','),'місця',Object.keys(s.disc).join(','));
