@@ -3,6 +3,7 @@
 Почни з цього файлу, потім:
 - `docs-dev/PRINCIPLES.md` — **постулати розробки від автора: головні орієнтири, звіряй з ними кожну зміну**;
 - `docs-dev/ARCHITECTURE.md` — карта модулів і ключові механізми;
+- `docs-dev/ROADMAP.md` — скелет гри на 30–40 год: етапи, години, наскрізні системи;
 - `docs-dev/DECISIONS.md` — що вже погоджено з автором (не перепитувати);
 - `docs-dev/BACKLOG.md` — як ведемо ідеї й баги в GitHub Issues (з сесії — лише REST: `gh api repos/PocinovuvachGachi/ostanniy-mayak/issues`).
 
