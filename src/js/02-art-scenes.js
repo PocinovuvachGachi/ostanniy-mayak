@@ -228,7 +228,7 @@ yardFull3=HI(yardFull3);shoreBg3=HI(shoreBg3);wreckObj3=HI(wreckObj3);rodObj3=HI
 for(const k in BLD3)BLD3[k]=HI(BLD3[k]);anvilObj3=HI(anvilObj3);
 
 /* багор: довга жердина з залізним гаком (#41) */
-const HOOKC={wood:12};
+const HOOKC={wood:12,scrap:1};
 function hookObj3(){const b=pbuf(16,60);
   hiRect(b,0,0,16,60,(i,j,x,y)=>{const ax=3,ay=59,bx=11,by=9,dx=bx-ax,dy=by-ay,L2=dx*dx+dy*dy,t=((x-ax)*dx+(y-ay)*dy)/L2;if(t<0||t>1)return;
     const px=ax+dx*t,py=ay+dy*t,d=((x-px)*(-dy)+(y-py)*dx)/Math.sqrt(L2);if(Math.abs(d)>.75)return;return d<-.25?'e':d>.35?'c':'d'});
