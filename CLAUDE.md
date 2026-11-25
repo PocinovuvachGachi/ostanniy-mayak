@@ -7,13 +7,14 @@
 - `docs-dev/DECISIONS.md` — що вже погоджено з автором (не перепитувати);
 - `docs-dev/NEXT.md` — **де ми зупинились: що зроблено, що далі, що вирішити з автором** (оновлювати наприкінці кожного блоку);
 - `docs-dev/BACKLOG.md` — як ведемо ідеї й баги в GitHub Issues (з сесії — лише REST: `gh api repos/PocinovuvachGachi/ostanniy-mayak/issues`).
-  Знахідки ревізора (ChatGPT) — issues з міткою «ревізія»: переглядати на початку блоку, вирішує автор (див. BACKLOG.md).
+- `docs-dev/TEAM.md` — **над грою працюють двоє, Claude і ChatGPT**: хто що бере, гілки, pull requests, рев'ю.
+  Цей файл — загальні правила проєкту для обох розробників.
 
 ## Правила
 - Мова гри, комітів і спілкування з автором — українська.
 - Код гри — модулі в `src/js/`, склеюються за алфавітом у `build.py`.
 - Після змін: `node tests/run.js` (збирає гру й проганяє всі перевірки), потім комміть разом `src/`, `docs/`, `tests/`.
-- Пуш: `git -c push.negotiate=true push`.
+- Зміни — у своїй гілці й через pull request (див. `TEAM.md`), не прямо в `main`. Пуш: `git -c push.negotiate=true push`.
 - `docs/` публікується через GitHub Pages; `dist/` у git не потрапляє.
 - Публікація на claude.ai (артефакт https://claude.ai/artifact/1f8nduYDt8JYFECHaMqPjZ) — з `dist/game.html`.
 - Наприкінці блоку роботи — оновити `docs-dev/NEXT.md`.
