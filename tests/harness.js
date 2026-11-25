@@ -15,7 +15,9 @@ const ctx={els,console,Math:M,JSON,Date:FD,String,Object,Array,Number,Infinity,
  document:{getElementById:id=>els[id]||(els[id]=mk()),querySelectorAll:()=>[],addEventListener(){},activeElement:null},
  localStorage:{getItem:()=>null,setItem(){}},setInterval:()=>0,
  /* симулятор живого гравця пересуває годинник на реальні секунди */
- __adv:ms=>{fakeNow+=ms}};
+ __adv:ms=>{fakeNow+=ms},
+ /* сценарні тести не чекають пауз між відкриттями (симулятор темпу вмикає їх: NOGAP=0) */
+ NOGAP:1};
 vm.createContext(ctx);
 const bot=`
 function botFight(maxT=400){let g=0;while(s.cb&&g++<maxT){if(g===maxT)console.log('STUCK',s.cb.enc,s.cb.ap,JSON.stringify(s.cb.u.map(u=>[u.t,u.x,u.y,u.hp])),s.cb.hx,s.cb.hy);const c=s.cb;render();

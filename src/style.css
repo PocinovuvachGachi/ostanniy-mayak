@@ -201,6 +201,12 @@ img.px{display:block}
 .fxp.cold{background:#dff4ff;box-shadow:0 0 8px 3px rgba(150,210,255,.9)}
 .fxb{position:absolute;left:0;top:0;border-radius:50%;background:radial-gradient(rgba(255,230,140,.95),rgba(255,140,40,.65) 45%,rgba(200,60,20,0) 72%)}
 .fxb.cold{background:radial-gradient(rgba(220,240,255,.9),rgba(140,190,230,.5) 50%,rgba(100,150,200,0) 72%)}
+.fxt{position:absolute;left:0;top:0;border:2px solid rgba(240,184,74,.85);border-radius:50%;box-shadow:0 0 8px rgba(240,184,74,.5);pointer-events:none}
+.cbover{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:5}
+.cbover b{font:700 18px/1.2 var(--mono);color:#fff0b0;background:rgba(11,20,24,.82);border:2px solid #f0b84a;padding:8px 14px;opacity:0;animation:cbov .5s ease-out .5s forwards}
+.cbover.lose b{color:#f2b7ad;border-color:#c9584a}
+@keyframes cbov{to{opacity:1}}
+.warn{color:#f2b7ad}
 .fxg{position:absolute;left:0;top:0;image-rendering:pixelated}
 .grid .fogc::after{content:"";position:absolute;inset:-1px;z-index:3;pointer-events:none;background:radial-gradient(circle at 50% 50%,rgba(210,224,228,.72),rgba(210,224,228,.3) 75%)}
 @media (prefers-reduced-motion:no-preference){.grid .fogc::after{animation:fogd 4s ease-in-out infinite alternate}.grid .firec::after{animation:flick .45s infinite}}
@@ -976,3 +982,7 @@ body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .
 .grid.ar button .uin img{width:9px!important;height:9px!important;scale:1!important;translate:none!important;image-rendering:pixelated}
 .grid.ar button .uin.k-iheal{background:#3d5a2e}
 .grid.ar button .chb{top:auto;bottom:-6%;right:-6%}
+/* Словник: темне чорнило на папері, щоб текст не губився на розлінованому тлі */
+.gloss dt b{color:#1f1710}
+.gloss dd{margin:0 0 10px;padding:2px 6px;background:rgba(246,238,214,.72);box-shadow:0 0 0 1px rgba(120,90,50,.15)}
+.ink{color:#2b2014!important}

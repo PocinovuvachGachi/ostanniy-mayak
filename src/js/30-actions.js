@@ -139,7 +139,8 @@ function act0(a,i){
   dirty=1}
 function dismVal(id){const rc=RC.find(r=>r.out===id);let c={};if(rc){for(const k in rc.c)if(k!=='ember'){const v=Math.floor(rc.c[k]/2);if(v>0)c[k]=v}}else c=Object.assign({},DIS[id]||{});return Object.keys(c).length?c:null}
 function canDism(id){const it=IT[id];if(!it||!it.slot||!has(id))return false;const eqd=(s.eq[it.slot]===id||packHas(id))?1:0;return s.inv[id]>eqd}
-function rcVisible(rc){if(rc.req&&!rc.req())return false;if(rc.tool)return rc.id==='rod'?!s.f.rod:rc.id==='pack1'?!(s.f.pack>=1):rc.id==='pack2'?s.f.pack===1:rc.id==='belt1'?!s.f.belt:false;if(!rc.multi&&has(rc.out))return false;if(rc.id==='sling'&&!s.tabs.hero)return false;return true}
+let RCOPEN=0;
+function rcVisible(rc){if(s.floors.work&&s.rcSeen&&!s.rcSeen[rc.id]&&!RCOPEN&&!noGap())return false;if(rc.req&&!rc.req())return false;if(rc.tool)return rc.id==='rod'?!s.f.rod:rc.id==='pack1'?!(s.f.pack>=1):rc.id==='pack2'?s.f.pack===1:rc.id==='belt1'?!s.f.belt:false;if(!rc.multi&&has(rc.out))return false;if(rc.id==='sling'&&!s.tabs.hero)return false;return true}
 
 
 /* Мла збирається на метушню: її додають лише дії гравця. Поки біля маяка тихо — вона дрімає. */

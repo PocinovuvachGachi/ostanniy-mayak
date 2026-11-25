@@ -34,6 +34,30 @@ function costMap(c,sx,sy,mode,self){const D=[];for(let y=0;y<GH;y++)D.push(Array
       const nc=D[y][x]+stepC(nx,ny);if(nc<D[ny][nx]){D[ny][nx]=nc;q.push([nx,ny])}}}
   return D}
 const canStand=(c,x,y,mode)=>{if(x<0||y<0||x>=GW||y>=GH)return false;const t=tileAt(c.a,x,y);return mode==='swim'?t==='~':!solid(t)};
+/* шлях клітинка за клітинкою (для анімації ходьби): від цілі назад по спадній вартості */
+function cbPath(c,x0,y0,x1,y1,mode,self){const D=costMap(c,x0,y0,mode,self);if(!(D[y1]&&isFinite(D[y1][x1])))return[[x0,y0],[x1,y1]];
+  const P=[[x1,y1]];let x=x1,y=y1,g=0;const ok=(xx,yy)=>xx>=0&&yy>=0&&xx<GW&&yy<GH&&(mode==='fly'||canStand(c,xx,yy,mode));
+  while((x!==x0||y!==y0)&&g++<80){let b=null,bv=D[y][x];for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,-1],[1,-1],[-1,1]]){const nx=x+dx,ny=y+dy;if(!ok(nx,ny)||!(D[ny][nx]<bv))continue;
+      if(dx&&dy&&mode!=='fly'&&(!ok(nx,y)||!ok(x,ny)))continue;if(!b||D[ny][nx]<D[b[1]][b[0]])b=[nx,ny]}
+    if(!b)break;x=b[0];y=b[1];P.unshift([x,y])}
+  if(x!==x0||y!==y0)P.unshift([x0,y0]);return P}
+const STEPMS=150;
+/* рух юніта з анімацією ходьби по шляху */
+function fxWalk(c,u,x1,y1,mode,who){const x0=who==='hero'?c.hx:u.x,y0=who==='hero'?c.hy:u.y;const p=cbPath(c,x0,y0,x1,y1,mode,who==='hero'?null:u);
+  const wet=p.slice(1).filter(([x,y])=>tileAt(c.a,x,y)==='~').length,d=Math.min(1400,(p.length-1)*STEPMS+wet*60+60);fxP({t:'mv',x0,y0,x1,y1,p,m:mode,d},d)}
+/* кінець бою: у браузері — спершу доиграти анімацію останніх ударів */
+const fxHold=()=>typeof requestAnimationFrame==='function'&&typeof window!=='undefined'&&!RM();
+function cbEnd(k){const c=s.cb;if(c&&fxHold()){c.over=k;c.overT=Date.now()+300;if(k==='lose')cbLog('Ти падаєш на коліна…');else cbLog('Останній ворог падає.');dirty=1;return}
+  if(k==='lose')lose();else win()}
+function cbOverTick(){const c=s.cb;if(!c||!c.over)return;if(Date.now()<c.overT||Date.now()<fxBusy+650)return;const k=c.over;c.over=0;if(k==='lose')lose();else win();dirty=1}
+/* скільки може завдати ворог наприкінці ходу, якщо влучить (для попередження) */
+function foeThreat(c,u){const T=EN[u.t];if(u.hp<=0||isObj(u)||T.ally||u.hid||u.stun||u.role)return 0;const[k,v,,rg]=uIntent(u);const d=dist(u.x,u.y,c.hx,c.hy),mv=u.pin>0?0:T.mv+(u.el==='swift'?2:0);
+  const m=(c.mult||1)*DIFF_DMG*(u.el==='fury'?1.3:1)*(T.enr&&u.hp<u.max/2?1.3:1)*(u.weak?.5:1)*(c.guard?1-guardPct(d<=1)/100:1);
+  const hit=(x,ign)=>Math.max(1,Math.round(x*m)-(ign?0:armor()));
+  if(['hit','cold','wrap','charge'].includes(k))return d-1<=mv?hit(v*(u.wind?2:1)*(k==='charge'&&d>=2?1.3:1)+(T.pack?1:0),k==='cold'):0;
+  if(['shoot','bolt','spit'].includes(k))return d<=(rg||1)+mv?hit(v,k==='bolt'):0;
+  if(k==='wave')return d<=rg?hit(v):0;if(k==='hook')return d<=rg?hit(6):0;return 0}
+function cbThreat(c){if(c.hidden||c.smoke)return 0;return c.u.reduce((a,u)=>a+foeThreat(c,u),0)}
 const FAM={leech:'eel',urchin:'crab',harpooner:'silent',medic:'silent',wolf:'fog',gullking:'gull',icedrowned:'fog',toad:'eel',crab:'crab',bigcrab:'crab',crabking:'crab',gull:'gull',eel:'eel',scout:'silent',brute:'silent',gnat:'silent',rat:'silent',hound:'silent',smuggler:'silent',wraith:'fog',drowned:'fog',witch:'fog',heart:'fog',shark:'shark',sentinel:'stone'};
 const famRs=u=>!!s.rs['a_'+FAM[u.t]];
 const pierceBonus=()=>(s.h.ft.crack?1:0)+(s.rs.weak?1:0)+(s.rs.a_stone?1:0);
@@ -133,7 +157,7 @@ function heroBomb(u){const c=s.cb;if(c.ap<2||!canBomb(u)||!beltHas('bomb'))retur
 function gripU(c){if(!c||c.grip==null)return null;const u=c.u[c.grip];if(!u||u.hp<=0||dist(u.x,u.y,c.hx,c.hy)>1){c.grip=null;return null}return u}
 function gripFree(c,u){if(c&&c.grip!=null&&c.u[c.grip]===u){c.grip=null;cbLog(`${E(EN[u.t].n)} розтискає щелепи.`)}}
 function heroMove(x,y){const c=s.cb;if(x===c.hx&&y===c.hy)return;const gp=gripU(c);if(gp){cbLog(`${E(EN[gp.t].n)} тримає тебе за ногу. Спершу вдар його.`);return}if(!canStand(c,x,y,'walk')||unitAt(c,x,y))return;
-  const D=costMap(c,c.hx,c.hy,'walk');if(D[y][x]>c.ap)return;c.ap-=D[y][x];fxP({t:'mv',x0:c.hx,y0:c.hy,x1:x,y1:y,d:Math.min(420,110+70*D[y][x])},Math.min(420,110+70*D[y][x]));c.hx=x;c.hy=y}
+  const D=costMap(c,c.hx,c.hy,'walk');if(D[y][x]>c.ap)return;c.ap-=D[y][x];fxWalk(c,null,x,y,'walk','hero');c.hx=x;c.hy=y}
 
 /* abilities: from weapons and talents */
 const ABL={
@@ -195,7 +219,7 @@ function useCellAb(id,x,y){const c=s.cb,A=ABL[id];if(!cellOk(id,x,y)||c.ap<A.ap)
 const hideCh=()=>{const c=s.cb;const seen=alive(c).filter(u=>!u.hid&&dist(u.x,u.y,c.hx,c.hy)<=5&&los(c,u.x,u.y,c.hx,c.hy)).length;return clamp(35+10*st('stealth')-15*seen,5,95)};
 const scareOk=u=>{const c=s.cb;return!!u&&HUMAN[u.t]&&!EN[u.t].boss&&!u.scared&&u.hp>0&&u.hp<u.max*(s.h.ft.dread?0.6:0.4)&&dist(c.hx,c.hy,u.x,u.y)<=3};
 const scareCh=()=>clamp(25+10*st('speech')+(s.h.ft.dread?25:0),5,95);
-function cAct(a,i){const c=s.cb;if(!c)return;setGrid(c);c.fx=[];c.fxt=0;
+function cAct(a,i){const c=s.cb;if(!c||c.over)return;if(c.eAnim){if(Date.now()<fxBusy)return;c.eAnim=0}setGrid(c);c.fx=[];c.fxt=0;
   if(a==='c_cell'){const[x,y]=i.split(',').map(Number);
     if(c.mode){if(cellOk(c.mode,x,y))useCellAb(c.mode,x,y);else c.mode=''}
     else{const u=unitAt(c,x,y);
@@ -225,8 +249,8 @@ function cAct(a,i){const c=s.cb;if(!c)return;setGrid(c);c.fx=[];c.fxt=0;
   else if(a==='c_flee'&&!c.boss&&tileAt(c.a,c.hx,c.hy)==='E'){s.cb=null;s.at='';if(c.win==='raid'){for(const k of['wood','fish','prov'])s.r[k]*=0.85;s.dmgB=s.dmgB||{};for(const b of c.broken||[])s.dmgB[b]=1;raidEnd()}say('Ти виходиш із бою й повертаєшся до маяка.','fight');dirty=1;return}
   else if(a==='c_end'){endTurn();dirty=1;return}
   dirty=1;
-  if(!surv()){lose();return}
-  if(s.cb&&!alive(s.cb).length){win();return}}
+  if(!surv()){cbEnd('lose');return}
+  if(s.cb&&!alive(s.cb).length){cbEnd('win');return}}
 function moveUnit(c,u,want,rng){if(u.pin>0)return;const T=Object.assign({},EN[u.t]);T.mv+=(u.el==='swift'?2:0);const mode=T.fly?'fly':T.swim?'swim':'walk';
   const D=costMap(c,u.x,u.y,mode,u);let best=null,bs=Infinity;
   for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){if(D[y][x]>T.mv||!canStand(c,x,y,mode))continue;const o=unitAt(c,x,y);if(o&&o!==u)continue;if(x===c.hx&&y===c.hy)continue;
@@ -234,10 +258,10 @@ function moveUnit(c,u,want,rng){if(u.pin>0)return;const T=Object.assign({},EN[u.
     if(want==='melee')sc=d*10+D[y][x];
     else{const good=d<=rng&&d>1&&los(c,x,y,c.hx,c.hy);sc=(good?0:100)+Math.abs(d-Math.min(rng,3))*3+D[y][x]-(good?cover(c,x,y,c.hx,c.hy)/10+(40-cover(c,c.hx,c.hy,x,y))/8:0)}
     if(sc<bs){bs=sc;best=[x,y]}}
-  if(best&&(best[0]!==u.x||best[1]!==u.y)){fxP({t:'mv',x0:u.x,y0:u.y,x1:best[0],y1:best[1],d:240},240);u.x=best[0];u.y=best[1];trapCheck(u)}}
+  if(best&&(best[0]!==u.x||best[1]!==u.y)){fxWalk(c,u,best[0],best[1],mode);u.x=best[0];u.y=best[1];trapCheck(u)}}
 function moveTo(c,u,tx,ty){if(u.pin>0)return;const T=EN[u.t],mode=T.fly?'fly':T.swim?'swim':'walk',mv=T.mv+(u.el==='swift'?2:0);const D=costMap(c,u.x,u.y,mode,u);let best=null,bs=Infinity;
   for(let y=0;y<GH;y++)for(let x=0;x<GW;x++){if(D[y][x]>mv||!canStand(c,x,y,mode))continue;const o=unitAt(c,x,y);if(o&&o!==u)continue;if(x===c.hx&&y===c.hy)continue;const sc=dist(x,y,tx,ty)*10+D[y][x];if(sc<bs){bs=sc;best=[x,y]}}
-  if(best&&(best[0]!==u.x||best[1]!==u.y)){fxP({t:'mv',x0:u.x,y0:u.y,x1:best[0],y1:best[1],d:240},240);u.x=best[0];u.y=best[1];trapCheck(u)}}
+  if(best&&(best[0]!==u.x||best[1]!==u.y)){fxWalk(c,u,best[0],best[1],mode);u.x=best[0];u.y=best[1];trapCheck(u)}}
 function allyAct(c,u){const foes=alive(c).filter(v=>!v.hid);if(!foes.length)return;let tg=foes.reduce((a,b)=>dist(u.x,u.y,a.x,a.y)<=dist(u.x,u.y,b.x,b.y)?a:b);
   if(dist(u.x,u.y,tg.x,tg.y)>1)moveTo(c,u,tg.x,tg.y);if(dist(u.x,u.y,tg.x,tg.y)>1)return;
   fxP({t:'bump',x0:u.x,y0:u.y,x1:tg.x,y1:tg.y},110);if(Math.random()<0.25+0.05*0){cbLog(`${E(u.nm||EN[u.t].n)} промахується.`);return}
@@ -297,10 +321,10 @@ function enemyAct(c,u){const T=EN[u.t];if(T.obj)return;if(T.boss)gnatPhase(c,u);
   else if(k==='heal'){u.hp=Math.min(u.max,u.hp+v);fxP({t:'txt',x:u.x,y:u.y,v:'+'+v,k:'heal'},150);cbLog(`${E(T.n)}: ${nm.toLowerCase()}, +${v} здоров’я.`)}
   u.acted=1;if(u.pin>0)u.pin--;u.step++}
 function surv(){const c=s.cb;if(s.h.hp>0)return true;if(c&&s.h.ft.unbreak&&!c.unb){c.unb=1;s.h.hp=1;cbLog('Незламний: смертельний удар лишає тебе на ногах з 1 здоров’ям!');return true}return false}
-function endTurn(){const c=s.cb;c.sand=0;c.wrap=0;c.mode='';c.kfree=0;for(const u of c.u){u.veil=0;u.ward=0}
-  for(const u of c.u.slice()){if(u.hp<=0)continue;enemyAct(c,u);if(!surv()){lose();return}}
-  envTurn(c);if(c.poison>0){c.poison--;s.h.hp-=2;fxP({t:'txt',x:c.hx,y:c.hy,v:'−2',k:'hurt'},80);cbLog('Отрута пече: −2 здоров’я.')}if(!surv()){lose();return}
-  if(!alive(c).length){win();return}
+function endTurn(){const c=s.cb;c.eAnim=1;c.sand=0;c.wrap=0;c.mode='';c.kfree=0;for(const u of c.u){u.veil=0;u.ward=0}
+  for(const u of c.u.slice()){if(u.hp<=0)continue;fxP({t:'turn',x:u.x,y:u.y},0);enemyAct(c,u);if(!surv()){cbEnd('lose');return}if(c.fxt)c.fxt+=90}
+  envTurn(c);if(c.poison>0){c.poison--;s.h.hp-=2;fxP({t:'txt',x:c.hx,y:c.hy,v:'−2',k:'hurt'},80);cbLog('Отрута пече: −2 здоров’я.')}if(!surv()){cbEnd('lose');return}
+  if(!alive(c).length){cbEnd('win');return}
   for(const k in c.cds)if(c.cds[k]>0&&c.cds[k]<99)c.cds[k]--;
   c.guard=0;c.smoke=0;c.ap=Math.max(1,maxAP()-(c.wrap?2:0))}
 let lastCb=null;

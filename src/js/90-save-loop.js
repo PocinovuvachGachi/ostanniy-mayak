@@ -12,12 +12,13 @@ function load(){try{const raw=localStorage.getItem(KEY);if(!raw)return;const d=J
   if(!d.rel){s.rel={};for(const l in LOC)for(const S of LOC[l].spots)for(const A of S.acts||[])if(A.fight&&RELE[A.fight]&&s.done[`${l}.${S.id}.${A.id}`])relicFor(A.fight,1)}
   if(!d.nv){s.nv={};s.nvU={};if(s.tabs.hero){for(const k of['bag','arms','grow','tal'])s.nv[k]=1;for(const k of['hero','gear','bag','arms','grow','talents','map'])s.nvU[k]=1}
     if(s.floors.gallery&&s.tabs.hero){s.nv.mla=1;s.f.mlaNote=1;s.f.siege1=1;if(!s.pages.includes('m'))s.pages.push('m')}if(s.floors.work)s.f.craft1=1}
-  if(!d.bdSeen){s.bdSeen={};for(const b of BD)if(b.show())s.bdSeen[b.id]=1}
+  if(!d.bdSeen){s.bdSeen={};for(const b of BD)if(b.show0())s.bdSeen[b.id]=1}
   if(!d.mom){chronBackfill();if(s.chs.length)s.tabs.chron=1}
-  if(!d.rcSeen){s.rcSeen={};for(const rc of RC)if(rcVisible(rc))s.rcSeen[rc.id]=1}
+  if(!d.rcSeen){s.rcSeen={};RCOPEN=1;for(const rc of RC)if(rcVisible(rc))s.rcSeen[rc.id]=1;RCOPEN=0}
   if(!d.seenI){s.seenI={};for(const k in s.inv)s.seenI[k]=1}
   if(!d.nv&&s.tabs.hero&&!s.h.bg)s.h.bg='old';delete s.tabs.talents;if(s.tab==='talents'){s.tab='hero';s.ht='talents'}
   if(s.cb){if(!s.cb.map)s.cb.map=ARENA[s.cb.a].slice();setGrid(s.cb)}
+  if(s.cb&&s.cb.over){const k=s.cb.over;s.cb.over=0;if(k==='lose')lose();else win()}
   if(d.wup&&!d.wf){for(const k in d.wup)if(d.wup[k]>=1&&WF[k])s.wf[k]=1}delete s.wup;
   if(s.cb&&s.cb.win==='raid')s.cb=null;s.raid=0;s.log=s.log.map(logOf);if(s.eq.ranged===undefined)s.eq.ranged='';
   const off=Math.min(7200,(Date.now()-(s.ts||Date.now()))/1000);
@@ -59,5 +60,7 @@ let last=Date.now(),sv=0;
 setInterval(()=>{const now=Date.now(),dt=Math.max(0,Math.min(7200,(now-last)/1000));last=now;s.t+=dt;
   for(let r=dt;r>0;r-=5)produce(Math.min(5,r));checks();
   const typing=document.activeElement&&document.activeElement.tagName==='INPUT'&&document.activeElement.type!=='range';
-  if(dirty&&!typing&&!ptr)render();else refresh();
+  cbOverTick();
+  const anim=s.cb&&Date.now()<fxBusy;
+  if(dirty&&!typing&&!ptr&&!anim)render();else if(!anim)refresh();
   if((sv+=dt)>=3){sv=0;save()}},250);

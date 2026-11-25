@@ -6,7 +6,7 @@
    node tests/sim/pace.js [профіль] [хвилин]     профілі: active (за замовчуванням), casual
    SIMJSON=1 — додатково вивести JSON для подальшого аналізу. */
 const prof = process.argv[2] || 'active', LIMIT = +(process.argv[3] || 600);
-require('../harness.js')(`(()=>{
+require('../harness.js')(`(()=>{NOGAP=0;
 const PROF=${JSON.stringify(prof)},LIMIT=${LIMIT};
 const P=PROF==='casual'?{click:2.5,act:5,read:12,fightStep:4,travel:25,think:180,idle:20}:{click:1.1,act:3,read:7,fightStep:3,travel:15,think:120,idle:10};
 let T=0,acts=0;const tried={};const ev=[],seen=new Set();

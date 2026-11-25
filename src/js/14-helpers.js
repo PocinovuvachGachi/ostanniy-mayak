@@ -18,7 +18,13 @@ function afford(c={},it={}){return Object.keys(c).every(k=>s.r[k]>=c[k])&&Object
 function pay(c={},it={}){paidN++;for(const k in c)s.r[k]-=c[k];for(const k in it)s.inv[k]-=it[k]}
 function costTxt(c={},it={}){const ik=Object.keys(it),kn=ik.filter(k=>KN(k));return[...Object.keys(c).map(k=>R(k,fmt(c[k]))),...kn.map(k=>(it[k]>1?it[k]+' × ':'')+IT[k].n.toLowerCase()),...(kn.length<ik.length?['ще дещо, чого ти поки не знаєш']:[])].join(', ')}
 function dlg(o){s.dlg=s.dlg||[];if(s.dlg.length>14)return;if(o.k==='fight')s.dlg.unshift(o);else{s.dlg.push(o);try{if(away())s.bellHold=1}catch(e){}}dirty=1}
-function unlock(t){if(!s.tabs[t]){s.tabs[t]=1;s.newTab[t]=1;if(SUBT[t]){s.newTab.tower=1;s.ttNew=typeof s.ttNew==='object'&&s.ttNew?s.ttNew:{};s.ttNew[t]=1}dirty=1;if(t==='hero'){if(s.h.xpb){const b=s.h.xpb;s.h.xpb=0;xp(b)}}const nm=(TABS.find(x=>x[0]===t)||[0,SUBT[t]||''])[1];if(t!=='shore')dlg({k:'world',title:`Відкрито: ${nm}`,body:`<p>${TABV[t]||TABINFO[t]||''}${TABV[t]&&TABINFO[t]?ih(TABINFO[t]):''}</p>`,gains:[SUBT[t]?`«${nm}» — у вкладці «Маяк».`:`Відкрилася вкладка «${nm}».`]})}}
+/* Поступовість (постулат 2): між відкриттями — пауза, щоб гравець устиг освоїти попереднє.
+   novMark() — щойно щось відкрилося; calm() — можна відкривати наступне. Сюжетні події не чекають. */
+const NOVGAP=45;
+function novMark(){s.lastNov=s.play||0}
+const noGap=()=>typeof NOGAP!=='undefined'&&!!NOGAP;
+const calm=()=>noGap()||(s.play||0)-(s.lastNov==null?-1e9:s.lastNov)>=NOVGAP;
+function unlock(t){if(!s.tabs[t]){s.tabs[t]=1;novMark();s.newTab[t]=1;if(SUBT[t]){s.newTab.tower=1;s.ttNew=typeof s.ttNew==='object'&&s.ttNew?s.ttNew:{};s.ttNew[t]=1}dirty=1;if(t==='hero'){if(s.h.xpb){const b=s.h.xpb;s.h.xpb=0;xp(b)}}const nm=(TABS.find(x=>x[0]===t)||[0,SUBT[t]||''])[1];if(t!=='shore')dlg({k:'world',title:`Відкрито: ${nm}`,body:`<p>${TABV[t]||TABINFO[t]||''}${TABV[t]&&TABINFO[t]?ih(TABINFO[t]):''}</p>`,gains:[SUBT[t]?`«${nm}» — у вкладці «Маяк».`:`Відкрилася вкладка «${nm}».`]})}}
 function page(n){if(!s.pages.includes(n)){s.pages.push(n);if(n===1)s.met.ostap=1;dlg({k:'story',title:n==='m'?'Записка Остапа без номера':`Записка Остапа, аркуш ${n}`,body:`<div class="note">${PG[n].replace(/ — О\.$/,'')}<span class="sig">— О.</span></div>`,gains:['Записку збережено в журналі.']});unlock('journal');dirty=1}}
 function book(id){if(!s.books.includes(id)){s.books.push(id);dirty=1}}
 function odd(id,pre){if(s.odd[id])return;s.odd[id]=1;s.oddNew=(s.oddNew||0)+1;xp(20);say((pre?pre+' ':'')+`Дивина: ${I(OD[id].n)}. +${Math.round(20*XPST[stageNo()])} досвіду.`,'find');const ik=ODI[id];dlg({k:'find',title:`Дивина: ${OD[id].n}`,img:{t:'icon',id:ik},body:`<p>${pre?pre+' ':''}${OD[id].d}</p>`,gains:['+20 досвіду',`Знайдено дивин: ${Object.keys(s.odd).length}`]})}
@@ -110,11 +116,11 @@ function storyCheck(quiet){s.bts=s.bts||{};
     if(!s.chs.includes(ch.id)&&ch.beats.every(b=>s.bts[b[0]])){s.chs.push(ch.id);s.chSeen=s.chs.length;dirty=1;if(quiet)return;mom('chap',`Розділ ${ROM(ix+1)} · ${ch.n}`,ch.d,ch.img&&ch.img.t==='yard'?{t:'yard',st:yardSt()}:ch.img,1,ch.id);
       const nx=CH.find((c,k)=>k>ix&&!c.side&&!s.chs.includes(c.id));
       s.dlg=s.dlg||[];s.dlg.push({k:'story',chap:1,no:ix+1,sub:ch.n,title:`Розділ ${ix+1}. ${ch.n}`,img:ch.img,body:`<p>${ch.beats.map(b=>b[3]).join(' ')}</p>${nx&&!ch.side&&chStarted(CH.indexOf(nx))?`<p class="m">${nx.d}</p>`:''}<p class="stamp">✎ ${dateTxt(s.play)}</p>`});eraCheck()}})}
-function checks(){const F=s.f;novTick();mgHelpCheck();if(!s.tabs.chron&&s.chs.length&&!s.cb&&!(s.dlg||[]).some(d=>d.chap))unlock('chron');
+function checks(){const F=s.f;novTick();mgHelpCheck();if(!s.tabs.chron&&s.chs.length&&!s.cb&&!(s.dlg||[]).some(d=>d.chap)&&calm())unlock('chron');
   if(!F.lk&&s.tot.ember>=10){F.lk=1;dirty=1}
-  if(!F.wreck&&s.c.gather>=18&&s.b.hearth){F.wreck=1;dlg({k:'world',title:'Уламки в прибої',img:{t:'ob',k:'wreck3',f:'wreckObj3'},body:'<p>Збираючи плавник, ти забрідаєш далі вздовж берега — і натрапляєш на щось більше за гілляку. Між каменями застряг розбитий рибальський човен: ребра шпангоутів, дошки обшивки, іржаві цвяхи.</p><p>Хвилі приносять його по шматку. Добре залізо тут на вагу золота.</p>',gains:['Відкрилося: розбирати уламки — брухт (цвяхи й скоби)']})}
+  if(!F.wreck&&s.c.gather>=18&&s.b.hearth&&calm()){novMark();F.wreck=1;dlg({k:'world',title:'Уламки в прибої',img:{t:'ob',k:'wreck3',f:'wreckObj3'},body:'<p>Збираючи плавник, ти забрідаєш далі вздовж берега — і натрапляєш на щось більше за гілляку. Між каменями застряг розбитий рибальський човен: ребра шпангоутів, дошки обшивки, іржаві цвяхи.</p><p>Хвилі приносять його по шматку. Добре залізо тут на вагу золота.</p>',gains:['Відкрилося: розбирати уламки — брухт (цвяхи й скоби)']})}
   if(!F.barrel&&s.tot.scrap>=5){F.barrel=1;add('oil',8);say(`Серед уламків застрягла розбита бочка. На дні ще хлюпає ${R('oil',8)}.`,'find')}
-  if(!s.tabs.tower&&s.tot.ember>=105&&s.b.hearth){unlock('tower');say('Вогонь розгорівся. Тепер видно сходи, що ведуть угору. Відкрито: Маяк.','story')}
+  if(!s.tabs.tower&&s.tot.ember>=105&&s.b.hearth&&calm()){unlock('tower');say('Вогонь розгорівся. Тепер видно сходи, що ведуть угору. Відкрито: Маяк.','story')}
   if(!F.quick&&s.c.wins>=5){F.quick=1;say('Ти набрався бойового досвіду. Відтепер сутички з уже знайомими ворогами можна вирішувати швидким боєм.','lvl')}
   storyCheck(false);
   if(F.people){const cap=2*(s.b.house||0);
@@ -126,8 +132,8 @@ function checks(){const F=s.f;novTick();mgHelpCheck();if(!s.tabs.chron&&s.chs.le
   if(!s.disc.heart&&has('mlens')&&has('gkey')){reveal('heart');dlg({k:'story',title:'Острів, якого немає',img:{t:'face',id:'marta'},body:`<p>Крізь Лінзу Мли видно те, чого не видно оком: на півночі з води б’є стовп туману. ${P('Марта')}: ${Q('Ось воно. Ключ вартових відімкне шлях. Пливімо')}.</p>`})}
   if(s.tabs.hero&&!s.h.bg&&(s.nv||{}).grow)offerBg();
   shoreTick();shfTick();beamTick();folkTick();wolfTick();kitTick();rsiegeTick();curTick();stage3Tick();
-  s.bdSeen=s.bdSeen||{};{const nb=BD.filter(b=>!s.bdSeen[b.id]&&b.show());if(nb.length){nb.forEach(b=>s.bdSeen[b.id]=1);bpDlg(nb)}}
-  s.rcSeen=s.rcSeen||{};if(s.floors.work){const nw=[];for(const rc of RC)if(!s.rcSeen[rc.id]&&rcVisible(rc)){s.rcSeen[rc.id]=1;nw.push(rc)}if(nw.length)rcDlg(nw)}
+  s.bdSeen=s.bdSeen||{};{const nb=BD.find(b=>!s.bdSeen[b.id]&&b.show0());if(nb&&(calm()||!BD.some(b=>s.bdSeen[b.id]&&b.show0()&&!s.b[b.id]))){s.bdSeen[nb.id]=1;novMark();bpDlg([nb])}}
+  s.rcSeen=s.rcSeen||{};if(s.floors.work){RCOPEN=1;const nw=RC.find(rc=>!s.rcSeen[rc.id]&&rcVisible(rc)),fresh=!RC.some(rc=>s.rcSeen[rc.id]&&rcVisible(rc));RCOPEN=0;if(nw&&(calm()||fresh)){s.rcSeen[nw.id]=1;novMark();rcDlg([nw])}}
   if(F.crabWarn&&!F.crab1&&!s.cb&&!(s.dlg||[]).some(d=>d.crabw))crabWarn();
   raidCheck();
 }

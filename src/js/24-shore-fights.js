@@ -26,7 +26,7 @@ const SHF={
     ok:()=>!!s.f.tracks&&s.h.lvl>=2&&(dayPh()!=='y'||Date.now()-(s.tracksT||0)>8*60000),win(){xp(30);if(!s.pages.includes('m'))page('m');return'Постать розсипається мокрим піском. Таке вже не може бути людиною. Хто ж вони — ті, кого забирає туман?'}}};
 /* події спливають самі, але лише поки гравець поруч */
 function shfTick(){if(s.cb||s.raid||s.shf||away()||!s.tabs.shore)return;const now=Date.now();s.shfT=s.shfT||{};
-  for(const id in SHF){const F=SHF[id];if(F.once&&s.f[id])continue;if(F.gap&&now-(s.shfT[id]||0)<F.gap*1000)continue;if(!F.ok())continue;
+  for(const id in SHF){const F=SHF[id];if(F.once&&s.f[id])continue;if(F.gap&&now-(s.shfT[id]||0)<F.gap*1000)continue;if(!s.shfT[id]&&!calm())continue;if(!F.ok())continue;if(!s.shfT[id])novMark();
     if(id==='poolcrab'&&Math.random()>.15)continue;s.shf=id;s.shfT[id]=now;say(F.n+'. '+F.d.split('.')[0]+'.',F.npc?'world':'fight');dirty=1;return}}
 function shfGo(){const id=s.shf;if(!id||s.cb)return;s.shf='';if(SHF[id].npc){SHF[id].go();dirty=1;return}s.h.hp=Math.max(s.h.hp,1);startFight(id,'S:'+id)}
 function shfWin(id){const F=SHF[id];if(!F)return'';if(F.once)s.f[id]=1;if(id==='rats')s.ratsT=Date.now();return F.win()}

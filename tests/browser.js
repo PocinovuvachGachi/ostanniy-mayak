@@ -237,6 +237,23 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await p.close();
   }
 
+  // 14. Хід ворогів: ходьба клітинка за клітинкою; смертельний удар спершу видно, поразка — після анімації
+  {
+    const p = await page(390, 844);
+    const r0 = await p.evaluate(() => {
+      s.f.looked = 1; s.dlg = []; s.tabs.hero = 1; s.f.crab1 = 1; s.eq.weapon = 'oar'; startFight('rats', 'S:rats'); s.cb.intro = 0;
+      s.cb.u.forEach((u, i) => { u.x = 3; u.y = 2 + i }); s.h.hp = 1; render();
+      const mv = []; const fxP0 = fxP; fxP = (e, a) => { if (e.t === 'mv') mv.push((e.p || []).length); fxP0(e, a) };
+      act('c_end'); render(); fxP = fxP0;
+      return [s.cb && s.cb.over, !!document.querySelector('.cbover'), mv.every(n => n >= 2)];
+    });
+    A(r0[0] === 'lose' && r0[1] && r0[2], 'поразка чекає на анімацію: ' + JSON.stringify(r0));
+    await p.waitForTimeout(7500);
+    const r1 = await p.evaluate(() => [!!s.cb, (s.dlg || []).some(d => d.title === 'Поразка')]);
+    A(!r1[0] && r1[1], 'після анімації — вікно поразки: ' + JSON.stringify(r1));
+    await p.close();
+  }
+
   for (const e of errs) A(0, 'помилка в консолі: ' + e);
   await b.close();
   console.log('fails', fails);
