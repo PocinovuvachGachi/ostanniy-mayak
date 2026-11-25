@@ -24,6 +24,20 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     return p;
   };
 
+  // Довідник і урок на вузькому екрані: лише відомі механіки.
+  {
+    const p = await page(390, 844);
+    await p.evaluate(() => {s.lastAct=Date.now();s.tot.ember=3;tutOffer('ember');tutTick();render()});
+    A(!!await p.$('#dlg .k-tutorial'), 'навчальний діалог');
+    A(await p.evaluate(()=>document.documentElement.scrollWidth<=390), 'урок без горизонтальної прокрутки');
+    await p.click('#dlg [data-a="dlgok"]');await p.waitForTimeout(300);
+    await p.click('#foot [data-a="tutList"]');
+    A(!!await p.$('#dlg [data-a="tutRead"][data-i="ember"]')&&!await p.$('#dlg [data-i="map"]'), 'довідник не показує майбутні уроки');
+    await p.click('#dlg [data-a="tutRead"][data-i="ember"]');
+    A((await p.locator('#dlg h2').innerText())==='Жарина','повторне читання уроку');
+    await p.close();
+  }
+  
   // 1. Усі вкладки на телефоні й на широкому екрані
   for (const [w, h] of [[390, 844], [1280, 900]]) {
     const p = await page(w, h);
