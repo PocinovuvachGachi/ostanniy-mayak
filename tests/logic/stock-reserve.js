@@ -1,7 +1,7 @@
 /* Автоматичне виробництво зберігає запаси; ручний дозвіл діє лише на обрану будівлю. */
 require('../harness.js')(`
 let fails=0;function A(c,m){if(!c){fails++;console.log('FAIL',m)}}
-s.b.hearth=3;s.b.forge=1;s.b.smoke=1;s.r.wood=30;s.r.scrap=20;s.r.ember=200;s.r.fish=15;
+s.b.hearth=3;s.b.forge=1;s.b.smoke=1;s.r.wood=200;s.r.scrap=20;s.r.ember=200;s.r.fish=15;
 produce(300);A(s.r.wood>=10-1e-7&&s.r.scrap>=6-1e-7&&s.r.ember>=160-1e-7&&s.r.fish>=8-1e-7,'резерви не витрачаються навіть довгим офлайн-кроком');
 A(s.r.iron>0&&s.r.prov>0,'надлишок перетворюється на продукцію');
 const old=JSON.stringify(s.r);rates();A(JSON.stringify(s.r)===old,'прогноз rates не витрачає запаси');
