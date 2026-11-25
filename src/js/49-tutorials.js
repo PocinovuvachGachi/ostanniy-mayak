@@ -19,7 +19,7 @@ const TUT={
 };
 const tutKnown=id=>!!(s.tutSeen||{})[id];
 const tutReady=id=>!!(TUT[id]&&TUT[id].ready());
-const tutIds=()=>Object.keys(TUT).filter(id=>tutKnown(id)&&tutReady(id));
+const tutIds=()=>Object.keys(TUT).filter(tutKnown);
 function tutOffer(id){if(!tutReady(id)||tutKnown(id))return;s.tutPending=s.tutPending||[];if(s.tutPending.includes(id))return;
   if(noGap()){s.tutSeen[id]=1;return}s.tutPending.push(id);dirty=1}
 function tutDialog(id,fight=false){const t=TUT[id];return{k:'tutorial',tut:id,crabw:fight?1:undefined,title:t.n,body:t.body,btns:fight?[['До бою','fightGo','crab1']]:[['Зрозуміло','dlgok']]}}
@@ -27,7 +27,7 @@ function tutRemember(id){s.tutSeen=s.tutSeen||{};s.tutSeen[id]=1;s.tutPending=(s
 function tutTick(){if(noGap()||s.cb||s.raid||s.bellHold||away()||(s.dlg||[]).length)return;const id=(s.tutPending||[]).find(tutReady);if(!id)return;tutRemember(id);dlg(tutDialog(id))}
 function tutFight(){const d=(s.dlg||[])[0];if(!d||!d.crabw||s.cb||!tutReady('combat'))return;
   tutRemember('combat');s.dlg[0]=tutDialog('combat',true);dirty=1}
-function tutRead(id){if(!tutKnown(id)||!tutReady(id)||s.cb)return;const q=s.dlg||[];if(q[0]&&q[0].tutList)q.shift();else if(q.length)return;dlg(tutDialog(id));dirty=1}
+function tutRead(id){if(!TUT[id]||!tutKnown(id)||s.cb)return;const q=s.dlg||[];if(q[0]&&q[0].tutList)q.shift();else if(q.length)return;dlg(tutDialog(id));dirty=1}
 function tutListHTML(){return '<div class="tut-list">'+tutIds().map(id=>'<button type="button" data-a="tutRead" data-i="'+id+'">'+TUT[id].n+' <span aria-hidden="true">›</span></button>').join('')+'</div>'}
 function tutLibrary(){if(s.cb||(s.dlg||[]).length||!tutIds().length)return;dlg({k:'tutorial',tutList:1,title:'Довідник',body:'<p>Уже отримані пояснення можна прочитати знову.</p>'+tutListHTML(),btns:[['Закрити','dlgok']]})}
 function tutMigrate(){s.tutSeen=s.tutSeen||{};for(const id of Object.keys(TUT))if(tutReady(id))s.tutSeen[id]=1}
