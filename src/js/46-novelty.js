@@ -11,6 +11,17 @@ const NOV=[
 ];
 /* креслення з'являються лише через checks(): по одному, з паузою (show0 — справжня умова) */
 for(const b of BD){const f=b.show;b.show0=f;b.show=()=>(noGap()||!!(s.bdSeen&&s.bdSeen[b.id]))&&f()}
-function novTick(){s.nv=s.nv||{};s.nvU=s.nvU||{};if(s.cb||s.raid||(s.dlg||[]).length||!s.tabs.hero||!s.nvU.gear)return;
-  s.nvT=s.nvT||{};if(NOV.some(n=>s.nv[n.id]&&!n.used()&&(s.play||0)-(s.nvT[n.id]||0)<240))return;if(!calm())return;const n=NOV.find(n=>!s.nv[n.id]&&n.ready());if(n){novMark();s.nv[n.id]=1;s.nvT[n.id]=s.play||0;n.ann();dirty=1}}
-
+function novTick(essential=false){s.nv=s.nv||{};s.nvU=s.nvU||{};if(!novCan()||!s.tabs.hero||s.cb||s.raid)return;
+  s.nvT=s.nvT||{};
+  // Мла — сюжетна необхідність, не залежить від перегляду торби чи спорядження.
+  if(!essential&&(!s.nvU.gear||!novOptional()||NOV.some(n=>n.id!=='mla'&&s.nv[n.id]&&!n.used()&&(s.play||0)-(s.nvT[n.id]||0)<240)))return;
+  const n=NOV.find(n=>(n.id==='mla')===essential&&!s.nv[n.id]&&n.ready());if(n){novMark();s.nv[n.id]=1;s.nvT[n.id]=s.play||0;n.ann();dirty=1}}
+/* Один автоматичний план/рецепт за один спокійний момент. Готовність окремо від показу.
+   Перші інструменти потрібні для сюжету; необов'язкові відкриття чергуємо. */
+function novPlanTick(essential=false){s.bdSeen=s.bdSeen||{};s.rcSeen=s.rcSeen||{};if(!(essential?novCan():novOptional()))return;
+  const nb=BD.find(b=>!s.bdSeen[b.id]&&b.show0());let nr;
+  if(s.floors.work){RCOPEN=1;try{nr=RC.find(rc=>!s.rcSeen[rc.id]&&rcVisible(rc)&&(essential?['oar','rod'].includes(rc.id):!['oar','rod'].includes(rc.id)))}finally{RCOPEN=0}}
+  if(essential){if(!nr)return;const key='r:'+nr.id;s.rcSeen[nr.id]=1;novMark(key);rcDlg([nr]);dirty=1;return}
+  if(nb&&(!nr||s.novFamily!=='b')){const key='b:'+nb.id;s.bdSeen[nb.id]=1;s.novFamily='b';novMark(key);bpDlg([nb]);dirty=1}
+  else if(nr){const key='r:'+nr.id;s.rcSeen[nr.id]=1;s.novFamily='r';novMark(key);rcDlg([nr]);dirty=1}
+}
