@@ -170,7 +170,7 @@ const BD=[
   {id:'pot',n:'Пастка в прибої',d:()=>'+0,15 брухту/с за рівень. Хвилі самі заносять у неї цвяхи й скоби.',base:{wood:14},mult:1.5,show:()=>s.f.wreck&&(noGap()||!!(s.bdSeen||{}).boom||!!(s.bdSeen||{}).pot||!!s.b.pot)},
   {id:'boom',n:'Загорожа для плавника',d:()=>`+${fr(0.3*(s.rs.currents?2:1)*wolf())} плавника/с за рівень`,base:{wood:24},mult:1.5,show:()=>!!(s.f.hook||s.floors.work)},
   {id:'traps',n:'Ятері',d:()=>`+${fr(0.25*wolf())} риби/с за рівень`,base:{wood:18,scrap:12},mult:1.5,show:()=>s.f.bpTraps},
-  {id:'smoke',n:'Коптильня',conv:1,d:()=>'Риба 0,2 і плавник 0,1 → провізія 0,1 щосекунди за рівень. Провізія лікує й потрібна для виходу в море.',base:{wood:20,scrap:8},mult:1.5,show:()=>s.f.rod},
+  {id:'smoke',n:'Коптильня',conv:1,d:()=>'Риба 0,2 і плавник 0,1 → провізія 0,1 щосекунди за рівень. Провізія лікує й потрібна для виходу в море.',base:{wood:20,scrap:8},mult:1.5,show:()=>s.f.rod&&(noGap()||!!s.f.zinovii||!!s.mst.zinovii||!!s.b.smoke||!!(s.bdSeen||{}).smoke)},
   {id:'forge',n:'Кузня',conv:1,d:()=>'Брухт 0,3 і жар 3 → залізо 0,15 щосекунди за рівень.',base:{wood:30,scrap:18},mult:1.6,show:()=>s.floors.work&&!!s.f.craft1},
   {id:'kiln',n:'Смоловарня',conv:1,d:()=>'Плавник 0,3 і жар 2 → смола 0,1 щосекунди за рівень.',base:{wood:34,iron:5},mult:1.6,show:()=>s.floors.gallery},
   {id:'render',n:'Жиротопня',conv:1,d:()=>'Риба 0,2 → олія 0,2 щосекунди за рівень.',base:{wood:21,scrap:14},mult:1.6,show:()=>s.rs.render},
