@@ -1,16 +1,20 @@
 /* ============ ПРИПЛИВ І БРІД (етап I) ============
-   Приплив іде за годинником гравця: цикл ~15 хв, з них ~5 хв — відплив. На відпливі відкриваються
+   Перший відплив після трьох риболовель; далі власний цикл збереження ~15 хв, з них ~5 хв — відплив. На відпливі відкриваються
    калюжі між камінням (риба, мідії, зрідка знахідка) і кам'янистий брід на великий острів.
    Брід треба позначити частинами (вішки, поруччя, сходинки, ліхтар) — працювати можна лише на відпливі.
    Готовий брід відкриває Мапу: це міст в етап II. */
-const TIDE=900,TLOW=300;
-/* 0 — повна вода, 1 — найнижчий відплив; плавні переходи по 40 с */
-function tideLv(){if(s.dbgTide)return s.dbgTide==='low'?1:0;const t=(Date.now()/1000)%TIDE,lo=TIDE-TLOW,e=40;
+const TIDE=900,TLOW=300,TIDE_EDGE=40;
+const tideLegacy=()=>s.tideEpoch==null&&!!(s.f.tideSeen||s.f.fordSeen||s.f.fordDone||s.f.seal);
+const tideKnown=()=>!!(s.f.tideSeen||tideLegacy());
+function tidePhase(){if(tideLegacy())return(Date.now()/1000)%TIDE;if(s.tideEpoch==null)return 0;const elapsed=Math.max(0,(Date.now()-s.tideEpoch)/1000);return !s.f.tideSeen?Math.min(TIDE-TLOW,elapsed):elapsed%TIDE}
+const tideCyc=()=>Math.floor(Math.max(0,(Date.now()-(s.tideEpoch||0))/1000)/TIDE);
+/* 0 — повна вода, 1 — найнижчий відплив; до першого пояснення фаза не може минути. */
+function tideLv(){if(s.dbgTide)return s.dbgTide==='low'?1:0;const t=tidePhase(),lo=TIDE-TLOW,e=TIDE_EDGE;
   if(t<lo-e)return 0;if(t<lo)return(t-(lo-e))/e;if(t>TIDE-e)return(TIDE-t)/e;return 1}
-const tideLow=()=>tideLv()>=.99;
-/* скільки до зміни води, сек */
-function tideLeft(){const t=(Date.now()/1000)%TIDE,lo=TIDE-TLOW;return tideLow()?TIDE-t:(t<lo?lo-t:TIDE-t+lo)}
-const tideTxt=()=>{const m=Math.max(1,Math.round(tideLeft()/60));return tideLow()?`Відплив. Вода повернеться за ${m} хв.`:`Повна вода. Відплив — приблизно за ${m} хв.`};
+const tideLow=()=>s.dbgTide?s.dbgTide==='low':tideKnown()&&tideLv()>=.99;
+/* Скільки до межі придатного для робіт відпливу. */
+function tideLeft(){const t=tidePhase(),lo=TIDE-TLOW-TIDE_EDGE*.01,hi=TIDE-TIDE_EDGE*.99;return tideLow()?Math.max(0,hi-t):(t<lo?lo-t:TIDE-t+lo)}
+const tideTxt=()=>{const m=Math.max(1,Math.ceil(tideLeft()/60));return tideLow()?`Відплив. Вода повернеться за ${m} хв.`:`Повна вода. Відплив — приблизно за ${m} хв.`};
 /* Частини броду */
 const FORD=[
   {id:'poles',n:'Вішки',d:'Жердини вздовж каміння, щоб не збитися зі стежки.',c:{wood:60}},
@@ -41,6 +45,14 @@ function fordPopHTML(){const low=tideLow();return`<div class="bpop" role="dialog
   ${low?'':'<p class="hint">Камінь зараз під водою — чекай відпливу.</p>'}</div>`}
 
 /* перший відплив пояснюється (#40): море відступає — на березі з'являються калюжі */
-function tideFirst(){if(s.f.tideSeen||!s.tabs.shore||!tideLow()||s.cb||(s.dlg||[]).length)return;s.f.tideSeen=1;
+function tideFirst(){if(s.f.tideSeen||!s.tabs.shore||s.cb||s.raid||away()||(s.dlg||[]).length||!calm())return;
+  if(!tideLegacy()){
+    if(!s.f.rod||(s.c.fish||0)<3)return;
+    if(s.tideEpoch==null){s.tideEpoch=Date.now()-(TIDE-TLOW-TIDE_EDGE)*1000;dirty=1;return}
+    if(!s.dbgTide&&tidePhase()<TIDE-TLOW)return;if(s.dbgTide==='high')return;
+    // Починаємо повне вікно відпливу саме тоді, коли гравець може побачити пояснення.
+    s.tideEpoch=Date.now()-(TIDE-TLOW)*1000;
+  }else if(!tideLow())return;
+  s.f.tideSeen=1;novMark();
   dlg({k:'world',title:'Відплив',img:{t:'ob',k:'pool3',f:'poolObj3'},body:'<p>Море відступило. Там, де щойно бились хвилі, тепер мокре каміння, водорості й калюжі, у яких лишилась дрібна риба та мідії.</p><p>Вода повернеться — вона завжди повертається. Але скоро відступить знову.</p>',
     gains:[`Відкрилося: калюжі на відпливі ${ih(`Відплив настає приблизно кожні ${Math.round(TIDE/60)} хв і триває ${Math.round(TLOW/60)} хв. Поки вода низько, на березі є калюжі з рибою й мідіями, а часом і знахідки. Скільки лишилось до зміни води — написано у вкладці «Берег».`)}`]})}
