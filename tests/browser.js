@@ -38,6 +38,18 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await p.close();
   }
   
+  // Ранні інструменти: доступні на березі, не у майстерні.
+  {
+    const p = await page(390, 844);
+    await p.evaluate(() => {s.tabs.shore=1;s.tab='shore';s.f.looked=1;s.f.wreck=1;s.f.hookPlan=1;s.f.rodPlan=1;s.r.wood=50;s.r.scrap=10;s.dlg=[];render()});
+    A(!!await p.$('.scn [data-a="hook"]')&&!!await p.$('.scn [data-a="craft"][data-i="rod"]'),'інструменти на березі');
+    A(await p.evaluate(()=>!s.floors.work&&!rcVisible(RC.find(r=>r.id==='rod'))),'вудка не потребує майстерні');
+    await p.click('.scn [data-a="craft"][data-i="rod"]');
+    A(await p.evaluate(()=>s.f.rod&&!s.floors.work),'вудку зроблено на березі');
+    A(!!await p.$('.scn [data-a="fishing"]'),'рибалка після виготовлення');
+    await p.close();
+  }
+
   // 1. Усі вкладки на телефоні й на широкому екрані
   for (const [w, h] of [[390, 844], [1280, 900]]) {
     const p = await page(w, h);
@@ -62,7 +74,7 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
   {
     const p = await page(1100, 900);
     await p.evaluate(() => {
-      window.dlg = () => {}; s.f.looked = 1; s.tabs = { home: 1, shore: 1 }; s.tab = 'shore'; s.f.wreck = 1; s.f.rod = 1;
+      window.dlg = () => {}; s.f.looked = 1; s.tabs = { home: 1, shore: 1 }; s.tab = 'shore'; s.f.wreck = 1; s.f.rod = 1; s.f.hook = 1; // стабільна сцена: нове відкриття багра має власну анімацію появи
       s.seen.wood = 1; s.seen.scrap = 1; s.seen.fish = 1; s.hsU = { gather: 1, rod: 1, wreck: 1 }; render();
     });
     await p.waitForTimeout(500);
@@ -144,7 +156,7 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
   // 5. Маяк у розрізі: картка поверху відновлює його
   {
     const p = await page(1100, 1000);
-    await p.evaluate(() => { window.dlg = () => {}; s.f.looked = 1; s.b.hearth = 2; for (const k of RES) s.r[k] = 5000; s.tabs = { home: 1, tower: 1 }; s.dlg = []; s.tab = 'tower'; render(); });
+    await p.evaluate(() => { window.dlg = () => {}; s.f.looked = 1; s.f.crab1=1; s.b.hearth = 2; for (const k of RES) s.r[k] = 5000; s.tabs = { home: 1, tower: 1 }; s.dlg = []; s.tab = 'tower'; render(); });
     await p.waitForTimeout(300);
     const el = await p.$('.scn [data-k="fl:work"]'), bb = el && await el.boundingBox();
     if (bb) { await p.mouse.click(bb.x + bb.width / 2, bb.y + bb.height / 2); await p.waitForTimeout(300); }
