@@ -2916,7 +2916,6 @@ const SELL=[
   {id:'feather',n:'Пір’я чайки',it:{feather:1},g:2},
 ];
 
-const SCAN=['chaika','village','cliffs'];
 const SCANMSG={chaika:'Далекогляд вихоплює з туману розбитий бриг на скелях на захід від маяка.',village:'На сході над водою піднімається дим. Там живуть люди!',cliffs:'На півночі видно сірі скелі, порослі вересом.'};
 
 /* puzzles */
@@ -3107,7 +3106,7 @@ chaika:{n:'Уламки «Чайки»',x:108,y:238,lx:'r',d:'Торговий �
 ]},
 village:{n:'Гнилий Причал',x:290,y:204,lx:'l',d:'Десяток хат на палях. Люди тут говорять тихо й не дивляться на північ.',art:()=>ART.village,spots:[
   {id:'tavern',face:'levko',n:'Корчма «Солоний якір»',d:'Чадний каганець, кілька рибалок над юшкою і корчмар Левко за шинквасом.',acts:[
-    {id:'talk',t:'Поговорити з корчмарем',once:1,run(){s.met.levko=1;return `${P('Левко')} довго дивиться на тебе з-за шинквасу. ${Q('Хранитель? Думав, вас усіх забрала Мла. Ну, сідай, коли вже прийшов. Чутки в мене є, та задарма не віддаю — хіба що загадку відгадаєш')}. Він хитає головою на пірс: ${Q('Мирон тамтої ночі махав ліхтарем на твій вогонь. Іди до нього. А про Остапа знає знахарка Ганна, тільки чужих вона не приймає')}.`}},
+    {id:'talk',t:'Поговорити з корчмарем',once:1,run(){s.met.levko=1;return `${P('Левко')} довго дивиться на тебе з-за шинквасу. ${Q('Хранитель? Думав, вас усіх забрала Мла. Ну, сідай, коли вже прийшов. Чутки в мене є, та задарма не віддаю — хіба що загадку відгадаєш')}. Він хитає головою на пірс: ${Q('Мирон тамтої ночі махав ліхтарем на твій вогонь. Іди до нього. А про Остапа знає знахарка Ганна, тільки чужих вона не приймає')}.${s.disc.chaika?'':` ${Q('Після шторму щось темніє на західних скелях. Глянь туди з маяка, коли повернешся')}.`}`}},
     {id:'pay',t:'Заплатити за чутки',c:{coin:10},show:()=>s.met.levko&&!!s.f.herbsDone&&!s.disc.cave,run(){reveal('cave');return `${P('Левко')} нахиляється: ${Q('Контрабандисти ховаються в печері на західному березі. Як підеш, бери світло')}.`}},
     {id:'talk2',t:'Розговорити його',chk:['speech',2],show:()=>s.met.levko&&!!s.f.herbsDone&&!s.disc.cave,run(){reveal('cave');xp(10);return `Після третьої історії ${P('Левко')} сміється й задарма розповідає про ${L_('печеру на західному березі')}.`}},
     {id:'riddle',once:1,show:()=>s.met.levko,riddle:{q:'У воді родиться, а води боїться. Що це?',ans:['сіль','соль'],hint:()=>`${P('Левко')} підсовує тобі миску юшки: ${Q('Скуштуй. Чогось бракує, правда? А корчма ж моя як зветься?')}`},run(){xp(20);add('coin',5);trust('rot',4,'Левко сміється з твоєї кмітливості');if(!s.disc.cave&&s.f.herbsDone){reveal('cave');return `${P('Левко')} регоче: ${Q('Сіль! Тримай п’ять монет і чутку на додачу: контрабандисти сидять у печері на західному березі')}.`}return `${P('Левко')} регоче: ${Q('Сіль! Тримай п’ять монет за кмітливість')}.`}},
@@ -3379,11 +3378,11 @@ function novCan(){return noGap()||(!s.cb&&!s.raid&&!(s.dlg||[]).length&&!away()&
 function novOptional(){return novCan()&&(noGap()||!s.novLast||(s.novUsed||{})[s.novLast]||(s.play||0)-(s.lastNov||0)>=90)}
 const noGap=()=>typeof NOGAP!=='undefined'&&!!NOGAP;
 const calm=()=>noGap()||(s.play||0)-(s.lastNov==null?-1e9:s.lastNov)>=NOVGAP;
-function unlock(t){if(!s.tabs[t]){s.tabs[t]=1;novMark();s.newTab[t]=1;if(SUBT[t]){s.newTab.tower=1;s.ttNew=typeof s.ttNew==='object'&&s.ttNew?s.ttNew:{};s.ttNew[t]=1}dirty=1;if(t==='hero'){if(s.h.xpb){const b=s.h.xpb;s.h.xpb=0;xp(b)}}const nm=(TABS.find(x=>x[0]===t)||[0,SUBT[t]||''])[1];if(t!=='shore')dlg({k:'world',title:`Відкрито: ${nm}`,body:`<p>${TABV[t]||TABINFO[t]||''}${TABV[t]&&TABINFO[t]?ih(TABINFO[t]):''}</p>`,gains:[SUBT[t]?`«${nm}» — у вкладці «Маяк».`:`Відкрилася вкладка «${nm}».`]})}}
+function unlock(t,quiet=false){if(!s.tabs[t]){s.tabs[t]=1;novMark();s.newTab[t]=1;if(SUBT[t]){s.newTab.tower=1;s.ttNew=typeof s.ttNew==='object'&&s.ttNew?s.ttNew:{};s.ttNew[t]=1}dirty=1;if(t==='hero'){if(s.h.xpb){const b=s.h.xpb;s.h.xpb=0;xp(b)}}const nm=(TABS.find(x=>x[0]===t)||[0,SUBT[t]||''])[1];if(t!=='shore'&&!quiet)dlg({k:'world',title:`Відкрито: ${nm}`,body:`<p>${TABV[t]||TABINFO[t]||''}${TABV[t]&&TABINFO[t]?ih(TABINFO[t]):''}</p>`,gains:[SUBT[t]?`«${nm}» — у вкладці «Маяк».`:`Відкрилася вкладка «${nm}».`]})}}
 function page(n){if(!s.pages.includes(n)){s.pages.push(n);if(n===1)s.met.ostap=1;dlg({k:'story',title:n==='m'?'Записка Остапа без номера':`Записка Остапа, аркуш ${n}`,body:`<div class="note">${PG[n].replace(/ — О\.$/,'')}<span class="sig">— О.</span></div>`,gains:['Записку збережено в журналі.']});unlock('journal');dirty=1}}
 function book(id){if(!s.books.includes(id)){s.books.push(id);dirty=1}}
 function odd(id,pre){if(s.odd[id])return;s.odd[id]=1;s.oddNew=(s.oddNew||0)+1;xp(20);say((pre?pre+' ':'')+`Дивина: ${I(OD[id].n)}. +${Math.round(20*XPST[stageNo()])} досвіду.`,'find');const ik=ODI[id];dlg({k:'find',title:`Дивина: ${OD[id].n}`,img:{t:'icon',id:ik},body:`<p>${pre?pre+' ':''}${OD[id].d}</p>`,gains:['+20 досвіду',`Знайдено дивин: ${Object.keys(s.odd).length}`]})}
-function reveal(id){if(!s.disc[id]){s.disc[id]=1;dirty=1;const L=LOC[id];mom('disc',L.n,L.d,{t:'scene',id:id==='bay'?'bayHigh':id});dlg({k:'world',title:`Нове місце: ${L.n}`,img:{t:'scene',id:id==='bay'?'bayHigh':id},body:`<p>${L.d}</p>`,gains:['Нове місце на мапі.',L.sea?'Туди можна дістатися лише човном, і вихід у море коштує провізію.':'',L.dark?'Там темно: візьми в руку ліхтар.':''].filter(Boolean)})}}
+function reveal(id,quiet=false){if(!s.disc[id]){s.disc[id]=1;dirty=1;const L=LOC[id];mom('disc',L.n,L.d,{t:'scene',id:id==='bay'?'bayHigh':id});if(!quiet)dlg({k:'world',title:`Нове місце: ${L.n}`,img:{t:'scene',id:id==='bay'?'bayHigh':id},body:`<p>${L.d}</p>`,gains:['Нове місце на мапі.',L.sea?'Туди можна дістатися лише човном, і вихід у море коштує провізію.':'',L.dark?'Там темно: візьми в руку ліхтар.':''].filter(Boolean)})}}
 function boat(){s.f.boat=1;reveal('reef')}
 function logOf(x){return typeof x==='string'?{m:x,t:'info'}:x}
 const TAGN={plan:'креслення',find:'знахідка',fight:'бій',story:'сюжет',lvl:'зростання',world:'світ',info:'подія'};
@@ -3433,6 +3432,8 @@ function repCost(b){const n=Math.max(0,(s.b[b.id]||1)-1),c={},m=0.5*Math.max(0.5
 function bCost(b){const n=s.b[b.id]||0,c={};for(const k in b.base)c[k]=Math.ceil(b.base[k]*Math.pow(b.mult,n));if(b.id==='hearth'&&n>=3)c.scrap=Math.ceil(4*Math.pow(1.6,n-3));return c}
 function rcCost(rc){const m=(s.h.ft.smith?0.75:1)*(fuL('work')>=1?0.85:1);if(m===1)return rc.c;const c={};for(const k in rc.c)c[k]=Math.ceil(rc.c[k]*m);return c}
 const scanCost=()=>28*Math.pow(2,s.scans);
+// Причал — перша мета; далі корчмар підказує, де шукати уламки. Скелі відкривають люди.
+const scanTarget=()=>s.tabs.map&&s.floors.gallery&&!s.at&&s.met.levko&&!s.disc.chaika?'chaika':null;
 const sigCost=()=>Math.round(200*Math.pow(1.5,Math.min(s.sig||0,6))*(s.rs.signals?0.7:1)*(fuL('gallery')>=2?0.7:1)*(fac('sails')>=80?0.7:1));
 const SEAFOOD=2;
 const price=p=>Math.ceil(p*(s.f.crateDone?0.8:1)*(s.h.ft.trader?0.8:1)*(fac('rot')>=20?0.9:1)*(s.f.coinSet?0.9:1));
@@ -3974,10 +3975,13 @@ const FORD=[
   {id:'rope',n:'Поруччя',d:'Мотузка між вішками: тримає, коли хвиля б’є під ноги.',c:{wood:30,fish:20,scrap:20}},
   {id:'lamp',n:'Ліхтар на дальньому кінці',d:'Світло, що веде бродом і в тумані.',c:{oil:6,scrap:40,ember:300},req:()=>!!s.f.siege1,reqT:'Спершу треба вистояти, коли Мла прийде до маяка.'}];
 const fordN=()=>FORD.filter(p=>(s.ford||{})[p.id]).length;
-function fordPart(id){const P=FORD.find(p=>p.id===id);if(!P||!s.f.fordSeen||(s.ford||{})[id])return false;if(!tideLow()){say('Брід під водою. Працювати можна лише на відпливі.','info');return false}
-  if(P.req&&!P.req()){say(P.reqT,'info');return false}if(!afford(P.c))return false;pay(P.c);s.ford=s.ford||{};s.ford[id]=1;xp(8);
-  if(fordN()===FORD.length){s.f.fordDone=1;unlock('map');reveal('village');
-    dlg({k:'story',title:'Брід позначено',img:{t:'scene',id:'shore'},body:`<p>Ліхтар на дальньому кінці броду засвітився. Із вішками, поруччям і світлом брід не підведе навіть тоді, коли вода сягає колін: тепер можна ходити на великий острів — туди, де ночами горять вогні Причалу.</p>`,gains:['Відкрилося: Мапа']})}
+const fordNext=()=>FORD.find(p=>!(s.ford||{})[p.id]);
+const fordReady=()=>{const p=fordNext();return p&&(!p.req||p.req())?p:null};
+const fordVisible=()=>FORD.filter(p=>(s.ford||{})[p.id]||p===fordReady());
+function fordPart(id){const P=FORD.find(p=>p.id===id);if(!P||!s.f.fordSeen||(s.ford||{})[id]||P!==fordNext())return false;if(!tideLow()){say('Брід під водою. Працювати можна лише на відпливі.','info');return false}
+  if(P.req&&!P.req()){if(s.f.mlaNote)say(P.reqT,'info');return false}if(!afford(P.c))return false;pay(P.c);s.ford=s.ford||{};s.ford[id]=1;novMark();dirty=1;xp(8);
+  if(fordN()===FORD.length){s.f.fordDone=1;unlock('map',true);reveal('village',true);
+    dlg({k:'story',title:'Брід позначено',img:{t:'scene',id:'shore'},body:`<p>Ліхтар на дальньому кінці броду засвітився. Із вішками, поруччям і світлом брід не підведе навіть тоді, коли вода сягає колін: тепер можна ходити на великий острів — туди, де ночами горять вогні Причалу.</p>`,gains:['Відкрилося: Мапа','На мапі позначено Гнилий Причал.']})}
   else say(`${P.n}: готово. Брід стає надійнішим.`,'build');return true}
 /* Калюжі на відпливі */
 function poolPick(){if(!tideLow()||onCd('pool'))return;setCd('pool',4);s.c.pool=(s.c.pool||0)+1;const n=1+(Math.random()<.4?1:0);add('fish',n);
@@ -3993,7 +3997,8 @@ function shoreFordHS(W,H){let h='';
   if(s.f.fordSeen&&!s.f.fordDone)h+=ob('sh:ford','bpop','sh:ford',obURL('fp3:'+fordN(),()=>fordPost3(fordN())),40,58,W,H,'Брід','<b>Брід</b><br>'+tideTxt(),{pulse:tideLow()?1:0,always:tideLow()?1:0});
   return h}
 function fordPopHTML(){const low=tideLow();return`<div class="bpop" role="dialog" aria-label="Брід"><div class="bph"><b>Брід на великий острів</b><button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div>
-  <p class="m">${VH(tideTxt)}</p><div class="rlist">${FORD.map(P=>{const done=(s.ford||{})[P.id],lock=P.req&&!P.req();return`<div class="row"><span><b>${P.n}</b>${done?' ✓':''}<br><span class="m">${lock?P.reqT:P.d}</span></span>${done?'':btn('Зробити','ford',P.id,{ok:()=>tideLow()&&!lock&&afford(P.c)})}${done?'':`<span class="ccs">${costTxt(P.c)}</span>`}</div>`}).join('')}</div>
+  <p class="m">${VH(tideTxt)}</p><div class="rlist">${fordVisible().map(P=>{const done=(s.ford||{})[P.id],lock=P.req&&!P.req();return`<div class="row"><span><b>${P.n}</b>${done?' ✓':''}<br><span class="m">${lock?P.reqT:P.d}</span></span>${done?'':btn('Зробити','ford',P.id,{ok:()=>tideLow()&&!lock&&afford(P.c)})}${done?'':`<span class="ccs">${costTxt(P.c)}</span>`}</div>`}).join('')}</div>
+  ${!fordReady()&&!s.f.fordDone?`<p class="hint">${s.f.mlaNote?'Спершу вистояти, коли Мла прийде до маяка.':'Стежку вже позначено. Залишилося зробити її безпечною в тумані.'}</p>`:''}
   ${low?'':'<p class="hint">Камінь зараз під водою — чекай відпливу.</p>'}</div>`}
 
 /* перший відплив пояснюється (#40): море відступає — на березі з'являються калюжі */
@@ -4729,7 +4734,7 @@ function act0(a,i){
   case 'tt':popB='';if(i==='cut'||s.tabs[i]){zoomPrep(i);ttGo(i)}break;
   case 'eat':if(s.r.fish>=1&&s.h.hp<maxHP()){s.r.fish--;s.h.hp=Math.min(maxHP(),s.h.hp+8)}break;
   case 'eatp':if(s.r.prov>=1&&s.h.hp<maxHP()){s.r.prov--;s.h.hp=Math.min(maxHP(),s.h.hp+15)}break;
-  case 'scan':{const nx=SCAN.find(x=>!s.disc[x]);if(nx&&s.tabs.map&&s.r.ember>=scanCost()){s.r.ember-=scanCost();s.scans++;reveal(nx);say(SCANMSG[nx]+' Місце з’явилося на мапі.','world')}break}
+  case 'scan':{const nx=scanTarget();if(nx&&s.r.ember>=scanCost()){s.r.ember-=scanCost();s.scans++;novMark();reveal(nx);say(SCANMSG[nx]+' Місце з’явилося на мапі.','world')}break}
   case 'go':{const[ok,why]=canGo(i);if(!ok){say(why);break}snap9('map');if(LOC[i].sea){const pv=seaCost(LOC[i]);s.r.prov-=pv;say(`Ти виходиш у море. Витрачено ${R('prov',pv)}.`,'world')}s.at=i;s.tab='map';popB='';if(!s.visited[i]){s.visited[i]=1;xp(5);if(LOC[i].first)LOC[i].first()}wolfSniff(i);break}
   case 'leave':s.at='';popB='';break;
   case 'la':doLA(i);break;
@@ -5106,7 +5111,7 @@ function rMapList(){const u=0;
       h+=`<button type="button" class="mk${s.visited[k]?' vis':''}${ok?'':' far'}" style="left:${x/160*100}%;top:${y/108*100}%" data-a="go" data-i="${k}" aria-label="${LOC[k].n}"><span>${LOC[k].n}</span></button>`}
     h+=`<span class="mk home" style="left:${MAPPT.tower[0]/160*100}%;top:${MAPPT.tower[1]/108*100}%"><span>Маяк</span></span></div>`}
 
-  if(SCAN.some(x=>!s.disc[x]))h+=`<div class="row"><div><b>Далекогляд</b><br><span class="m">Пробити млу й знайти нове місце.</span></div>${btn(`Оглянути обрій (${R('ember',fmt(scanCost()))})`,'scan','',{ok:()=>s.r.ember>=scanCost()})}</div>`;
+  if(scanTarget())h+=`<div class="row"><div><b>Далекогляд</b><br><span class="m">Пробити млу й знайти нове місце.</span></div>${btn(`Оглянути обрій (${R('ember',fmt(scanCost()))})`,'scan','',{ok:()=>s.r.ember>=scanCost()})}</div>`;
   h+=`<div class="row"><div><b>Сигнальне вогнище</b><br><span class="m">Великий вогонь на оглядовій кличе кораблі, що минають шхери. Вони скидають вантаж. Раз на дві хвилини.</span></div>${btn(`Запалити (${R('ember',fmt(sigCost()))})`,'signal','',{ok:()=>s.r.ember>=sigCost(),cd:'signal',cs:120})}</div>`;
   h+=`</section><section><h2>Відомі місця</h2>${s.f.boat?`<p class="m">Вихід у море коштує ${R('prov',SEAFOOD)}${s.f.schooner?`, похід на шхуні — ${R('prov',SEAFOOD*2)}`:''}.</p>`:''}<div class="lcards">`;
   for(const id in LOC)if(s.disc[id]){const L=LOC[id],[ok,why]=canGo(id);
@@ -5960,11 +5965,11 @@ function mapScene(){const W=MPW,H=MPH,st={disc:s.disc,visited:s.visited,boat:s.f
   for(const k in LOC){if(!s.disc[k]||!MAPPT[k])continue;const[x,y]=MAPPT[k],[ok]=canGo(k),kind=!s.visited[k]?'new':ok?'vis':'far',L=LOC[k];
     h+=ob('mp:'+k,'bpop','mp:'+k,obURL('mpm3:'+kind,()=>mpMark3(kind)),x*MPK-6,y*MPK-7,W,H,L.n,`<b>${L.n}</b><br>${s.visited[k]?'Відвідано.':'Ще не бував.'}`,{pulse:kind==='new'?1:0,always:kind==='new'?1:0,cls:'mpk '+kind,inner:`<span class="mpl">${L.n}</span>`})}
   const[tx,ty]=MAPPT.tower;h+=ob('mp:tower','bpop','mp:tower',obURL('mpt3:'+(s.f.won?1:0),()=>mpTower3(!!s.f.won)),tx*MPK-8,ty*MPK-24,W,H,'Маяк','<b>Маяк</b><br>Далекогляд і сигнальне вогнище.',{cls:'mpk',inner:'<span class="mpl">Маяк</span>'});
-  if(s.floors.gallery&&SCAN.some(x=>!s.disc[x]))h+=ob('mp:spy','bpop','mp:tower',obURL('mpspy3',mpSpy3),376,262,W,H,'Далекогляд','<b>Далекогляд</b><br>Пробити млу й знайти нове місце.',{});
+  if(scanTarget())h+=ob('mp:spy','bpop','mp:tower',obURL('mpspy3',mpSpy3),376,262,W,H,'Далекогляд','<b>Далекогляд</b><br>Пробити млу й знайти нове місце.',{});
   return`<div class="scn mp" data-scn="mp" style="${scnD()}">${h}${fxCanvas('mp',W,H)}</div>`}
 function mapPopHTML(id){const card=(nm,lv,body,act)=>`<div class="bpop" role="dialog" aria-label="${nm}"><div class="bph"><b>${nm}</b>${lv?`<span class="bplv">${lv}</span>`:''}<button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div>${body}${act?`<div class="act">${act}</div>`:''}</div>`;
   const k=id.slice(3);
-  if(k==='tower'){let b='',a='';if(s.floors.gallery&&SCAN.some(x=>!s.disc[x]))b+=`<div class="row"><span><b>Далекогляд</b><br><span class="m">Пробити млу й знайти нове місце.</span></span>${btn('Оглянути обрій','scan','',{ok:()=>s.r.ember>=scanCost()})}<span class="ccs">${R('ember',fmt(scanCost()))}</span></div>`;
+  if(k==='tower'){let b='',a='';if(scanTarget())b+=`<div class="row"><span><b>Далекогляд</b><br><span class="m">Пробити млу й знайти нове місце.</span></span>${btn('Оглянути обрій','scan','',{ok:()=>s.r.ember>=scanCost()})}<span class="ccs">${R('ember',fmt(scanCost()))}</span></div>`;
     if(s.floors.gallery)b+=`<div class="row"><span><b>Сигнальне вогнище</b><br><span class="m">Великий вогонь кличе кораблі, що минають шхери. Вони скидають вантаж. Раз на дві хвилини.</span></span>${btn('Запалити','signal','',{ok:()=>s.r.ember>=sigCost(),cd:'signal',cs:120})}<span class="ccs">${R('ember',fmt(sigCost()))}</span></div>`;
     if(!b)b='<p class="hand">Звідси видно лише найближчі береги. Вище, з оглядової, було б видно далі.</p>';return card('Маяк','',`<div class="rlist">${b}</div>`,a)}
   const L=LOC[k];if(!L||!s.disc[k])return'';const[ok,why]=canGo(k);const tags=[s.visited[k]?'відвідано':'нове',L.sea===2?'шхуна':L.sea?'море':'',L.dark?'темрява':''].filter(Boolean).map(t=>`<span class="chip">${t}</span>`).join(' ');

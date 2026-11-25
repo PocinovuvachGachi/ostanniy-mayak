@@ -22,10 +22,13 @@ const FORD=[
   {id:'rope',n:'Поруччя',d:'Мотузка між вішками: тримає, коли хвиля б’є під ноги.',c:{wood:30,fish:20,scrap:20}},
   {id:'lamp',n:'Ліхтар на дальньому кінці',d:'Світло, що веде бродом і в тумані.',c:{oil:6,scrap:40,ember:300},req:()=>!!s.f.siege1,reqT:'Спершу треба вистояти, коли Мла прийде до маяка.'}];
 const fordN=()=>FORD.filter(p=>(s.ford||{})[p.id]).length;
-function fordPart(id){const P=FORD.find(p=>p.id===id);if(!P||!s.f.fordSeen||(s.ford||{})[id])return false;if(!tideLow()){say('Брід під водою. Працювати можна лише на відпливі.','info');return false}
-  if(P.req&&!P.req()){say(P.reqT,'info');return false}if(!afford(P.c))return false;pay(P.c);s.ford=s.ford||{};s.ford[id]=1;xp(8);
-  if(fordN()===FORD.length){s.f.fordDone=1;unlock('map');reveal('village');
-    dlg({k:'story',title:'Брід позначено',img:{t:'scene',id:'shore'},body:`<p>Ліхтар на дальньому кінці броду засвітився. Із вішками, поруччям і світлом брід не підведе навіть тоді, коли вода сягає колін: тепер можна ходити на великий острів — туди, де ночами горять вогні Причалу.</p>`,gains:['Відкрилося: Мапа']})}
+const fordNext=()=>FORD.find(p=>!(s.ford||{})[p.id]);
+const fordReady=()=>{const p=fordNext();return p&&(!p.req||p.req())?p:null};
+const fordVisible=()=>FORD.filter(p=>(s.ford||{})[p.id]||p===fordReady());
+function fordPart(id){const P=FORD.find(p=>p.id===id);if(!P||!s.f.fordSeen||(s.ford||{})[id]||P!==fordNext())return false;if(!tideLow()){say('Брід під водою. Працювати можна лише на відпливі.','info');return false}
+  if(P.req&&!P.req()){if(s.f.mlaNote)say(P.reqT,'info');return false}if(!afford(P.c))return false;pay(P.c);s.ford=s.ford||{};s.ford[id]=1;novMark();dirty=1;xp(8);
+  if(fordN()===FORD.length){s.f.fordDone=1;unlock('map',true);reveal('village',true);
+    dlg({k:'story',title:'Брід позначено',img:{t:'scene',id:'shore'},body:`<p>Ліхтар на дальньому кінці броду засвітився. Із вішками, поруччям і світлом брід не підведе навіть тоді, коли вода сягає колін: тепер можна ходити на великий острів — туди, де ночами горять вогні Причалу.</p>`,gains:['Відкрилося: Мапа','На мапі позначено Гнилий Причал.']})}
   else say(`${P.n}: готово. Брід стає надійнішим.`,'build');return true}
 /* Калюжі на відпливі */
 function poolPick(){if(!tideLow()||onCd('pool'))return;setCd('pool',4);s.c.pool=(s.c.pool||0)+1;const n=1+(Math.random()<.4?1:0);add('fish',n);
@@ -41,7 +44,8 @@ function shoreFordHS(W,H){let h='';
   if(s.f.fordSeen&&!s.f.fordDone)h+=ob('sh:ford','bpop','sh:ford',obURL('fp3:'+fordN(),()=>fordPost3(fordN())),40,58,W,H,'Брід','<b>Брід</b><br>'+tideTxt(),{pulse:tideLow()?1:0,always:tideLow()?1:0});
   return h}
 function fordPopHTML(){const low=tideLow();return`<div class="bpop" role="dialog" aria-label="Брід"><div class="bph"><b>Брід на великий острів</b><button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div>
-  <p class="m">${VH(tideTxt)}</p><div class="rlist">${FORD.map(P=>{const done=(s.ford||{})[P.id],lock=P.req&&!P.req();return`<div class="row"><span><b>${P.n}</b>${done?' ✓':''}<br><span class="m">${lock?P.reqT:P.d}</span></span>${done?'':btn('Зробити','ford',P.id,{ok:()=>tideLow()&&!lock&&afford(P.c)})}${done?'':`<span class="ccs">${costTxt(P.c)}</span>`}</div>`}).join('')}</div>
+  <p class="m">${VH(tideTxt)}</p><div class="rlist">${fordVisible().map(P=>{const done=(s.ford||{})[P.id],lock=P.req&&!P.req();return`<div class="row"><span><b>${P.n}</b>${done?' ✓':''}<br><span class="m">${lock?P.reqT:P.d}</span></span>${done?'':btn('Зробити','ford',P.id,{ok:()=>tideLow()&&!lock&&afford(P.c)})}${done?'':`<span class="ccs">${costTxt(P.c)}</span>`}</div>`}).join('')}</div>
+  ${!fordReady()&&!s.f.fordDone?`<p class="hint">${s.f.mlaNote?'Спершу вистояти, коли Мла прийде до маяка.':'Стежку вже позначено. Залишилося зробити її безпечною в тумані.'}</p>`:''}
   ${low?'':'<p class="hint">Камінь зараз під водою — чекай відпливу.</p>'}</div>`}
 
 /* перший відплив пояснюється (#40): море відступає — на березі з'являються калюжі */

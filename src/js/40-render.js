@@ -311,7 +311,7 @@ function rMapList(){const u=0;
       h+=`<button type="button" class="mk${s.visited[k]?' vis':''}${ok?'':' far'}" style="left:${x/160*100}%;top:${y/108*100}%" data-a="go" data-i="${k}" aria-label="${LOC[k].n}"><span>${LOC[k].n}</span></button>`}
     h+=`<span class="mk home" style="left:${MAPPT.tower[0]/160*100}%;top:${MAPPT.tower[1]/108*100}%"><span>Маяк</span></span></div>`}
 
-  if(SCAN.some(x=>!s.disc[x]))h+=`<div class="row"><div><b>Далекогляд</b><br><span class="m">Пробити млу й знайти нове місце.</span></div>${btn(`Оглянути обрій (${R('ember',fmt(scanCost()))})`,'scan','',{ok:()=>s.r.ember>=scanCost()})}</div>`;
+  if(scanTarget())h+=`<div class="row"><div><b>Далекогляд</b><br><span class="m">Пробити млу й знайти нове місце.</span></div>${btn(`Оглянути обрій (${R('ember',fmt(scanCost()))})`,'scan','',{ok:()=>s.r.ember>=scanCost()})}</div>`;
   h+=`<div class="row"><div><b>Сигнальне вогнище</b><br><span class="m">Великий вогонь на оглядовій кличе кораблі, що минають шхери. Вони скидають вантаж. Раз на дві хвилини.</span></div>${btn(`Запалити (${R('ember',fmt(sigCost()))})`,'signal','',{ok:()=>s.r.ember>=sigCost(),cd:'signal',cs:120})}</div>`;
   h+=`</section><section><h2>Відомі місця</h2>${s.f.boat?`<p class="m">Вихід у море коштує ${R('prov',SEAFOOD)}${s.f.schooner?`, похід на шхуні — ${R('prov',SEAFOOD*2)}`:''}.</p>`:''}<div class="lcards">`;
   for(const id in LOC)if(s.disc[id]){const L=LOC[id],[ok,why]=canGo(id);
