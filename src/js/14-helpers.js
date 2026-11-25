@@ -87,6 +87,13 @@ const people=()=>(s.pop||0)+Object.keys(s.mst||{}).length;
 const freeW=()=>(s.pop||0)-Object.values(s.wk||{}).reduce((a,b)=>a+b,0)-(s.exp||[]).reduce((a,e)=>a+e.crew,0);
 function eff(id,fed){const n=s.b[id]||0;if(!n||(s.dmgB||{})[id])return 0;const w=Math.min(n,(s.wk||{})[id]||0);return(n+0.5*w*fed)*(mstOf(id)?2:1)}
 function loreRate(){return(fuL('study')>=1?1.5:1)*(0.2+0.1*s.books.length+(s.f.ostap?0.5:0))*(1+0.25*(s.b.shelves||0))*(1+0.1*Math.max(0,s.h.a.int-2))}
+// Резерви захищають лише від автоматичного споживання; ручні покупки та виготовлення не обмежуються.
+const STOCK_RESERVE={wood:10,scrap:6,fish:8,ember:160};
+const reserveOn=id=>!(s.reserveFree||{})[id];
+const reserveAmount=(id,k)=>reserveOn(id)?(STOCK_RESERVE[k]||0):0;
+const reserveAvailable=(id,k,v)=>Math.max(0,v-reserveAmount(id,k));
+function reserveInputs(id){return Object.keys(id==='hearth'?{wood:1}:(CONV[id]||{in:{}}).in).filter(k=>STOCK_RESERVE[k])}
+function reserveText(id){if(!reserveOn(id))return 'Резерв вимкнено: може витрачати весь запас.';const keys=reserveInputs(id);if(!keys.length)return '';const low=keys.filter(k=>s.r[k]<=STOCK_RESERVE[k]+.01);return 'Резерв: '+keys.map(k=>RN[k]+' '+STOCK_RESERVE[k]).join(', ')+(low.length&&s.on[id]!==false&&!((s.dmgB||{})[id])?' · обмежено запасом: '+low.map(k=>RN[k]).join(', '):'')+'.'}
 function flow(dt,dry){const L=s.b,d={};for(const k of RES)d[k]=0;const av=k=>s.r[k]+d[k];
   const eat=0.02*people()*dt;let fed=1;if(eat>0){fed=Math.min(1,Math.max(0,av('prov'))/eat);d.prov-=eat*fed;fed=0.5+0.5*fed}
   const E=id=>eff(id,fed),idle=Math.max(0,freeW());
@@ -98,9 +105,9 @@ function flow(dt,dry){const L=s.b,d={};for(const k of RES)d[k]=0;const av=k=>s.r
   if(s.floors.study)d.lore+=loreRate()*dt;
   if(s.f.won)d.coin+=((s.f.won2?5:2)+(fuL('lantern')>=3?2:0))*dt;
   d.ember+=dt;
-  const hn=L.hearth||0;if(hn&&s.on.hearth!==false){const need=0.12*hn*dt*(fuL('hall')>=2?0.7:1),ratio=Math.min(1,Math.max(0,av('wood'))/need);d.wood-=need*ratio;d.ember+=2*hn*dt*ratio*(fuL('hall')>=1?1.25:1)}
+  const hn=L.hearth||0;if(hn&&s.on.hearth!==false){const need=0.12*hn*dt*(fuL('hall')>=2?0.7:1),ratio=Math.min(1,reserveAvailable('hearth','wood',av('wood'))/need);d.wood-=need*ratio;d.ember+=2*hn*dt*ratio*(fuL('hall')>=1?1.25:1)}
   for(const id in CONV){const n=E(id)*((id==='smoke'||id==='render')&&s.rs.a_eel?1.5:1)*(id==='smoke'&&fac('cape')>=50?1.25:1)*(id==='smoke'&&(s.mst||{}).zinovii?2:1)*(id==='glass'&&s.rs.a_shark?1.25:1);if(!n||s.on[id]===false)continue;const C=CONV[id];let ratio=1;
-    for(const k in C.in)ratio=Math.min(ratio,Math.max(0,av(k))/(C.in[k]*n*dt));
+    for(const k in C.in)ratio=Math.min(ratio,reserveAvailable(id,k,av(k))/(C.in[k]*n*dt));
     if(typeof capOf==='function')for(const k in C.out)if(s.r[k]>=capOf(k))ratio=0;
     if(!(ratio>0))continue;for(const k in C.in)d[k]-=C.in[k]*n*dt*ratio;for(const k in C.out)d[k]+=C.out[k]*n*dt*ratio}
   if(!dry)for(const k of RES)if(d[k]){add(k,d[k]);if(s.r[k]<0)s.r[k]=0}

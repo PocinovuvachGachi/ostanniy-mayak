@@ -116,24 +116,25 @@ function rPeople(){const cap=2*(s.b.house||0),pop=s.pop||0,ms=Object.keys(MST).f
 const scnD=()=>`--d:-${((Date.now()/1000)%30).toFixed(2)}s;--d2:-${((Date.now()/1000)%180).toFixed(2)}s`;
 function homeScene(){return`<div class="scn yd" data-scn="yd" style="${scnD()}"><span data-sk="bg" data-sig="bg" class="scbg">${VH(yardBgImg)}</span>${homeHS()}</div>`}
 function shoreScene(){return`<div class="scn sh" data-scn="sh" style="${scnD()}"><span data-sk="bg" data-sig="bg" class="scbg">${VH(shoreImg)}</span>${shoreHS()}</div>`}
+function reserveButton(id){return reserveInputs(id).length?btn(reserveOn(id)?'Дозволити витрачати резерв':'Захищати резерв','reserve',id,{cls:'toggle'}):''}
 function rHome(){let h=`<div>`;
   h+=`<section><div class="big">${V(()=>fmt(s.r.ember))}</div><p class="m">жару, ${V(()=>{const v=rates().ember;return(v>=0?'+':'')+fr(v)})} за секунду</p><p>${homeText()}</p>`;
   let al='';if(!s.b.hearth)al+=btn('Подмухати на жарину','blow','',{cd:'blow',cs:2});
   if(!s.f.looked&&s.f.lk)al+=btn('Роззирнутися','look','',{cls:'main'});
   if(s.f.looked&&s.seen.wood){const n=s.b.hearth||0;
     al+=`<div class="act">${btn(`${n?'Підкинути дров':'Скласти вогнище'} (${costTxt(bCost(HEARTH))})`,'bld','hearth',{ok:()=>afford(bCost(HEARTH)),cls:n?'':'main'})}${n?btn(s.on.hearth===false?'Розпалити':'Пригасити','tog','hearth',{cls:'toggle'}):''}</div>`;
-    if(n)h+=`<p class="m">Вогнище, рівень ${n}: дає +${2*n} жару/с і спалює ${fr(0.12*n)} плавника/с. Без плавника ледь тліє.</p>`}
+    if(n)h+=`<p class="m">Вогнище, рівень ${n}: дає +${2*n} жару/с і спалює ${fr(0.12*n)} плавника/с. Без плавника ледь тліє.</p><p class="m">${V(()=>reserveText('hearth'))}</p>${reserveButton('hearth')}`}
   if(s.tabs.tower)al+=btn('Нагору, до поверхів','tab','tower',{cls:'toggle'});if(s.tabs.shore)al+=btn('До берега','tab','shore',{cls:'toggle'});
   h+=`<details class="alist"><summary>Усі дії списком</summary><div>${al}</div></details></section>`;
   if(thrOn())h+=rDefense();
   if(s.f.people)h+=rPeople();
   const vis=BD.filter(b=>b.show());
-  if(vis.length){h+=`<section class="ledger"><details class="ledg"${s.ldOpen?' open':''}><summary><span class="lgt">Книга обліку</span><span class="m"> · усі будівлі одним списком</span></summary><h2 class="sr">Господарство${ih(`Цехи переробляють сировину, поки ввімкнені. Вимкни цех, щоб він не з’їдав те, що потрібне деінде.${s.f.people?' Робітник додає будівлі пів рівня, а майстер у своїй будівлі подвоює все.':''}`)}</h2>`;
+  if(vis.length){h+=`<section class="ledger"><details class="ledg"${s.ldOpen?' open':''}><summary><span class="lgt">Книга обліку</span><span class="m"> · усі будівлі одним списком</span></summary><h2 class="sr">Господарство${ih(`Цехи автоматично бережуть резерв сировини. Дозволь витрачати резерв для окремого цеху або вимкни цех зовсім.${s.f.people?' Робітник додає будівлі пів рівня, а майстер у своїй будівлі подвоює все.':''}`)}</h2>`;
     for(const b of vis){const n=s.b[b.id]||0,w=(s.wk||{})[b.id]||0,mx=b.max&&n>=b.max;
       const wk=s.f.people&&n&&WKB.includes(b.id)?`<br><span class="wk">${mstOf(b.id)?'<span class="chip">майстер ×2</span> ':''}робітники <b>${w}</b> з ${n} ${btn('−','wk-',b.id,{cls:'toggle',ok:w>0,lab:'Зняти робітника'})}${btn('+','wk+',b.id,{cls:'toggle',ok:()=>freeW()>0&&w<n,lab:'Додати робітника'})}</span>`:(n&&mstOf(b.id)&&!b.nw?'<br><span class="chip">майстер ×2</span>':'');
       const dm=(s.dmgB||{})[b.id],rc=dm?repCost(b):null;
       if(dm){h+=`<div class="row" id="bd-${b.id}"><div><b>${b.n}</b> <span class="foe">пошкоджено</span><br><span class="m">Мла зламала будівлю. Поки її не полагодиш, вона не працює.</span></div>${btn(`Полагодити (${costTxt(rc)})`,'repair',b.id,{ok:()=>afford(rc),cls:'main'})}</div>`;continue}
-      h+=`<div class="row" id="bd-${b.id}"><div><b>${b.n}</b>${fresh9('b:'+b.id)}${n&&!b.max?`, рівень ${n}`:''}${b.conv&&n&&s.on[b.id]===false?' <span class="m">(зупинено)</span>':''}<br><span class="m">${b.d()}</span>${wk}</div><div class="act" style="flex:0 1 auto">${b.conv&&n?btn(s.on[b.id]===false?'Увімкнути':'Вимкнути','tog',b.id,{cls:'toggle'}):''}${mx?'<span class="done">збудовано</span>':btn(`${n?'Покращити':'Збудувати'} (${costTxt(bCost(b))})`,'bld',b.id,{ok:()=>afford(bCost(b))})}</div></div>`}
+      h+=`<div class="row" id="bd-${b.id}"><div><b>${b.n}</b>${fresh9('b:'+b.id)}${n&&!b.max?`, рівень ${n}`:''}${b.conv&&n&&s.on[b.id]===false?' <span class="m">(зупинено)</span>':''}<br><span class="m">${b.d()}</span>${n&&b.conv&&reserveInputs(b.id).length?`<br><span class="m">${V(()=>reserveText(b.id))}</span>`:''}${wk}</div><div class="act" style="flex:0 1 auto">${b.conv&&n?btn(s.on[b.id]===false?'Увімкнути':'Вимкнути','tog',b.id,{cls:'toggle'})+reserveButton(b.id):''}${mx?'<span class="done">збудовано</span>':btn(`${n?'Покращити':'Збудувати'} (${costTxt(bCost(b))})`,'bld',b.id,{ok:()=>afford(bCost(b))})}</div></div>`}
     h+=`</details></section>`}
   if(s.b.shipyard){h+=`<section><h2>Верф Захара</h2>`;
     h+=s.f.schooner?`<p>Шхуна «Остап» стоїть біля причалу. На ній можна плисти до північних островів.</p>`:`<div class="row"><div><b>Шхуна</b><br><span class="m">Двощогловий корабель, що пройде крізь північні тумани. Сталь на обшивку, скло на ліхтарі.</span></div>${btn(`Збудувати (${costTxt(SCHOONER)})`,'schooner','',{ok:()=>afford(SCHOONER),cls:'main'})}</div>`;

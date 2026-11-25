@@ -3336,7 +3336,7 @@ const SUBT={kitchen:'Кухня',work:'Майстерня',study:'Кабінет
 
 /* ============ STATE ============ */
 function fresh(){return{
-  r:Object.fromEntries(RES.map(k=>[k,0])),play:0,eraT:[0],nv:{},nvU:{},mom:[{t:0,k:'start',n:'Пробудження',d:'Ти прокидаєшся в темряві з єдиною жариною в долонях.',img:null,mj:1,e:0}],on:{},fac:{rot:0,cape:0,sails:0,silent:-50},req:{},reqT:{},threat:0,def:{},dmgB:{},glSeen:{},fu:{},exp:[],beam:0,wf:{},mst:{},pop:0,popT:0,wk:{},bog:0,bogFail:0,ht:'gear',sig:0,pack:[],belt:[],wm:{},wup:{},dlg:[],raid:0,raidT:0,
+  r:Object.fromEntries(RES.map(k=>[k,0])),play:0,tideEpoch:null,reserveFree:{},eraT:[0],nv:{},nvU:{},mom:[{t:0,k:'start',n:'Пробудження',d:'Ти прокидаєшся в темряві з єдиною жариною в долонях.',img:null,mj:1,e:0}],on:{},fac:{rot:0,cape:0,sails:0,silent:-50},req:{},reqT:{},threat:0,def:{},dmgB:{},glSeen:{},fu:{},exp:[],beam:0,wf:{},mst:{},pop:0,popT:0,wk:{},bog:0,bogFail:0,ht:'gear',sig:0,pack:[],belt:[],wm:{},wup:{},dlg:[],raid:0,raidT:0,
   tot:{ember:0,wood:0,scrap:0,fish:0},
   seen:{ember:1},tabs:{home:1},tab:'home',newTab:{},
   f:{},c:{gather:0,fish:0,wins:0},cd:{},b:{},floors:{},rs:{},
@@ -3438,6 +3438,13 @@ const people=()=>(s.pop||0)+Object.keys(s.mst||{}).length;
 const freeW=()=>(s.pop||0)-Object.values(s.wk||{}).reduce((a,b)=>a+b,0)-(s.exp||[]).reduce((a,e)=>a+e.crew,0);
 function eff(id,fed){const n=s.b[id]||0;if(!n||(s.dmgB||{})[id])return 0;const w=Math.min(n,(s.wk||{})[id]||0);return(n+0.5*w*fed)*(mstOf(id)?2:1)}
 function loreRate(){return(fuL('study')>=1?1.5:1)*(0.2+0.1*s.books.length+(s.f.ostap?0.5:0))*(1+0.25*(s.b.shelves||0))*(1+0.1*Math.max(0,s.h.a.int-2))}
+// Резерви захищають лише від автоматичного споживання; ручні покупки та виготовлення не обмежуються.
+const STOCK_RESERVE={wood:10,scrap:6,fish:8,ember:160};
+const reserveOn=id=>!(s.reserveFree||{})[id];
+const reserveAmount=(id,k)=>reserveOn(id)?(STOCK_RESERVE[k]||0):0;
+const reserveAvailable=(id,k,v)=>Math.max(0,v-reserveAmount(id,k));
+function reserveInputs(id){return Object.keys(id==='hearth'?{wood:1}:(CONV[id]||{in:{}}).in).filter(k=>STOCK_RESERVE[k])}
+function reserveText(id){if(!reserveOn(id))return 'Резерв вимкнено: може витрачати весь запас.';const keys=reserveInputs(id);if(!keys.length)return '';const low=keys.filter(k=>s.r[k]<=STOCK_RESERVE[k]+.01);return 'Резерв: '+keys.map(k=>RN[k]+' '+STOCK_RESERVE[k]).join(', ')+(low.length&&s.on[id]!==false&&!((s.dmgB||{})[id])?' · обмежено запасом: '+low.map(k=>RN[k]).join(', '):'')+'.'}
 function flow(dt,dry){const L=s.b,d={};for(const k of RES)d[k]=0;const av=k=>s.r[k]+d[k];
   const eat=0.02*people()*dt;let fed=1;if(eat>0){fed=Math.min(1,Math.max(0,av('prov'))/eat);d.prov-=eat*fed;fed=0.5+0.5*fed}
   const E=id=>eff(id,fed),idle=Math.max(0,freeW());
@@ -3449,9 +3456,9 @@ function flow(dt,dry){const L=s.b,d={};for(const k of RES)d[k]=0;const av=k=>s.r
   if(s.floors.study)d.lore+=loreRate()*dt;
   if(s.f.won)d.coin+=((s.f.won2?5:2)+(fuL('lantern')>=3?2:0))*dt;
   d.ember+=dt;
-  const hn=L.hearth||0;if(hn&&s.on.hearth!==false){const need=0.12*hn*dt*(fuL('hall')>=2?0.7:1),ratio=Math.min(1,Math.max(0,av('wood'))/need);d.wood-=need*ratio;d.ember+=2*hn*dt*ratio*(fuL('hall')>=1?1.25:1)}
+  const hn=L.hearth||0;if(hn&&s.on.hearth!==false){const need=0.12*hn*dt*(fuL('hall')>=2?0.7:1),ratio=Math.min(1,reserveAvailable('hearth','wood',av('wood'))/need);d.wood-=need*ratio;d.ember+=2*hn*dt*ratio*(fuL('hall')>=1?1.25:1)}
   for(const id in CONV){const n=E(id)*((id==='smoke'||id==='render')&&s.rs.a_eel?1.5:1)*(id==='smoke'&&fac('cape')>=50?1.25:1)*(id==='smoke'&&(s.mst||{}).zinovii?2:1)*(id==='glass'&&s.rs.a_shark?1.25:1);if(!n||s.on[id]===false)continue;const C=CONV[id];let ratio=1;
-    for(const k in C.in)ratio=Math.min(ratio,Math.max(0,av(k))/(C.in[k]*n*dt));
+    for(const k in C.in)ratio=Math.min(ratio,reserveAvailable(id,k,av(k))/(C.in[k]*n*dt));
     if(typeof capOf==='function')for(const k in C.out)if(s.r[k]>=capOf(k))ratio=0;
     if(!(ratio>0))continue;for(const k in C.in)d[k]-=C.in[k]*n*dt*ratio;for(const k in C.out)d[k]+=C.out[k]*n*dt*ratio}
   if(!dry)for(const k of RES)if(d[k]){add(k,d[k]);if(s.r[k]<0)s.r[k]=0}
@@ -3939,18 +3946,22 @@ function beam(){const g=LENSMAP;const M=s.mirrors;const pos={};
   return{path,out,pos,seq}}
 
 /* ============ ПРИПЛИВ І БРІД (етап I) ============
-   Приплив іде за годинником гравця: цикл ~15 хв, з них ~5 хв — відплив. На відпливі відкриваються
+   Перший відплив після трьох риболовель; далі власний цикл збереження ~15 хв, з них ~5 хв — відплив. На відпливі відкриваються
    калюжі між камінням (риба, мідії, зрідка знахідка) і кам'янистий брід на великий острів.
    Брід треба позначити частинами (вішки, поруччя, сходинки, ліхтар) — працювати можна лише на відпливі.
    Готовий брід відкриває Мапу: це міст в етап II. */
-const TIDE=900,TLOW=300;
-/* 0 — повна вода, 1 — найнижчий відплив; плавні переходи по 40 с */
-function tideLv(){if(s.dbgTide)return s.dbgTide==='low'?1:0;const t=(Date.now()/1000)%TIDE,lo=TIDE-TLOW,e=40;
+const TIDE=900,TLOW=300,TIDE_EDGE=40;
+const tideLegacy=()=>s.tideEpoch==null&&!!(s.f.tideSeen||s.f.fordSeen||s.f.fordDone||s.f.seal);
+const tideKnown=()=>!!(s.f.tideSeen||tideLegacy());
+function tidePhase(){if(tideLegacy())return(Date.now()/1000)%TIDE;if(s.tideEpoch==null)return 0;const elapsed=Math.max(0,(Date.now()-s.tideEpoch)/1000);return !s.f.tideSeen?Math.min(TIDE-TLOW,elapsed):elapsed%TIDE}
+const tideCyc=()=>Math.floor(Math.max(0,(Date.now()-(s.tideEpoch||0))/1000)/TIDE);
+/* 0 — повна вода, 1 — найнижчий відплив; до першого пояснення фаза не може минути. */
+function tideLv(){if(s.dbgTide)return s.dbgTide==='low'?1:0;const t=tidePhase(),lo=TIDE-TLOW,e=TIDE_EDGE;
   if(t<lo-e)return 0;if(t<lo)return(t-(lo-e))/e;if(t>TIDE-e)return(TIDE-t)/e;return 1}
-const tideLow=()=>tideLv()>=.99;
-/* скільки до зміни води, сек */
-function tideLeft(){const t=(Date.now()/1000)%TIDE,lo=TIDE-TLOW;return tideLow()?TIDE-t:(t<lo?lo-t:TIDE-t+lo)}
-const tideTxt=()=>{const m=Math.max(1,Math.round(tideLeft()/60));return tideLow()?`Відплив. Вода повернеться за ${m} хв.`:`Повна вода. Відплив — приблизно за ${m} хв.`};
+const tideLow=()=>s.dbgTide?s.dbgTide==='low':tideKnown()&&tideLv()>=.99;
+/* Скільки до межі придатного для робіт відпливу. */
+function tideLeft(){const t=tidePhase(),lo=TIDE-TLOW-TIDE_EDGE*.01,hi=TIDE-TIDE_EDGE*.99;return tideLow()?Math.max(0,hi-t):(t<lo?lo-t:TIDE-t+lo)}
+const tideTxt=()=>{const m=Math.max(1,Math.ceil(tideLeft()/60));return tideLow()?`Відплив. Вода повернеться за ${m} хв.`:`Повна вода. Відплив — приблизно за ${m} хв.`};
 /* Частини броду */
 const FORD=[
   {id:'poles',n:'Вішки',d:'Жердини вздовж каміння, щоб не збитися зі стежки.',c:{wood:60}},
@@ -3981,7 +3992,15 @@ function fordPopHTML(){const low=tideLow();return`<div class="bpop" role="dialog
   ${low?'':'<p class="hint">Камінь зараз під водою — чекай відпливу.</p>'}</div>`}
 
 /* перший відплив пояснюється (#40): море відступає — на березі з'являються калюжі */
-function tideFirst(){if(s.f.tideSeen||!s.tabs.shore||!tideLow()||s.cb||(s.dlg||[]).length)return;s.f.tideSeen=1;
+function tideFirst(){if(s.f.tideSeen||!s.tabs.shore||s.cb||s.raid||away()||(s.dlg||[]).length||!calm())return;
+  if(!tideLegacy()){
+    if(!s.f.rod||(s.c.fish||0)<3)return;
+    if(s.tideEpoch==null){s.tideEpoch=Date.now()-(TIDE-TLOW-TIDE_EDGE)*1000;dirty=1;return}
+    if(!s.dbgTide&&tidePhase()<TIDE-TLOW)return;if(s.dbgTide==='high')return;
+    // Починаємо повне вікно відпливу саме тоді, коли гравець може побачити пояснення.
+    s.tideEpoch=Date.now()-(TIDE-TLOW)*1000;
+  }else if(!tideLow())return;
+  s.f.tideSeen=1;novMark();
   dlg({k:'world',title:'Відплив',img:{t:'ob',k:'pool3',f:'poolObj3'},body:'<p>Море відступило. Там, де щойно бились хвилі, тепер мокре каміння, водорості й калюжі, у яких лишилась дрібна риба та мідії.</p><p>Вода повернеться — вона завжди повертається. Але скоро відступить знову.</p>',
     gains:[`Відкрилося: калюжі на відпливі ${ih(`Відплив настає приблизно кожні ${Math.round(TIDE/60)} хв і триває ${Math.round(TLOW/60)} хв. Поки вода низько, на березі є калюжі з рибою й мідіями, а часом і знахідки. Скільки лишилось до зміни води — написано у вкладці «Берег».`)}`]})}
 /* ============ БОЇ НА ОСТРІВЦІ (етап I) ============
@@ -4095,7 +4114,6 @@ Object.assign(ODI,{mplate:'lore',mbell:'key',mladle:'shell'});
 OSET.martin={n:'Речі з «Мартина»',gain:()=>{s.h.fp=(s.h.fp||0)+1;s.f.martinSet=1},gt:'+1 талант до вибору',
   after:()=>dlg({k:'story',title:'Прощання з «Мартином»',img:{t:'face',id:'zinovii'},body:`<p>Зиновій довго тримає в руках свій черпак. ${Q('Двадцять років я варив на «Мартині». Нехай хоч речі його будуть біля вогню')}. Він ставить їх на полицю, поруч одну з одною, і вперше відтоді, як прийшов, усміхається.</p>`})};
 
-const tideCyc=()=>Math.floor(Date.now()/1000/TIDE);
 Object.assign(SHF,{
   tracks:{n:'Сліди на мокрому піску',npc:1,tip:'Натисни, щоб роздивитися.',pos:[88,90],
     d:'Від самої води до маяка тягнуться сліди босих ніг.',once:1,
@@ -4726,6 +4744,7 @@ function act0(a,i){
   case 'buy':{const it=SHOP.find(x=>x.id===i),p=price(it.p);if(s.r.coin<p||(it.show&&!it.show()))break;s.r.coin-=p;
     if(it.res)for(const k in it.res)add(k,it.res[k]);else if(it.book)book(it.book);else if(it.reveal)reveal(it.reveal);else giveI(i);say(`Куплено: ${I(it.n)}.`,'find');break}
   case 'tog':s.on[i]=s.on[i]===false;break;
+  case 'reserve':if(s.b[i]&&reserveInputs(i).length){s.reserveFree=s.reserveFree||{};s.reserveFree[i]=reserveOn(i)?1:0}break;
   case 'ht':s.ht=i;break;
   case 'tsel':s.tsel=i;break;
   case 'freq':{const q=(s.req||{})[i];if(!q||!afford(q.give))break;pay(q.give);for(const k in q.rew)add(k,q.rew[k]);trust(i,6,q.n.toLowerCase());for(const[g,n]of q.side||[])trust(g,n);delete s.req[i];s.reqT=s.reqT||{};s.reqT[i]=Date.now()+300000;say(`Прохання виконано: ${q.n}. Отримано ${costTxt(q.rew)}.`,'find');break}
@@ -4887,24 +4906,25 @@ function rPeople(){const cap=2*(s.b.house||0),pop=s.pop||0,ms=Object.keys(MST).f
 const scnD=()=>`--d:-${((Date.now()/1000)%30).toFixed(2)}s;--d2:-${((Date.now()/1000)%180).toFixed(2)}s`;
 function homeScene(){return`<div class="scn yd" data-scn="yd" style="${scnD()}"><span data-sk="bg" data-sig="bg" class="scbg">${VH(yardBgImg)}</span>${homeHS()}</div>`}
 function shoreScene(){return`<div class="scn sh" data-scn="sh" style="${scnD()}"><span data-sk="bg" data-sig="bg" class="scbg">${VH(shoreImg)}</span>${shoreHS()}</div>`}
+function reserveButton(id){return reserveInputs(id).length?btn(reserveOn(id)?'Дозволити витрачати резерв':'Захищати резерв','reserve',id,{cls:'toggle'}):''}
 function rHome(){let h=`<div>`;
   h+=`<section><div class="big">${V(()=>fmt(s.r.ember))}</div><p class="m">жару, ${V(()=>{const v=rates().ember;return(v>=0?'+':'')+fr(v)})} за секунду</p><p>${homeText()}</p>`;
   let al='';if(!s.b.hearth)al+=btn('Подмухати на жарину','blow','',{cd:'blow',cs:2});
   if(!s.f.looked&&s.f.lk)al+=btn('Роззирнутися','look','',{cls:'main'});
   if(s.f.looked&&s.seen.wood){const n=s.b.hearth||0;
     al+=`<div class="act">${btn(`${n?'Підкинути дров':'Скласти вогнище'} (${costTxt(bCost(HEARTH))})`,'bld','hearth',{ok:()=>afford(bCost(HEARTH)),cls:n?'':'main'})}${n?btn(s.on.hearth===false?'Розпалити':'Пригасити','tog','hearth',{cls:'toggle'}):''}</div>`;
-    if(n)h+=`<p class="m">Вогнище, рівень ${n}: дає +${2*n} жару/с і спалює ${fr(0.12*n)} плавника/с. Без плавника ледь тліє.</p>`}
+    if(n)h+=`<p class="m">Вогнище, рівень ${n}: дає +${2*n} жару/с і спалює ${fr(0.12*n)} плавника/с. Без плавника ледь тліє.</p><p class="m">${V(()=>reserveText('hearth'))}</p>${reserveButton('hearth')}`}
   if(s.tabs.tower)al+=btn('Нагору, до поверхів','tab','tower',{cls:'toggle'});if(s.tabs.shore)al+=btn('До берега','tab','shore',{cls:'toggle'});
   h+=`<details class="alist"><summary>Усі дії списком</summary><div>${al}</div></details></section>`;
   if(thrOn())h+=rDefense();
   if(s.f.people)h+=rPeople();
   const vis=BD.filter(b=>b.show());
-  if(vis.length){h+=`<section class="ledger"><details class="ledg"${s.ldOpen?' open':''}><summary><span class="lgt">Книга обліку</span><span class="m"> · усі будівлі одним списком</span></summary><h2 class="sr">Господарство${ih(`Цехи переробляють сировину, поки ввімкнені. Вимкни цех, щоб він не з’їдав те, що потрібне деінде.${s.f.people?' Робітник додає будівлі пів рівня, а майстер у своїй будівлі подвоює все.':''}`)}</h2>`;
+  if(vis.length){h+=`<section class="ledger"><details class="ledg"${s.ldOpen?' open':''}><summary><span class="lgt">Книга обліку</span><span class="m"> · усі будівлі одним списком</span></summary><h2 class="sr">Господарство${ih(`Цехи автоматично бережуть резерв сировини. Дозволь витрачати резерв для окремого цеху або вимкни цех зовсім.${s.f.people?' Робітник додає будівлі пів рівня, а майстер у своїй будівлі подвоює все.':''}`)}</h2>`;
     for(const b of vis){const n=s.b[b.id]||0,w=(s.wk||{})[b.id]||0,mx=b.max&&n>=b.max;
       const wk=s.f.people&&n&&WKB.includes(b.id)?`<br><span class="wk">${mstOf(b.id)?'<span class="chip">майстер ×2</span> ':''}робітники <b>${w}</b> з ${n} ${btn('−','wk-',b.id,{cls:'toggle',ok:w>0,lab:'Зняти робітника'})}${btn('+','wk+',b.id,{cls:'toggle',ok:()=>freeW()>0&&w<n,lab:'Додати робітника'})}</span>`:(n&&mstOf(b.id)&&!b.nw?'<br><span class="chip">майстер ×2</span>':'');
       const dm=(s.dmgB||{})[b.id],rc=dm?repCost(b):null;
       if(dm){h+=`<div class="row" id="bd-${b.id}"><div><b>${b.n}</b> <span class="foe">пошкоджено</span><br><span class="m">Мла зламала будівлю. Поки її не полагодиш, вона не працює.</span></div>${btn(`Полагодити (${costTxt(rc)})`,'repair',b.id,{ok:()=>afford(rc),cls:'main'})}</div>`;continue}
-      h+=`<div class="row" id="bd-${b.id}"><div><b>${b.n}</b>${fresh9('b:'+b.id)}${n&&!b.max?`, рівень ${n}`:''}${b.conv&&n&&s.on[b.id]===false?' <span class="m">(зупинено)</span>':''}<br><span class="m">${b.d()}</span>${wk}</div><div class="act" style="flex:0 1 auto">${b.conv&&n?btn(s.on[b.id]===false?'Увімкнути':'Вимкнути','tog',b.id,{cls:'toggle'}):''}${mx?'<span class="done">збудовано</span>':btn(`${n?'Покращити':'Збудувати'} (${costTxt(bCost(b))})`,'bld',b.id,{ok:()=>afford(bCost(b))})}</div></div>`}
+      h+=`<div class="row" id="bd-${b.id}"><div><b>${b.n}</b>${fresh9('b:'+b.id)}${n&&!b.max?`, рівень ${n}`:''}${b.conv&&n&&s.on[b.id]===false?' <span class="m">(зупинено)</span>':''}<br><span class="m">${b.d()}</span>${n&&b.conv&&reserveInputs(b.id).length?`<br><span class="m">${V(()=>reserveText(b.id))}</span>`:''}${wk}</div><div class="act" style="flex:0 1 auto">${b.conv&&n?btn(s.on[b.id]===false?'Увімкнути':'Вимкнути','tog',b.id,{cls:'toggle'})+reserveButton(b.id):''}${mx?'<span class="done">збудовано</span>':btn(`${n?'Покращити':'Збудувати'} (${costTxt(bCost(b))})`,'bld',b.id,{ok:()=>afford(bCost(b))})}</div></div>`}
     h+=`</details></section>`}
   if(s.b.shipyard){h+=`<section><h2>Верф Захара</h2>`;
     h+=s.f.schooner?`<p>Шхуна «Остап» стоїть біля причалу. На ній можна плисти до північних островів.</p>`:`<div class="row"><div><b>Шхуна</b><br><span class="m">Двощогловий корабель, що пройде крізь північні тумани. Сталь на обшивку, скло на ліхтарі.</span></div>${btn(`Збудувати (${costTxt(SCHOONER)})`,'schooner','',{ok:()=>afford(SCHOONER),cls:'main'})}</div>`;
@@ -5602,11 +5622,11 @@ function bpopHTML(){const id=popB;if(!id)return'';let nm,lvl,d,btns='',extra='';
   if(id.startsWith('hr:'))return heroPopHTML(id);
   if(id.startsWith('fk:')||id.startsWith('tr:'))return villagePopHTML(id);
   if(id==='hearth'){const n=s.b.hearth||0,c=bCost(HEARTH);nm='Вогнище';lvl=n;d=`+${2*n} жару/с, спалює ${fr(0.12*n)} плавника/с.`;
-    btns=`${btn('Підкинути дров','bld','hearth',{ok:()=>afford(c),cls:'main'})}<span class="ccs">${costChips(c)}</span>${btn(s.on.hearth===false?'Розпалити':'Пригасити','tog','hearth',{cls:'toggle'})}`}
+    btns=`${btn('Підкинути дров','bld','hearth',{ok:()=>afford(c),cls:'main'})}<span class="ccs">${costChips(c)}</span>${btn(s.on.hearth===false?'Розпалити':'Пригасити','tog','hearth',{cls:'toggle'})}${reserveButton('hearth')}`;extra+=`<p class="m">${reserveText('hearth')}</p>`}
   else{const b=BD.find(x=>x.id===id);if(!b)return'';const n=s.b[id]||0,w=(s.wk||{})[id]||0,mx=b.max&&n>=b.max,dm=(s.dmgB||{})[id];nm=b.n;lvl=n;d=typeof b.d==='function'?b.d():b.d||'';
     if(dm){const rc=repCost(b);extra+=`<p class="foe">Мла зламала будівлю. Поки її не полагодиш, вона не працює.</p>`;btns+=`${btn('Полагодити','repair',id,{ok:()=>afford(rc),cls:'main'})}<span class="ccs">${costChips(rc)}</span>`}
     else{if(s.f.people&&n&&WKB.includes(id))extra+=`<div class="bpw">${mstOf(id)?'<span class="chip">майстер ×2</span> ':''}робітники <b>${w}</b> з ${n} ${btn('−','wk-',id,{cls:'toggle',ok:w>0,lab:'Зняти робітника'})}${btn('+','wk+',id,{cls:'toggle',ok:()=>freeW()>0&&w<n,lab:'Додати робітника'})}</div>`;
-      if(b.conv&&n)btns+=btn(s.on[id]===false?'Увімкнути':'Вимкнути','tog',id,{cls:'toggle'});
+      if(b.conv&&n){btns+=btn(s.on[id]===false?'Увімкнути':'Вимкнути','tog',id,{cls:'toggle'})+reserveButton(id);if(reserveInputs(id).length)extra+=`<p class="m">${reserveText(id)}</p>`}
       btns+=mx?'<span class="done">збудовано</span>':`${btn(n?'Покращити':'Збудувати','bld',id,{ok:()=>afford(bCost(b)),cls:'main'})}<span class="ccs">${costChips(bCost(b))}</span>`;
       if(n&&n<5&&!b.max)extra+=`<p class="hand bph2">${n<3?'Ще трохи роботи — і будівля помітно розростеться.':'Ще кілька рівнів — і вона стане справжньою окрасою двору.'}</p>`}}
   const html=`<div class="bpop" role="dialog" aria-label="${nm}"><div class="bph"><b>${nm}</b>${lvl?`<span class="bplv">рівень ${lvl}</span>`:'<span class="bplv">ще не збудовано</span>'}<button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div><p class="m">${d}</p>${extra}<div class="act">${btns}</div></div>`;
