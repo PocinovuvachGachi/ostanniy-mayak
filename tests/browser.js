@@ -75,6 +75,25 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await p.close();
   }
 
+  // Збір плавника: окрема анімація, відсутність стрибка від cooldown, спокій у кінці.
+  {
+    const p = await page(390, 844);
+    await p.evaluate(() => { s.tabs.shore=1; s.tab='shore'; s.f.looked=1; s.dlg=[]; s.hsU={gather:1}; render(); });
+    await p.locator('[data-sk="gather"]').click();
+    A(await p.locator('[data-sk="gather"] .dlw').evaluate(e=>e.getAnimations().length>0), 'плавник не має анімації підбору');
+    await p.waitForTimeout(1100);
+    A(await p.locator('[data-sk="gather"] .dlw').evaluate(e=>getComputedStyle(e).transform==='none'), 'плавник не повернувся в початкову позицію');
+    await p.close();
+  }
+  // Смужки HP: під героєм і ворогом, у межах клітинки.
+  {
+    const p = await page(390, 844);
+    await p.evaluate(() => {s.dlg=[]; s.tabs.hero=1; startFight('gullrack','S:gullrack'); render();});
+    const bars=await p.evaluate(()=>[...document.querySelectorAll('.grid.ar .uhp')].map(e=>{const r=e.getBoundingClientRect(), b=e.parentElement.getBoundingClientRect();return {k:e.className,ok:r.top>=b.top+b.height*.65&&r.bottom<=b.bottom+1};}));
+    A(bars.some(b=>b.k.includes('me'))&&bars.some(b=>b.k.includes('fo'))&&bars.every(b=>b.ok),'смужки HP не під бойовими юнітами');
+    await p.close();
+  }
+
   // 3. Рибалка: простий гравець тримає стрілку в зеленій зоні
   {
     const p = await page(390, 844);

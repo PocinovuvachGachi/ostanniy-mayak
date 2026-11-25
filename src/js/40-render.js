@@ -31,7 +31,7 @@ function playFx(list){const wrap=$('gwrap'),lay=$('fxl');if(!wrap||!lay||!wrap.g
       const P=(e.p&&e.p.length>1?e.p:[[e.x0,e.y0],[e.x1,e.y1]]).map(([x,y])=>{const q=cell(x,y);return q?[q.x-c1.x,q.y-c1.y]:null}).filter(Boolean),n=P.length-1,hop=c1.w*(e.m==='fly'?.16:e.m==='swim'?0:.09),fr=[];
       for(let i=0;i<=n;i++){fr.push({offset:n?i/n:1,transform:`translate(${P[i][0]}px,${P[i][1]}px)`});
         if(i<n){const mx=(P[i][0]+P[i+1][0])/2,my=(P[i][1]+P[i+1][1])/2,rot=e.m==='fly'||e.m==='swim'?0:(i%2?4:-4);fr.push({offset:(i+.5)/n,transform:`translate(${mx}px,${my-hop}px) rotate(${rot}deg)`})}}
-      im.animate(fr,{duration:(e.d||220)*k,delay:at,fill:'backwards',easing:'linear'})}
+      const opt={duration:(e.d||220)*k,delay:at,fill:'backwards',easing:'linear'};im.animate(fr,opt);const bar=c1.b.querySelector('.uhp');if(bar&&bar.animate)bar.animate(P.map(([x,y],i)=>({offset:n?i/n:1,transform:`translate(${x}px,${y}px)`})),opt)}
     else if(e.t==='turn'){const c1=cell(e.x,e.y);if(!c1)continue;const el=mk('fxt');el.style.width=el.style.height=c1.w*.9+'px';el.style.opacity='0';const a=el.animate([{opacity:0,transform:`translate(${c1.x-c1.w*.45}px,${c1.y-c1.w*.45}px) scale(.6)`},{opacity:.9,transform:`translate(${c1.x-c1.w*.45}px,${c1.y-c1.w*.45}px) scale(1)`,offset:.4},{opacity:0,transform:`translate(${c1.x-c1.w*.45}px,${c1.y-c1.w*.45}px) scale(1.15)`}],{duration:420,delay:at,fill:'both'});a.onfinish=()=>el.remove()}
     else if(e.t==='bump'){const c0=cell(e.x0,e.y0),c1=cell(e.x1,e.y1);if(!c0||!c1)continue;const im=c0.b.querySelector('img');const dx=(c1.x-c0.x)*0.45,dy=(c1.y-c0.y)*0.45;if(im&&im.animate)im.animate([{transform:'none'},{transform:`translate(${-dx*.15}px,${-dy*.15}px) scale(1.05)`,offset:.35},{transform:`translate(${dx}px,${dy}px) scale(1.08)`,offset:.6},{transform:'none'}],{duration:260,delay:at,easing:'ease-out'})}
     else if(e.t==='txt'){const c1=cell(e.x,e.y);if(!c1)continue;const el=mk('fxn '+(e.k||''),e.v);el.style.opacity='0';const a=el.animate([{opacity:0,transform:`translate(${c1.x}px,${c1.y-c1.w*0.1}px) translate(-50%,-50%) scale(.7)`},{opacity:1,transform:`translate(${c1.x}px,${c1.y-c1.w*0.35}px) translate(-50%,-50%) scale(1.1)`,offset:.2},{opacity:0,transform:`translate(${c1.x}px,${c1.y-c1.w*1.1}px) translate(-50%,-50%)`}],{duration:950,delay:at,fill:'both'});a.onfinish=()=>el.remove();
@@ -374,8 +374,8 @@ const AFL={pierv:'sand',pierfog:'plank',yardA:'sand',shoreL:'sand',heartL:'stone
 const TK={'#':'rock','+':'crate','~':'water','E':'exit','f':'floor'};
 const INDOOR={hold:1,cave:1,tower:1,store:1,mine:1,monastery:1};
 /* шанс влучити — на самій цілі, коли її можна вдарити чи підстрелити */
-/* над постаттю: смужка здоров'я й намір ворога (#43) */
-function uBar(hp,mx,k){const p=Math.max(0,Math.min(100,hp/mx*100));return`<i class="uhp ${k}${p<34?' lo':''}"><b style="width:${p.toFixed(0)}%"></b></i>`}
+/* смужка здоров'я під постаттю; намір ворога над нею */
+function uBar(hp,mx,k){const p=Math.max(0,Math.min(100,hp/mx*100));return`<i class="uhp ${k}${p<34?' lo':''}" aria-hidden="true"><b style="width:${p.toFixed(0)}%"></b></i>`}
 function uIntentChip(u){if(u.stun)return'';const[k,v]=uIntent(u);if(STANCE[k])return'';const ic=k==='shoot'||k==='aim'?'ishoot':k==='heal'?'iheal':['hit','cold','wrap'].includes(k)?'ihit':'';if(!ic)return'';
   const n=['hit','cold','wrap'].includes(k)?v*(u.wind?2:1):k==='shoot'||k==='heal'?v:'';return`<i class="uin k-${ic}"><img src="${stiURL(ic)}" alt="">${n}</i>`}
 function chBadge(c,u){const d=dist(c.hx,c.hy,u.x,u.y);const ch=d<=1?meleeCh(u):canShoot(u)?shotCh(u):null;if(ch==null)return'';return`<i class="chb${ch>=75?' hi':ch<50?' lo':''}">${Math.round(ch)}%</i>`}

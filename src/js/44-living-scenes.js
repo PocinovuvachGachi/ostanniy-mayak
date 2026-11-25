@@ -145,10 +145,11 @@ function hsPop(el,e,r0){try{const out=[];for(const k in s.r){const d=(s.r[k]||0)
 
 /* Реакція на натискання: об'єкт важко присідає (без пружини), матеріал відповідає частинками й світлом */
 const MATK=(k,a)=>{k=k||'';if(a==='blow'||a==='smith'||a==='smithhot'||k==='hearth'||k==='hearth0')return{k:'spark',n:14,fl:1};
-  if(a==='fishing'||a==='bigfish'||a==='flotmg'||a==='flot')return{k:'splash',n:12};if(a==='gather')return{k:'splash',n:8,also:'chip'};if(a==='scrapw')return{k:'chip',n:12,also:'dust'};
+  if(a==='fishing'||a==='bigfish'||a==='flotmg'||a==='flot')return{k:'splash',n:12};if(a==='gather')return{k:'splash',n:6};if(a==='scrapw')return{k:'chip',n:12,also:'dust'};
   if(a==='bld'||a==='floor'||a==='flu')return{k:'dust',n:16};if(k.startsWith('b:')||k.startsWith('fl:'))return{k:'dust',n:5};return{k:'dust',n:4}};
-function pressFx(el,e){try{if(!el.classList.contains('ob')&&!el.classList.contains('hs'))return;el.classList.remove('press');void el.offsetWidth;el.classList.add('press');setTimeout(()=>el.classList.remove('press'),180);
-  if(!actOk||RM()||!FX.cv)return;const scn=el.closest('.scn');if(!scn)return;const r=scn.getBoundingClientRect(),b=el.getBoundingClientRect(),cx=e&&e.clientX?e.clientX:b.left+b.width/2,cy=e&&e.clientY?e.clientY:b.top+b.height/2,
+function gatherFx(el){if(!actOk||RM())return;const log=el.querySelector('.dlw');if(!log||!log.animate)return;for(const a of log.getAnimations())a.cancel();log.animate([{transform:'translate(0,0) rotate(0)',opacity:1},{transform:'translate(-30%,-75%) rotate(-8deg)',opacity:1,offset:.17},{transform:'translate(-58%,-130%) rotate(-13deg)',opacity:0,offset:.34},{transform:'translate(48%,42%) rotate(7deg)',opacity:0,offset:.35},{transform:'translate(12%,9%) rotate(2deg)',opacity:.9,offset:.77},{transform:'translate(0,0) rotate(0)',opacity:1}],{duration:900,easing:'ease-in-out'});}
+function pressFx(el,e){try{if(!el.classList.contains('ob')&&!el.classList.contains('hs'))return;const gather=el.dataset.a==='gather';if(gather)gatherFx(el);else{el.classList.remove('press');void el.offsetWidth;el.classList.add('press');setTimeout(()=>el.classList.remove('press'),180)}
+  if(!actOk||RM()||!FX.cv)return;const scn=el.closest('.scn');if(!scn)return;const r=scn.getBoundingClientRect(),b=(gather?el.querySelector('.dlw')||el:el).getBoundingClientRect(),cx=!gather&&e&&e.clientX?e.clientX:b.left+b.width/2,cy=!gather&&e&&e.clientY?e.clientY:b.top+b.height/2,
     W=FX.W/SK,H=FX.H/SK,x=(cx-r.left)/r.width*W,y=(cy-r.top)/r.height*H,m=MATK(el.dataset.k,el.dataset.a);fxBurst(FX.sc,x,y,m.k,m.n);if(m.also)fxBurst(FX.sc,x,y,m.also,6);if(m.fl)fxFlash(FX.sc,x,y)}catch(er){}}
 
 /* Картка поверху маяка: опис, відновлення, покращення, перехід до пов'язаної вкладки */
