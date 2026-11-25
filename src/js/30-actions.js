@@ -106,6 +106,7 @@ function act0(a,i){
   case 'buy':{const it=SHOP.find(x=>x.id===i),p=price(it.p);if(s.r.coin<p||(it.show&&!it.show()))break;s.r.coin-=p;
     if(it.res)for(const k in it.res)add(k,it.res[k]);else if(it.book)book(it.book);else if(it.reveal)reveal(it.reveal);else giveI(i);say(`Куплено: ${I(it.n)}.`,'find');break}
   case 'tog':s.on[i]=s.on[i]===false;break;
+  case 'reserve':if(s.b[i]&&reserveInputs(i).length){s.reserveFree=s.reserveFree||{};s.reserveFree[i]=reserveOn(i)?1:0}break;
   case 'ht':s.ht=i;break;
   case 'tsel':s.tsel=i;break;
   case 'freq':{const q=(s.req||{})[i];if(!q||!afford(q.give))break;pay(q.give);for(const k in q.rew)add(k,q.rew[k]);trust(i,6,q.n.toLowerCase());for(const[g,n]of q.side||[])trust(g,n);delete s.req[i];s.reqT=s.reqT||{};s.reqT[i]=Date.now()+300000;say(`Прохання виконано: ${q.n}. Отримано ${costTxt(q.rew)}.`,'find');break}
