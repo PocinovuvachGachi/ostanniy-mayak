@@ -379,7 +379,7 @@ button.hs.zone{border:0;background:transparent;box-shadow:none}
 button.hs.zone:hover,button.hs.zone:focus-visible{background:transparent;border:0;box-shadow:none}
 .dlw{position:absolute;display:block;transform:none;opacity:1;transform-origin:50% 70%}
 /* Плавник підіймається з води; наступний приносить хвиля. Позиція не залежить від кроків refresh. */
-.zone[data-k="gather"]::after{display:none}
+.zone[data-k="gather"]::after{display:block}
 .zone{transition:--p .26s linear}
 .smk{position:absolute;width:1.1%;aspect-ratio:1;background:#8c9097;opacity:0;pointer-events:none;z-index:1;animation:smk2 3s linear infinite;animation-delay:calc(var(--d) - var(--o))}
 @keyframes smk2{0%{transform:translate(0,0);opacity:0}12%{opacity:.75}100%{transform:translate(120%,-700%) scale(2.4);opacity:0}}
