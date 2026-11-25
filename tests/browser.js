@@ -144,7 +144,7 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
   // 6. Майстерня й кабінет: речі в кімнаті відкривають картки з діями
   {
     const p = await page(1100, 1000);
-    await p.evaluate(() => { window.dlg = () => {}; storyCheck = () => {}; s.f.looked = 1; s.b.hearth = 3; s.floors = { work: 1, gallery: 1, study: 1 }; for (const k of RES) s.r[k] = 5000; s.tabs = { home: 1, tower: 1, work: 1, study: 1 }; s.dlg = []; s.tab = 'work'; render(); });
+    await p.evaluate(() => { window.dlg = () => {}; storyCheck = () => {}; s.f.looked = 1; s.b.hearth = 3; s.floors = { work: 1, gallery: 1, study: 1 }; for (const k of RES) s.r[k] = 5000; s.tabs = { home: 1, tower: 1, work: 1, study: 1 }; s.dlg = []; s.tab = 'work'; s.lastAct=Date.now(); s.lastNov=null; novPlanTick(true); s.dlg=[]; render(); });
     await p.waitForTimeout(300);
     const n = await p.$('.scn [data-k^="wk:r:"]');
     A(!!n, 'креслення на дошці в майстерні');
