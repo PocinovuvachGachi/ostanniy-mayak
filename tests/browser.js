@@ -50,6 +50,22 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await p.close();
   }
 
+  // Сушарня: нова сцена, ручна партія й готовий улов.
+  {
+    const p = await page(390, 844);
+    await p.evaluate(() => {s.tabs.shore=1;s.tab='shore';s.f.looked=1;s.f.dryPlan=1;s.r.wood=30;s.r.scrap=10;s.r.fish=10;s.dlg=[];window.dlg=()=>{};render()});
+    const rack=p.locator('.scn [data-k="dryrack"]');
+    A(await rack.evaluate(e=>{const r=e.getBoundingClientRect(),b=e.closest('.scn').getBoundingClientRect();return r.top>=b.top&&r.bottom<=b.bottom+2}),'сушарня в межах сцени');
+    await p.click('.scn [data-a="drybuild"]');
+    A(await p.evaluate(()=>s.f.dryRack),'сушарня збудована');
+    await p.click('.scn [data-a="dryload"]');
+    A(await p.evaluate(()=>dryBusy()&&s.r.fish===6),'партія риби на сушарні');
+    await p.evaluate(()=>{s.play=s.dryUntil;dryTick();render()});
+    await p.click('.scn [data-a="drytake"]');
+    A(await p.evaluate(()=>!dryBusy()&&s.r.prov===1),'провізію зібрано');
+    await p.close();
+  }
+
   // 1. Усі вкладки на телефоні й на широкому екрані
   for (const [w, h] of [[390, 844], [1280, 900]]) {
     const p = await page(w, h);
