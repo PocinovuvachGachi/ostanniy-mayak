@@ -43,7 +43,7 @@ document.addEventListener('click',e=>{if(lpF){lpF=0;e.preventDefault();e.stopImm
 document.addEventListener('click',e=>{const el=e.target.closest('[data-a]');if(!el||el.disabled||el.getAttribute('aria-disabled')==='true')return;
   if(el.dataset.cd&&onCd(el.dataset.cd)&&(el.classList.contains('ob')||el.classList.contains('hs'))){nope(el);return}
   const isHs=el.classList.contains('hs')||el.classList.contains('ob'),r0=isHs?Object.assign({},s.r):null;if(isHs){s.hsU=s.hsU||{};if(!s.hsU[el.dataset.k]){s.hsU[el.dataset.k]=1;el.classList.remove('pulse')}}
-  act(el.dataset.a,el.dataset.i);if(isHs){hsPop(el,e,r0);pressFx(el,e)}if(dirty)render();save()});
+  act(el.dataset.a,el.dataset.i);if(isHs)hsPop(el,e,r0);if(isHs&&el.dataset.a==='gather'){if(dirty)render();const now=document.querySelector('.scn [data-sk="gather"]');if(now)pressFx(now,e)}else{if(isHs)pressFx(el,e);if(dirty)render()}save()});
 document.addEventListener('keydown',e=>{
   if(e.key==='Enter'&&e.target.matches&&e.target.matches('input[data-rid]')){act('riddle',e.target.dataset.rid);render();save();return}
   if((e.key==='Enter'||e.key===' ')&&e.target.getAttribute&&e.target.getAttribute('role')==='button'&&e.target.dataset.a){e.preventDefault();act(e.target.dataset.a,e.target.dataset.i);render();save();return}
