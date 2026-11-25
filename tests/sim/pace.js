@@ -60,7 +60,7 @@ const want=()=>{const L=[];const fi=FL.findIndex(f=>!s.floors[f.id]);const f=FL[
   if((s.b.hearth||0)<8)L.push(['bld','hearth',bCost(HEARTH)]);
   for(const b of BD)if(b.show()&&!(b.max&&(s.b[b.id]||0)>=b.max)&&(s.b[b.id]||0)<6)L.push(['bld',b.id,bCost(b)]);
   if(s.b.shipyard&&!s.f.schooner)L.unshift(['schooner','',SCHOONER]);
-  if(s.f.fordSeen&&!s.f.fordDone)for(const P of FORD)if(!(s.ford||{})[P.id]&&(!P.req||P.req()))L.unshift(['ford',P.id,P.c]);
+  if(s.f.fordSeen&&!s.f.fordDone){const P=fordReady();if(P)L.unshift(['ford',P.id,P.c])}
   /* провізія на походи: якщо є куди плисти, а нема з чим */
   for(const l in s.disc){const Lc=LOC[l];if(!Lc||!Lc.sea||l===s.at)continue;if(typeof locTodo==='function'&&!locTodo(l).length)continue;const need=seaCost(Lc)*2;if(s.r.prov<need){L.push(['trip',l,{prov:need}]);break}}
   return L};
@@ -99,7 +99,7 @@ function explore(){const ls=Object.keys(s.disc).filter(l=>LOC[l]);for(const l of
 function misc(){let d=0;if(s.wolf&&wTrainOn()){for(const N of WTR)if(!wHas(N.id)&&(!N.need||wHas(N.need))&&(s.wolf.tp||0)>=N.c){A('wlearn',N.id,1);d=1}if(!onCd('wlesson')){A('wlesson','',8);d=1}}
   if(s.wolf){if(!s.wolf.name)A('wname','Сірко',1);if(!wolfSated()&&afford(wolfFood())){A('wfeed','',1);d=1}}
   if(s.tabs.kitchen&&s.h.hp<maxHP()*.6)for(const D of DISH)if(rcpKnown(D.id)&&afford(D.c)&&(s.r.fish>20)){A('cookp',D.id,1);d=1;break}
-  if(s.floors.gallery&&s.tabs.map&&SCAN.some(x=>!s.disc[x])&&s.r.ember>=scanCost()){A('scan');d=1}
+  if(scanTarget()&&s.r.ember>=scanCost()){A('scan');d=1}
   for(const f in s.req||{}){if(afford(s.req[f].give)){A('freq',f);d=1}}
   if(s.tabs.trade)for(const it of SHOP){if((it.show&&!it.show())||s.bought&&s.bought[it.id])continue;const p=price(it.p);if(IT[it.id]&&has(it.id))continue;if(s.r.coin>=p*1.5){A('buy',it.id);s.bought=s.bought||{};s.bought[it.id]=1;d=1}}
   if(s.shf&&(SHF[s.shf].npc||s.h.hp>=maxHP()*.7)){A('shfgo','',2);if(s.cb)fight();d=1}
