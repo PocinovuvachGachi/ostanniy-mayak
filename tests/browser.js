@@ -81,8 +81,11 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await p.evaluate(() => { s.tabs.shore=1; s.tab='shore'; s.f.looked=1; s.dlg=[]; s.hsU={gather:1}; render(); });
     await p.locator('[data-sk="gather"]').click();
     A(await p.locator('[data-sk="gather"] .dlw').evaluate(e=>e.getAnimations().length>0), 'плавник не має анімації підбору');
-    await p.waitForTimeout(1100);
+    await p.waitForTimeout(300);
+    A(await p.locator('[data-sk="gather"]').evaluate(e=>{const c=getComputedStyle(e,'::after');return c.display!=='none'&&Number(c.opacity)>0}), 'шкала відновлення плавника прихована');
+    await p.waitForTimeout(1200);
     A(await p.locator('[data-sk="gather"] .dlw').evaluate(e=>getComputedStyle(e).transform==='none'), 'плавник не повернувся в початкову позицію');
+    A(await p.locator('[data-sk="gather"]').evaluate(e=>Number(getComputedStyle(e,'::after').opacity)<.05), 'шкала не зникла після відновлення');
     await p.close();
   }
   // Смужки HP: під героєм і ворогом, у межах клітинки.
@@ -141,7 +144,7 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
   // 6. Майстерня й кабінет: речі в кімнаті відкривають картки з діями
   {
     const p = await page(1100, 1000);
-    await p.evaluate(() => { window.dlg = () => {}; storyCheck = () => {}; s.f.looked = 1; s.b.hearth = 3; s.floors = { work: 1, gallery: 1, study: 1 }; for (const k of RES) s.r[k] = 5000; s.tabs = { home: 1, tower: 1, work: 1, study: 1 }; s.dlg = []; s.tab = 'work'; render(); });
+    await p.evaluate(() => { window.dlg = () => {}; storyCheck = () => {}; s.f.looked = 1; s.b.hearth = 3; s.floors = { work: 1, gallery: 1, study: 1 }; for (const k of RES) s.r[k] = 5000; s.tabs = { home: 1, tower: 1, work: 1, study: 1 }; s.dlg = []; s.tab = 'work'; s.lastAct=Date.now(); s.lastNov=null; novPlanTick(true); s.dlg=[]; render(); });
     await p.waitForTimeout(300);
     const n = await p.$('.scn [data-k^="wk:r:"]');
     A(!!n, 'креслення на дошці в майстерні');

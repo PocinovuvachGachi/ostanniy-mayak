@@ -44,7 +44,7 @@ function act0(a,i){
   case 'scrapw':if(F.wreck&&!onCd('scrapw')){setCd('scrapw',2);s.c.scrap=(s.c.scrap||0)+1;add('scrap',1+(s.rs.metal?1:0)+(s.h.ft.thrifty?1:0)+(has('rake')?1:0))}break;
   case 'fishing':if(F.rod&&!onCd('fishing')){setCd('fishing',3);if(!s.bite&&s.c.fish>=6&&F.crab1&&Date.now()-(s.bigT||0)>240000&&Math.random()<1/6){s.bigT=Date.now();if(mgHabit('fish')||s.quickMG){s.c.fish++;mgRun('fish',mgFish,fishEnd);break}s.bite={until:Date.now()+30000};say('Вудка вигнулася дугою: щось велике тягне линву!','find');break}add('fish',wolf());s.c.fish++;
     if(!F.crab1&&!F.crabWarn&&s.c.fish>=5){F.crabWarn=1;crabWarn()}}break;
-  case 'bld':{const b=i==='hearth'?HEARTH:BD.find(x=>x.id===i);if(b.max&&(s.b[i]||0)>=b.max)break;const c=bCost(b);if(afford(c)){pay(c);s.b[i]=(s.b[i]||0)+1;upT[i]=Date.now();if(typeof setTimeout==="function")setTimeout(()=>{dirty=1},1700);
+  case 'bld':{const b=i==='hearth'?HEARTH:BD.find(x=>x.id===i);if(!b||(!noGap()&&i!=='hearth'&&!s.b[i]&&!b.show())||(b.max&&(s.b[i]||0)>=b.max))break;const c=bCost(b);if(afford(c)){pay(c);s.b[i]=(s.b[i]||0)+1;novUse('b:'+i);upT[i]=Date.now();if(typeof setTimeout==="function")setTimeout(()=>{dirty=1},1700);
     say(i==='hearth'&&s.b[i]===1?'Ти складаєш вогнище з плавника й кладеш у нього жарину. Полум’я оживає, а приплив тепер сам приносить трохи плавника до порогу.':`${b.n}: рівень ${s.b[i]}.`,'world')}break}
   case 'floor':{const ix=FL.findIndex(x=>x.id===i),f=FL[ix];if(!f||s.floors[i])break;if(ix>0&&!s.floors[FL[ix-1].id])break;
     if((f.req&&!f.req())||!afford(f.c,f.it))break;pay(f.c,f.use);s.floors[i]=1;
@@ -56,7 +56,7 @@ function act0(a,i){
     break}
   case 'mirror':if(s.floors.lantern&&!F.won&&s.mirrors[i]){s.mirrors[i]=s.mirrors[i]==='/'?'\\':'/';if(beam().out){F.won=1;dlg({k:'story',title:'Маяк горить',img:{t:'yard'},body:'<p>Промінь пробиває вікно ліхтарні й лягає на воду. Великий вогонь маяка горить над шхерами, а Мла відступає.</p><p>Але це ще не кінець. Наступного ранку до Гнилого Причалу заходить чужий корабель.</p>',gains:['Кораблі платять мито: +2 монети щосекунди','У гавані Гнилого Причалу чекає капітанка: друга дія','Набіги Мли тривають, тож хранитель потрібен і далі']});say('Промінь пробиває вікно ліхтарні й лягає на воду. Великий вогонь маяка горить над шхерами!','story')}}break;
   case 'craft':{const rc=RC.find(x=>x.id===i);if(!rc||!rcVisible(rc))break;const c=rcCost(rc);
-    if((rc.craft||0)>st('craft')||!afford(c,rc.it))break;pay(c,rc.it);s.f.craft1=1;
+    if((rc.craft||0)>st('craft')||!afford(c,rc.it))break;pay(c,rc.it);novUse('r:'+i);s.f.craft1=1;
     if(rc.tool){if(rc.id==='rod'){F.rod=1;say('Вудка готова. Тепер на березі можна рибалити.','find')}else{if(rc.id==='pack1')F.pack=1;if(rc.id==='pack2')F.pack=2;if(rc.id==='belt1')F.belt=1;dlg({k:'find',title:`Зроблено: ${rc.n}`,img:{t:'icon',id:rc.id==='belt1'?'belt':'pack'},body:`<p>${rc.d}</p>`,gains:[`Рюкзак: ${packSlots()} зброї, вантаж до ${loadCap()}`,`Пояс: ${beltSlots()} предмети`]})}}else{giveI(rc.out);let ex='';if(rc.multi&&Math.random()<0.05*st('craft')){giveI(rc.out);ex=' Вдалося зробити дві!'}say(`Зроблено: ${I(IT[rc.out].n)}.${ex}`,'find')}break}
   case 'rs':rsStart(i);break;
   case 'repok':s.report=null;break;
@@ -141,7 +141,7 @@ function act0(a,i){
 function dismVal(id){const rc=RC.find(r=>r.out===id);let c={};if(rc){for(const k in rc.c)if(k!=='ember'){const v=Math.floor(rc.c[k]/2);if(v>0)c[k]=v}}else c=Object.assign({},DIS[id]||{});return Object.keys(c).length?c:null}
 function canDism(id){const it=IT[id];if(!it||!it.slot||!has(id))return false;const eqd=(s.eq[it.slot]===id||packHas(id))?1:0;return s.inv[id]>eqd}
 let RCOPEN=0;
-function rcVisible(rc){if(s.floors.work&&s.rcSeen&&!s.rcSeen[rc.id]&&!RCOPEN&&!noGap())return false;if(rc.req&&!rc.req())return false;if(rc.tool)return rc.id==='rod'?!s.f.rod:rc.id==='pack1'?!(s.f.pack>=1):rc.id==='pack2'?s.f.pack===1:rc.id==='belt1'?!s.f.belt:false;if(!rc.multi&&has(rc.out))return false;if(rc.id==='sling'&&!s.tabs.hero)return false;return true}
+function rcVisible(rc){if(!noGap()&&!RCOPEN&&(!s.floors.work||!s.rcSeen||!s.rcSeen[rc.id]))return false;if(rc.req&&!rc.req())return false;if(rc.tool)return rc.id==='rod'?!s.f.rod:rc.id==='pack1'?!(s.f.pack>=1):rc.id==='pack2'?s.f.pack===1:rc.id==='belt1'?!s.f.belt:false;if(!rc.multi&&has(rc.out))return false;if(rc.id==='sling'&&!s.tabs.hero)return false;return true}
 
 
 /* Мла збирається на метушню: її додають лише дії гравця. Поки біля маяка тихо — вона дрімає. */

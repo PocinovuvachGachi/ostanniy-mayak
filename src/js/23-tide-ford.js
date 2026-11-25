@@ -45,7 +45,7 @@ function fordPopHTML(){const low=tideLow();return`<div class="bpop" role="dialog
   ${low?'':'<p class="hint">Камінь зараз під водою — чекай відпливу.</p>'}</div>`}
 
 /* перший відплив пояснюється (#40): море відступає — на березі з'являються калюжі */
-function tideFirst(){if(s.f.tideSeen||!s.tabs.shore||s.cb||s.raid||away()||(s.dlg||[]).length||!calm())return;
+function tideFirst(){if(s.f.tideSeen||!s.tabs.shore||s.cb||s.raid||away()||(s.dlg||[]).length||!novCan())return;
   if(!tideLegacy()){
     if(!s.f.rod||(s.c.fish||0)<3)return;
     if(s.tideEpoch==null){s.tideEpoch=Date.now()-(TIDE-TLOW-TIDE_EDGE)*1000;dirty=1;return}

@@ -1,5 +1,5 @@
 /* Офлайн-режим: спершу мережа (щоб оновлення приходили одразу), без мережі — збережена копія. */
-const CACHE = 'mayak-b68ac10fe1';
+const CACHE = 'mayak-63c719a7f5';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));

@@ -1,14 +1,14 @@
-/* Поступовість (постулат 2): між відкриттями — пауза NOVGAP секунд гри.
-   Креслення й рецепти з'являються по одному, а не пачкою. */
+/* Спільна черга: автоматичні відкриття не обходять паузу; невикористані опції не блокують сюжет. */
 require('../harness.js')(`(()=>{let fails=0;const A=(c,m)=>{if(!c){fails++;console.log('FAIL',m)}};
-NOGAP=0;
-s.b.hearth=1;s.tabs.shore=1;s.bdSeen={};s.lastNov=null;
-const vis=()=>BD.filter(b=>b.show0()).map(b=>b.id);
-s.r.wood=500;s.r.scrap=200;s.r.fish=50;s.tot.wood=500;s.tot.scrap=200;s.tot.fish=50;s.c.gather=99;
-checks();const n1=Object.keys(s.bdSeen).length;
-A(n1>=1,'перше креслення з’являється одразу');
-checks();A(Object.keys(s.bdSeen).length===n1,'друге не з’являється в ту саму мить');
-A(BD.filter(b=>b.show()).length===n1,'невідкрите креслення не видно у вкладці');
-produce(NOVGAP+1);checks();
-A(Object.keys(s.bdSeen).length===n1+1||vis().length<=n1,'після паузи відкривається ще одне');
+NOGAP=0;s.tabs.shore=1;s.b.hearth=1;s.f.wreck=1;s.f.hook=1;s.floors.work=1;s.bdSeen={};s.rcSeen={};s.lastNov=null;s.lastAct=Date.now();s.r.wood=500;s.r.scrap=200;s.r.ember=500;
+A(!rcVisible(RC.find(r=>r.id==='rod')),'готовий рецепт до оголошення прихований');
+novPlanTick(true);A(!!s.rcSeen.oar,'першим відкривається потрібний інструмент');
+s.dlg=[];novPlanTick(true);novPlanTick(false);A(!s.rcSeen.rod&&Object.keys(s.bdSeen).length===0,'немає обходу паузи між різними чергами');
+s.play+=NOVGAP+1;s.lastAct=Date.now();novPlanTick(true);A(!!s.rcSeen.rod,'після паузи відкривається вудка');
+s.dlg=[];s.play+=NOVGAP+1;s.lastAct=Date.now();novPlanTick(false);A(Object.keys(s.bdSeen).length===0,'необов’язкові плани чекають освоєння');
+act('craft','rod');A(s.f.rod&&s.novUsed['r:rod'],'виготовлення фіксує використання');s.dlg=[];novPlanTick(false);A(Object.keys(s.bdSeen).length===1,'після використання відкривається наступний план');
+s.dlg=[];s.play+=91;s.lastAct=Date.now();novPlanTick(false);A(Object.keys(s.bdSeen).length+Object.keys(s.rcSeen).length>=4,'необов’язковий план можна пропустити');
+s.dlg=[];s.play+=91;s.lastAct=Date.now()-180000;const n=Object.keys(s.bdSeen).length+Object.keys(s.rcSeen).length;novPlanTick(false);A(n===Object.keys(s.bdSeen).length+Object.keys(s.rcSeen).length,'немає нових планів без гравця');
+s.dlg=[];s.lastAct=Date.now();s.tabs.hero=1;s.nvU={};s.floors.gallery=1;s.f.fordSeen=1;s.ford={poles:1,steps:1};novTick(true);A(s.f.mlaNote,'Мла не залежить від відкриття вкладки спорядження');
+s.floors.work=0;A(!rcVisible(RC.find(r=>r.id==='oar')),'до майстерні рецепти недоступні');
 console.log('fails',fails)})()`);

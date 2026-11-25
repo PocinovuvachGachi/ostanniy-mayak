@@ -21,7 +21,11 @@ function dlg(o){s.dlg=s.dlg||[];if(s.dlg.length>14)return;if(o.k==='fight')s.dlg
 /* Поступовість (постулат 2): між відкриттями — пауза, щоб гравець устиг освоїти попереднє.
    novMark() — щойно щось відкрилося; calm() — можна відкривати наступне. Сюжетні події не чекають. */
 const NOVGAP=45;
-function novMark(){s.lastNov=s.play||0}
+function novMark(key=''){s.lastNov=s.play||0;s.novLast=key}
+function novUse(key){s.novUsed=s.novUsed||{};s.novUsed[key]=1}
+// Автоматичні відкриття чекають спокійного моменту, ручні дії не блокуються.
+function novCan(){return noGap()||(!s.cb&&!s.raid&&!(s.dlg||[]).length&&!away()&&calm())}
+function novOptional(){return novCan()&&(noGap()||!s.novLast||(s.novUsed||{})[s.novLast]||(s.play||0)-(s.lastNov||0)>=90)}
 const noGap=()=>typeof NOGAP!=='undefined'&&!!NOGAP;
 const calm=()=>noGap()||(s.play||0)-(s.lastNov==null?-1e9:s.lastNov)>=NOVGAP;
 function unlock(t){if(!s.tabs[t]){s.tabs[t]=1;novMark();s.newTab[t]=1;if(SUBT[t]){s.newTab.tower=1;s.ttNew=typeof s.ttNew==='object'&&s.ttNew?s.ttNew:{};s.ttNew[t]=1}dirty=1;if(t==='hero'){if(s.h.xpb){const b=s.h.xpb;s.h.xpb=0;xp(b)}}const nm=(TABS.find(x=>x[0]===t)||[0,SUBT[t]||''])[1];if(t!=='shore')dlg({k:'world',title:`Відкрито: ${nm}`,body:`<p>${TABV[t]||TABINFO[t]||''}${TABV[t]&&TABINFO[t]?ih(TABINFO[t]):''}</p>`,gains:[SUBT[t]?`«${nm}» — у вкладці «Маяк».`:`Відкрилася вкладка «${nm}».`]})}}
@@ -123,11 +127,11 @@ function storyCheck(quiet){s.bts=s.bts||{};
     if(!s.chs.includes(ch.id)&&ch.beats.every(b=>s.bts[b[0]])){s.chs.push(ch.id);s.chSeen=s.chs.length;dirty=1;if(quiet)return;mom('chap',`Розділ ${ROM(ix+1)} · ${ch.n}`,ch.d,ch.img&&ch.img.t==='yard'?{t:'yard',st:yardSt()}:ch.img,1,ch.id);
       const nx=CH.find((c,k)=>k>ix&&!c.side&&!s.chs.includes(c.id));
       s.dlg=s.dlg||[];s.dlg.push({k:'story',chap:1,no:ix+1,sub:ch.n,title:`Розділ ${ix+1}. ${ch.n}`,img:ch.img,body:`<p>${ch.beats.map(b=>b[3]).join(' ')}</p>${nx&&!ch.side&&chStarted(CH.indexOf(nx))?`<p class="m">${nx.d}</p>`:''}<p class="stamp">✎ ${dateTxt(s.play)}</p>`});eraCheck()}})}
-function checks(){const F=s.f;novTick();mgHelpCheck();if(!s.tabs.chron&&s.chs.length&&!s.cb&&!(s.dlg||[]).some(d=>d.chap)&&calm())unlock('chron');
+function checks(){const F=s.f;mgHelpCheck();
   if(!F.lk&&s.tot.ember>=10){F.lk=1;dirty=1}
-  if(!F.wreck&&s.c.gather>=18&&s.b.hearth&&calm()){novMark();F.wreck=1;dlg({k:'world',title:'Уламки в прибої',img:{t:'ob',k:'wreck3',f:'wreckObj3'},body:'<p>Збираючи плавник, ти забрідаєш далі вздовж берега — і натрапляєш на щось більше за гілляку. Між каменями застряг розбитий рибальський човен: ребра шпангоутів, дошки обшивки, іржаві цвяхи.</p><p>Хвилі приносять його по шматку. Добре залізо тут на вагу золота.</p>',gains:['Відкрилося: розбирати уламки — брухт (цвяхи й скоби)']})}
+  if(!F.wreck&&s.c.gather>=18&&s.b.hearth&&novCan()){novMark();F.wreck=1;dlg({k:'world',title:'Уламки в прибої',img:{t:'ob',k:'wreck3',f:'wreckObj3'},body:'<p>Збираючи плавник, ти забрідаєш далі вздовж берега — і натрапляєш на щось більше за гілляку. Між каменями застряг розбитий рибальський човен: ребра шпангоутів, дошки обшивки, іржаві цвяхи.</p><p>Хвилі приносять його по шматку. Добре залізо тут на вагу золота.</p>',gains:['Відкрилося: розбирати уламки — брухт (цвяхи й скоби)']})}
   if(!F.barrel&&s.tot.scrap>=5){F.barrel=1;add('oil',8);say(`Серед уламків застрягла розбита бочка. На дні ще хлюпає ${R('oil',8)}.`,'find')}
-  if(!s.tabs.tower&&s.tot.ember>=105&&s.b.hearth&&calm()){unlock('tower');say('Вогонь розгорівся. Тепер видно сходи, що ведуть угору. Відкрито: Маяк.','story')}
+  if(!s.tabs.tower&&s.tot.ember>=105&&s.b.hearth&&novCan()){unlock('tower');say('Вогонь розгорівся. Тепер видно сходи, що ведуть угору. Відкрито: Маяк.','story')}
   if(!F.quick&&s.c.wins>=5){F.quick=1;say('Ти набрався бойового досвіду. Відтепер сутички з уже знайомими ворогами можна вирішувати швидким боєм.','lvl')}
   storyCheck(false);
   if(F.people){const cap=2*(s.b.house||0);
@@ -138,9 +142,10 @@ function checks(){const F=s.f;novTick();mgHelpCheck();if(!s.tabs.chron&&s.chs.le
     else s.popT=0}
   if(!s.disc.heart&&has('mlens')&&has('gkey')){reveal('heart');dlg({k:'story',title:'Острів, якого немає',img:{t:'face',id:'marta'},body:`<p>Крізь Лінзу Мли видно те, чого не видно оком: на півночі з води б’є стовп туману. ${P('Марта')}: ${Q('Ось воно. Ключ вартових відімкне шлях. Пливімо')}.</p>`})}
   if(s.tabs.hero&&!s.h.bg&&(s.nv||{}).grow)offerBg();
-  shoreTick();shfTick();beamTick();folkTick();wolfTick();kitTick();rsiegeTick();curTick();stage3Tick();
-  s.bdSeen=s.bdSeen||{};{const nb=BD.find(b=>!s.bdSeen[b.id]&&b.show0());if(nb&&(calm()||!BD.some(b=>s.bdSeen[b.id]&&b.show0()&&!s.b[b.id]))){s.bdSeen[nb.id]=1;novMark();bpDlg([nb])}}
-  s.rcSeen=s.rcSeen||{};if(s.floors.work){RCOPEN=1;const nw=RC.find(rc=>!s.rcSeen[rc.id]&&rcVisible(rc)),fresh=!RC.some(rc=>s.rcSeen[rc.id]&&rcVisible(rc));RCOPEN=0;if(nw&&(calm()||fresh)){s.rcSeen[nw.id]=1;novMark();rcDlg([nw])}}
+  // Спершу сюжетно потрібні відкриття, далі знайомство з системами.
+  novTick(true);shoreTick();shfTick();beamTick();folkTick();wolfTick();kitTick();rsiegeTick();curTick();stage3Tick();
+  novPlanTick(true);novTick(false);novPlanTick(false);
+  if(!s.tabs.chron&&s.chs.length&&!s.cb&&!(s.dlg||[]).some(d=>d.chap)&&novCan())unlock('chron');
   if(F.crabWarn&&!F.crab1&&!s.cb&&!(s.dlg||[]).some(d=>d.crabw))crabWarn();
   raidCheck();
 }
