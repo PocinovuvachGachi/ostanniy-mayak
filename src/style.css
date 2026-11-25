@@ -989,3 +989,17 @@ body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .
 .gloss dt b{color:#1f1710}
 .gloss dd{margin:0 0 10px;padding:2px 6px;background:rgba(246,238,214,.72);box-shadow:0 0 0 1px rgba(120,90,50,.15)}
 .ink{color:#2b2014!important}
+
+/* Туторіал: окрема сланцева картка, не сюжетний пергамент. */
+#dlg .dlgbox.k-tutorial{--ink:#e3eae7;--panel:#233741;--mute:#b2c3c4;--rule:#66858b;--lamp:#c9b58c;--sea:#a8ccd0;--good:#8fc46a;--bad:#df8a7a;background:#233741;color:var(--ink);border:1px solid #66858b;border-top:4px solid #9bbdc0;box-shadow:0 0 0 2px #101e27,0 14px 44px #0008;color-scheme:dark}
+#dlg .dlgbox.k-tutorial .tag{color:#c2dadd!important;border-color:#66858b!important;background:#172932!important}
+#dlg .dlgbox.k-tutorial button.main{background:#d0e0dc;color:#182d36;border-color:#7e9b9c}
+#dlg .dlgbox.k-tutorial button.toggle{color:#c2dadd;border-color:#66858b}
+.tut-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:8px;margin:10px 0}
+.tut-list button{display:flex;justify-content:space-between;align-items:center;text-align:left;white-space:normal;padding:10px 12px;min-height:42px;gap:10px}
+#dlg .tut-list button{background:#172932;color:#e3eae7;border-color:#66858b}
+.tut-diagram{display:flex;justify-content:center;align-items:center;gap:4px;padding:12px 0}
+.tut-cell{display:flex;position:relative;align-items:center;justify-content:center;min-width:74px;height:52px;border:2px solid #66858b;background:#15262e;font:12px var(--mono)}
+.tut-cell.step{min-width:42px;background:transparent;border:1px dashed #66858b}
+.tut-cell i{position:absolute;bottom:4px;left:12%;width:76%;height:5px;background:#8fc46a;border:1px solid #101e27}
+.tut-cell.enemy i{background:#c9584a;width:55%}
