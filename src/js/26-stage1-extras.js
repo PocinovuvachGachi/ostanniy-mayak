@@ -44,6 +44,6 @@ function dryRackHS(W,H){if(!s.f.dryPlan&&!s.f.dryRack)return'';const busy=dryBus
   const a=!s.f.dryRack?'drybuild':ready?'drytake':busy?'hsgo':'dryload',i=busy&&!ready?'dryrack':'';
   const lab=!s.f.dryRack?'Збудувати сушарню':ready?'Зняти сушену рибу':busy?'Риба сушиться':'Розвісити рибу';
   const tip=!s.f.dryRack?'Ціна: '+costTxt(DRYC):ready?'Готова провізія.':busy?'Риба сохне на вітрі.':'Розвісь '+DRYF+' риби.';
-  return ob('dryrack',a,i,obURL('dryrack3:'+stage,()=>dryRackArt(stage)),55,108,W,H,lab,'<b>Сушарня</b><br>'+tip,{pulse:!busy||ready,always:!busy||ready,ok:!s.f.dryRack?afford(DRYC):ready?drySpace():busy||s.r.fish>=DRYF})}
+  return ob('dryrack',a,i,obURL('dryrack3:'+stage,()=>dryRackArt(stage)),154,92,W,H,lab,'<b>Сушарня</b><br>'+tip,{pulse:!busy||ready,always:!busy||ready,ok:!s.f.dryRack?afford(DRYC):ready?drySpace():busy||s.r.fish>=DRYF})}
 function rDryRack(){if(!s.f.dryPlan&&!s.f.dryRack)return'';if(!s.f.dryRack)return '<section id="sec-dryrack"><h2>Сушарня</h2><p class="m">Жердини та линва для сушіння улову.</p>'+btn('Збудувати сушарню','drybuild','',{ok:()=>afford(DRYC)})+' <span class="ccs">'+costTxt(DRYC)+'</span></section>';
   return '<section id="sec-dryrack"><h2>Сушарня</h2>'+ (dryReady()?'<p>Риба висохла.</p>'+btn('Зняти провізію','drytake','',{ok:drySpace}):dryBusy()?'<p>Риба сохне: '+V(drySecs)+' с.</p>':'<p class="m">4 риби → 1 провізія. Сушіння триває хвилину.</p>'+btn('Розвісити рибу','dryload','',{ok:()=>s.r.fish>=DRYF}))+'</section>'}
