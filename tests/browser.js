@@ -141,12 +141,14 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     const talk = p.locator('.bpop [data-a="martinLadle"]');
     A(await talk.count() === 0, 'на полиці є лише вже відомі речі');
     await p.evaluate(() => { s.odd.mladle = 1; render(); });
+    await p.click('.shelf-slot[data-i="mladle"]');
     await talk.click();
     A((await p.locator('#dlg h2').innerText()) === 'Рибка на держаку', 'Зиновій упізнав черпак');
     A(await p.evaluate(() => s.odd.mladle && !s.f.martinSet), 'розмова зберігає знахідку й не завершує набір');
     await p.click('#dlg [data-a="dlgok"]');
     await p.reload();
     await shelf.click();
+    await p.click('.shelf-slot[data-i="mladle"]');
     A(await talk.count() === 0, 'розмова не повторюється після завантаження');
     await p.close();
   }
@@ -171,6 +173,7 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
       await p.click('#dlg [data-a="dlgok"]');
       await p.reload();
       await shelf.click();
+      await p.click('.shelf-slot[data-i="logpage"]');
       await talk.click();
     } else {
       await p.click('#dlg [data-a="martinLog"]');
@@ -181,8 +184,73 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await p.click('#dlg [data-a="dlgok"]');
     await p.reload();
     await shelf.click();
+    await p.click('.shelf-slot[data-i="logpage"]');
     A(await talk.count() === 0, 'розмова не повторюється після завантаження');
     A(await p.evaluate(() => document.documentElement.scrollWidth <= 390), 'полиця вміщається на телефоні');
+    await p.close();
+  }
+
+  // Колекція на полиці, прочитані тексти в журналі.
+  {
+    const p = await page(390, 844);
+    await p.emulateMedia({ reducedMotion: 'reduce' });
+    await p.evaluate(() => {
+      s.tabs.tower=1;s.tabs.journal=1;s.tab='tower';s.b.hearth=1;s.f.looked=1;
+      s.odd=Object.fromEntries(['gull','spiral','pearl','ear','compass','holecoin','mbell','mladle',
+        'seaglass','amberbit','oldhook','woodhorse','letter1'].map(id=>[id,1]));
+      render();
+    });
+    const shelf=p.locator('.scn [data-i="cl:shelf"]');
+    const stageArt=await shelf.locator('img.obi').getAttribute('src');
+    await shelf.click();
+    const panel=p.getByRole('dialog',{name:'Полиця хранителя'});
+    const item=id=>panel.locator(`.shelf-slot[data-i="${id}"]`);
+    const back=panel.getByRole('button',{name:'До полиці'});
+    A(await panel.locator('.shelf-slot').count()===13,'усі знахідки, зокрема після восьмої, доступні');
+    A(await item('seaglass').locator('img').getAttribute('src')!==await item('amberbit').locator('img').getAttribute('src'),
+      'морське скло й бурштин мають власні піктограми');
+    await item('woodhorse').click();
+    A(await panel.getByRole('heading',{name:'Дерев’яний коник'}).isVisible(),'окрема картка знайденого коника');
+    A(!await panel.getByRole('button',{name:'Подарувати Петрикові'}).count()&&!await item('logpage').count(),
+      'полиця не розкриває майбутню зустріч і невідомі предмети');
+    await back.click();
+    await item('letter1').click();
+    A(!await panel.getByText('Мамо, ми зимуємо',{exact:false}).count(),'непрочитаний лист не розкрито');
+    await panel.getByRole('button',{name:'Прочитати',exact:true}).click();
+    A(await panel.getByText('Мамо, ми зимуємо',{exact:false}).isVisible(),'лист читається з полиці');
+    await panel.getByRole('button',{name:'Закрити'}).click();
+    await p.click('#tabs [data-i="journal"]');
+    A(!await p.locator('[data-a="jt"][data-i="odd"]').count()&&!await p.locator('.jhead').getByText('дивин',{exact:false}).count(),
+      'журнал не дублює колекцію');
+    await p.click('[data-a="jt"][data-i="documents"]');
+    A(await p.locator('.notes').getByText('Мамо, ми зимуємо',{exact:false}).isVisible()&&!await p.locator('.notes .no').count(),
+      'текст доступний у журналі без номера записки Остапа');
+
+    await p.evaluate(()=>{s.f.horpyna=1;render()});
+    await p.click('#tabs [data-i="tower"]');
+    await shelf.click();
+    await item('woodhorse').click();
+    await panel.getByRole('button',{name:'Подарувати Петрикові'}).click();
+    A(await p.locator('#dlg h2',{hasText:'Коник для Петрика'}).isVisible(),'передача дає реакцію Петрика');
+    await p.click('#dlg [data-a="dlgok"]');
+    A(await panel.getByText('Коник лишився в Петрика.',{exact:false}).isVisible()
+      &&!await panel.getByRole('button',{name:'Подарувати Петрикові'}).count()
+      &&stageArt!==await shelf.locator('img.obi').getAttribute('src'),'полиця замінює іграшку записом про її долю');
+    await p.reload();
+    await shelf.click();
+    await item('woodhorse').click();
+    A(await panel.getByText('Коник лишився в Петрика.',{exact:false}).isVisible(),'запис зберігся після завантаження');
+    A(await p.evaluate(()=>document.documentElement.scrollWidth<=390),'полиця й картка не розширюють сторінку');
+    await p.evaluate(()=>{
+      s.tabs.shore=1;s.f.wreck=1;s.c.gather=50;s.lastNov=s.play;
+      delete s.odd.seaglass;
+      Math.random=()=>0;render();
+    });
+    await p.click('#tabs [data-i="shore"]');
+    await p.click('.scn [data-sk="gather"]');
+    await p.locator('#dlg h2',{hasText:'Морське скло'}).waitFor();
+    A(await p.evaluate(()=>s.c.gather===51&&s.r.wood>=1&&JSON.parse(localStorage.getItem(KEY)).odd.seaglass),
+      'ручний збір у сцені дає звичайний плавник і зберігає знахідку одразу');
     await p.close();
   }
 

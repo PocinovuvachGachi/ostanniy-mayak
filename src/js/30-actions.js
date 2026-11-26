@@ -34,10 +34,10 @@ function act0(a,i){
   if(a==='tutList'){tutLibrary();return}
   if(a==='tutRead'){tutRead(i);return}
   if(a==='tutFight'){tutFight();return}
-  if(a==='dlgok'){(s.dlg||[]).shift();dirty=1;return}
+  if(a==='dlgok'){readOddDocument((s.dlg||[]).shift()?.odd);dirty=1;return}
   if(a==='bellOpen'){s.bellHold=0;dirty=1;return}
   if(a==='bellDefer'){s.bellHold=1;dirty=1;return}
-  if(a==='bpop'){popB=popB===i?'':(i||'');dirty=1;return}
+  if(a==='bpop'){popB=popB===i?'':(i||'');if(popB==='cl:shelf')shelfSelected='';dirty=1;return}
   if(a==='hsgo'||a==='hsbd'){hlT=(a==='hsbd'?'bd-':'sec-')+i;dirty=1;return}
   if(a==='novgo'){(s.dlg||[]).shift();if(!s.cb&&s.tabs.hero){s.tab='hero';s.ht=i}dirty=1;return}
   if(a==='dlggo'){(s.dlg||[]).shift();if(!s.cb&&s.tabs[i])s.tab=i;dirty=1;return}
@@ -62,7 +62,9 @@ function act0(a,i){
   case 'hook':if(shoreHookReady()&&afford(HOOKC)){pay(HOOKC);F.hook=1;novUse('tool:hook');tutOffer('hook');dlg({k:'find',title:'Багор',img:{t:'ob',k:'hook3',f:'hookObj3'},body:'<p>Ти прив’язуєш до довгої жердини зігнутий цвях із уламків. Тепер плавник, що пропливає за кілька кроків від берега, теж твій.</p>'})}break;
   case 'gather':if(!onCd('gather')){setCd('gather',1);add('wood',wolf()*(F.hook?2:1));s.c.gather++;
     if(s.c.gather===6){say('Між водоростями блищить пляшка, заткнута воском. Усередині записка. Відкрито: Журнал.','story');page(1)}
-    if(s.c.gather===60)odd('gull','У плавнику застрягла вирізана з дерева чайка.')}break;
+    if(s.c.gather===60)odd('gull','У плавнику застрягла вирізана з дерева чайка.');
+    if(s.c.gather!==6&&s.c.gather!==60)queueShoreFind('gather');
+  }break;
   case 'drybuild':dryBuild();break;
   case 'dryload':dryLoad();break;
   case 'drytake':dryTake();break;
@@ -76,9 +78,21 @@ function act0(a,i){
   case 'wlesson':wLesson();break;
   case 'three':threeLights();break;
   case 'cache':cacheOpen();break;
-  case 'martinLadle':martinLadleTalk();break;
+  case 'shelfInspect':if(popB==='cl:shelf'&&(!i||OD[i]&&s.odd[i]))shelfSelected=i;break;
+  case 'shelfRead':if(popB==='cl:shelf')readOddDocument(i);break;
+  case 'shelfGive':if(popB==='cl:shelf'&&s.odd[i]){
+    const gift=OD[i]?.gift;
+    if(gift?.ready()&&!s.oddFate[i]&&!s.dlg.length){
+      s.oddFate[i]=1;gift.react();
+    }
+  }break;
+  case 'martinLadle':martinLadleTalk(i==='find');break;
   case 'martinLog':martinLogTalk(i==='find');break;
-  case 'scrapw':if(F.wreck&&!onCd('scrapw')){setCd('scrapw',2);s.c.scrap=(s.c.scrap||0)+1;add('scrap',1+(s.rs.metal?1:0)+(s.h.ft.thrifty?1:0)+(has('rake')?1:0))}break;
+  case 'scrapw':if(F.wreck&&!onCd('scrapw')){
+    setCd('scrapw',2);s.c.scrap=(s.c.scrap||0)+1;
+    add('scrap',1+(s.rs.metal?1:0)+(s.h.ft.thrifty?1:0)+(has('rake')?1:0));
+    queueShoreFind('scrapw');
+  }break;
   case 'fishing':if(F.rod&&!onCd('fishing')){
     setCd('fishing',3);add('fish',wolf());s.c.fish++;
     if(!F.crab1&&!F.crabWarn&&s.c.fish>=5){F.crabWarn=1;crabWarn()}
