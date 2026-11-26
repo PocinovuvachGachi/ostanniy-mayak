@@ -3,6 +3,7 @@ const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const has=id=>(s.inv[id]||0)>0;
 const shards=()=>s.inv.shard||0;
+const atShore=()=>s.tab==='shore'&&!s.at;
 const wolf=()=>s.h.ft.wolf?1.5:1;
 const onCd=k=>(s.cd[k]||0)>Date.now();
 const setCd=(k,sec)=>{s.cd[k]=Date.now()+sec*1000};
@@ -138,7 +139,7 @@ function storyCheck(quiet){s.bts=s.bts||{};
     if(!s.chs.includes(ch.id)&&ch.beats.every(b=>s.bts[b[0]])){s.chs.push(ch.id);s.chSeen=s.chs.length;dirty=1;if(quiet)return;mom('chap',`Розділ ${ROM(ix+1)} · ${ch.n}`,ch.d,ch.img&&ch.img.t==='yard'?{t:'yard',st:yardSt()}:ch.img,1,ch.id);
       const nx=CH.find((c,k)=>k>ix&&!c.side&&!s.chs.includes(c.id));
       s.dlg=s.dlg||[];s.dlg.push({k:'story',chap:1,no:ix+1,sub:ch.n,title:`Розділ ${ix+1}. ${ch.n}`,img:ch.img,body:`<p>${ch.beats.map(b=>b[3]).join(' ')}</p>${nx&&!ch.side&&chStarted(CH.indexOf(nx))?`<p class="m">${nx.d}</p>`:''}<p class="stamp">✎ ${dateTxt(s.play)}</p>`});eraCheck()}})}
-function checks(shoreDt=0){const F=s.f;tutTick(false);mgHelpCheck();
+function checks(shoreDt=0){const F=s.f,oldFlot=s.flot,oldShf=s.shf;tutTick(false);mgHelpCheck();
   if(!F.lk&&s.tot.ember>=10){F.lk=1;dirty=1}
   if(!F.wreck&&s.c.gather>=18&&s.b.hearth&&novCan()){novMark();F.wreck=1;dlg({k:'world',title:'Уламки в прибої',img:{t:'ob',k:'wreck3',f:'wreckObj3'},body:'<p>Збираючи плавник, ти забрідаєш далі вздовж берега — і натрапляєш на щось більше за гілляку. Між каменями застряг розбитий рибальський човен: ребра шпангоутів, дошки обшивки, іржаві цвяхи.</p><p>Хвилі приносять його по шматку. Добре залізо тут на вагу золота.</p>',gains:['Відкрилося: розбирати уламки']});tutOffer('wreck')}
   earlyToolTick();
@@ -159,7 +160,9 @@ function checks(shoreDt=0){const F=s.f;tutTick(false);mgHelpCheck();
   novPlanTick(true);novTick(false);novPlanTick(false);
   if(!s.tabs.chron&&s.chs.length&&!s.cb&&!(s.dlg||[]).some(d=>d.chap)&&novCan())unlock('chron');
   if(F.crabWarn&&!F.crab1&&!s.cb&&!(s.dlg||[]).some(d=>d.crabw))crabWarn();
-  raidCheck();tutTick();shoreFindTick();hookWaterTick(shoreDt);
+  raidCheck();tutTick();shoreFindTick();
+  const newHook=hookWaterTick(shoreDt);
+  rakeSandTick(shoreDt,newHook||!!(s.flot&&s.flot!==oldFlot)||!!(s.shf&&s.shf!==oldShf));
 }
 
 

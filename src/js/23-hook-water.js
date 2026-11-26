@@ -8,13 +8,12 @@ const HOOK_FLOAT={
   heavy:{n:'Ящик між камінням',reward:()=>({wood:4,scrap:3})}
 };
 const HOOK_LIGHT=['plank','tackle','bottle','box'];
-const atHookShore=()=>s.tab==='shore'&&!s.at;
-const hookWaterVisible=()=>atHookShore()&&s.f.hook&&!s.flot?s.hookWater.pending:null;
+const hookWaterVisible=()=>atShore()&&s.f.hook&&!s.flot?s.hookWater.pending:null;
 const hookWaterLabel=o=>o.kind==='heavy'&&!s.f.hookUp?'Спробувати підчепити ящик':`Підтягнути багром · ${HOOK_FLOAT[o.kind].n.toLowerCase()}`;
 
 function hookWaterTick(dt){
   // Великий крок годинника може бути поверненням із фонової вкладки.
-  if(dt<=0||dt>1||!atHookShore()||!s.f.hook||s.cb||s.raid||s.dlg.length||s.tutPending.some(tutReady)||away())return;
+  if(dt<=0||dt>1||!atShore()||!s.f.hook||s.cb||s.raid||s.dlg.length||s.tutPending.some(tutReady)||away())return;
   const w=s.hookWater;
   if(w.pending||w.gathers<HOOK_FIRST_GATHERS)return;
   if(w.wait>0)w.wait=Math.max(0,w.wait-dt);
@@ -22,7 +21,7 @@ function hookWaterTick(dt){
   const heavy=w.pulls===HOOK_LIMIT_PULLS||(s.f.hookUp&&Math.random()<HOOK_HEAVY_CHANCE);
   const kind=heavy?'heavy':HOOK_LIGHT[rnd(HOOK_LIGHT.length)];
   w.pending={id:w.pulls+1,kind,reward:HOOK_FLOAT[kind].reward()};
-  dirty=1;save();
+  dirty=1;save();return true;
 }
 function hookWaterTake(id){
   const o=hookWaterVisible();

@@ -63,10 +63,12 @@ function act0(a,i){
   case 'gather':if(!onCd('gather')){setCd('gather',1);add('wood',wolf()*(F.hook?2:1));s.c.gather++;
     if(s.c.gather===6){say('Між водоростями блищить пляшка, заткнута воском. Усередині записка. Відкрито: Журнал.','story');page(1)}
     if(s.c.gather===60)odd('gull','У плавнику застрягла вирізана з дерева чайка.');
-    if(F.hook&&atHookShore())s.hookWater.gathers=Math.min(HOOK_FIRST_GATHERS,s.hookWater.gathers+1);
+    if(F.hook&&atShore())s.hookWater.gathers=Math.min(HOOK_FIRST_GATHERS,s.hookWater.gathers+1);
+    rakeBeachAction();
     if(s.c.gather!==6&&s.c.gather!==60)queueShoreFind('gather');
   }break;
   case 'hookWater':hookWaterTake(i);break;
+  case 'rakeSand':rakeSandSearch(i);break;
   case 'drybuild':dryBuild();break;
   case 'dryload':dryLoad();break;
   case 'drytake':dryTake();break;
@@ -93,12 +95,12 @@ function act0(a,i){
   case 'scrapw':if(F.wreck&&!onCd('scrapw')){
     setCd('scrapw',2);s.c.scrap=(s.c.scrap||0)+1;
     add('scrap',1+(s.rs.metal?1:0)+(s.h.ft.thrifty?1:0)+(has('rake')?1:0));
-    queueShoreFind('scrapw');
+    rakeBeachAction();queueShoreFind('scrapw');
   }break;
   case 'fishing':if(F.rod&&!onCd('fishing')){
     setCd('fishing',3);add('fish',wolf());s.c.fish++;
     if(!F.crab1&&!F.crabWarn&&s.c.fish>=5){F.crabWarn=1;crabWarn()}
-    fishBiteCheck();
+    rakeBeachAction();fishBiteCheck();
   }break;
   case 'bld':{const b=i==='hearth'?HEARTH:BD.find(x=>x.id===i);if(!b||(!noGap()&&i!=='hearth'&&!s.b[i]&&!b.show())||(b.max&&(s.b[i]||0)>=b.max))break;const c=bCost(b);if(afford(c)){pay(c);s.b[i]=(s.b[i]||0)+1;if(i==='hearth')tutOffer('hearth');novUse('b:'+i);upT[i]=Date.now();if(typeof setTimeout==="function")setTimeout(()=>{dirty=1},1700);
     say(i==='hearth'&&s.b[i]===1?'Ти складаєш вогнище з плавника й кладеш у нього жарину. Полум’я оживає, а приплив тепер сам приносить трохи плавника до порогу.':`${b.n}: рівень ${s.b[i]}.`,'world')}break}

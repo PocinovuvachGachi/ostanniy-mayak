@@ -1010,3 +1010,20 @@ body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .
   .hook-cargo{transform:translate(-68%,220%)}
   .hook-splash{opacity:.75}
 }
+
+/* Розчищення піску граблями */
+.rake-sweep{position:absolute;inset:0;pointer-events:none;z-index:155}
+.rake-sweep img{position:absolute;image-rendering:pixelated}
+.rake-tool{animation:rake-tool .8s ease-in-out both}
+.rake-furrows{animation:rake-furrows .8s linear both}
+.rake-dust{animation:rake-dust .8s ease-out both}
+.rake-metal{animation:rake-metal .8s ease-out both}
+@keyframes rake-tool{0%{transform:translate(20%,-20%) rotate(10deg);opacity:0}20%{transform:none;opacity:1}68%{transform:translate(-18%,15%) rotate(-14deg);opacity:1}100%{transform:translate(-28%,-26%) rotate(-20deg);opacity:0}}
+@keyframes rake-furrows{0%,25%{clip-path:inset(0 0 0 100%)}70%,100%{clip-path:inset(0)}}
+@keyframes rake-dust{0%,30%{transform:scale(.7);opacity:0}54%{transform:translate(-10%,-15%);opacity:.9}100%{transform:translate(-30%,-65%) scale(1.15);opacity:0}}
+@keyframes rake-metal{0%,53%{transform:translateY(24%);opacity:0}73%{transform:translateY(-25%);opacity:1}100%{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){
+  .rake-sweep img{animation:none}
+  .rake-tool{transform:translate(-18%,10%) rotate(-12deg)}
+  .rake-dust{opacity:.45}
+}

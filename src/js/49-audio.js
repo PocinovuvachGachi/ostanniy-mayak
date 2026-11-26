@@ -52,6 +52,7 @@ function sfx(k){if(!AU.ctx||!auS().on)return;try{const t=AU.ctx.currentTime+0.01
   case'nope':auTone(t,{f:330,f2:260,type:'triangle',peak:0.06,dec:0.1});break;
   case'fishBite':auTone(t,{f:523,peak:0.035,dec:0.27});auTone(t+0.13,{f:659,peak:0.025,dec:0.32});break;
   case'chime':[0,4,7,12].forEach((st,i)=>auTone(t+i*0.11,{f:392*Math.pow(2,st/12),peak:0.09,dec:1.2}));break;
+  case'rakeSand':auBurst(t,{f:1250,type:'bandpass',q:.65,peak:.18,a:.065,dec:.24,bus:'sfx'});auTone(t+.35,{f:1580,peak:.042,dec:.14});break;
   case'page':auBurst(t,{f:2500,type:'bandpass',q:0.5,peak:0.12,a:0.03,dec:0.18,bus:'sfx'});break;
   case'bell':auTone(t,{f:1568,peak:0.08,dec:1.4});auTone(t,{f:2350,peak:0.04,dec:0.9});break;
   case'horn':{const c=AU.ctx,o=c.createOscillator(),g=c.createGain(),lp=c.createBiquadFilter();o.type='sawtooth';o.frequency.value=98;lp.type='lowpass';lp.frequency.value=420;o.connect(lp);lp.connect(g);g.connect(AU.g.sfx);g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.22,t+0.8);g.gain.setValueAtTime(0.22,t+1.6);g.gain.exponentialRampToValueAtTime(0.0001,t+3);o.start(t);o.stop(t+3.1);break}
