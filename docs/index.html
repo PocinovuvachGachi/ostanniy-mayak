@@ -4068,7 +4068,7 @@ function shfObj3(id){const b=pbuf(30,id==='gullrack'?9:22);if(SHF[id]&&SHF[id].a
   else{hiRect(b,10,2,10,20,(i,j,x,y)=>{const u=(x-15)/(y<8?2.4:4.5);if(Math.abs(u)>1)return;return y<8?(Math.hypot(x-15,y-5)<2.6?'6':''):y>17?'S':'5'});pset(b,14,5,'x');pset(b,16,5,'x');pline(b,0,20,30,20,'U')}
   return b}
 globalThis.shfObj3=HI(shfObj3);
-function shoreFightHS(W,H){const id=s.shf;if(!id)return'';const F=SHF[id],pos=F.pos||{poolcrab:[112,66],gullrack:s.f.dryRack?[157,78]:[132,82],rats:[204,80],drown1:[96,60],zinovii:[204,54],horpyna:[204,54]}[id]||[110,70];
+function shoreFightHS(W,H){const id=s.shf;if(!id)return'';const F=SHF[id],pos=F.pos||{poolcrab:[112,66],gullrack:s.f.dryRack?[143,78]:[132,82],rats:[204,80],drown1:[96,60],zinovii:[204,54],horpyna:[204,54]}[id]||[110,70];
   return ob('shf:'+id,'shfgo','',obURL('shf3:'+id,()=>shfObj3(id)),pos[0],pos[1],W,H,F.n,`<b>${F.n}</b><br>${F.d}<br><span class="m">${F.tip||F.npc?F.tip||'Натисни, щоб допомогти.':'Натисни, щоб битися. Можна й почекати: нікуди не дінуться.'}</span>`,{pulse:1,always:1,cls:'bite',inner:'<i class="bang">!</i>'})}
 /* ============ КОЛЕКЦІЯ ХРАНИТЕЛЯ ============
    Дивини (OD) — речі з історією; тепер їх видно на полиці в нижній залі маяка, і вони складаються в набори.

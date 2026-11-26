@@ -95,6 +95,8 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await rack.click();
     A(await p.evaluate(() => !dryBusy() && s.r.prov === capOf('prov') && s.f.dryMade), 'провізію зібрано один раз');
     A(await p.evaluate(() => document.documentElement.scrollWidth <= 390), 'сушарня без горизонтальної прокрутки сторінки');
+    await p.locator('.scn [data-k="shf:gullrack"]').click({ timeout: 5000 });
+    A(await p.evaluate(() => s.cb?.enc === 'gullrack'), 'натискання на чайок починає бій');
     await p.close();
   }
 
