@@ -12,6 +12,13 @@ s.tideEpoch=null;A(tideLegacy(),'старі збереження зберіга�
 s.f.fordSeen=1;s.r.wood=999;s.r.scrap=999;s.r.fish=99;s.r.oil=99;s.r.ember=999;
 s.dbgTide='high';A(!fordPart('poles')&&!(s.ford||{}).poles,'на повній воді брід не будується');s.r.fish=0;const f0=s.r.fish;s.cd={};act('pool');A(s.r.fish===f0,'калюжі під водою');
 s.dbgTide='low';s.cd={};act('pool');A(s.r.fish>f0,'калюжі на відпливі');s.r.fish=40;
+s.dbgTide='high';act('mussels');A(!has('mussel'),'мідії під водою');
+s.dbgTide='low';act('mussels');act('mussels');A(s.inv.mussel===1,'лише одна порція мідій');
+__adv(TIDE*1000);act('mussels');A(s.inv.mussel===1,'зібрані мідії лишаються в торбі до наступного відпливу');
+s.dbgTide='high';s.h.hp=maxHP()-10;const hp=s.h.hp;act('use','mussel');
+A(!has('mussel')&&s.h.hp===hp+IT.mussel.v,'мідії можна з’їсти після припливу');
+s.dbgTide='low';act('mussels');s.h.hp=maxHP()-10;act('use','mussel');act('mussels');
+A(!has('mussel'),'другу порцію в той самий відплив не зібрати');
 A(fordVisible().map(p=>p.id).join()==='poles','видно лише першу роботу');
 const wood0=s.r.wood;A(!fordPart('rope')&&s.r.wood===wood0,'не можна пропустити перші роботи або витратити ресурси');
 act('ford','poles');A(fordVisible().map(p=>p.id).join()==='poles,steps','після вішок видно сходинки');
