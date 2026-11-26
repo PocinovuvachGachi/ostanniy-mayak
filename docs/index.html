@@ -3395,7 +3395,7 @@ const calm=()=>noGap()||(s.play||0)-(s.lastNov==null?-1e9:s.lastNov)>=NOVGAP;
 function unlock(t,quiet=false){if(!s.tabs[t]){s.tabs[t]=1;novMark();s.newTab[t]=1;if(SUBT[t]){s.newTab.tower=1;s.ttNew=typeof s.ttNew==='object'&&s.ttNew?s.ttNew:{};s.ttNew[t]=1}dirty=1;if(t==='hero'){if(s.h.xpb){const b=s.h.xpb;s.h.xpb=0;xp(b)}}const nm=(TABS.find(x=>x[0]===t)||[0,SUBT[t]||''])[1];if(t!=='shore'&&!quiet)dlg({k:'world',title:`Відкрито: ${nm}`,body:`<p>${TABV[t]||(TUT[t]?'':TABINFO[t])||''}${!TUT[t]&&TABV[t]&&TABINFO[t]?ih(TABINFO[t]):''}</p>`,gains:[SUBT[t]?`«${nm}» — у вкладці «Маяк».`:`Відкрилася вкладка «${nm}».`]});tutOffer(t)}}
 function page(n){if(!s.pages.includes(n)){s.pages.push(n);if(n===1)s.met.ostap=1;dlg({k:'story',title:n==='m'?'Записка Остапа без номера':`Записка Остапа, аркуш ${n}`,body:`<div class="note">${PG[n].replace(/ — О\.$/,'')}<span class="sig">— О.</span></div>`,gains:['Записку збережено в журналі.']});unlock('journal');dirty=1}}
 function book(id){if(!s.books.includes(id)){s.books.push(id);dirty=1}}
-function odd(id,pre){if(s.odd[id])return;s.odd[id]=1;s.oddNew=(s.oddNew||0)+1;xp(20);say((pre?pre+' ':'')+`Дивина: ${I(OD[id].n)}. +${Math.round(20*XPST[stageNo()])} досвіду.`,'find');const ik=ODI[id];dlg({k:'find',title:`Дивина: ${OD[id].n}`,img:{t:'icon',id:ik},body:`<p>${pre?pre+' ':''}${OD[id].d}</p>`,gains:['+20 досвіду',`Знайдено дивин: ${Object.keys(s.odd).length}`]})}
+function odd(id,pre){if(s.odd[id])return;s.odd[id]=1;s.oddNew=(s.oddNew||0)+1;xp(20);const item=OD[id];say((pre?pre+' ':'')+`Дивина: ${I(item.n)}. +${Math.round(20*XPST[stageNo()])} досвіду.`,'find');dlg({k:'find',odd:id,title:`Дивина: ${item.n}`,img:{t:'icon',id:ODI[id]},body:`<p>${pre?pre+' ':''}${item.d}</p>`,gains:['+20 досвіду',`Знайдено дивин: ${Object.keys(s.odd).length}`],btns:item.btns?.()})}
 function reveal(id,quiet=false){if(!s.disc[id]){s.disc[id]=1;dirty=1;const L=LOC[id];mom('disc',L.n,L.d,{t:'scene',id:id==='bay'?'bayHigh':id});if(!quiet)dlg({k:'world',title:`Нове місце: ${L.n}`,img:{t:'scene',id:id==='bay'?'bayHigh':id},body:`<p>${L.d}</p>`,gains:['Нове місце на мапі.',L.sea?'Туди можна дістатися лише човном, і вихід у море коштує провізію.':'',L.dark?'Там темно: візьми в руку ліхтар.':''].filter(Boolean)})}}
 function boat(){s.f.boat=1;reveal('reef')}
 function logOf(x){return typeof x==='string'?{m:x,t:'info'}:x}
@@ -4096,6 +4096,7 @@ function shelfPopHTML(){s.oddNew=0;const got=Object.keys(OD).filter(k=>s.odd[k])
   return`<div class="bpop wide" role="dialog" aria-label="Полиця хранителя"><div class="bph"><b>Полиця хранителя</b><button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div>
   <div class="ogrid">${got.map(k=>`<div class="ocard">${pimg(icoURL(ODI[k]),40,40,'',OD[k].n)}<b class="itm">${OD[k].n}</b><br><span class="m">${OD[k].d}</span></div>`).join('')}<div class="ocard empty" aria-hidden="true"></div><div class="ocard empty" aria-hidden="true"></div></div>
   ${martinLadleReady()?btn('Показати черпак Зиновію','martinLadle'):''}
+  ${martinLogReady()?btn(MARTIN_LOG_LABEL,'martinLog'):''}
   ${sets.map(st=>(s.oset||{})[st]?`<p class="m">✓ ${OSET[st].n}: набір зібрано (${OSET[st].gt}).</p>`:`<p class="hint">${OSET[st].n}: здається, на полиці бракує ще чогось схожого.</p>`).join('')}</div>`}
 /* ============ ЕТАП I: ІНСТРУМЕНТИ Й ПЕРШИЙ СЕКРЕТ ============
    Граблі — перший інструмент, що змінює берег: уламок віддає більше брухту.
@@ -4172,6 +4173,21 @@ function martinLadleTalk(){
   s.f.martinLadleStory=1;
   dlg({k:'story',title:'Рибка на держаку',img:{t:'face',id:'zinovii'},
     body:`<p>Зиновій бере черпак і обертає держак до світла. ${Q('Оцю рибку вирізав наш стерновий. Казав, що в шторм навіть на юшку треба мати свого стернового')}.</p><p>Він витирає з дерева сіль рукавом і кладе черпак назад на полицю.</p>`})
+}
+
+const MARTIN_LOG_LABEL='Показати сторінку Зиновію';
+const martinLogReady=()=>!!(s.odd.logpage&&s.f.zinovii&&!s.f.tracks&&!s.f.martinLogStory);
+OD.logpage.btns=()=>martinLogReady()?[
+  ['Продовжити','dlgok'],
+  [MARTIN_LOG_LABEL,'martinLog','find']
+]:undefined;
+function martinLogTalk(fromFind){
+  if(!martinLogReady()||(fromFind?s.dlg[0]?.odd!=='logpage':s.dlg.length>0))return;
+  s.f.martinLogStory=1;
+  const story={k:'story',title:'На полях журналу',img:{t:'face',id:'zinovii'},
+    body:`<p>Зиновій нахиляє аркуш до вогню. На полях проступають дві нерівні лінії, від намальованого борту до дверей камбуза.</p><p>${Q('Боцманів почерк. Він усе занотовував, навіть коли здавалося, що то дрібниця. Отут він приписав: «Палуба суха, а біля дверей пісок». Ми тоді ще не знали, звідки той пісок')}.</p>`};
+  if(fromFind){s.dlg[0]=story;dirty=1}
+  else dlg(story);
 }
 
 Object.assign(SHF,{
@@ -4746,6 +4762,7 @@ function act0(a,i){
   case 'three':threeLights();break;
   case 'cache':cacheOpen();break;
   case 'martinLadle':martinLadleTalk();break;
+  case 'martinLog':martinLogTalk(i==='find');break;
   case 'scrapw':if(F.wreck&&!onCd('scrapw')){setCd('scrapw',2);s.c.scrap=(s.c.scrap||0)+1;add('scrap',1+(s.rs.metal?1:0)+(s.h.ft.thrifty?1:0)+(has('rake')?1:0))}break;
   case 'fishing':if(F.rod&&!onCd('fishing')){setCd('fishing',3);if(!s.bite&&s.c.fish>=6&&F.crab1&&Date.now()-(s.bigT||0)>240000&&Math.random()<1/6){s.bigT=Date.now();if(mgHabit('fish')||s.quickMG){s.c.fish++;mgRun('fish',mgFish,fishEnd);break}s.bite={until:Date.now()+30000};say('Вудка вигнулася дугою: щось велике тягне линву!','find');break}add('fish',wolf());s.c.fish++;
     if(!F.crab1&&!F.crabWarn&&s.c.fish>=5){F.crabWarn=1;crabWarn()}}break;
@@ -5390,7 +5407,7 @@ function rDlg(){const q=s.dlg||[];if(!q.length)s.bellHold=0;const d=s.bellHold&&
   const key=d.title+'|'+String(d.body||'').length+'|'+(d.btns||[]).length+'|'+(s.dlg.length>1);if(key===lastDlg){try{const q=el.querySelector('.dlgq');if(q)q.textContent=s.dlg.length>1?`Ще подій у черзі: ${s.dlg.length-1}`:''}catch(e){}return}const fi=!lastDlg&&!RM();lastDlg=key;sfx(d.chap||d.k==='lvl'?'chime':d.k==='fight'?'horn':'page');
   if(d.chap){el.innerHTML=`<div class="dlgbg chapbg${fi?' fi':''}"><div class="dlgbox chap" role="dialog" aria-modal="true" aria-labelledby="dlgt"><div class="chapno">Розділ ${ROM(d.no)} завершено</div><h2 id="dlgt">${d.sub}</h2><div class="orn" aria-hidden="true">✦ ✦ ✦</div>${dlgImg(d.img)}<div class="dlgbody">${d.body||''}</div><div class="act"><button type="button" class="main" data-a="dlgok" data-i="">Гортати далі</button>${s.dlg.length>1?'<button type="button" class="toggle" data-a="bellDefer" data-i="">Відкласти решту</button>':''}</div><p class="more dlgq">${s.dlg.length>1?`Ще подій у черзі: ${s.dlg.length-1}`:''}</p></div></div>`;
     glossify(el);try{const b=el.querySelector&&el.querySelector('button');if(b)b.focus()}catch(e){}return}
-  el.innerHTML=`<div class="dlgbg${fi?' fi':''}"><div class="dlgbox k-${d.k||'info'}" role="dialog" aria-modal="true" aria-labelledby="dlgt">${dlgImg(d.img)}<div class="dlgin"><span class="tag t-${d.k||'info'}"><img class="tico" src="${tagURL(d.k==='tutorial'?'info':d.k||'info')}" alt="" width="14" height="14">${d.k==='tutorial'?'навчання':TAGN[d.k||'info']}</span><h2 id="dlgt">${d.title}</h2><div class="dlgbody">${d.body||''}</div>${d.gains&&d.gains.length?`<ul class="gains">${d.gains.map(g=>`<li>${g}</li>`).join('')}</ul>`:''}<div class="act">${(d.btns||[['Зрозуміло','dlgok']]).map(b=>`<button type="button" class="main" data-a="${b[1]}" data-i="${b[2]||''}">${b[0]}</button>`).join('')}${s.dlg.length>1&&!d.btns&&d.k!=='fight'?'<button type="button" class="toggle" data-a="bellDefer" data-i="">Відкласти решту</button>':''}</div><p class="m dlgq">${s.dlg.length>1?`Ще подій у черзі: ${s.dlg.length-1}`:''}</p></div></div></div>`;
+  el.innerHTML=`<div class="dlgbg${fi?' fi':''}"><div class="dlgbox k-${d.k||'info'}" role="dialog" aria-modal="true" aria-labelledby="dlgt">${dlgImg(d.img)}<div class="dlgin"><span class="tag t-${d.k||'info'}"><img class="tico" src="${tagURL(d.k==='tutorial'?'info':d.k||'info')}" alt="" width="14" height="14">${d.k==='tutorial'?'навчання':TAGN[d.k||'info']}</span><h2 id="dlgt">${d.title}</h2><div class="dlgbody">${d.body||''}</div>${d.gains&&d.gains.length?`<ul class="gains">${d.gains.map(g=>`<li>${g}</li>`).join('')}</ul>`:''}<div class="act">${(d.btns||[['Зрозуміло','dlgok']]).map(b=>`<button type="button" class="main" data-a="${b[1]}" data-i="${b[2]||''}">${b[0]}</button>`).join('')}${s.dlg.length>1&&(!d.btns||d.odd)&&d.k!=='fight'?'<button type="button" class="toggle" data-a="bellDefer" data-i="">Відкласти решту</button>':''}</div><p class="m dlgq">${s.dlg.length>1?`Ще подій у черзі: ${s.dlg.length-1}`:''}</p></div></div></div>`;
   glossify(el);try{const b=el.querySelector&&el.querySelector('button');if(b)b.focus()}catch(e){}}
 let lastToast='';
 /* Сповіщення — темні плашки внизу: звичайні тримаються 11 с, історія — 18 с, знахідки — 14 с, рівень — доки не закриєш ✕.

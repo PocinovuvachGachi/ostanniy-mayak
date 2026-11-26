@@ -12,7 +12,7 @@ for(const k of['spiral','pearl'])odd(k);const pts=s.h.pts;collFind('pool');A(s.o
 /* сліди → юшка → утопленик чекає слідів */
 const tick=()=>{s.lastAct=Date.now();shfTick()};s.f.gullrack=1;s.f.zinovii=1;s.dbgTide='high';
 s.shf='';s.f.rats=1;s.ratsT=Date.now();s.f.tracks=0;s.h.lvl=3;s.dbgPh='n';tick();A(s.shf!=='tracks'&&s.shf!=='drown1','сліди не одразу після пацюків');
-s.shf='';s.ratsT=Date.now()-6*60000;delete s.shfT.drown1;tick();A(s.shf==='tracks','сліди з моря');act('shfgo');A(s.f.tracks&&s.mst.zinovii,'казан Зиновія відкрився');
+s.shf='';s.ratsT=Date.now()-6*60000;delete s.shfT.drown1;tick();A(s.shf==='tracks'&&!s.f.martinLogStory,'сліди з моря доступні без розмови про журнал');act('shfgo');A(s.f.tracks&&s.mst.zinovii,'казан Зиновія відкрився');
 s.r.fish=20;s.r.prov=5;act('cook','soup');A(has('soup'),'юшка зварена');
 s.shf='';tick();A(s.shf==='drown1','утопленик після слідів');s.shf='';s.f.drown1=1;
 /* тюлень і речі з «Мартина» */

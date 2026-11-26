@@ -26,6 +26,21 @@ function martinLadleTalk(){
     body:`<p>Зиновій бере черпак і обертає держак до світла. ${Q('Оцю рибку вирізав наш стерновий. Казав, що в шторм навіть на юшку треба мати свого стернового')}.</p><p>Він витирає з дерева сіль рукавом і кладе черпак назад на полицю.</p>`})
 }
 
+const MARTIN_LOG_LABEL='Показати сторінку Зиновію';
+const martinLogReady=()=>!!(s.odd.logpage&&s.f.zinovii&&!s.f.tracks&&!s.f.martinLogStory);
+OD.logpage.btns=()=>martinLogReady()?[
+  ['Продовжити','dlgok'],
+  [MARTIN_LOG_LABEL,'martinLog','find']
+]:undefined;
+function martinLogTalk(fromFind){
+  if(!martinLogReady()||(fromFind?s.dlg[0]?.odd!=='logpage':s.dlg.length>0))return;
+  s.f.martinLogStory=1;
+  const story={k:'story',title:'На полях журналу',img:{t:'face',id:'zinovii'},
+    body:`<p>Зиновій нахиляє аркуш до вогню. На полях проступають дві нерівні лінії, від намальованого борту до дверей камбуза.</p><p>${Q('Боцманів почерк. Він усе занотовував, навіть коли здавалося, що то дрібниця. Отут він приписав: «Палуба суха, а біля дверей пісок». Ми тоді ще не знали, звідки той пісок')}.</p>`};
+  if(fromFind){s.dlg[0]=story;dirty=1}
+  else dlg(story);
+}
+
 Object.assign(SHF,{
   tracks:{n:'Сліди на мокрому піску',npc:1,tip:'Натисни, щоб роздивитися.',pos:[88,90],
     d:'Від самої води до маяка тягнуться сліди босих ніг.',once:1,

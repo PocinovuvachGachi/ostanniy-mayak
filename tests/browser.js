@@ -151,6 +151,41 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await p.close();
   }
 
+  // Судновий журнал після пацюків. Полиця дає повернутися до розмови.
+  for (const fromShelf of [false, true]) {
+    const p = await page(390, 844);
+    await p.emulateMedia({ reducedMotion: 'reduce' });
+    await p.evaluate(() => {
+      s.tabs.tower = 1; s.tab = 'tower'; s.b.hearth = 1;
+      s.odd.mbell = 1; s.f.zinovii = 1;
+      render();
+    });
+    const shelf = p.locator('.scn [data-i="cl:shelf"]');
+    await shelf.click();
+    const talk = p.locator('.bpop [data-a="martinLog"]');
+    A(await talk.count() === 0, 'сторінку ще не знайдено');
+    await p.click('.bpop .bpx');
+    const ratsAt = await p.evaluate(() => { shfWin('rats'); render(); return s.ratsT; });
+    A((await p.locator('#dlg h2').innerText()).includes('Сторінка суднового журналу'), 'сторінка випадає після пацюків');
+    if (fromShelf) {
+      await p.click('#dlg [data-a="dlgok"]');
+      await p.reload();
+      await shelf.click();
+      await talk.click();
+    } else {
+      await p.click('#dlg [data-a="martinLog"]');
+    }
+    A((await p.locator('#dlg h2').innerText()) === 'На полях журналу', 'Зиновій читає знайдену сторінку');
+    A(await p.evaluate(ratsAt => s.odd.logpage && s.f.martinLogStory && !s.f.tracks && s.ratsT === ratsAt, ratsAt),
+      'розмова зберігає сторінку й час появи слідів');
+    await p.click('#dlg [data-a="dlgok"]');
+    await p.reload();
+    await shelf.click();
+    A(await talk.count() === 0, 'розмова не повторюється після завантаження');
+    A(await p.evaluate(() => document.documentElement.scrollWidth <= 390), 'полиця вміщається на телефоні');
+    await p.close();
+  }
+
   // Мобільна картка місця не заважає закрити сюжетний діалог.
   {
     const p = await page(390, 844);
