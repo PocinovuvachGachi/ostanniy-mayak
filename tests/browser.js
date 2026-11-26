@@ -125,6 +125,38 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await p.close();
   }
 
+  // На телефоні приплив змінює доступні об'єкти, зібрана їжа лишається.
+  {
+    const p = await page(390, 844);
+    await p.emulateMedia({ reducedMotion: 'reduce' });
+    await p.clock.install();
+    await p.reload();
+    await p.evaluate(() => {
+      s.tabs.shore = 1; s.tab = 'shore'; s.f.looked = 1;
+      s.f.tideSeen = 1; s.tideEpoch = Date.now() - 550_000;
+      s.f.rod = 1; s.f.wreck = 1; s.f.dryRack = 1;
+      render();
+    });
+    const shells = p.locator('.scn [data-a="mussels"]');
+    A(await shells.count() === 0, 'на повній воді мідій не видно');
+    await p.clock.fastForward(61_000);
+    await shells.click();
+    A(await p.evaluate(() => has('mussel')), 'мідії збираються зі сцени на відпливі');
+    await p.clock.fastForward(300_000);
+    await p.locator('.scn [data-a="pool"]').waitFor({ state: 'hidden' });
+    A(await p.evaluate(() => !tideLow()), 'калюжа зникає, коли вода повертається');
+    await p.reload();
+    A(await p.evaluate(() => has('mussel')), 'мідії пережили приплив і перезавантаження');
+    await p.evaluate(() => { s.h.hp = maxHP() - 12; });
+    await p.click('#main .alist summary');
+    await p.click('#main [data-a="use"][data-i="mussel"]');
+    A(await p.evaluate(() => !has('mussel') && s.h.hp >= maxHP()-6), 'мідії можна з’їсти зі списку дій');
+    await p.clock.fastForward(600_000);
+    await shells.waitFor();
+    A(await p.evaluate(() => document.documentElement.scrollWidth <= 390), 'берег уміщається на телефоні');
+    await p.close();
+  }
+
   // Речі з «Мартина» можна обговорити до завершення набору.
   {
     const p = await page(390, 844);

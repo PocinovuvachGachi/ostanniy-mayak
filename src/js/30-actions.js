@@ -38,6 +38,7 @@ function act0(a,i){
   case 'dryload':dryLoad();break;
   case 'drytake':dryTake();break;
   case 'pool':poolPick();break;
+  case 'mussels':musselPick();break;
   case 'ford':fordPart(i);break;
   case 'shfgo':shfGo();break;
   case 'rune':runeRead(i);break;

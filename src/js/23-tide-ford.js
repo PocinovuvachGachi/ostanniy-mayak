@@ -31,16 +31,34 @@ function fordPart(id){const P=FORD.find(p=>p.id===id);if(!P||!s.f.fordSeen||(s.f
     dlg({k:'story',title:'Брід позначено',img:{t:'scene',id:'shore'},body:`<p>Ліхтар на дальньому кінці броду засвітився. Із вішками, поруччям і світлом брід не підведе навіть тоді, коли вода сягає колін: тепер можна ходити на великий острів — туди, де ночами горять вогні Причалу.</p>`,gains:['Відкрилося: Мапа','На мапі позначено Гнилий Причал.']})}
   else say(`${P.n}: готово. Брід стає надійнішим.`,'build');return true}
 /* Калюжі на відпливі */
+IT.mussel={n:'Мідії',ic:'()',use:'heal',v:6,d:'Відновлюють 6 здоров’я. У бою з поясу за 1 ОД.'};
+ICO.mussel=['............','.....dd.....','....d99d....','...d9a8d....','..d9a88d....','..d9888d....','..d888d.....','...ddd......','.....yyy....','............','............','............'];
+const musselReady=()=>tideLow()&&!has('mussel')&&s.musselCyc!==tideCyc();
+function musselPick(){
+  if(!musselReady())return;
+  s.musselCyc=tideCyc();
+  giveI('mussel');
+  say('Ти знімаєш із каменя жменю мідій і загортаєш їх у ганчірку.','find');
+}
 function poolPick(){if(!tideLow()||onCd('pool'))return;setCd('pool',4);s.c.pool=(s.c.pool||0)+1;const n=1+(Math.random()<.4?1:0);add('fish',n);
   if(typeof collFind==='function'&&Math.random()<((s.mst||{}).horpyna?.14:.07))collFind('pool');}
 /* Об'єкти берега: калюжа між камінням і кілок біля броду */
 function poolObj3(){const b=pbuf(34,14);hiRect(b,0,0,34,14,(i,j,x,y)=>{const d=((x-17)/16)**2+((y-8)/6)**2;if(d>1)return;const r=vnz(i,j,4,21);if(d>.62||r>.7)return r>.5?'F':'E';if(d>.5)return'D';return hh2(i,j)<.06?'u':y<7?'T':'S'});
   for(const[x,y]of[[8,7],[22,9],[14,10]]){pset(b,x,y,'x');pset(b,x+1,y,'D')}pset(b,26,5,'v');pset(b,27,5,'t');return b}
+function musselObj3(){const b=pbuf(16,11);
+  polyFill(b,[[0,9],[3,5],[11,4],[15,9],[12,10],[2,10]],(x,y)=>pset(b,x,y,y<8?'G':'E'));
+  for(const[x,y]of[[3,6],[8,5],[11,7]]){
+    polyFill(b,[[x-1,y+2],[x,y-2],[x+2,y-3],[x+4,y-1],[x+2,y+2]],(px,py)=>pset(b,px,py,px<=x+1?'D':'C'));
+    pline(b,x,y+1,x+2,y-2,'H');
+  }
+  return b
+}
 function fordPost3(n){const b=pbuf(14,26);prect(b,6,4,2,22,'W');prect(b,6,4,1,22,'X');polyFill(b,[[8,5],[13,7],[8,10]],(x,y)=>pset(b,x,y,'i'));prect(b,4,24,6,2,'E');
   for(let k=0;k<Math.min(4,n);k++)prect(b,1,14+k*3,4,2,'Y');return b}
-for(const f of['poolObj3','fordPost3'])globalThis[f]=HI(globalThis[f]);
+for(const f of['poolObj3','musselObj3','fordPost3'])globalThis[f]=HI(globalThis[f]);
 function shoreFordHS(W,H){let h='';
-  if(tideLow())h+=ob('pool','pool','',obURL('pool3',poolObj3),120,62,W,H,'Калюжі на відпливі','<b>Калюжі між камінням</b><br>Вода відступила: мідії, дрібна риба, а часом і щось, що загубило море.',{cd:'pool',cs:4,pulse:!(s.hsU||{}).pool});
+  if(tideLow())h+=ob('pool','pool','',obURL('pool3',poolObj3),120,62,W,H,'Калюжі на відпливі','<b>Калюжі між камінням</b><br>Вода відступила: видно дрібну рибу, а часом і щось, що загубило море.',{cd:'pool',cs:4,pulse:!(s.hsU||{}).pool});
+  if(musselReady())h+=ob('mussels','mussels','',obURL('mussel3',musselObj3),135,104,W,H,'Зібрати мідії','<b>Мідії</b><br>На мокрому камені темніють мушлі.',{pulse:1});
   if(s.f.fordSeen&&!s.f.fordDone)h+=ob('sh:ford','bpop','sh:ford',obURL('fp3:'+fordN(),()=>fordPost3(fordN())),40,58,W,H,'Брід','<b>Брід</b><br>'+tideTxt(),{pulse:tideLow()?1:0,always:tideLow()?1:0});
   return h}
 function fordPopHTML(){const low=tideLow();return`<div class="bpop" role="dialog" aria-label="Брід"><div class="bph"><b>Брід на великий острів</b><button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div>
