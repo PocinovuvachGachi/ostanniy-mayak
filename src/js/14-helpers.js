@@ -99,8 +99,8 @@ const reserveOn=id=>!(s.reserveFree||{})[id];
 const reserveAmount=(id,k)=>reserveOn(id)?(STOCK_RESERVE[k]||0):0;
 const reserveAvailable=(id,k,v)=>Math.max(0,v-reserveAmount(id,k));
 function reserveInputs(id){return Object.keys(id==='hearth'?{wood:1}:(CONV[id]||{in:{}}).in).filter(k=>STOCK_RESERVE[k])}
-function reserveText(id){if(!reserveOn(id))return 'Резерв вимкнено: може витрачати весь запас.';const keys=reserveInputs(id);if(!keys.length)return '';const low=keys.filter(k=>s.r[k]<=STOCK_RESERVE[k]+.01);return 'Резерв: '+keys.map(k=>RN[k]+' '+STOCK_RESERVE[k]).join(', ')+(low.length&&s.on[id]!==false&&!((s.dmgB||{})[id])?' · обмежено запасом: '+low.map(k=>RN[k]).join(', '):'')+'.'}
-function flow(dt,dry){const L=s.b,d={};for(const k of RES)d[k]=0;const av=k=>s.r[k]+d[k];
+function reserveText(id){if(!reserveOn(id))return 'Резерв вимкнено: може витрачати весь запас.';const keys=reserveInputs(id);if(!keys.length)return '';const low=id==='hearth'&&s.r.wood<=STOCK_RESERVE.wood+.01&&s.on.hearth!==false&&!s.dmgB?.hearth;return 'Резерв: '+keys.map(k=>RN[k]+' '+STOCK_RESERVE[k]).join(', ')+(low?' · обмежено запасом плавника':'')+'.'}
+function flow(dt,dry,production){const L=s.b,d={};for(const k of RES)d[k]=0;const av=k=>s.r[k]+d[k];
   const eat=0.02*people()*dt;let fed=1;if(eat>0){fed=Math.min(1,Math.max(0,av('prov'))/eat);d.prov-=eat*fed;fed=0.5+0.5*fed}
   const E=id=>eff(id,fed),idle=Math.max(0,freeW());
   d.wood+=((L.hearth?0.15:0)+E('boom')*0.3*(s.rs.currents?2:1)*wolf()+0.1*idle*fed)*dt;
@@ -113,8 +113,15 @@ function flow(dt,dry){const L=s.b,d={};for(const k of RES)d[k]=0;const av=k=>s.r
   d.ember+=dt;
   const hn=L.hearth||0;if(hn&&s.on.hearth!==false){const need=0.12*hn*dt*(fuL('hall')>=2?0.7:1),ratio=Math.min(1,reserveAvailable('hearth','wood',av('wood'))/need);d.wood-=need*ratio;d.ember+=2*hn*dt*ratio*(fuL('hall')>=1?1.25:1)}
   for(const id in CONV){const n=E(id)*((id==='smoke'||id==='render')&&s.rs.a_eel?1.5:1)*(id==='smoke'&&fac('cape')>=50?1.25:1)*(id==='smoke'&&(s.mst||{}).zinovii?2:1)*(id==='glass'&&s.rs.a_shark?1.25:1);if(!n||s.on[id]===false)continue;const C=CONV[id];let ratio=1;
-    for(const k in C.in)ratio=Math.min(ratio,reserveAvailable(id,k,av(k))/(C.in[k]*n*dt));
-    if(typeof capOf==='function')for(const k in C.out)if(s.r[k]>=capOf(k))ratio=0;
+    const limits=production?[]:null;
+    for(const k in C.in){
+      const stock=av(k),available=reserveAvailable(id,k,stock),share=available/(C.in[k]*n*dt);
+      ratio=Math.min(ratio,share);
+      if(limits&&share<1)limits.push({k,share,reserved:stock>0&&available<stock});
+    }
+    let full;
+    if(typeof capOf==='function')for(const k in C.out)if(s.r[k]>=capOf(k)){full=k;ratio=0;break}
+    if(production)production[id]={ratio,full,limits:limits.filter(x=>x.share===ratio)};
     if(!(ratio>0))continue;for(const k in C.in)d[k]-=C.in[k]*n*dt*ratio;for(const k in C.out)d[k]+=C.out[k]*n*dt*ratio}
   if(!dry)for(const k of RES)if(d[k]){add(k,d[k]);if(s.r[k]<0)s.r[k]=0}
   return d}

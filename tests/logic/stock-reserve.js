@@ -10,4 +10,11 @@ A(s.r.wood>=5&&s.r.scrap>=3&&s.r.fish>=4&&s.r.ember>=100,'нижче резер�
 s.r.wood=10;s.r.fish=8;act('reserve','smoke');A(!reserveOn('smoke')&&reserveOn('hearth')&&reserveOn('forge'),'дозвіл лише для коптильні');
 produce(10);A(s.r.fish<8,'ручний дозвіл витрачає резерв');act('reserve','smoke');A(reserveOn('smoke'),'захист можна повернути');
 s.r.wood=10;pay({wood:2});A(s.r.wood===8,'ручні витрати не обмежуються резервом');
+s=fresh();s.b.forge=1;s.b.steel=1;s.b.smoke=1;
+Object.assign(s.r,{ember:160,scrap:20,coal:10,iron:10,fish:20,wood:40,prov:capOf('prov')});
+const forecast={};
+const resources=JSON.stringify(s.r);
+A(JSON.stringify(flow(1,true,forecast))===JSON.stringify(flow(1,true))&&JSON.stringify(s.r)===resources,'діагностика не змінює потоки й запаси');
+A(forecast.steel.ratio===0&&forecast.steel.limits.some(x=>x.k==='ember'&&x.reserved),'кузня витратила доступний жар до сталеварні');
+A(forecast.smoke.full==='prov'&&forecast.smoke.ratio===0,'повний запас провізії зупиняє коптильню');
 console.log('fails',fails)`);

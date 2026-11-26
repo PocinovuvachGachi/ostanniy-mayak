@@ -166,6 +166,38 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await p.close();
   }
 
+  // Книга обліку й картка використовують поточний розрахунок виробництва.
+  {
+    const p = await page(390, 844);
+    await p.emulateMedia({ reducedMotion: 'reduce' });
+    await p.evaluate(() => {
+      Object.assign(s.b, { steel: 1, forge: 1, coalpit: 1 });
+      Object.assign(s.bdSeen, { steel: 1, forge: 1, coalpit: 1 });
+      Object.assign(s.mst, { kindrat: 1, ustyna: 1 });
+      Object.assign(s.r, { ember: 160, coal: 20, iron: 10, scrap: 20, wood: 40 });
+      s.f.looked = 1; s.ldOpen = 1; render();
+    });
+    const steel = p.locator('#bd-steel [data-production="steel"]');
+    A((await steel.innerText()).includes('Обмежує резерв (жар)'), 'сталеварня пояснює, що жар понад резерв витратила кузня');
+    await p.click('#bd-steel [data-a="reserve"]');
+    A((await steel.innerText()).includes('Працює на повну'), 'дозвіл витрачати резерв відновлює роботу');
+    await p.click('#bd-steel [data-a="reserve"]');
+    await p.evaluate(() => {
+      s.on.forge = false; s.r.ember = 200; s.r.coal = 0; s.dmgB.coalpit = 1; render();
+    });
+    A((await steel.innerText()).includes('Ремонт потрібен: Вуглярня'), 'сталеварня показує пошкоджене джерело вугілля');
+    await p.click('#bd-coalpit [data-a="repair"]');
+    await p.waitForFunction(() => !s.dmgB.coalpit && flow(1,true).steel > 0 &&
+      !document.querySelector('#bd-steel [data-production]').textContent.includes('Ремонт'));
+    await p.click('.scn [data-a="bpop"][data-i="steel"]');
+    const card = p.locator('.bpop [data-production="steel"]');
+    A((await card.innerText()) === (await steel.innerText()), 'картка показує той самий статус');
+    await p.click('.bpop [data-a="tog"][data-i="steel"]');
+    A((await card.innerText()).includes('Зупинено вручну'), 'картка пояснює ручне вимкнення');
+    A(await p.evaluate(() => document.documentElement.scrollWidth <= 390), 'картка виробництва вміщається на телефоні');
+    await p.close();
+  }
+
   // 1. Усі вкладки на телефоні й на широкому екрані
   for (const [w, h] of [[390, 844], [1280, 900]]) {
     const p = await page(w, h);

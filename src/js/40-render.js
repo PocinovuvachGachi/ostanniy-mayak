@@ -117,6 +117,22 @@ const scnD=()=>`--d:-${((Date.now()/1000)%30).toFixed(2)}s;--d2:-${((Date.now()/
 function homeScene(){return`<div class="scn yd" data-scn="yd" style="${scnD()}"><span data-sk="bg" data-sig="bg" class="scbg">${VH(yardBgImg)}</span>${homeHS()}</div>`}
 function shoreScene(){return`<div class="scn sh" data-scn="sh" style="${scnD()}"><span data-sk="bg" data-sig="bg" class="scbg">${VH(shoreImg)}</span>${shoreHS()}</div>`}
 function reserveButton(id){return reserveInputs(id).length?btn(reserveOn(id)?'Дозволити витрачати резерв':'Захищати резерв','reserve',id,{cls:'toggle'}):''}
+function productionText(id,state){
+  if(s.on[id]===false)return 'Зупинено вручну. Натисни «Увімкнути», щоб відновити роботу.';
+  if(!state)return '';
+  if(state.full)return 'Зупинено: запас заповнений ('+RN[state.full]+'). Звільни місце.';
+  if(state.ratio===1)return 'Працює на повну.';
+  const messages=[];
+  const reserved=state.limits.filter(x=>x.reserved);
+  const missing=state.limits.filter(x=>!x.reserved);
+  if(reserved.length)messages.push('Обмежує резерв ('+reserved.map(x=>RN[x.k]).join(', ')+'). Можна дозволити витрачати його для цієї будівлі.');
+  if(missing.length){
+    const sources=BD.filter(b=>s.b[b.id]&&s.dmgB?.[b.id]&&missing.some(x=>CONV[b.id]?.out[x.k]));
+    messages.push('Бракує сировини ('+missing.map(x=>RN[x.k]).join(', ')+').');
+    messages.push(sources.length?'Ремонт потрібен: '+sources.map(b=>b.n).join(', ')+'.':'Поповни запас.');
+  }
+  return (state.ratio>0?'Працює повільніше. ':'Виробництво стоїть. ')+messages.join(' ');
+}
 function rHome(){let h=`<div>`;
   h+=`<section><div class="big">${V(()=>fmt(s.r.ember))}</div><p class="m">жару, ${V(()=>{const v=rates().ember;return(v>=0?'+':'')+fr(v)})} за секунду</p><p>${homeText()}</p>`;
   let al='';if(!s.b.hearth)al+=btn('Подмухати на жарину','blow','',{cd:'blow',cs:2});
@@ -134,7 +150,7 @@ function rHome(){let h=`<div>`;
       const wk=s.f.people&&n&&WKB.includes(b.id)?`<br><span class="wk">${mstOf(b.id)?'<span class="chip">майстер ×2</span> ':''}робітники <b>${w}</b> з ${n} ${btn('−','wk-',b.id,{cls:'toggle',ok:w>0,lab:'Зняти робітника'})}${btn('+','wk+',b.id,{cls:'toggle',ok:()=>freeW()>0&&w<n,lab:'Додати робітника'})}</span>`:(n&&mstOf(b.id)&&!b.nw?'<br><span class="chip">майстер ×2</span>':'');
       const dm=(s.dmgB||{})[b.id],rc=dm?repCost(b):null;
       if(dm){h+=`<div class="row" id="bd-${b.id}"><div><b>${b.n}</b> <span class="foe">пошкоджено</span><br><span class="m">Мла зламала будівлю. Поки її не полагодиш, вона не працює.</span></div>${btn(`Полагодити (${costTxt(rc)})`,'repair',b.id,{ok:()=>afford(rc),cls:'main'})}</div>`;continue}
-      h+=`<div class="row" id="bd-${b.id}"><div><b>${b.n}</b>${fresh9('b:'+b.id)}${n&&!b.max?`, рівень ${n}`:''}${b.conv&&n&&s.on[b.id]===false?' <span class="m">(зупинено)</span>':''}<br><span class="m">${b.d()}</span>${n&&b.conv&&reserveInputs(b.id).length?`<br><span class="m">${V(()=>reserveText(b.id))}</span>`:''}${wk}</div><div class="act" style="flex:0 1 auto">${b.conv&&n?btn(s.on[b.id]===false?'Увімкнути':'Вимкнути','tog',b.id,{cls:'toggle'})+reserveButton(b.id):''}${mx?'<span class="done">збудовано</span>':btn(`${n?'Покращити':'Збудувати'} (${costTxt(bCost(b))})`,'bld',b.id,{ok:()=>afford(bCost(b))})}</div></div>`}
+      h+=`<div class="row" id="bd-${b.id}"><div><b>${b.n}</b>${fresh9('b:'+b.id)}${n&&!b.max?`, рівень ${n}`:''}<br><span class="m">${b.d()}</span>${n&&b.conv?`<br><span class="m" data-production="${b.id}"></span>`:''}${n&&b.conv&&reserveInputs(b.id).length?`<br><span class="m">${V(()=>reserveText(b.id))}</span>`:''}${wk}</div><div class="act" style="flex:0 1 auto">${b.conv&&n?btn(s.on[b.id]===false?'Увімкнути':'Вимкнути','tog',b.id,{cls:'toggle'})+reserveButton(b.id):''}${mx?'<span class="done">збудовано</span>':btn(`${n?'Покращити':'Збудувати'} (${costTxt(bCost(b))})`,'bld',b.id,{ok:()=>afford(bCost(b))})}</div></div>`}
     h+=`</details></section>`}
   if(s.b.shipyard){h+=`<section><h2>Верф Захара</h2>`;
     h+=s.f.schooner?`<p>Шхуна «Остап» стоїть біля причалу. На ній можна плисти до північних островів.</p>`:`<div class="row"><div><b>Шхуна</b><br><span class="m">Двощогловий корабель, що пройде крізь північні тумани. Сталь на обшивку, скло на ліхтарі.</span></div>${btn(`Збудувати (${costTxt(SCHOONER)})`,'schooner','',{ok:()=>afford(SCHOONER),cls:'main'})}</div>`;
@@ -516,6 +532,11 @@ function render(){B={};bn=0;
   dirty=0;refresh()}
 let ftOpen=0;
 function refresh(){
+  const plants=document.querySelectorAll('[data-production]');
+  if(plants.length){
+    const production={};flow(1,true,production);
+    plants.forEach(el=>{const id=el.dataset.production,t=productionText(id,production[id]);if(el.textContent!==t)el.textContent=t});
+  }
   document.querySelectorAll('[data-ok]').forEach(el=>{const f=B[el.dataset.ok];if(f){const d=!f();if(el.disabled!==d)el.disabled=d}});
   document.querySelectorAll('[data-v]').forEach(el=>{const f=B[el.dataset.v];if(f){const t=String(f());if(el.textContent!==t)el.textContent=t}});
   document.querySelectorAll('[data-h]').forEach(el=>{const f=B[el.dataset.h];if(f){const t=String(f());if(el.dataset.last!==t){const xs=el.dataset.last!==undefined?xSnap(el):null;el.dataset.last=t;el.innerHTML=t;if(xs)xFade(el,xs,1)}}});
