@@ -439,7 +439,7 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     A(await p.evaluate(()=>s.hookWater.pulls===2&&!s.hookWater.pending),'список дій користується тим самим підтягуванням');
     await p.evaluate(()=>{s.hookWater.wait=0;s.dbgTide='low';render()});
     await water.waitFor();
-    await water.scrollIntoViewIfNeeded();
+    await water.evaluate(el=>el.scrollIntoView({block:'center'}));
     const lowHit=await water.evaluate(e=>{
       const r=e.getBoundingClientRect();
       return e.contains(document.elementFromPoint((r.left+r.right)/2,(r.top+r.bottom)/2));
@@ -622,6 +622,119 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await p.click('#main [data-a="ht"][data-i="bag"]');
     await p.click('#main [data-a="use"][data-i="bakedflounder"]');
     A(await p.evaluate(()=>!has('bakedflounder')&&s.h.hp>=22&&document.documentElement.scrollWidth<=390),'торба, лікування та мобільна ширина');
+    await p.close();
+  }
+
+  // Пояснення першого відпливу чекає берега, відлік — завершення уроку.
+  {
+    const p=await page(390,844);
+    await p.evaluate(()=>{
+      Math.random=()=>.99;
+      s.f.looked=1;s.f.rod=1;s.c.fish=3;s.tabs.shore=1;s.tabs.chron=1;s.tab='home';
+      s.tideEpoch=Date.now()-600_000;s.lastAct=Date.now();s.lastNov=null;s.dlg=[];s.tutPending=[];
+      s.bts=Object.fromEntries(CH.flatMap(ch=>ch.beats.map(beat=>[beat[0],1])));s.chs=CH.map(ch=>ch.id);
+      s.bdSeen=Object.fromEntries(BD.map(b=>[b.id,1]));s.rcSeen=Object.fromEntries(RC.map(rc=>[rc.id,1]));
+      tideFirst();render();
+    });
+    A(!await p.evaluate(()=>s.f.tideSeen),'перше пояснення не відкривається на домашній вкладці');
+    await p.click('#tabs [data-i="shore"]');
+    await p.locator('#dlg h2',{hasText:/^Відплив$/}).waitFor();
+    await p.evaluate(()=>{s.tideEpoch-=2*TIDE*1000;save()});
+    await p.reload();
+    A(await p.evaluate(()=>s.f.tideIntro&&tideLow()),'перше доступне вікно переживає reload до читання');
+    await p.click('#dlg [data-a="dlgok"]');
+    await p.locator('#dlg .k-tutorial h2',{hasText:'Приплив і відплив'}).waitFor();
+    await p.click('#dlg [data-a="dlgok"]');
+    await p.waitForFunction(()=>!s.f.tideIntro);
+    A(await p.evaluate(()=>tideLow()&&tideLeft()>255&&tideCyc()===0),'на огляд берега є повне перше вікно після уроку');
+    await p.close();
+  }
+
+  // Без дій гравця фаза оновлює берег, список і відкриті картки.
+  {
+    const p=await page(390,844);
+    await p.evaluate(()=>{
+      Math.random=()=>.99;
+      window.setSea=seconds=>{s.tideEpoch=Date.now()-seconds*1000;s.lastAct=Date.now()};
+      s.tab='shore';s.tabs.shore=1;s.tabs.map=1;
+      Object.assign(s.f,{looked:1,tideSeen:1,fordSeen:1,wreck:1,crab1:1,rats:1,tracks:1,hook:1,rod:1,rodUp:1});
+      s.r.wood=100;s.r.fish=10;s.bts=Object.fromEntries(CH.flatMap(ch=>ch.beats.map(beat=>[beat[0],1])));
+      s.chs=CH.map(ch=>ch.id);s.lastNov=s.play;s.dlg=[];s.tutPending=[];
+      s.bdSeen=Object.fromEntries(BD.map(b=>[b.id,1]));s.rcSeen=Object.fromEntries(RC.map(rc=>[rc.id,1]));
+      s.hookWater.pending={id:3,kind:'heavy',reward:{wood:4,scrap:3}};
+      giveI('rake');s.rakeSand.pending={id:1,kind:'wet',scrap:2};
+      s.bite={kind:'fish',place:'deep',amount:2};s.f.fishBiteSeen=1;s.tutSeen.fishBite=1;
+      s.tutSeen.tide=1;setSea(120);render();
+    });
+    const stage=p.locator('.scn.sh'),list=p.locator('.shore-alist'),status=p.locator('.tide-status');
+    const gather=stage.locator('[data-k="gather"]'),pool=stage.locator('[data-a="pool"]');
+    const wet=stage.locator('[data-a="rakeSand"]'),rune=stage.locator('[data-k="rune:b"]');
+    const ford=p.locator('#popl [role="dialog"][aria-label="Брід"]'),part=ford.locator('[data-a="ford"]');
+    const tide=async(seconds,phase)=>{
+      await p.evaluate(seconds=>setSea(seconds),seconds);
+      await stage.and(p.locator(`[data-tide="${phase}"]`)).waitFor();
+    };
+    await list.locator('summary').click();
+    await gather.evaluate(el=>{
+      window.tideGather=el;setCd('gather',1);el.focus({preventScroll:true});
+      window.tideLog=el.querySelector('.dlw');
+      window.tideAnim=tideLog.animate([{opacity:1},{opacity:.9}],{duration:6000});
+    });
+    const art=new Set([await stage.locator('.scbg img.scene').getAttribute('data-fr')]);
+    A((await status.innerText()).includes('Повна вода')&&!await pool.count()&&!await wet.count(),'на високій воді видно стан, мокрі дії приховані');
+    await tide(580,'ebb');
+    art.add(await stage.locator('.scbg img.scene').getAttribute('data-fr'));
+    A((await status.innerText()).includes('Вода відступає')&&!await pool.count()&&await p.evaluate(()=>
+      document.activeElement===tideGather&&tideGather.isConnected&&tideLog.getAnimations().includes(tideAnim)),
+      'при відступанні збережено фокус і поточну анімацію плавника');
+    const clock=await status.locator('.tide-clock').innerText();
+    await p.waitForFunction(before=>document.querySelector('.tide-clock').innerText!==before,clock);
+    A(await p.evaluate(()=>document.activeElement===tideGather&&tideGather.isConnected),'відлік не створює повторно кнопку');
+    await tide(620,'low');
+    art.add(await stage.locator('.scbg img.scene').getAttribute('data-fr'));
+    A((await status.innerText()).includes('Відплив')&&await wet.count()===1&&await pool.count()===1&&await rune.count()===1
+      &&await list.locator('[data-a="pool"]').isVisible()&&await list.locator('[data-a="rune"][data-i="b"]').isVisible(),
+      'низька вода одночасно відкриває калюжі, руни й вологий пісок у сцені та списку');
+    A(await pool.evaluate(e=>{
+      e.scrollIntoView({block:'center'});
+      const r=e.getBoundingClientRect();return e.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));
+    }),'калюжа має власну доступну точку після появи');
+    await list.locator('[data-a="pool"]').focus();await p.keyboard.press('Enter');
+    A(await p.evaluate(()=>s.c.pool===1&&onCd('pool')),'дія зі списку доступна з клавіатури й має штатну шкалу');
+    const sec=await p.evaluate(()=>s.cd.pool);
+    await list.locator('[data-i="sh:ford"]').click();
+    await part.focus();
+    A(!await part.isDisabled(),'брід відкритий під час відпливу');
+    await p.evaluate(()=>{setSea(880);document.querySelector('#popl [data-a="ford"]').click()});
+    await stage.and(p.locator('[data-tide="flood"]')).waitFor();
+    art.add(await stage.locator('.scbg img.scene').getAttribute('data-fr'));
+    A(art.size===4&&(await status.innerText()).includes('Вода повертається')&&!await wet.count()&&!await pool.count()&&!await rune.count()
+      &&!await list.locator('[data-a="pool"]').count()&&!await list.locator('[data-a="rakeSand"]').count(),
+      'чотири фони і синхронне закриття берегових дій');
+    A(await part.isDisabled()&&(await ford.innerText()).includes('Камінь зараз під водою')
+      &&await p.evaluate(sec=>!s.ford?.poles&&s.cd.pool===sec&&s.rakeSand.pending.id===1,sec),
+      'відкрита картка змінюється, стара кнопка не витрачає ресурс, cooldown і ділянка збережені');
+    A(await ford.locator('.bpx').evaluate(e=>e===document.activeElement),'фокус переходить до закриття картки, коли її дія стає недоступною');
+    await p.emulateMedia({reducedMotion:'reduce'});
+    await tide(620,'low');
+    A(!await part.isDisabled()&&await wet.isVisible()&&await stage.locator('[data-k="sh:bite"]').count()===1
+      &&await stage.locator('[data-a="hookWater"]').count()===1&&!await stage.locator('.scbg .xf').count()
+      &&await p.evaluate(()=>document.documentElement.scrollWidth<=390),'статичний режим повертає взаємодії й зберігає незалежний улов і вантаж');
+
+    await p.evaluate(()=>{s.disc.fort=1;s.disc.bay=1;s.f.reefmap=1;s.f.boat=1;s.r.prov=50;render()});
+    await p.click('#tabs [data-i="map"]');
+    const mapList=p.locator('#main .ledg');if(!await mapList.evaluate(e=>e.open))await mapList.locator('summary').click();
+    await p.locator('.scn [data-k="mp:fort"]').click();
+    const go=p.locator('#popl [data-a="go"][data-i="fort"]'),goList=mapList.locator('[data-a="go"][data-i="fort"]');
+    A(!await go.isDisabled()&&!await goList.isDisabled(),'карта і список дозволяють пройти рифи на відпливі');
+    await p.evaluate(()=>setSea(100));await p.waitForFunction(()=>document.querySelector('#popl [data-i="fort"]')?.disabled);
+    A(await goList.isDisabled()&&(await p.locator('#popl').innerText()).includes('Прохід між рифами'),'карта і відкрита картка закривають прохід на повній воді');
+    await p.evaluate(()=>{s.at='bay';popB='';s.h.a.str=5;render()});
+    await p.locator('.scn [data-k="lc:chest"]').click();
+    const chest=p.locator('#popl [data-i="bay.chest.pull"]');
+    A(await chest.isDisabled(),'затока використовує той самий календар');
+    await p.evaluate(()=>setSea(620));await p.waitForFunction(()=>!document.querySelector('#popl [data-i="bay.chest.pull"]')?.disabled);
+    A(await chest.isVisible()&&!await chest.isDisabled(),'скриня стає доступною у вже відкритій картці');
     await p.close();
   }
 

@@ -145,6 +145,7 @@ function patchStage(html){const st=$('stage');if(!st)return;if(!st.querySelector
   if(!html){if(st.firstChild)st.innerHTML='';return}
   try{const tp=document.createElement('template');tp.innerHTML=html;const nw=tp.content.firstElementChild,old=st.querySelector('.scn[data-scn]');
     if(!old||old.dataset.scn!==nw.dataset.scn){st.innerHTML=`<div class="scw">${html}</div>`;return}
+    if(nw.dataset.tide)old.dataset.tide=nw.dataset.tide;
     const om={};for(const c of[...old.children])if(c.dataset&&c.dataset.sk)om[c.dataset.sk]=c;const used=new Set();
     for(const c of[...nw.children]){const k=c.dataset&&c.dataset.sk,o=k&&om[k];
       if(o&&o.dataset.sig===c.dataset.sig){if(k==='bg'){const nh=c.querySelector('[data-h]'),oh=o.querySelector('[data-h]');if(nh&&oh)oh.dataset.h=nh.dataset.h}used.add(o)}
