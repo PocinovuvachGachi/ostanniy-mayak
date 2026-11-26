@@ -90,7 +90,7 @@ function xp(n){if(!n)return;n*=XPST[stageNo()];if(s.h.ft.curious)n*=1.1;if(fuL('
 /* economy */
 function repCost(b){const n=Math.max(0,(s.b[b.id]||1)-1),c={},m=0.5*Math.max(0.5,1-0.05*st('craft'));for(const k in b.base)c[k]=Math.max(1,Math.ceil(b.base[k]*Math.pow(b.mult,n)*m));return c}
 function bCost(b){const n=s.b[b.id]||0,c={};for(const k in b.base)c[k]=Math.ceil(b.base[k]*Math.pow(b.mult,n));if(b.id==='hearth'&&n>=3)c.scrap=Math.ceil(4*Math.pow(1.6,n-3));return c}
-function rcCost(rc){if(rc.id==='hookUp')return rc.c;const m=(s.h.ft.smith?0.75:1)*(fuL('work')>=1?0.85:1);if(m===1)return rc.c;const c={};for(const k in rc.c)c[k]=Math.ceil(rc.c[k]*m);return c}
+function rcCost(rc){const m=(s.h.ft.smith?0.75:1)*(fuL('work')>=1?0.85:1);if(m===1)return rc.c;const c={};for(const k in rc.c)c[k]=Math.ceil(rc.c[k]*m);return c}
 const scanCost=()=>28*Math.pow(2,s.scans);
 // Причал — перша мета; далі корчмар підказує, де шукати уламки. Скелі відкривають люди.
 const scanTarget=()=>s.tabs.map&&s.floors.gallery&&!s.at&&s.met.levko&&!s.disc.chaika?'chaika':null;
@@ -163,6 +163,7 @@ function checks(shoreDt=0){const F=s.f,oldFlot=s.flot,oldShf=s.shf;tutTick(false
   raidCheck();tutTick();shoreFindTick();
   const newHook=hookWaterTick(shoreDt);
   rakeSandTick(shoreDt,newHook||!!(s.flot&&s.flot!==oldFlot)||!!(s.shf&&s.shf!==oldShf));
+  rodWaterTick();
 }
 
 

@@ -16,6 +16,8 @@ function load(){try{const raw=localStorage.getItem(KEY);if(!raw)return;const d=J
     s.f.fishBiteSeen=1;tutOffer('fishBite');
   }
   if((s.tutPending||[]).includes('fishBite'))fishLessonLoadedAt=Date.now();
+  if(s.bite&&!s.bite.place)s.bite.place='shore';
+  if(!('fishSpecies' in d)&&s.f.fishBiteSeen&&!s.bite)s.f.fishBiteResolved=1;
   delete s.bigT;
   if(!d.pack){s.pack=[];for(const sl of['weapon','ranged'])if(s.eq[sl])s.pack.push(s.eq[sl]);for(const k of WEAP)if(has(k)&&!s.pack.includes(k)&&s.pack.length<packSlots())s.pack.push(k)}
   if(!d.belt){s.belt=[];for(const k of['bandage','potion','bomb'])if(has(k)&&s.belt.length<beltSlots())s.belt.push(k)}

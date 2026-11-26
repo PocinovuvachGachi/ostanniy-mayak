@@ -24,7 +24,7 @@ cast();A(!s.bite,'готовий навчальний діалог має прі
 s.tutPending=[];draws(0.1);cast();
 A(s.bite?.kind==='fish'&&s.r.fish===7&&s.c.fish===7,'перше сильне клювання гарантоване, базова риба вже в кошику');
 A(tutKnown('fishBite'),'контекстний урок запропоновано');
-const first=s.bite;draws(0,0.9);cast();
+const first=s.bite;draws(0,0.4);cast();
 A(first===s.bite&&s.r.fish===8&&s.c.fish===8,'наступний закид працює і не перезаписує подію');
 act('tab','home');__adv(600_000);shoreTick();act('tab','shore');
 A(s.bite===first&&s.tab==='shore','улов чекає після переходу і відсутності');
@@ -36,7 +36,7 @@ s.r.fish--;act('bigfish');act('bigfish');
 A(!s.bite&&s.r.fish===capOf('fish')&&s.c.fish===8,'бонус +2 видається один раз, без додаткового закидання');
 s.r.fish=0;s.h.ft.wolf=1;draws(0.10);cast();
 A(!s.bite&&s.r.fish===1.5,'межа 10% і звичайний бонус вовка');
-draws(0.099,0.9);cast();
+draws(0.099,0.4);cast();
 A(s.bite?.odd==='medallion'&&s.r.fish===3,'зачіпка зберігає визначену знахідку поряд із базовим уловом');
 
 let raw=null;
@@ -51,16 +51,16 @@ A(s.bite?.odd==='medallion'&&s.c.fish===10&&s.r.fish===3,'після reload та
 act('fishRelease');
 A(!s.odd.medallion&&!s.bite&&s.r.fish===3,'відмова від медальйона зберігає звичайний улов');
 act('tab','home');__adv(7200_000);shoreTick();save();load();
-act('tab','shore');s.dlg=[];s.c.fish=120;draws(0,0.9);cast();
+act('tab','shore');s.dlg=[];s.c.fish=120;draws(0,0.2);cast();
 A(s.bite?.odd==='medallion','відпущений медальйон можна знайти значно пізніше після повернення і reload');
 const xpBefore=s.h.xpb||0;
 act('bigfish');act('bigfish');
 A(s.odd.medallion&&s.h.xpb===xpBefore+20&&!s.bite&&s.oddNew===1&&shelfPopHTML().includes(OD.medallion.n),'унікальна дивина дає досвід один раз і є на полиці');
-s.dlg=[];draws(0,0.9);cast();
+s.dlg=[];draws(0,0.2);cast();
 A(s.bite?.kind==='snag'&&!s.bite.odd,'після медальйона зачіпка фіксує брухт');
 const scrap=s.r.scrap;act('fishRelease');act('bigfish');
 A(!s.bite&&s.r.scrap===scrap&&s.r.fish===6,'відмова залишає базовий улов і не видає бонус');
-draws(0,0.9);cast();act('bigfish');act('bigfish');
+draws(0,0.2);cast();act('bigfish');act('bigfish');
 A(s.r.scrap===scrap+2&&s.r.fish===7.5,'повторна зачіпка дає лише брухт');
 const count=s.c.fish;s.r.fish=0;s.b.traps=1;
 produce(40);

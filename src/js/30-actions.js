@@ -1,33 +1,4 @@
 /* ============ ACTIONS ============ */
-const FISH_BITE_CHANCE=0.10;
-const FISH_BITE_FISH=2,FISH_BITE_SCRAP=2;
-function fishBiteCheck(){
-  const first=!s.f.fishBiteSeen;
-  if(s.bite||!s.f.tideSeen||s.c.fish<(first?5:4)||s.dlg.length||s.tutPending.some(id=>id!=='fishBite'&&tutReady(id)))return;
-  if(first||Math.random()<FISH_BITE_CHANCE)fishBiteOffer();
-}
-function fishBiteOffer(){
-  if(s.bite)return;
-  if(Math.random()<0.5)s.bite={kind:'fish',amount:FISH_BITE_FISH};
-  else s.bite=s.odd.medallion?{kind:'snag',amount:FISH_BITE_SCRAP}:{kind:'snag',odd:'medallion'};
-  s.f.fishBiteSeen=1;
-  tutOffer('fishBite');
-  say(s.bite.kind==='fish'?'Поплавець пірнув, і волосінь здригнулася.':'Волосінь натяглася. Щось важке піддалося з дна.','find');
-  sfx('fishBite');
-}
-const fishBonusFits=()=>!!s.bite&&(s.bite.kind!=='fish'||s.r.fish+s.bite.amount<=capOf('fish'));
-function fishBiteResolve(keep){
-  const bite=s.bite;
-  s.bite=null;
-  if(popB==='sh:bite')popB='';
-  if(!keep){say('Ти попустив волосінь. Поплавець знову гойдається на воді.','world');return}
-  sfx('splash');
-  if(bite.kind==='fish'){add('fish',bite.amount);say(`Ти підтягнув під берег ще риби. +${R('fish',bite.amount)}.`,'find');return}
-  if(bite.odd&&!s.odd[bite.odd]){odd(bite.odd,'Щось мідне блиснуло в мокрій волосіні.');return}
-  const amount=bite.amount||FISH_BITE_SCRAP;
-  add('scrap',amount);
-  say(`На гачку — уламки металу, обточені морем. +${R('scrap',amount)}.`,'find');
-}
 function act0(a,i){
   if(a.indexOf('c_')===0){cAct(a,i);return}
   if(a==='tclose'){const at=+i;for(const x of s.log)if(x&&x.at===at)x.cl=1;lastToast=null;dirty=1;return}
@@ -97,10 +68,12 @@ function act0(a,i){
     add('scrap',1+(s.rs.metal?1:0)+(s.h.ft.thrifty?1:0)+(has('rake')?1:0));
     rakeBeachAction();queueShoreFind('scrapw');
   }break;
-  case 'fishing':if(F.rod&&!onCd('fishing')){
+  case 'rodReach':rodObserve(i==='hook');break;
+  case 'fishing':if(F.rod&&!onCd('fishing')&&(i!=='deep'||F.rodUp&&atShore())){
+    const place=i==='deep'?'deep':'shore';
     setCd('fishing',3);add('fish',wolf());s.c.fish++;
     if(!F.crab1&&!F.crabWarn&&s.c.fish>=5){F.crabWarn=1;crabWarn()}
-    rakeBeachAction();fishBiteCheck();
+    rakeBeachAction();fishBiteCheck(place);
   }break;
   case 'bld':{const b=i==='hearth'?HEARTH:BD.find(x=>x.id===i);if(!b||(!noGap()&&i!=='hearth'&&!s.b[i]&&!b.show())||(b.max&&(s.b[i]||0)>=b.max))break;const c=bCost(b);if(afford(c)){pay(c);s.b[i]=(s.b[i]||0)+1;if(i==='hearth')tutOffer('hearth');novUse('b:'+i);upT[i]=Date.now();if(typeof setTimeout==="function")setTimeout(()=>{dirty=1},1700);
     say(i==='hearth'&&s.b[i]===1?'Ти складаєш вогнище з плавника й кладеш у нього жарину. Полум’я оживає, а приплив тепер сам приносить трохи плавника до порогу.':`${b.n}: рівень ${s.b[i]}.`,'world')}break}
@@ -113,8 +86,13 @@ function act0(a,i){
     dlg({k:'story',title:`Відновлено: ${f.n}`,img:{t:'yard'},body:`<p>${f.d}</p>`,gains:[{work:'Майстерня відновлена',gallery:'З оглядової видно брід за протокою',study:'Відкрилися: дослідження, книги й скриня Остапа',lantern:'Відкрилося: налаштування дзеркал, щоб запалити маяк'}[i]]});
     break}
   case 'mirror':if(s.floors.lantern&&!F.won&&s.mirrors[i]){s.mirrors[i]=s.mirrors[i]==='/'?'\\':'/';if(beam().out){F.won=1;dlg({k:'story',title:'Маяк горить',img:{t:'yard'},body:'<p>Промінь пробиває вікно ліхтарні й лягає на воду. Великий вогонь маяка горить над шхерами, а Мла відступає.</p><p>Але це ще не кінець. Наступного ранку до Гнилого Причалу заходить чужий корабель.</p>',gains:['Кораблі платять мито: +2 монети щосекунди','У гавані Гнилого Причалу чекає капітанка: друга дія','Набіги Мли тривають, тож хранитель потрібен і далі']});say('Промінь пробиває вікно ліхтарні й лягає на воду. Великий вогонь маяка горить над шхерами!','story')}}break;
-  case 'craft':{const rc=RC.find(x=>x.id===i);if(i==='hookUp'&&(s.at||!(s.tab==='work'||s.tab==='tower'&&ttCur()==='work')))break;if(!rc||(i==='rod'?!shoreRodReady():!rcVisible(rc)))break;const c=i==='rod'?rc.c:rcCost(rc);
+  case 'craft':{const rc=RC.find(x=>x.id===i);if((i==='hookUp'||i==='rodUp')&&!atWorkshop())break;if(!rc||(i==='rod'?!shoreRodReady():!rcVisible(rc)))break;const c=i==='rod'?rc.c:rcCost(rc);
     if((rc.craft||0)>st('craft')||!afford(c,rc.it))break;pay(c,rc.it);novUse('r:'+i);if(i!=='rod')s.f.craft1=1;
+    if(rc.id==='rodUp'){
+      F.rodUp=1;
+      dlg({k:'find',title:rc.n,img:rcImg(rc),body:'<p>Дерев’яна котушка тихо обертається під пальцями. Волосінь сходить рівно, без ривків.</p>',gains:['Глибша вода доступна для закидання']});
+      break;
+    }
     if(rc.id==='hookUp'){F.hookUp=1;dlg({k:'find',title:'Посилений багор',img:rcImg(rc),body:'<p>Ти стягуєш нове древко металевою скобою. Коли пробуєш зігнути його об коліно, дерево тримає.</p>'});break}
     if(rc.tool){if(rc.id==='rod'){F.rod=1;say('Вудка готова. Тепер на березі можна рибалити.','find');tutOffer('rod')}else{if(rc.id==='pack1')F.pack=1;if(rc.id==='pack2')F.pack=2;if(rc.id==='belt1')F.belt=1;dlg({k:'find',title:`Зроблено: ${rc.n}`,img:{t:'icon',id:rc.id==='belt1'?'belt':'pack'},body:`<p>${rc.d}</p>`,gains:[`Рюкзак: ${packSlots()} зброї, вантаж до ${loadCap()}`,`Пояс: ${beltSlots()} предмети`]})}}else{giveI(rc.out);let ex='';if(rc.multi&&Math.random()<0.05*st('craft')){giveI(rc.out);ex=' Вдалося зробити дві!'}say(`Зроблено: ${I(IT[rc.out].n)}.${ex}`,'find');if(i==='rake')tutOffer('rake')}break}
   case 'rs':rsStart(i);break;
@@ -139,6 +117,7 @@ function act0(a,i){
   case 'unequip':s.eq[i]='';s.h.hp=Math.min(s.h.hp,maxHP());break;
   case 'use':if(has(i)&&IT[i].use==='heal'&&s.h.hp<maxHP()){s.inv[i]--;s.h.hp=Math.min(maxHP(),s.h.hp+IT[i].v);dishEffect(i)}break;
   case 'eatfull':eatFull();break;
+  case 'fishRecipe':learnFishRecipe(i);break;
   case 'cook':cook(i);break;
   case 'cookp':cook(i,'plain');break;
   case 'curt':if(CUR.includes(i)){s.cur=s.cur||{on:{},t:0,gain:0};s.cur.on[i]=!s.cur.on[i]}break;
@@ -202,6 +181,7 @@ function dismVal(id){const rc=RC.find(r=>r.out===id);let c={};if(rc){for(const k
 function canDism(id){const it=IT[id];if(!it||!it.slot||!has(id))return false;const eqd=(s.eq[it.slot]===id||packHas(id))?1:0;return s.inv[id]>eqd}
 let RCOPEN=0;
 function rcVisible(rc){if(rc.id==='rod')return false;
+  if(rc.id==='rodUp')return !!(s.floors.work&&s.f.rod&&s.f.rodLimitSeen&&!s.f.rodUp&&(RCOPEN||s.rcSeen?.rodUp));
   if(rc.id==='hookUp')return !!(s.floors.work&&s.f.hook&&s.f.hookLimitSeen&&!s.f.hookUp&&(RCOPEN||s.rcSeen?.hookUp));
   if(!noGap()&&!RCOPEN&&(!s.floors.work||!s.rcSeen||!s.rcSeen[rc.id]))return false;if(rc.req&&!rc.req())return false;if(rc.tool)return rc.id==='rod'?!s.f.rod:rc.id==='pack1'?!(s.f.pack>=1):rc.id==='pack2'?s.f.pack===1:rc.id==='belt1'?!s.f.belt:false;if(!rc.multi&&has(rc.out))return false;if(rc.id==='sling'&&!s.tabs.hero)return false;return true}
 

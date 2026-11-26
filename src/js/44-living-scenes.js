@@ -56,7 +56,7 @@ const mlaLayer=(top,h)=>`<span class="scm" data-sk="mla" data-sig="m5${top}" ari
 const mlaV=()=>thrOn()?Math.min(1,(s.threat||0)/100):0;
 const fogs=(top,h)=>`<span class="scf" data-sk="fog" data-sig="fog${top}" aria-hidden="true"><i class="fog" style="top:${top}%;height:${h}%;background-image:url(${fogURL(3)})"></i><i class="fog f2" style="top:${top+h*0.35}%;height:${h*0.8}%;background-image:url(${fogURL(8)})"></i></span>`;
 function smk(x,y,W,H){return[0,1,2].map(n=>`<i class="smk" style="left:${(x/W*100).toFixed(2)}%;top:${(y/H*100).toFixed(2)}%;--o:${n}s" aria-hidden="true"></i>`).join('')}
-const fishBiteLabel=()=>s.bite.kind==='fish'?'Сильне клювання':'Важка зачіпка';
+const fishBiteLabel=()=>s.bite.kind==='fish'?'Сильне клювання':s.bite.kind==='species'?'Незнайома риба':'Важка зачіпка';
 function fishBiteControls(){
   const detail=s.bite.kind==='fish'
     ? V(()=>!s.bite?'':fishBonusFits()?`Додатковий улов: ${fmt(s.bite.amount)} риби.`:`Звільни місце для ${fmt(s.bite.amount)} риби. Улов може почекати.`)
@@ -69,7 +69,7 @@ function bpopHTML(){const id=popB;if(!id)return'';let nm,lvl,d,btns='',extra='';
   if(id.startsWith('mp:'))return mapPopHTML(id);
   if(id.startsWith('lc:'))return locPopHTML(id);
   if(id==='sh:ford')return fordPopHTML();
-  if(id==='sh:bite'&&s.bite)return `<div class="bpop" role="dialog" aria-label="${fishBiteLabel()}"><div class="bph"><b>${fishBiteLabel()}</b><button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div>${fishBiteControls()}<div class="act">${btn('Закинути знову','fishing','',{cd:'fishing',cs:3})}</div></div>`;
+  if(id==='sh:bite'&&s.bite)return `<div class="bpop" role="dialog" aria-label="${fishBiteLabel()}"><div class="bph"><b>${fishBiteLabel()}</b><button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div>${fishBiteControls()}<div class="act">${btn('Закинути знову','fishing',bitePlace(),{cd:'fishing',cs:3})}</div></div>`;
   if(id==='cl:shelf')return shelfPopHTML();
   if(id==='cl:wolf')return wolfPopHTML();
   if(id.startsWith('kt:'))return kitPopHTML(id);
@@ -131,8 +131,7 @@ function shoreHS(){const W=SW,H=SH,S=(x,y,w,h)=>PCT(x,y,w,h,W,H);let h=fogs(8,22
   if(s.ship)h+=ob('ship','hsgo','ship',obURL('ship3',shipObj3),168,0,W,H,'Торговий когг','<b>Торговий когг</b><br>Подивитися обміни.',{pulse:1,always:1,idle:'i-bob'});
   if(s.f.boat)h+=ob('pier','hsgo','pier',obURL('pier3'+((s.exp||[]).length?'o':''),()=>pierObj3({boatOut:!!(s.exp||[]).length})),231,48,W,H,'Пристань','<b>Пристань</b><br>Виходи в море й кораблі.');
   if(s.f.wreck)h+=ob('wreck','scrapw','',obURL('wreck3',wreckObj3),186,69,W,H,'Розбирати уламки','<b>Уламки човна</b><br>Цвяхи, скоби, обшивка: усе згодиться.'+(has('rake')?'<br>Граблі допомагають діставати дрібний брухт.':''),{pulse:1,cd:'scrapw',cs:2,inner:'<i class="spk"></i>'});
-  if(s.f.rod)h+=s.bite?ob('sh:bite','bpop','sh:bite',obURL('rod3',rodObj3),162,45,W,H,fishBiteLabel(),`<b>${fishBiteLabel()}</b><br>Витягни улов зараз або повернися згодом.`,{cls:'rod-catch',cd:'fishing',cs:3,inner:'<i class="bob"></i>'})
-    :ob('rod','fishing','',obURL('rod3',rodObj3),162,45,W,H,'Рибалити','<b>Вудка</b><br>Закинь і чекай, поки клюне.',{pulse:1,cd:'fishing',cs:3,idle:'i-sway',inner:'<i class="bob"></i>'});
+  if(s.f.rod)h+=shoreRodHS(W,H);
   else if(shoreRodReady()){const c=RC.find(r=>r.id==='rod').c;h+=ob('rod','craft','rod',obURL('rod3',rodObj3),162,45,W,H,'Змайструвати просту вудку',`<b>Проста вудка</b><br>Жердина, линва й гачок.<br>Ціна: ${costTxt(c)}`,{pulse:1,always:1,ok:afford(c)})}
   h+=dryRackHS(W,H)+shoreFordHS(W,H)+shoreFightHS(W,H)+shoreRuneHS(W,H);
   if(s.flot)h+=ob('flot:'+s.flot.k,'flotmg','',obURL('flot3:'+s.flot.k,()=>flotObj3(s.flot.k)),126,78,W,H,'Оглянути знахідку','<b>Прибій щось викинув</b><br>Підчепи гаком, поки хвилі не забрали.',{pulse:1,always:1,idle:'i-bob'});

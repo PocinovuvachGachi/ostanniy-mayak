@@ -1027,3 +1027,10 @@ body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .
   .rake-tool{transform:translate(-18%,10%) rotate(-12deg)}
   .rake-dust{opacity:.45}
 }
+
+/* Риболовля за мілиною */
+.ob.rod-deep .bob{height:8%;width:10%;left:75%;background:#bea154}
+.ob.rod-deep.rod-catch .bob{background:#e9ad69}
+.far-rings{position:absolute;pointer-events:none;left:42%;top:53%;width:52%;height:35%;border:1px solid #b3c5c4;border-radius:50%;box-shadow:0 0 0 3px #4a7486;animation:far-rings 2.8s ease-out infinite}
+@keyframes far-rings{0%{transform:scale(.65);opacity:.9}80%,100%{transform:scale(1.15);opacity:.45}}
+@media (prefers-reduced-motion:reduce){.far-rings{animation:none}}

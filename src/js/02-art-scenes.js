@@ -172,7 +172,7 @@ function wreckObj3(){const b=pbuf(69,33);
   for(const sx of[30,52,15]){for(let j=0;j<5;j++){pset(b,sx+(j%2),gun(sx)+1+j,j<3?'Z':'s')}}
   polyFill(b,[[0,33],[0,27],[10,26],[24,29],[44,30.5],[58,28],[69,30],[69,33]],(x,y)=>{const v=hh2(EXX,EXY);pset(b,x,y,y<27.8?'L':v<.18?'L':v<.55?'M':'N')});
   for(let i=0;i<6;i++)pset(b,6+i*11,31,'O');return b}
-function rodObj3(){const b=pbuf(24,66);
+function rodObj3(up=false){const b=pbuf(24,66);
   polyFill(b,[[0,66],[0,61],[4,58],[9,59],[13,62],[14,66]],(x,y)=>{const v=hh2(EXX,EXY);pset(b,x,y,v<.25?'L':v<.7?'M':'N')});
   prect(b,1,60,4,3,'F');prect(b,1,60,4,1,'H');prect(b,9,61,4,3,'E');prect(b,9,61,3,1,'G');
   pline(b,11,63,9,41,'V');pline(b,12,63,10,41,'W');pline(b,9,42,6,36,'W');pline(b,10,42,12,37,'V');pset(b,6,36,'X');pset(b,12,37,'X');
@@ -184,7 +184,10 @@ function rodObj3(){const b=pbuf(24,66);
   hiRect(b,12,5,10,32,(i,j,x,y)=>{const t=(y-6)/30;if(t<0||t>1)return;const lx=13+7*t+Math.sin(t*3.14)*1.8;return Math.abs(x-lx)<.34?(hh2(i,j)<.85?'6':''):''});
   /* відро з уловом */
   polyFill(b,[[14,56],[22,56],[21,65],[15,65]],(x,y)=>pset(b,x,y,woodC(EXX,EXY,WD,.75-(x-14)/12,5)));prect(b,14,58,8,1,'z');prect(b,14,63,8,1,'z');prect(b,14,56,8,1,'Y');
-  pset(b,16,54,'T');pset(b,17,55,'S');pset(b,15,53,'U');pset(b,19,55,'T');pset(b,20,54,'U');pline(b,14,56,18,51,'G');pline(b,18,51,22,56,'G');return b}
+  pset(b,16,54,'T');pset(b,17,55,'S');pset(b,15,53,'U');pset(b,19,55,'T');pset(b,20,54,'U');pline(b,14,56,18,51,'G');pline(b,18,51,22,56,'G');
+  if(up){prect(b,4,47,7,5,'D');prect(b,5,48,5,3,'q');pset(b,6,49,'g');pline(b,9,50,12,52,'6')}
+  return b
+}
 function pierObj3(st){const b=pbuf(57,30);
   for(let i=0;i<5;i++){const x=4+i*12;hiRect(b,x,13,3,17,(hx,hy,X,Y)=>{const wet=Y>22;return wet?(hh2(hx,hy)<.3?'s':hh2(hx,hy)<.6?'Z':'x'):X-x<1?'X':X-x>2?'x':'W'})}
   hiRect(b,0,9,57,6,(hx,hy,x,y)=>{const pl=Math.floor(x/4.75);if(Math.floor(x*b.k)%Math.round(4.75*b.k)===0)return'x';if(y<10)return hh2(pl,1)<.5?'Y':'X';if(y>13.6)return'V';
