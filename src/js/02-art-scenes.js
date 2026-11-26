@@ -132,10 +132,12 @@ function yardFull3(st){const b=yardBg3(st);if(!st.looked)return b;const L=st.b||
 /* ---------- SHORE 288x120 ---------- */
 function shoreBg3(st){const W=SW,H=SH,b=pbuf(W,H),ph=st.ph||'n';rampV(b,0,0,W,24,ph==='y'?['5','6','6','5']:ph==='d'?['o','3','4','5']:['C','1','2','4']);
   rampV(b,0,21,W,60,['T','S','R','Q','R']);const R=rng(41),kk=b.k||1;for(let i=0;i<420;i++){const x=Math.floor(R()*W*kk),y=Math.floor((24+R()*54)*kk),l=Math.round((2+R()*8)*kk*(0.5+0.5*(y/kk-24)/54)),c=y/kk<36?'U':(R()<.5?'T':'S');for(let q=0;q<l;q++)phx(b,x+q,y,c)}
-  for(const[yy,c]of[[66,'u'],[72,'U'],[76,'u']]){for(let hx=0;hx<W*kk;hx++){const x=hx/kk,y=Math.round((yy+Math.sin(x/12+yy)*1.6)*kk);phx(b,hx,y,c);if(hx%5)phx(b,hx,y+1,c==='u'?'U':'T');if(hx%9===0)phx(b,hx,y-1,'U');if(c==='u'&&hh2(hx,yy)<.25)phx(b,hx,y+2,'U')}}
+  const waves=st.phase==='ebb'?[[63,'U'],[68,'U'],[72,'T']]:st.phase==='flood'?[[65,'U'],[72,'u'],[77,'u']]:[[66,'u'],[72,'U'],[76,'u']];
+  for(const[yy,c]of waves){for(let hx=0;hx<W*kk;hx++){const x=hx/kk,y=Math.round((yy+Math.sin(x/12+yy)*1.6)*kk);phx(b,hx,y,c);if(hx%5)phx(b,hx,y+1,c==='u'?'U':'T');if(hx%9===0)phx(b,hx,y-1,'U');if(c==='u'&&hh2(hx,yy)<.25)phx(b,hx,y+2,'U')}}
   /* відплив: вода відступає, відкриваються мокрі плити з калюжами й водоростями */
   const td=st.tide||0;if(td>0){const top=x=>78-15*td+Math.sin(x/9)*1.4+Math.sin(x/23+1)*2;
     hiRect(b,0,58,W,22,(i,j,x,y)=>{if(y<top(x))return;const n=vnz(i,j*2,12,5),r=vnz(i,j*2.2,8,11);if(y<top(x)+1.2)return hh2(i,j)<.6?'u':'U';
+      if(st.phase==='flood'&&y<top(x)+2.1&&n>.42)return'U';
       if(r>.72)return r>.8?'F':'E';if(r>.69)return'D';if(n<.25)return n<.21?'S':'R';if(n>.78&&r<.5)return'Z';return'M'})}
   rampV(b,0,78,W,12,['M','L','M']);hiRect(b,0,87,W,33,(i,j,x,y)=>sandC(i,j,y<100?'N':'O'));pnoise(b,0,78,W,12,'T',0.06,46);
   /* брід: камені від підніжжя маяка до обрію; на повній воді видно лише верхівки */

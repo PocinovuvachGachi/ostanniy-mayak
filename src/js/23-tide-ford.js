@@ -1,20 +1,50 @@
 /* ============ ПРИПЛИВ І БРІД (етап I) ============
    Перший відплив після трьох риболовель; далі власний цикл збереження ~15 хв, з них ~5 хв — відплив. На відпливі відкриваються
-   калюжі між камінням (риба, мідії, зрідка знахідка) і кам'янистий брід на великий острів.
+   калюжі між камінням і кам'янистий брід на великий острів.
    Брід треба позначити частинами (вішки, поруччя, сходинки, ліхтар) — працювати можна лише на відпливі.
    Готовий брід відкриває Мапу: це міст в етап II. */
 const TIDE=900,TLOW=300,TIDE_EDGE=40;
+const TIDE_LOW_START=TIDE-TLOW,TIDE_EBB_START=TIDE_LOW_START-TIDE_EDGE,TIDE_FLOOD_START=TIDE-TIDE_EDGE;
+const TIDE_WORK_START=TIDE_LOW_START-TIDE_EDGE*.01,TIDE_WORK_END=TIDE_FLOOD_START+TIDE_EDGE*.01;
+const TIDE_NAME={high:'Повна вода',ebb:'Вода відступає',low:'Відплив',flood:'Вода повертається'};
+let tideRenderTime=null;
 const tideLegacy=()=>s.tideEpoch==null&&!!(s.f.tideSeen||s.f.fordSeen||s.f.fordDone||s.f.seal);
 const tideKnown=()=>!!(s.f.tideSeen||tideLegacy());
-function tidePhase(){if(tideLegacy())return(Date.now()/1000)%TIDE;if(s.tideEpoch==null)return 0;const elapsed=Math.max(0,(Date.now()-s.tideEpoch)/1000);return !s.f.tideSeen?Math.min(TIDE-TLOW,elapsed):elapsed%TIDE}
-const tideCyc=()=>Math.floor(Math.max(0,(Date.now()-(s.tideEpoch||0))/1000)/TIDE);
-/* 0 — повна вода, 1 — найнижчий відплив; до першого пояснення фаза не може минути. */
-function tideLv(){if(s.dbgTide)return s.dbgTide==='low'?1:0;const t=tidePhase(),lo=TIDE-TLOW,e=TIDE_EDGE;
-  if(t<lo-e)return 0;if(t<lo)return(t-(lo-e))/e;if(t>TIDE-e)return(TIDE-t)/e;return 1}
-const tideLow=()=>s.dbgTide?s.dbgTide==='low':tideKnown()&&tideLv()>=.99;
-/* Скільки до межі придатного для робіт відпливу. */
-function tideLeft(){const t=tidePhase(),lo=TIDE-TLOW-TIDE_EDGE*.01,hi=TIDE-TIDE_EDGE*.99;return tideLow()?Math.max(0,hi-t):(t<lo?lo-t:TIDE-t+lo)}
-const tideTxt=()=>{const m=Math.max(1,Math.ceil(tideLeft()/60));return tideLow()?`Відплив. Вода повернеться за ${m} хв.`:`Повна вода. Відплив — приблизно за ${m} хв.`};
+const tideElapsed=now=>Math.max(0,(now-(s.tideEpoch??0))/1000);
+const tideCyc=(now=tideRenderTime??Date.now())=>s.f.tideIntro?0:Math.floor(tideElapsed(now)/TIDE);
+function tidePhase(now=tideRenderTime??Date.now()){
+  if(s.f.tideIntro)return TIDE_LOW_START;
+  if(s.tideEpoch==null&&!tideLegacy())return 0;
+  const t=tideElapsed(now);
+  return s.tideEpoch!=null&&!s.f.tideSeen?Math.min(TIDE_LOW_START,t):t%TIDE;
+}
+function tideStage(t=tidePhase()){
+  if(s.dbgTide)return s.dbgTide;
+  if(t<TIDE_EBB_START)return 'high';
+  if(t<TIDE_LOW_START)return 'ebb';
+  if(t<TIDE_FLOOD_START)return 'low';
+  return 'flood';
+}
+/* 0 — повна вода, 1 — найнижчий відплив. Робочі межі відповідають 99% відступу. */
+function tideLv(t=tidePhase()){
+  if(s.dbgTide)return s.dbgTide==='low'?1:0;
+  return clamp(Math.min(t-TIDE_EBB_START,TIDE-t)/TIDE_EDGE,0,1);
+}
+const tideLow=(t=tidePhase())=>s.dbgTide?s.dbgTide==='low':tideKnown()&&t>=TIDE_WORK_START&&t<TIDE_WORK_END;
+function tideLeft(t=tidePhase()){
+  if(s.dbgTide)return s.dbgTide==='low'?TIDE_WORK_END-TIDE_WORK_START:TIDE_WORK_START;
+  if(tideLow(t))return Math.max(0,TIDE_WORK_END-t);
+  return (t<TIDE_WORK_START?TIDE_WORK_START-t:TIDE-t+TIDE_WORK_START);
+}
+function tideStatus(){
+  const t=tidePhase(),phase=tideStage(t),label=TIDE_NAME[phase];
+  if(s.dbgTide)return [label,''];
+  if(s.f.tideIntro||!tideKnown()&&t>=TIDE_LOW_START)return [label,'Перше вікно'];
+  const edge={high:TIDE_EBB_START,ebb:TIDE_LOW_START,low:TIDE_FLOOD_START,flood:TIDE}[phase];
+  const seconds=Math.max(0,Math.ceil(edge-t));
+  return [label,`До зміни ${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`];
+}
+const tideTxt=()=>tideStatus().filter(Boolean).join(' · ');
 /* Частини броду */
 const FORD=[
   {id:'poles',n:'Вішки',d:'Жердини вздовж каміння, щоб не збитися зі стежки.',c:{wood:60}},
@@ -42,23 +72,30 @@ function fordPost3(n){const b=pbuf(14,26);prect(b,6,4,2,22,'W');prect(b,6,4,1,22
   for(let k=0;k<Math.min(4,n);k++)prect(b,1,14+k*3,4,2,'Y');return b}
 for(const f of['poolObj3','fordPost3'])globalThis[f]=HI(globalThis[f]);
 function shoreFordHS(W,H){let h='';
-  if(tideLow())h+=ob('pool','pool','',obURL('pool3',poolObj3),120,62,W,H,'Калюжі на відпливі','<b>Калюжі між камінням</b><br>Вода відступила: мідії, дрібна риба, а часом і щось, що загубило море.',{cd:'pool',cs:4,pulse:!(s.hsU||{}).pool});
-  if(s.f.fordSeen&&!s.f.fordDone)h+=ob('sh:ford','bpop','sh:ford',obURL('fp3:'+fordN(),()=>fordPost3(fordN())),40,58,W,H,'Брід','<b>Брід</b><br>'+tideTxt(),{pulse:tideLow()?1:0,always:tideLow()?1:0});
+  if(tideLow())h+=ob('pool','pool','',obURL('pool3',poolObj3),120,62,W,H,'Калюжі на відпливі','<b>Калюжі між камінням</b><br>Вода відступила: видно дрібну рибу, а часом і щось, що загубило море.',{cd:'pool',cs:4,pulse:!(s.hsU||{}).pool});
+  if(s.f.fordSeen&&!s.f.fordDone)h+=ob('sh:ford','bpop','sh:ford',obURL('fp3:'+fordN(),()=>fordPost3(fordN())),40,58,W,H,'Брід','<b>Брід</b><br>Працювати на камінні можна на відпливі.',{pulse:tideLow(),always:tideLow()});
   return h}
 function fordPopHTML(){const low=tideLow();return`<div class="bpop" role="dialog" aria-label="Брід"><div class="bph"><b>Брід на великий острів</b><button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div>
-  <p class="m">${VH(tideTxt)}</p><div class="rlist">${fordVisible().map(P=>{const done=(s.ford||{})[P.id],lock=P.req&&!P.req();return`<div class="row"><span><b>${P.n}</b>${done?' ✓':''}<br><span class="m">${lock?P.reqT:P.d}</span></span>${done?'':btn('Зробити','ford',P.id,{ok:()=>tideLow()&&!lock&&afford(P.c)})}${done?'':`<span class="ccs">${costTxt(P.c)}</span>`}</div>`}).join('')}</div>
+  <p class="m">${V(tideTxt)}</p><div class="rlist">${fordVisible().map(P=>{const done=(s.ford||{})[P.id],lock=P.req&&!P.req();return`<div class="row"><span><b>${P.n}</b>${done?' ✓':''}<br><span class="m">${lock?P.reqT:P.d}</span></span>${done?'':btn('Зробити','ford',P.id,{ok:()=>tideLow()&&!lock&&afford(P.c)})}${done?'':`<span class="ccs">${costTxt(P.c)}</span>`}</div>`}).join('')}</div>
   ${!fordReady()&&!s.f.fordDone?`<p class="hint">${s.f.mlaNote?'Спершу вистояти, коли Мла прийде до маяка.':'Стежку вже позначено. Залишилося зробити її безпечною в тумані.'}</p>`:''}
   ${low?'':'<p class="hint">Камінь зараз під водою — чекай відпливу.</p>'}</div>`}
 
 /* перший відплив пояснюється (#40): море відступає — на березі з'являються калюжі */
-function tideFirst(){if(s.f.tideSeen||!s.tabs.shore||s.cb||s.raid||away()||(s.dlg||[]).length||!novCan())return;
+function tideFirst(){
+  if(!atShore()||!s.tabs.shore||s.cb||s.raid||away()||s.dlg.length)return;
+  if(s.f.tideIntro){
+    if(s.tutPending.includes('tide'))return;
+    // Повне робоче вікно починається після пояснення. Далі епоха більше не рухається.
+    s.tideEpoch=Date.now()-TIDE_LOW_START*1000;
+    delete s.f.tideIntro;dirty=1;return;
+  }
+  if(s.f.tideSeen||!novCan())return;
   if(!tideLegacy()){
     if(!s.f.rod||(s.c.fish||0)<3)return;
-    if(s.tideEpoch==null){s.tideEpoch=Date.now()-(TIDE-TLOW-TIDE_EDGE)*1000;dirty=1;return}
-    if(!s.dbgTide&&tidePhase()<TIDE-TLOW)return;if(s.dbgTide==='high')return;
-    // Починаємо повне вікно відпливу саме тоді, коли гравець може побачити пояснення.
-    s.tideEpoch=Date.now()-(TIDE-TLOW)*1000;
+    if(s.tideEpoch==null){s.tideEpoch=Date.now()-TIDE_EBB_START*1000;dirty=1;return}
+    if(s.dbgTide?s.dbgTide!=='low':tidePhase()<TIDE_LOW_START)return;
+    s.f.tideIntro=1;
   }else if(!tideLow())return;
   s.f.tideSeen=1;novMark();
-  dlg({k:'world',title:'Відплив',img:{t:'ob',k:'pool3',f:'poolObj3'},body:'<p>Море відступило. Там, де щойно бились хвилі, тепер мокре каміння, водорості й калюжі, у яких лишилась дрібна риба та мідії.</p><p>Вода повернеться — вона завжди повертається. Але скоро відступить знову.</p>',
+  dlg({k:'world',title:'Відплив',img:{t:'ob',k:'pool3',f:'poolObj3'},body:'<p>Море відступило. Там, де щойно бились хвилі, тепер мокре каміння, водорості й калюжі, у яких лишилась дрібна риба.</p><p>Вода повернеться — вона завжди повертається. Але скоро відступить знову.</p>',
     gains:['Відкрилося: калюжі на відпливі']});tutOffer('tide')}

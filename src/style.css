@@ -1034,3 +1034,7 @@ body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .
 .far-rings{position:absolute;pointer-events:none;left:42%;top:53%;width:52%;height:35%;border:1px solid #b3c5c4;border-radius:50%;box-shadow:0 0 0 3px #4a7486;animation:far-rings 2.8s ease-out infinite}
 @keyframes far-rings{0%{transform:scale(.65);opacity:.9}80%,100%{transform:scale(1.15);opacity:.45}}
 @media (prefers-reduced-motion:reduce){.far-rings{animation:none}}
+
+.tide-status{display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 10px;width:fit-content;max-width:100%;padding:4px 9px;border:1px solid #526976;background:#263d48;color:#f0e9d6;font-size:.9rem}
+.tide-clock{font-variant-numeric:tabular-nums;color:#cddde0}
+.tide-clock:has(span:empty){display:none}

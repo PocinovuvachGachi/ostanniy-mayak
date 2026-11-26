@@ -13,7 +13,7 @@ Object.assign(ENC,{
 EN.rat.pack=1;EN.rat.d='Сірий, жирний і сміливий, поки їх багато: кожен сусід-пацюк додає йому зухвалості.';
 const SHF={
   poolcrab:{n:'Краби в калюжах',d:'Між камінням ворушаться панцирі. Краби ховаються в них — бий, коли розкриються.',
-    ok:()=>s.f.crab1&&tideLow()&&!s.f.fordDone,gap:360,win(){add('fish',3);return'Краби лежать догори черевом. Буде юшка.'}},
+    lowWater:true,ok:()=>s.f.crab1&&!s.f.fordDone,gap:360,win(){add('fish',3);return'Краби лежать догори черевом. Буде юшка.'}},
   gullrack:{n:'Чайки над рибою',get d(){return (s.f.dryRack?'Зграя кружляє над сушарнею.':'Зграя кружляє над уловом на березі.')+' Чайки пікірують з усіх боків.'},once:1,
     ok:()=>s.f.crab1&&s.floors.work&&(s.f.dryHung||((noGap()||s.b.smoke||(s.bdSeen||{}).smoke)&&s.r.fish>=8))&&!!(s.eq||{}).weapon,win(){add('fish',6);xp(20);return'Зграя розлітається з криком. Риба ціла.'}},
   rats:{n:'Пацюки з трюму',d:'З-під обшивки уламка вибігає зграя. Поодинці вони боягузи, гуртом — ні: не давай себе оточити.',once:1,
@@ -24,11 +24,53 @@ const SHF={
     ok:()=>!!s.f.drown1,go(){s.f.horpyna=1;s.f.bpTraps=1;rescue('horpyna',`${P('Горпина')} притискає до себе малого Петрика. ${Q('Наш хутір на півночі спалили… ні, не люди. Туман прийшов, і з ним вони. Ми пливли на світло — а світла не було.')} Вона дивиться на маяк. ${Q('Тепер є')}.`)}},
   drown1:{n:'Хтось виходить із туману',d:'По коліна у воді стоїть постать. Мокрі руки, порожні очі. Не підходь до води близько.',once:1,
     ok:()=>!!s.f.tracks&&s.h.lvl>=2&&(dayPh()!=='y'||Date.now()-(s.tracksT||0)>8*60000),win(){xp(30);if(!s.pages.includes('m'))page('m');return'Постать розсипається мокрим піском. Таке вже не може бути людиною. Хто ж вони — ті, кого забирає туман?'}}};
-/* події спливають самі, але лише поки гравець поруч */
-function shfTick(){if(s.cb||s.raid||s.shf||away()||!s.tabs.shore)return;const now=Date.now();s.shfT=s.shfT||{};
-  for(const id in SHF){const F=SHF[id];if(F.once&&s.f[id])continue;if(F.gap&&now-(s.shfT[id]||0)<F.gap*1000)continue;if(!s.shfT[id]&&!novCan())continue;if(!F.ok())continue;
-    if(id==='poolcrab'&&Math.random()>.15)continue;if(!s.shfT[id])novMark();s.shf=id;s.shfT[id]=now;say(F.n+'. '+F.d.split('.')[0]+'.',F.npc?'world':'fight');dirty=1;return}}
-function shfGo(){const id=s.shf;if(!id||s.cb)return;s.shf='';if(SHF[id].npc){SHF[id].go();dirty=1;return}s.h.hp=Math.max(s.h.hp,1);startFight(id,'S:'+id)}
+function shfReady(id){const F=SHF[id];return !(F.once&&s.f[id])&&(!F.lowWater||tideLow())&&F.ok()}
+function shfVisible(){
+  const id=s.shf,F=SHF[id];
+  if(!F)return '';
+  if(F.lowWater&&((s.shfCyc!=null&&s.shfCyc!==tideCyc())||!shfReady(id)))return '';
+  return id;
+}
+const shfActionId=id=>SHF[id].lowWater?`${id}:${s.shfCyc??tideCyc()}`:id;
+function shfCheckTide(){
+  const id=s.shf,F=SHF[id];
+  if(!F?.lowWater||shfVisible())return;
+  if(F.returnNextLow&&!(F.once&&s.f[id])&&!(id==='sealgift'&&s.shfCyc!=null&&s.shfCyc===s.sealCyc))s.shfDeferred[id]=1;
+  s.shf='';s.shfCyc=null;dirty=1;
+}
+/* Події спливають, поки гравець поруч. Вода звільняє слот і без гравця. */
+function shfTick(){
+  shfCheckTide();
+  if(s.cb||s.raid||s.shf||away()||!s.tabs.shore)return;
+  const now=Date.now();s.shfT=s.shfT||{};
+  let ids=Object.keys(SHF);
+  const deferred=ids.filter(id=>s.shfDeferred[id]);
+  if(deferred.length&&tideLow()){
+    const story=ids.filter(id=>!SHF[id].lowWater);
+    const newTide=ids.filter(id=>SHF[id].lowWater&&!s.shfDeferred[id]);
+    ids=[...story,...deferred,...newTide];
+  }
+  for(const id of ids){
+    const F=SHF[id],returning=s.shfDeferred[id];
+    if(F.once&&s.f[id]){if(returning)delete s.shfDeferred[id];continue}
+    if(!returning&&F.gap&&now-(s.shfT[id]||0)<F.gap*1000)continue;
+    if((!s.shfT[id]&&!returning&&!novCan())||!shfReady(id))continue;
+    if(id==='poolcrab'&&Math.random()>.15)continue;
+    s.shf=id;s.shfCyc=F.lowWater?tideCyc(now):null;dirty=1;
+    if(!returning&&!s.shfT[id])novMark();
+    s.shfT[id]=now;
+    if(returning){delete s.shfDeferred[id];return}
+    say(F.n+'. '+F.d.split('.')[0]+'.',F.npc?'world':'fight');return;
+  }
+}
+function shfGo(actionId){
+  shfCheckTide();
+  const id=shfVisible();
+  if(!id||s.cb||s.raid||(actionId&&(!atShore()||actionId!==shfActionId(id))))return;
+  s.shf='';s.shfCyc=null;
+  if(SHF[id].npc){SHF[id].go();dirty=1;return}
+  s.h.hp=Math.max(s.h.hp,1);startFight(id,'S:'+id);
+}
 function shfWin(id){const F=SHF[id];if(!F)return'';if(F.once)s.f[id]=1;if(id==='rats')s.ratsT=Date.now();return F.win()}
 /* об'єкт на березі */
 function shfObj3(id){const b=pbuf(30,id==='gullrack'?9:22);if(SHF[id]&&SHF[id].art)SHF[id].art(b);else if(id==='poolcrab'){for(const[x,y]of[[6,14],[18,16]]){hiRect(b,x-5,y-4,10,7,(i,j,px,py)=>((px-x)/5)**2+((py-y)/3.2)**2<=1?(py<y-1?'w':'v'):'');pset(b,x-5,y-2,'v');pset(b,x+4,y-2,'v');pset(b,x-1,y-3,'x');pset(b,x+1,y-3,'x')}}
@@ -38,5 +80,6 @@ function shfObj3(id){const b=pbuf(30,id==='gullrack'?9:22);if(SHF[id]&&SHF[id].a
   else{hiRect(b,10,2,10,20,(i,j,x,y)=>{const u=(x-15)/(y<8?2.4:4.5);if(Math.abs(u)>1)return;return y<8?(Math.hypot(x-15,y-5)<2.6?'6':''):y>17?'S':'5'});pset(b,14,5,'x');pset(b,16,5,'x');pline(b,0,20,30,20,'U')}
   return b}
 globalThis.shfObj3=HI(shfObj3);
-function shoreFightHS(W,H){const id=s.shf;if(!id)return'';const F=SHF[id],pos=F.pos||{poolcrab:[112,66],gullrack:s.f.dryRack?[143,78]:[132,82],rats:[204,80],drown1:[96,60],zinovii:[204,54],horpyna:[204,54]}[id]||[110,70];
-  return ob('shf:'+id,'shfgo','',obURL('shf3:'+id,()=>shfObj3(id)),pos[0],pos[1],W,H,F.n,`<b>${F.n}</b><br>${F.d}<br><span class="m">${F.tip||F.npc?F.tip||'Натисни, щоб допомогти.':'Натисни, щоб битися. Можна й почекати: нікуди не дінуться.'}</span>`,{pulse:1,always:1,cls:'bite',inner:'<i class="bang">!</i>'})}
+function shoreFightHS(W,H){const id=shfVisible();if(!id)return'';const F=SHF[id],pos=F.pos||{poolcrab:[112,66],gullrack:s.f.dryRack?[143,78]:[132,82],rats:[204,80],drown1:[96,60],zinovii:[204,54],horpyna:[204,54]}[id]||[110,70];
+  const tip=F.tip||(F.npc?'Натисни, щоб допомогти.':F.lowWater?'Натисни, щоб битися. Краби виходять на відпливі.':'Натисни, щоб битися. Можна й почекати: нікуди не дінуться.');
+  return ob('shf:'+id,'shfgo',shfActionId(id),obURL('shf3:'+id,()=>shfObj3(id)),pos[0],pos[1],W,H,F.n,`<b>${F.n}</b><br>${F.d}<br><span class="m">${tip}</span>`,{pulse:1,always:1,cls:'bite',inner:'<i class="bang">!</i>'})}

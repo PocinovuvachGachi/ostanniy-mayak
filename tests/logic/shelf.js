@@ -75,7 +75,7 @@ s.f.gullrack=1;s.f.crab1=1;s.dbgTide='high';__adv(360_000);s.lastAct=Date.now();
 shfTick();A(s.shf==='tracks','сліди з моря з’являються після пацюків');
 act('shfgo');drain();
 A(s.f.tracks&&s.tabs.kitchen&&!s.f.martinLogStory,'кухню відкрито без розмови про сторінку');
-s.dbgTide='low';s.r.fish=10;s.shf='seal';act('shfgo');drain();
+s.f.horpyna=1;s.dbgTide='low';s.r.fish=10;s.shf='seal';act('shfgo');drain();
 for(let i=0;i<3;i++){s.sealCyc=tideCyc()-1;s.shf='sealgift';act('shfgo');drain()}
 A(s.oset.martin&&s.f.martinSet&&!s.f.martinLadleStory,'набір і прощання завершено без розмови про черпак');
 s.f.fordSeen=1;s.f.siege1=1;for(const k of RES)s.r[k]=1000;

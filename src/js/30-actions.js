@@ -45,7 +45,7 @@ function act0(a,i){
   case 'drytake':dryTake();break;
   case 'pool':poolPick();break;
   case 'ford':fordPart(i);break;
-  case 'shfgo':shfGo();break;
+  case 'shfgo':shfGo(i);break;
   case 'rune':runeRead(i);break;
   case 'wfeed':wolfFeed();break;
   case 'wname':wolfName(i||null);break;

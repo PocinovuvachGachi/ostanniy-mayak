@@ -65,14 +65,14 @@ Object.assign(SHF,{
     art(b){for(let k=0;k<6;k++){const x=3+k*4.4,y=17-k*2.2+(k%2?2:0);hiRect(b,x,y,3,4,(i,j,px,py)=>((px-x-1.5)/1.2)**2+((py-y-2)/1.8)**2<=1?'D':'')}}},
   seal:{n:'Тюлень на камені',npc:1,tip:'Натисни, щоб покласти йому риби (5).',pos:[226,46],
     d:'На мокрому камені вигрівається тюлень. Дивиться на тебе, на рибу — і знову на тебе.',once:1,gap:180,
-    ok:()=>!!s.f.horpyna&&tideLow(),
+    lowWater:true,returnNextLow:true,ok:()=>!!s.f.horpyna,
     go(){if((s.r.fish||0)<5){say('Тюлень дивиться на порожні руки, пирхає й пірнає. Може, ще повернеться — з рибою було б легше.','world');s.shfT.seal=Date.now();return}
       s.r.fish-=5;s.f.seal=1;s.sealCyc=tideCyc();xp(10);
       dlg({k:'story',title:'Бурштин',img:{t:'scene',id:'shore'},body:`<p>Тюлень бере рибу з твоїх рук обережно, наче пес. Петрик сміється й одразу дає йому ім’я: <b>Бурштин</b> — за очі.</p><p>Горпина хитає головою: ${Q('Тюлені пам’ятають добро. Він тепер приходитиме, щойно вода спаде. І принесе щось — вони завжди щось приносять')}.</p>`,gains:['Бурштин приходить на відпливі']})},
     art:b=>sealArt(b,0)},
   sealgift:{n:'Бурштин повернувся',npc:1,tip:'Натисни, щоб подивитися, що він приніс.',pos:[226,46],
     d:'Тюлень лежить на камені, а перед ним — щось мокре й блискуче.',
-    ok:()=>!!s.f.seal&&tideLow()&&tideCyc()!==s.sealCyc,
+    lowWater:true,returnNextLow:true,ok:()=>!!s.f.seal&&tideCyc()!==s.sealCyc,
     go(){s.sealCyc=tideCyc();s.c.seal=(s.c.seal||0)+1;add('fish',2);xp(4);
       if(typeof collFind==='function'&&collFind('seal'))return;
       if(typeof collFind==='function'&&Math.random()<.3&&collFind('pool'))return;

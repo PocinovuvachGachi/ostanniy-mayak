@@ -115,7 +115,7 @@ function rPeople(){const cap=2*(s.b.house||0),pop=s.pop||0,ms=Object.keys(MST).f
   return h+`</section>`}
 const scnD=()=>`--d:-${((Date.now()/1000)%30).toFixed(2)}s;--d2:-${((Date.now()/1000)%180).toFixed(2)}s`;
 function homeScene(){return`<div class="scn yd" data-scn="yd" style="${scnD()}"><span data-sk="bg" data-sig="bg" class="scbg">${VH(yardBgImg)}</span>${homeHS()}</div>`}
-function shoreScene(){return`<div class="scn sh" data-scn="sh" style="${scnD()}"><span data-sk="bg" data-sig="bg" class="scbg">${VH(shoreImg)}</span>${shoreHS()}</div>`}
+function shoreScene(){return`<div class="scn sh" data-scn="sh" data-tide="${tideStage()}" style="${scnD()}"><span data-sk="bg" data-sig="bg" class="scbg">${VH(shoreImg)}</span>${shoreHS()}</div>`}
 function reserveButton(id){return reserveInputs(id).length?btn(reserveOn(id)?'Дозволити витрачати резерв':'Захищати резерв','reserve',id,{cls:'toggle'}):''}
 function rHome(){let h=`<div>`;
   h+=`<section><div class="big">${V(()=>fmt(s.r.ember))}</div><p class="m">жару, ${V(()=>{const v=rates().ember;return(v>=0?'+':'')+fr(v)})} за секунду</p><p>${homeText()}</p>`;
@@ -140,9 +140,13 @@ function rHome(){let h=`<div>`;
     h+=s.f.schooner?`<p>Шхуна «Остап» стоїть біля причалу. На ній можна плисти до північних островів.</p>`:`<div class="row"><div><b>Шхуна</b><br><span class="m">Двощогловий корабель, що пройде крізь північні тумани. Сталь на обшивку, скло на ліхтарі.</span></div>${btn(`Збудувати (${costTxt(SCHOONER)})`,'schooner','',{ok:()=>afford(SCHOONER),cls:'main'})}</div>`;
     h+=`</section>`}
   return h+`</div>`}
-function shoreImg(){const sig=[Math.round(tideLv()*4),s.f.fordSeen?1:0,FORD.map(p=>(s.ford||{})[p.id]?1:0).join(''),Math.min(12,Math.ceil(s.r.wood/12)),s.seen.scrap?Math.min(6,Math.ceil(s.r.scrap/10)):0,s.seen.fish&&s.r.fish>=1?Math.min(5,Math.ceil(s.r.fish/8)):0,Math.min(3,s.b.pot||0)].join('')+GR;
-  return pimgA('s3:'+sig,()=>shoreBg3({ph:GR,tide:Math.round(tideLv()*4)/4,fordSeen:s.f.fordSeen,ford:s.ford,wood:s.r.wood,scrapSeen:s.seen.scrap,scrap:s.r.scrap,fishSeen:s.seen.fish,fish:s.r.fish,pot:s.b.pot}),864,360,'scene','Берег',21,WATER3)}
-function rShore(){let h=`<section><h2>Берег під маяком</h2><p>Мокрий пісок, водорості й плавник, викинутий прибоєм. Туман ховає обрій.</p>${s.f.tideSeen?`<p class="m">${VH(tideTxt)}</p>`:''}`;
+function shoreImg(){
+  const time=tidePhase(),phase=tideStage(time),level=tideLow(time)?1:Math.min(.75,Math.round(tideLv(time)*4)/4);
+  const sig=[phase,level,s.f.fordSeen?1:0,FORD.map(p=>s.ford?.[p.id]?1:0).join(''),Math.min(12,Math.ceil(s.r.wood/12)),s.seen.scrap?Math.min(6,Math.ceil(s.r.scrap/10)):0,s.seen.fish&&s.r.fish>=1?Math.min(5,Math.ceil(s.r.fish/8)):0,Math.min(3,s.b.pot||0),GR].join(':');
+  return pimgA('s3:'+sig,()=>shoreBg3({ph:GR,phase,tide:level,fordSeen:s.f.fordSeen,ford:s.ford,wood:s.r.wood,scrapSeen:s.seen.scrap,scrap:s.r.scrap,fishSeen:s.seen.fish,fish:s.r.fish,pot:s.b.pot}),864,360,'scene','Берег',21,WATER3);
+}
+function rShore(){let h=`<section><h2>Берег під маяком</h2><p>Мокрий пісок, водорості й плавник, викинутий прибоєм. Туман ховає обрій.</p>`;
+  if(tideKnown()||s.tideEpoch!=null)h+=`<p class="tide-status"><strong aria-live="polite">${V(()=>tideStatus()[0])}</strong><span class="tide-clock">${V(()=>tideStatus()[1])}</span></p>`;
   let al=`<div class="act">${btn('Збирати плавник','gather','',{cd:'gather',cs:1})}</div>`;
   if(s.f.wreck)al+=`<div class="act">${btn('Розбирати уламки човна','scrapw','',{cd:'scrapw',cs:2})}</div>`;
   if(shoreHookReady())al+=`<div class="act">${btn('Змайструвати багор','hook','',{ok:()=>afford(HOOKC)})}<span class="ccs">${costTxt(HOOKC)}</span></div>`;
@@ -150,6 +154,11 @@ function rShore(){let h=`<section><h2>Берег під маяком</h2><p>Мо
   if(s.f.rod)al+=`<div class="act">${btn(s.f.rodUp?'Прибережна вода':'Рибалити','fishing','',{cd:'fishing',cs:3})}</div>`;
   if(s.f.rodUp)al+=`<div class="act">${btn('Глибша вода','fishing','deep',{cd:'fishing',cs:3})}</div>`;
   else if(s.f.rodRipple&&!s.f.rodLimitSeen)al+=`<div class="act">${btn('Оглянути кола на воді','rodReach')}</div>`;
+  if(tideLow())al+=`<div class="act">${btn('Оглянути калюжі','pool','',{cd:'pool',cs:4})}</div>`;
+  if(s.f.fordSeen&&!s.f.fordDone)al+=`<div class="act">${btn('Оглянути брід','bpop','sh:ford')}</div>`;
+  if(!s.runes?.b&&RUNE.b.ok())al+=`<div class="act">${btn('Оглянути камінь на відпливі','rune','b')}</div>`;
+  const event=shfVisible();
+  if(event)al+=`<div class="act">${btn(SHF[event].n,'shfgo',shfActionId(event))}</div>`;
   al+=`<div class="act">${btn('До маяка','tab','home',{cls:'toggle'})}</div>`;
   const floating=hookWaterVisible();
   const hookCard=floating?`<div class="act">${btn(hookWaterLabel(floating),'hookWater',String(floating.id))}</div>`:'';
@@ -328,7 +337,7 @@ function rMapList(){const u=0;
   for(const id in LOC)if(s.disc[id]){const L=LOC[id],[ok,why]=canGo(id);
     const sk=(s.seenK||{}).map||{},newA=tabKeys('map').some(k=>k.indexOf('a:'+id+'.')===0&&!sk[k]);
     const tags=[s.visited[id]?'<span class="chip">відвідано</span>':'<span class="chip new">нове</span>',s.visited[id]&&newA?'<span class="chip new">нові справи</span>':'',L.sea===2?'<span class="chip">шхуна</span>':L.sea?'<span class="chip">море</span>':'',L.dark?'<span class="chip">темрява</span>':''].join('');
-    h+=`<div class="lcard">${pimg(sceneURL(LSC(id)),192,80,'thumb')}<div class="lbody"><b class="pl">${L.n}</b><div class="chips">${tags}</div><span class="m">${why||L.d}</span>${btn('Вирушити','go',id,{ok:()=>canGo(id)[0]})}</div></div>`}
+    h+=`<div class="lcard">${pimg(sceneURL(LSC(id)),192,80,'thumb')}<div class="lbody"><b class="pl">${L.n}</b><div class="chips">${tags}</div><span class="m">${id==='fort'?V(()=>canGo(id)[1]||L.d):why||L.d}</span>${btn('Вирушити','go',id,{ok:()=>canGo(id)[0]})}</div></div>`}
   return h+`</div></section>`}
 function rBells(){let h=BELLS.map((b,i)=>`<div class="act">${btn(b[0],'bell',i)}<span class="m">${b[1]}</span></div>`).join('');
   h+=`<p class="m">Пролунало: ${s.bell.length?s.bell.map(i=>BELLS[i][0].split(' ')[0].toLowerCase()).join(', '):'поки тиша'}.</p>`;
@@ -497,7 +506,30 @@ const inR=u0&&inReach(u0),cv=u0?cover(c,c.hx,c.hy,u0.x,u0.y):0;
   h+=`</div></div></section>`;
   return h}
 const TR={chron:rChron,folk:rFolk,talents:rTalents,home:rHome,shore:rShore,tower:()=>ttBar()+({work:rWork,kitchen:rKitchen,study:rStudy}[ttCur()]||rTower)(),work:rWork,study:rStudy,hero:rHero,map:rMap,trade:rTrade,journal:rJournal};
-function render(){B={};bn=0;
+let paintedTide='',paintingTide=false;
+function tideViewKey(){
+  if(s.cb)return '';
+  const t=tidePhase(),low=Number(tideLow(t));
+  if(atShore())return `shore:${tideStage(t)}:${low}`;
+  if(s.tab==='map'&&(['bay','shoal'].includes(s.at)||!s.at&&(s.disc.bay||s.disc.fort)))return `map:${s.at}:${low}`;
+  return '';
+}
+function restoreTideFocus(el,root){
+  if(!root||el.isConnected||document.activeElement!==document.body)return;
+  const match=el.tagName==='SUMMARY'?root.querySelector('summary'):[...root.querySelectorAll('[data-a]')].find(b=>!b.disabled&&
+    (el.dataset.sk?b.dataset.sk===el.dataset.sk:b.dataset.a===el.dataset.a&&b.dataset.i===el.dataset.i));
+  const fallback=root.id==='popl'?root.querySelector('.bpx'):root.id==='stage'?root.querySelector('[data-k="gather"]'):root.querySelector('summary');
+  (match||fallback)?.focus({preventScroll:true});
+}
+function render(){
+  tideRenderTime=Date.now();
+  const tide=tideViewKey(),view=s.tab+'|'+(s.tab==='map'?s.at:'')+'|';
+  paintingTide=!!tide&&!!paintedTide&&tide!==paintedTide&&lastView===view;
+  const el=paintingTide?document.activeElement:null,root=el?.closest('#stage,#main,#popl,#tabs');
+  paintedTide=tide;
+  try{renderView();restoreTideFocus(el,root)}finally{tideRenderTime=null;paintingTide=false}
+}
+function renderView(){B={};bn=0;
   const tl=TABS.filter(t=>s.tabs[t[0]]);
   const dOpen=(s.dlg||[]).length>0&&!s.bellHold;if(!tabSeen)tabSeen=new Set(tl.map(t=>t[0]));
   $('tabs').innerHTML=tl.length>1?tl.map(t=>`<button type="button" class="${s.tab===t[0]?'on':''}${s.tab!==t[0]&&isNew(t[0])?' new':''}${tabSeen.has(t[0])||RM()?'':dOpen?' tpend':' tnew'}" data-a="tab" data-i="${t[0]}"${s.cb?' disabled':''}>${t[1]}</button>`).join(''):'';
@@ -526,7 +558,7 @@ let ftOpen=0,shoreListOpen=0;
 function refresh(){
   document.querySelectorAll('[data-ok]').forEach(el=>{const f=B[el.dataset.ok];if(f){const d=!f();if(el.disabled!==d)el.disabled=d}});
   document.querySelectorAll('[data-v]').forEach(el=>{const f=B[el.dataset.v];if(f){const t=String(f());if(el.textContent!==t)el.textContent=t}});
-  document.querySelectorAll('[data-h]').forEach(el=>{const f=B[el.dataset.h];if(f){const t=String(f());if(el.dataset.last!==t){const xs=el.dataset.last!==undefined?xSnap(el):null;el.dataset.last=t;el.innerHTML=t;if(xs)xFade(el,xs,1)}}});
+  document.querySelectorAll('[data-h]').forEach(el=>{const f=B[el.dataset.h];if(f){const t=String(f());if(el.dataset.last!==t){const immediate=paintingTide&&el.closest('#stage .scbg');const xs=el.dataset.last!==undefined&&!immediate?xSnap(el):null;el.dataset.last=t;el.innerHTML=t;if(immediate)el.closest('.scbg').querySelectorAll('.xf').forEach(img=>img.remove());if(xs)xFade(el,xs,1)}}});
   document.querySelectorAll('[data-w]').forEach(el=>{const f=B[el.dataset.w];if(f)el.style.width=f()+'%'});
   const now=Date.now();
   document.querySelectorAll('[data-cd]').forEach(el=>{const left=(s.cd[el.dataset.cd]||0)-now;el.style.setProperty('--p',left>0?String(left/(+el.dataset.cs*1000)):'0')});
