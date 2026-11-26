@@ -3,7 +3,7 @@ const FISH_BITE_CHANCE=0.10;
 const FISH_BITE_FISH=2,FISH_BITE_SCRAP=2;
 function fishBiteCheck(){
   const first=!s.f.fishBiteSeen;
-  if(s.bite||!s.f.tideSeen||s.c.fish<(first?5:4)||s.dlg.length||s.tutPending.some(tutReady))return;
+  if(s.bite||!s.f.tideSeen||s.c.fish<(first?5:4)||s.dlg.length||s.tutPending.some(id=>id!=='fishBite'&&tutReady(id)))return;
   if(first||Math.random()<FISH_BITE_CHANCE)fishBiteOffer();
 }
 function fishBiteOffer(){
