@@ -7,6 +7,12 @@ function load(){try{const raw=localStorage.getItem(KEY);if(!raw)return;const d=J
   if(s.f.rod||s.floors.work)s.f.rodPlan=1;
   if(has('rake')&&!s.tutSeen.rake)tutRemember('rake');
   if(!d.tutSeen)tutMigrate();
+  if(s.bite&&!s.bite.kind&&typeof s.bite.until==='number'){
+    s.bite={kind:'fish',amount:Math.round(5*wolf())};
+    s.f.fishBiteSeen=1;tutOffer('fishBite');
+  }
+  if((s.tutPending||[]).includes('fishBite'))fishLessonLoadedAt=Date.now();
+  delete s.bigT;
   if(!d.pack){s.pack=[];for(const sl of['weapon','ranged'])if(s.eq[sl])s.pack.push(s.eq[sl]);for(const k of WEAP)if(has(k)&&!s.pack.includes(k)&&s.pack.length<packSlots())s.pack.push(k)}
   if(!d.belt){s.belt=[];for(const k of['bandage','potion','bomb'])if(has(k)&&s.belt.length<beltSlots())s.belt.push(k)}
   if(d.chv!==2){s.chv=2;s.chs=[];s.bts={};storyCheck(true)}
@@ -42,10 +48,10 @@ document.addEventListener('pointerup',()=>clearTimeout(lpT));
 document.addEventListener('click',e=>{if(popB&&!e.target.closest('.bpop')&&!e.target.closest('[data-a="bpop"]')){popB='';dirty=1;if(!e.target.closest('[data-a]'))render()}},true);
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&popB){popB='';render()}});
 if(typeof addEventListener==='function')addEventListener('resize',()=>{if(popB)placePop()});
-document.addEventListener('toggle',e=>{const d=e.target;if(d&&d.classList&&d.classList.contains('ledg'))s.ldOpen=d.open?1:0;if(d&&d.classList&&d.classList.contains('sett'))ftOpen=d.open?1:0},true);
+document.addEventListener('toggle',e=>{const d=e.target;if(d&&d.isConnected&&d.classList.contains('shore-alist'))shoreListOpen=d.open?1:0;if(d&&d.classList&&d.classList.contains('ledg'))s.ldOpen=d.open?1:0;if(d&&d.classList&&d.classList.contains('sett'))ftOpen=d.open?1:0},true);
 document.addEventListener('click',e=>{if(lpF){lpF=0;e.preventDefault();e.stopImmediatePropagation();setTimeout(hideTip,2500)}},true);
 document.addEventListener('click',e=>{const el=e.target.closest('[data-a]');if(!el||el.disabled||el.getAttribute('aria-disabled')==='true')return;
-  if(el.dataset.cd&&onCd(el.dataset.cd)&&(el.classList.contains('ob')||el.classList.contains('hs'))){nope(el);return}
+  if(el.dataset.a!=='bpop'&&el.dataset.cd&&onCd(el.dataset.cd)&&(el.classList.contains('ob')||el.classList.contains('hs'))){nope(el);return}
   const isHs=el.classList.contains('hs')||el.classList.contains('ob'),r0=isHs?Object.assign({},s.r):null;if(isHs){s.hsU=s.hsU||{};if(!s.hsU[el.dataset.k]){s.hsU[el.dataset.k]=1;el.classList.remove('pulse')}}
   act(el.dataset.a,el.dataset.i);if(isHs)hsPop(el,e,r0);if(isHs&&el.dataset.a==='gather'){if(dirty)render();const now=document.querySelector('.scn [data-sk="gather"]');if(now)pressFx(now,e)}else{if(isHs)pressFx(el,e);if(dirty)render()}save()});
 document.addEventListener('keydown',e=>{

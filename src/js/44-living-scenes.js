@@ -56,12 +56,20 @@ const mlaLayer=(top,h)=>`<span class="scm" data-sk="mla" data-sig="m5${top}" ari
 const mlaV=()=>thrOn()?Math.min(1,(s.threat||0)/100):0;
 const fogs=(top,h)=>`<span class="scf" data-sk="fog" data-sig="fog${top}" aria-hidden="true"><i class="fog" style="top:${top}%;height:${h}%;background-image:url(${fogURL(3)})"></i><i class="fog f2" style="top:${top+h*0.35}%;height:${h*0.8}%;background-image:url(${fogURL(8)})"></i></span>`;
 function smk(x,y,W,H){return[0,1,2].map(n=>`<i class="smk" style="left:${(x/W*100).toFixed(2)}%;top:${(y/H*100).toFixed(2)}%;--o:${n}s" aria-hidden="true"></i>`).join('')}
+const fishBiteLabel=()=>s.bite.kind==='fish'?'Сильне клювання':'Важка зачіпка';
+function fishBiteControls(){
+  const detail=s.bite.kind==='fish'
+    ? V(()=>!s.bite?'':fishBonusFits()?`Додатковий улов: ${fmt(s.bite.amount)} риби.`:`Звільни місце для ${fmt(s.bite.amount)} риби. Улов може почекати.`)
+    : 'Підтягни волосінь, щоб побачити, що на гачку.';
+  return `<p class="m">${detail}</p><div class="act">${btn('Витягнути улов','bigfish','',{cls:'main',ok:fishBonusFits})}${btn('Відпустити','fishRelease','',{cls:'toggle'})}</div>`;
+}
 function bpopHTML(){const id=popB;if(!id)return'';let nm,lvl,d,btns='',extra='';
   if(id.startsWith('fl:'))return flPopHTML(id.slice(3));
   if(id.startsWith('wk:')||id.startsWith('st:'))return roomPopHTML(id);
   if(id.startsWith('mp:'))return mapPopHTML(id);
   if(id.startsWith('lc:'))return locPopHTML(id);
   if(id==='sh:ford')return fordPopHTML();
+  if(id==='sh:bite'&&s.bite)return `<div class="bpop" role="dialog" aria-label="${fishBiteLabel()}"><div class="bph"><b>${fishBiteLabel()}</b><button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div>${fishBiteControls()}<div class="act">${btn('Закинути знову','fishing','',{cd:'fishing',cs:3})}</div></div>`;
   if(id==='cl:shelf')return shelfPopHTML();
   if(id==='cl:wolf')return wolfPopHTML();
   if(id.startsWith('kt:'))return kitPopHTML(id);
@@ -120,7 +128,7 @@ function shoreHS(){const W=SW,H=SH,S=(x,y,w,h)=>PCT(x,y,w,h,W,H);let h=fogs(8,22
   if(s.ship)h+=ob('ship','hsgo','ship',obURL('ship3',shipObj3),168,0,W,H,'Торговий когг','<b>Торговий когг</b><br>Подивитися обміни.',{pulse:1,always:1,idle:'i-bob'});
   if(s.f.boat)h+=ob('pier','hsgo','pier',obURL('pier3'+((s.exp||[]).length?'o':''),()=>pierObj3({boatOut:!!(s.exp||[]).length})),231,48,W,H,'Пристань','<b>Пристань</b><br>Виходи в море й кораблі.');
   if(s.f.wreck)h+=ob('wreck','scrapw','',obURL('wreck3',wreckObj3),186,69,W,H,'Розбирати уламки','<b>Уламки човна</b><br>Цвяхи, скоби, обшивка: усе згодиться.'+(has('rake')?'<br>Граблі допомагають діставати дрібний брухт.':''),{pulse:1,cd:'scrapw',cs:2,inner:'<i class="spk"></i>'});
-  if(s.f.rod)h+=s.bite?ob('rod','bigfish','',obURL('rod3',rodObj3),162,45,W,H,'Тягнути велику рибу','<b>Клює щось велике!</b><br>Натисни, щоб виводити. Можна й не чіпати: риба зірветься, нічого не втратиш.',{cls:'bite',inner:'<i class="bob"></i><i class="bang">!</i>'})
+  if(s.f.rod)h+=s.bite?ob('sh:bite','bpop','sh:bite',obURL('rod3',rodObj3),162,45,W,H,fishBiteLabel(),`<b>${fishBiteLabel()}</b><br>Витягни улов зараз або повернися згодом.`,{cls:'rod-catch',cd:'fishing',cs:3,inner:'<i class="bob"></i>'})
     :ob('rod','fishing','',obURL('rod3',rodObj3),162,45,W,H,'Рибалити','<b>Вудка</b><br>Закинь і чекай, поки клюне.',{pulse:1,cd:'fishing',cs:3,idle:'i-sway',inner:'<i class="bob"></i>'});
   else if(shoreRodReady()){const c=RC.find(r=>r.id==='rod').c;h+=ob('rod','craft','rod',obURL('rod3',rodObj3),162,45,W,H,'Змайструвати просту вудку',`<b>Проста вудка</b><br>Жердина, линва й гачок.<br>Ціна: ${costTxt(c)}`,{pulse:1,always:1,ok:afford(c)})}
   h+=dryRackHS(W,H)+shoreFordHS(W,H)+shoreFightHS(W,H)+shoreRuneHS(W,H);
@@ -146,7 +154,7 @@ function hsPop(el,e,r0){try{const out=[];for(const k in s.r){const d=(s.r[k]||0)
 
 /* Реакція на натискання: об'єкт важко присідає (без пружини), матеріал відповідає частинками й світлом */
 const MATK=(k,a)=>{k=k||'';if(a==='blow'||a==='smith'||a==='smithhot'||k==='hearth'||k==='hearth0')return{k:'spark',n:14,fl:1};
-  if(a==='fishing'||a==='bigfish'||a==='flotmg'||a==='flot')return{k:'splash',n:12};if(a==='gather')return{k:'splash',n:6};if(a==='scrapw')return{k:'chip',n:12,also:'dust'};
+  if(a==='fishing'||a==='flotmg'||a==='flot')return{k:'splash',n:12};if(a==='gather')return{k:'splash',n:6};if(a==='scrapw')return{k:'chip',n:12,also:'dust'};
   if(a==='bld'||a==='floor'||a==='flu')return{k:'dust',n:16};if(k.startsWith('b:')||k.startsWith('fl:'))return{k:'dust',n:5};return{k:'dust',n:4}};
 function gatherFx(el){if(!actOk)return;el.style.setProperty('--p',pOf('gather').toFixed(3));if(RM())return;const log=el.querySelector('.dlw');if(!log||!log.animate)return;for(const a of log.getAnimations())a.cancel();log.animate([{transform:'translate(0,0) rotate(0)',opacity:1},{transform:'translate(-30%,-75%) rotate(-8deg)',opacity:1,offset:.17},{transform:'translate(-58%,-130%) rotate(-13deg)',opacity:0,offset:.34},{transform:'translate(48%,42%) rotate(7deg)',opacity:0,offset:.35},{transform:'translate(12%,9%) rotate(2deg)',opacity:.9,offset:.77},{transform:'translate(0,0) rotate(0)',opacity:1}],{duration:900,easing:'ease-in-out'});}
 function pressFx(el,e){try{if(!el.classList.contains('ob')&&!el.classList.contains('hs'))return;const gather=el.dataset.a==='gather';if(gather)gatherFx(el);else{el.classList.remove('press');void el.offsetWidth;el.classList.add('press');setTimeout(()=>el.classList.remove('press'),180)}

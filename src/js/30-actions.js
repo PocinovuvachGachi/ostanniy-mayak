@@ -1,4 +1,33 @@
 /* ============ ACTIONS ============ */
+const FISH_BITE_CHANCE=0.10;
+const FISH_BITE_FISH=2,FISH_BITE_SCRAP=2;
+function fishBiteCheck(){
+  const first=!s.f.fishBiteSeen;
+  if(s.bite||!s.f.tideSeen||s.c.fish<(first?5:4)||s.dlg.length||s.tutPending.some(id=>id!=='fishBite'&&tutReady(id)))return;
+  if(first||Math.random()<FISH_BITE_CHANCE)fishBiteOffer();
+}
+function fishBiteOffer(){
+  if(s.bite)return;
+  if(Math.random()<0.5)s.bite={kind:'fish',amount:FISH_BITE_FISH};
+  else s.bite=s.odd.medallion?{kind:'snag',amount:FISH_BITE_SCRAP}:{kind:'snag',odd:'medallion'};
+  s.f.fishBiteSeen=1;
+  tutOffer('fishBite');
+  say(s.bite.kind==='fish'?'Поплавець пірнув, і волосінь здригнулася.':'Волосінь натяглася. Щось важке піддалося з дна.','find');
+  sfx('fishBite');
+}
+const fishBonusFits=()=>!!s.bite&&(s.bite.kind!=='fish'||s.r.fish+s.bite.amount<=capOf('fish'));
+function fishBiteResolve(keep){
+  const bite=s.bite;
+  s.bite=null;
+  if(popB==='sh:bite')popB='';
+  if(!keep){say('Ти попустив волосінь. Поплавець знову гойдається на воді.','world');return}
+  sfx('splash');
+  if(bite.kind==='fish'){add('fish',bite.amount);say(`Ти підтягнув під берег ще риби. +${R('fish',bite.amount)}.`,'find');return}
+  if(bite.odd&&!s.odd[bite.odd]){odd(bite.odd,'Щось мідне блиснуло в мокрій волосіні.');return}
+  const amount=bite.amount||FISH_BITE_SCRAP;
+  add('scrap',amount);
+  say(`На гачку — уламки металу, обточені морем. +${R('scrap',amount)}.`,'find');
+}
 function act0(a,i){
   if(a.indexOf('c_')===0){cAct(a,i);return}
   if(a==='tclose'){const at=+i;for(const x of s.log)if(x&&x.at===at)x.cl=1;lastToast=null;dirty=1;return}
@@ -50,8 +79,11 @@ function act0(a,i){
   case 'martinLadle':martinLadleTalk();break;
   case 'martinLog':martinLogTalk(i==='find');break;
   case 'scrapw':if(F.wreck&&!onCd('scrapw')){setCd('scrapw',2);s.c.scrap=(s.c.scrap||0)+1;add('scrap',1+(s.rs.metal?1:0)+(s.h.ft.thrifty?1:0)+(has('rake')?1:0))}break;
-  case 'fishing':if(F.rod&&!onCd('fishing')){setCd('fishing',3);if(!s.bite&&s.c.fish>=6&&F.crab1&&Date.now()-(s.bigT||0)>240000&&Math.random()<1/6){s.bigT=Date.now();if(mgHabit('fish')||s.quickMG){s.c.fish++;mgRun('fish',mgFish,fishEnd);break}s.bite={until:Date.now()+30000};say('Вудка вигнулася дугою: щось велике тягне линву!','find');break}add('fish',wolf());s.c.fish++;
-    if(!F.crab1&&!F.crabWarn&&s.c.fish>=5){F.crabWarn=1;crabWarn()}}break;
+  case 'fishing':if(F.rod&&!onCd('fishing')){
+    setCd('fishing',3);add('fish',wolf());s.c.fish++;
+    if(!F.crab1&&!F.crabWarn&&s.c.fish>=5){F.crabWarn=1;crabWarn()}
+    fishBiteCheck();
+  }break;
   case 'bld':{const b=i==='hearth'?HEARTH:BD.find(x=>x.id===i);if(!b||(!noGap()&&i!=='hearth'&&!s.b[i]&&!b.show())||(b.max&&(s.b[i]||0)>=b.max))break;const c=bCost(b);if(afford(c)){pay(c);s.b[i]=(s.b[i]||0)+1;if(i==='hearth')tutOffer('hearth');novUse('b:'+i);upT[i]=Date.now();if(typeof setTimeout==="function")setTimeout(()=>{dirty=1},1700);
     say(i==='hearth'&&s.b[i]===1?'Ти складаєш вогнище з плавника й кладеш у нього жарину. Полум’я оживає, а приплив тепер сам приносить трохи плавника до порогу.':`${b.n}: рівень ${s.b[i]}.`,'world')}break}
   case 'floor':{const ix=FL.findIndex(x=>x.id===i),f=FL[ix];if(!f||s.floors[i])break;if(ix>0&&!s.floors[FL[ix-1].id])break;
@@ -128,7 +160,8 @@ function act0(a,i){
   case 'flot':{const f=s.flot;if(!f)break;s.flot=null;s.flotT=Date.now()+(150+Math.random()*120)*1000;flotTake(f.k,+i>1?+i:1);break}
   case 'flotmg':{const f=s.flot;if(!f)break;if(f.k==='bottle'){act('flot');break}mgRun('flot',()=>{f.until=Math.max(f.until,Date.now()+90000);mgFlot(f.k)},r=>act('flot',r>1?String(r):'1'));break}
   case 'rsel':{if(RS.find(r=>r.id===i))s.rsSel=i;break}
-  case 'bigfish':{if(!s.bite)break;s.bite=null;s.c.fish++;mgRun('fish',mgFish,fishEnd);break}
+  case 'bigfish':if(fishBonusFits())fishBiteResolve(true);break;
+  case 'fishRelease':if(s.bite)fishBiteResolve(false);break;
   case 'smith':{if(!s.b.forge||onCd('smith')||s.hot)break;const c={scrap:4,ember:2};if(!afford(c)){say(`Для кування треба ${costTxt(c)}.`,'world');break}pay(c);setCd('smith',4);const n=smithN();add('iron',n);
     if(Date.now()-(s.hotT||0)>180000&&Math.random()<1/7){s.hotT=Date.now();if(mgHabit('forge')||s.quickMG)mgRun('forge',null,smithEnd);else{s.hot={until:Date.now()+30000};say('Заготовка розжарилася як слід: ще удар у слушну мить, і метал віддасть більше.','find')}}break}
   case 'smithhot':{if(!s.hot)break;s.hot=null;mgRun('forge',()=>mgForge('smith'),smithEnd);break}

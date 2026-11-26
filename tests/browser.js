@@ -2,7 +2,7 @@
    - сторінка вантажиться без помилок у консолі;
    - на ширині 390 px немає горизонтальної прокрутки на жодній вкладці;
    - клік по березі не перезапускає анімацій сусідніх об'єктів;
-   - рибалку можна виграти простим «гравцем»;
+   - незвичайне клювання на сцені й у списку дій;
    - події, що прийшли без гравця, ховаються в дзвіночок. */
 const path = require('path');
 const { chromium } = require('playwright');
@@ -58,7 +58,7 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
       s.f.wreck = 1; s.f.hook = 1; s.f.rod = 1; s.f.crab1 = 1; s.floors.work = 1;
       giveI('oar');
       s.c.fish = 7; s.r.wood = 30; s.r.scrap = 10; s.r.fish = 7;
-      s.bigT = Date.now(); s.tideEpoch = Date.now(); s.f.tideSeen = 1;
+      s.f.fishBiteSeen = 1; Math.random = () => 0.99; s.tideEpoch = Date.now(); s.f.tideSeen = 1;
       s.lastNov = -60; s.dlg = []; render();
     });
     const rack = p.locator('.scn [data-k="dryrack"]');
@@ -274,21 +274,62 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await p.close();
   }
 
-  // 3. Рибалка: простий гравець тримає стрілку в зеленій зоні
+  // 3. Незвичайне клювання: поплавець, відновлення, вихід і повернення, місткість.
   {
     const p = await page(390, 844);
-    const won = await p.evaluate(() => new Promise(res => {
-      s.f.looked = 1; s.tabs = { home: 1, shore: 1 }; s.dlg = []; render();
-      const n0 = s.r.fish; mgFish();
-      const n = document.querySelector('.mgneedle'), fs = document.querySelector('.mgfish');
-      let held = 0;
-      const iv = setInterval(() => {
-        if (!MG || MG.done) { clearInterval(iv); setTimeout(() => res(s.r.fish - n0 >= 5), 1000); return; }
-        const x = parseFloat(n.style.left) || 0, want = !fs.classList.contains('tug') && x < 52;
-        if (want && !held) { MG.o.down(); held = 1; } else if (!want && held) { MG.o.up(); held = 0; }
-      }, 30);
-    }));
-    A(won, 'рибалку не вдалося виграти');
+    await p.evaluate(() => {
+      s.f.looked=1;s.f.rod=1;s.f.tideSeen=1;s.f.crab1=1;s.tabs.shore=1;s.tab='shore';
+      s.tideEpoch=Date.now();s.c.fish=4;s.r.fish=4;s.dlg=[];s.tutPending=[];
+      Math.random=()=>0.2;render();
+    });
+    const rod=p.locator('.scn [data-k="rod"]');
+    const marker=p.locator('.scn [data-k="sh:bite"]');
+    const pop=p.locator('#popl .bpop');
+    const list=p.locator('.shore-alist');
+    const hasDiamond=e=>getComputedStyle(e,'::before').content==='""'&&getComputedStyle(e,'::before').transform!=='none';
+    A(!await rod.locator('.bob').evaluate(hasDiamond),'звичайний поплавець без ромба');
+    await rod.click();
+    A(await p.evaluate(()=>s.r.fish===5&&s.c.fish===5&&s.bite?.kind==='fish'),'базовий улов і бонус після натискання на вудку');
+    A(await marker.locator('.bob').evaluate(e=>getComputedStyle(e).animationName)==='fish-bob-tug','окрема анімація поплавця');
+    await p.locator('#dlg .k-tutorial h2',{hasText:'Незвичайне клювання'}).waitFor();
+    await p.click('#dlg [data-a="dlgok"]');
+    await marker.click();
+    const recast=pop.getByRole('button',{name:'Закинути знову'});
+    A(await recast.isDisabled(),'штатне відновлення після клювання');
+    await recast.click();
+    A(await p.evaluate(()=>s.r.fish===6&&s.c.fish===6&&s.bite?.amount===2),'закидання зі сцени працює зі збереженим бонусом');
+    await p.click('#tabs [data-i="home"]');
+    await p.evaluate(() => {
+      const stored=JSON.parse(localStorage.getItem(KEY));stored.ts-=600_000;
+      localStorage.setItem(KEY,JSON.stringify(stored));
+    });
+    await p.reload();
+    await p.click('#tabs [data-i="shore"]');
+    A(await marker.isVisible()&&await p.evaluate(()=>s.bite?.amount===2),'сцена відновлює поплавець після повернення й reload');
+    const bob=marker.locator('.bob');
+    await p.waitForFunction(()=>document.querySelector('.rod-catch .bob')?.getAnimations().every(a=>a.playState!=='running'));
+    A(await bob.evaluate(hasDiamond),'після анімації на поплавці видно ромб');
+    await p.emulateMedia({reducedMotion:'reduce'});
+    A(await bob.evaluate(e=>getComputedStyle(e).animationName)==='none'&&await bob.evaluate(hasDiamond),
+      'у reduced motion ромб видно без анімації');
+    await marker.click();
+    A(await pop.getByRole('button',{name:'Витягнути улов'}).isVisible(),'після повернення улов доступний зі сцени');
+    A(await p.evaluate(()=>document.documentElement.scrollWidth<=390),'картка клювання не розширює сторінку');
+    await pop.getByRole('button',{name:'Закрити'}).click();
+
+    await p.evaluate(()=>{s.r.fish=capOf('fish');render()});
+    await list.locator('summary').click();
+    const claim=list.getByRole('button',{name:'Витягнути улов'});
+    A(await claim.isDisabled()&&await list.getByText('Улов може почекати.',{exact:false}).isVisible(),
+      'повний кошик: список пояснює, що бонус може почекати');
+    A(await p.evaluate(()=>document.documentElement.scrollWidth<=390),'список дій не розширює сторінку');
+    await p.evaluate(()=>{s.r.fish-=2;refresh()});
+    await claim.click();
+    A(await p.evaluate(()=>!s.bite&&s.c.fish===6&&s.r.fish===capOf('fish')),'список дозволяє забрати бонус один раз');
+    await p.evaluate(()=>{Math.random=()=>0.9;fishBiteOffer();render()});
+    A(await list.getByRole('button',{name:'Відпустити'}).isVisible(),'список лишається відкритим після оновлення');
+    await list.getByRole('button',{name:'Відпустити'}).click();
+    A(await p.evaluate(()=>!s.bite&&!s.odd.medallion&&!s.dlg.length),'відмова без винагороди та повторного уроку');
     await p.close();
   }
 

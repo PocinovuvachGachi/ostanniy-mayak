@@ -149,7 +149,8 @@ function rShore(){let h=`<section><h2>Берег під маяком</h2><p>Мо
   if(shoreRodReady()){const c=RC.find(r=>r.id==='rod').c;al+=`<div class="act">${btn('Змайструвати просту вудку','craft','rod',{ok:()=>afford(c)})}<span class="ccs">${costTxt(c)}</span></div>`}
   if(s.f.rod)al+=`<div class="act">${btn('Рибалити','fishing','',{cd:'fishing',cs:3})}</div>`;
   al+=`<div class="act">${btn('До маяка','tab','home',{cls:'toggle'})}</div>`;
-  h+=`<details class="alist"><summary>Усі дії списком</summary><div>${al}</div></details>`;
+  const catchCard=s.f.rod&&s.bite?`<div class="tdet"><b>${fishBiteLabel()}</b>${fishBiteControls()}</div>`:'';
+  h+=`<details class="alist shore-alist"${shoreListOpen?' open':''}><summary>Усі дії списком</summary><div>${catchCard}${al}</div></details>`;
   if(s.flot){const FN={crate:'Ящик',barrel:'Бочка',cargo:'Розкиданий вантаж',bottle:'Пляшка з запискою',survivor:'Людина на уламку щогли'};h+=`<div class="tdet" id="sec-flot"><b>На березі: ${FN[s.flot.k]}</b>${fresh9('fl:'+s.flot.until)}<p class="m">Прибій щось викинув. Хвилі заберуть його за ${V(()=>s.flot?Math.max(0,Math.ceil((s.flot.until-Date.now())/1000)):0)} с.</p>${btn('Оглянути','flot','',{cls:'main'})}</div>`}
   h+=`<p class="m" style="margin-top:8px">Зібрано за весь час: ${V(()=>fmt(s.tot.wood))} плавника${s.f.wreck?`, ${V(()=>fmt(s.tot.scrap))} брухту`:''}${s.f.rod?`, ${V(()=>fmt(s.tot.fish))} риби`:''}.</p></section>`;
   h+=rDryRack();
@@ -512,9 +513,9 @@ function render(){B={};bn=0;
   if(!s.cb&&s.tab==='chron'&&view!==prevView){try{const tl=mn.querySelector('.chr-tl');if(tl)tl.scrollLeft=tl.scrollWidth}catch(e){}}
   if(view==='cb'&&prevView!=='cb'&&s.cb&&!RM()){const ci=$('cbin');if(ci&&ci.classList){const fo=s.cb.u.filter(u=>!isObj(u)).map(u=>EN[u.t].n);ci.innerHTML=`<div><b>${s.cb.title||'Бій'}</b><span>${[...new Set(fo)].join(' · ')}</span></div>`;ci.classList.remove('go');void ci.offsetWidth;ci.classList.add('go')}}
   if(s.cb&&s.cb.fx&&s.cb.fx.length){const f=s.cb.fx;s.cb.fx=[];s.cb.fxt=0;try{playFx(f)}catch(e){}}
-  $('foot').innerHTML=resetAsk?`Стерти весь прогрес і почати з самого початку? ${btn('Так, стерти','resetYes')}${btn('Скасувати','resetNo')}`:`${tutIds().length?btn('Довідник','tutList','',{cls:'toggle'}):''}<details class="sett"${ftOpen?' open':''}><summary>Налаштування</summary><div class="setb">${btn(s.quickMG?'Доступність: без міні-ігор — так':'Доступність: без міні-ігор — ні','qmg','',{cls:'toggle'})}${Object.keys(MGH).filter(t=>(s.mgUn||{})[t]&&mgCan(t)).map(t=>btn(`${{fish:'Велика риба',flot:'Знахідки в прибої',forge:'Кування'}[t]}: ${(s.mgHab||{})[t]?'звично':'власноруч'}`,'mghab',t,{cls:'toggle'})).join('')}${btn('Почати спочатку','reset')}</div></details><span class="m">Гра зберігається автоматично.</span>`;
+  $('foot').innerHTML=resetAsk?`Стерти весь прогрес і почати з самого початку? ${btn('Так, стерти','resetYes')}${btn('Скасувати','resetNo')}`:`${tutIds().length?btn('Довідник','tutList','',{cls:'toggle'}):''}<details class="sett"${ftOpen?' open':''}><summary>Налаштування</summary><div class="setb">${btn(s.quickMG?'Доступність: без міні-ігор — так':'Доступність: без міні-ігор — ні','qmg','',{cls:'toggle'})}${Object.keys(MGH).filter(t=>(s.mgUn||{})[t]&&mgCan(t)).map(t=>btn(`${{flot:'Знахідки в прибої',forge:'Кування'}[t]}: ${(s.mgHab||{})[t]?'звично':'власноруч'}`,'mghab',t,{cls:'toggle'})).join('')}${btn('Почати спочатку','reset')}</div></details><span class="m">Гра зберігається автоматично.</span>`;
   dirty=0;refresh()}
-let ftOpen=0;
+let ftOpen=0,shoreListOpen=0;
 function refresh(){
   document.querySelectorAll('[data-ok]').forEach(el=>{const f=B[el.dataset.ok];if(f){const d=!f();if(el.disabled!==d)el.disabled=d}});
   document.querySelectorAll('[data-v]').forEach(el=>{const f=B[el.dataset.v];if(f){const t=String(f());if(el.textContent!==t)el.textContent=t}});

@@ -3,9 +3,6 @@ let MG=null;
 const mgOk=()=>typeof requestAnimationFrame==='function'&&typeof document!=='undefined'&&!!document.body&&typeof document.body.appendChild==='function'&&!document.getElementById('mg');
 /* Звичка й помічники: після трьох вдалих спроб або з появою помічника міні-гру можна доручити «звичному» результатові. */
 const MGH={
-  fish:{help:()=>people()>=5,lab:['Тягнути звично','Гукнути рибалку'],st:'str',bonus:0.15,
-    dl:[{title:'Рука набита',body:'Велику рибу ти тепер виводиш, не думаючи: підсікти, попустити, підтягти. Руки роблять це самі.'},
-        {title:'Рибалка в селищі',body:'Серед поселенців знайшовся старий рибалка. Каже, велику рибу краще виводити вдвох — гукай, коли клюне.'}]},
   flot:{help:()=>(s.pop||0)>=3,lab:['Витягти звично','Покликати варту'],st:'per',bonus:0.15,
     dl:[{title:'Рука набита',body:'Гак сам знаходить, за що зачепитися. Прибій уже не обдурить тебе.'},
         {title:'Варта прибою',body:'Поселенці по черзі чергують на березі. Що прибій викине, те витягнуть, навіть коли тебе немає поруч.'}]},
@@ -65,31 +62,6 @@ function mgFlot(k){const per=2.4,win=0.16+0.015*Math.max(0,(s.h.a.per||2)-2);let
     if(k==='barrel'){MG.el.querySelector('.mghint').textContent='Збий обручі: бий, коли молот над наступним обручем.';f.innerHTML=`<div class="mgbar"><img src="${flotURLmg('barrel')}" alt="" class="mgbig"><i class="mghoop" style="left:20%"></i><i class="mghoop" style="left:50%"></i><i class="mghoop" style="left:80%"></i><b class="mgham">▼</b></div>`;MG.st.textContent='обручів: 0/3'}
     else if(k==='crate'||k==='cargo'){MG.el.querySelector('.mghint').textContent='Підваж цвяхи: натискай на кожен, поки не сховався.';f.innerHTML=`<div class="mgcrate"><img src="${flotURLmg('crate')}" alt="" class="mgbig"></div>`;MG.st.textContent='цвяхів: 0/4'}
     else{MG.el.querySelector('.mghint').textContent='Тягни линву на гребені хвилі — коли коло найбільше.';f.innerHTML=`<div class="mgrope"><img src="${flotURLmg('survivor')}" alt="" class="mgbig"><i class="mgpulse"></i></div>`;MG.st.textContent='ривків: 0/4'}}}
-function fishEnd(res,skip){if(res>0){const n=Math.round(5*wolf());add('fish',n);let x='';if(Math.random()<0.35){add('coin',20);x=` У череві — ${R('coin',20)}, хтось колись упустив гаманець.`}say(`${skip==='auto'?'Ти звично вивів велику рибу. ':''}Велика риба! +${R('fish',n)}.${x}`,'find')}
-  else{add('fish',wolf());say(skip===1?'Ти відпустив велику рибу й витяг дрібну.':'Велика риба зірвалася, але дрібну ти таки витяг.','find')}}
-/* Риба: плавна фізика. Утримання розганяє натяг, відпускання — гасить; ривки риби попереджені й наростають поступово. */
-function mgFish(){const str=(s.h.a.str||2),lo=25,hi=Math.min(90,78+2*Math.max(0,str-2));
-  let ten=45,v=0,prog=0,strain=0,hold=0,pullT=2.6+Math.random(),tele=0,pullL=0,pullF=0,fx=0.5,fy=0.8,ph=0,dir=1,el={};
-  const tc=x=>x>hi?'#e5533a':x<lo?'#9ccbd8':'#a5d98e';
-  mgStart({type:'fish',title:'Щось велике клює!',hint:'Тримай, щоб підтягувати; відпусти, щоб попустити линву. Коли риба шарпається — попускай.',
-    field:`<div class="mgfish"><div class="mgwv"></div><svg class="mgline" viewBox="0 0 100 100" preserveAspectRatio="none"><line x1="94" y1="0" x2="50" y2="80" vector-effect="non-scaling-stroke"/></svg><img class="mgfi" src="${icoURL('fish')}" alt=""><div class="mgten"><i class="mggreen" style="left:${lo}%;width:${hi-lo}%"></i><i class="mgredz" style="left:${hi}%"></i><b class="mgneedle"></b></div><div class="mgprog"><i></i></div></div>`,
-    init(){const f=MG.f;el={n:f.querySelector('.mgneedle'),p:f.querySelector('.mgprog i'),fi:f.querySelector('.mgfi'),ln:f.querySelector('.mgline line'),fs:f.querySelector('.mgfish'),ten:f.querySelector('.mgten')};MG.st.textContent='0%'},
-    tick(dt,tt){
-      if(tt>2.4&&!tele&&pullL<=0){pullT-=dt;if(pullT<=0){tele=0.65;el.fs.classList.add('tug');mgMsg('Риба шарпається!')}}
-      if(tele>0){tele-=dt;if(tele<=0){tele=0;pullL=1.0;pullF=60+Math.random()*40}}
-      let force=0;if(pullL>0){const k=Math.min(1,(1.0-pullL)/0.4)*Math.min(1,pullL/0.25);force=pullF*k;pullL-=dt;if(pullL<=0){pullT=1.3+Math.random()*1.8;el.fs.classList.remove('tug');if(MG.msg.textContent==='Риба шарпається!')mgMsg('')}}
-      const acc=(hold?115:-90)+force-v*3.2;v+=acc*dt;ten+=v*dt;if(ten<0){ten=0;v=Math.max(0,v)}if(ten>104){ten=104;v=Math.min(0,v)}
-      if(ten>hi){strain+=dt;el.ten.classList.add('hot')}else{strain=Math.max(0,strain-dt*0.7);el.ten.classList.remove('hot')}
-      if(strain>1.1){mgMsg('Линва лопнула! Хоч дрібну рибину встиг витягти.');mgEnd(0);return}
-      if(ten>=lo&&ten<=hi)prog+=11*dt;else if(ten<lo)prog=Math.max(0,prog-4*dt);
-      ph+=dt*(pullL>0?5:1.6);const tx=0.5+Math.sin(ph)*0.32;dir=tx>fx?1:-1;fx+=(tx-fx)*Math.min(1,dt*3);fy=0.82-Math.min(100,prog)/100*0.5;
-      el.n.style.left=Math.min(100,ten)+'%';el.p.style.width=Math.min(100,prog)+'%';
-      el.fi.style.left=(fx*100)+'%';el.fi.style.top=(fy*100)+'%';el.fi.style.transform=`translate(-50%,-50%) scaleX(${-dir})${pullL>0?` rotate(${Math.sin(tt*30)*8}deg)`:''}`;
-      el.ln.setAttribute('x2',(fx*100).toFixed(1));el.ln.setAttribute('y2',(fy*100).toFixed(1));el.ln.style.stroke=tc(ten);
-      MG.st.textContent=`${Math.floor(Math.min(100,prog))}%`;if(prog>=100){mgMsg('Ось вона!','ok');mgEnd(1);return}
-      if(tt>32){mgMsg('Риба втомила тебе й зірвалася.');mgEnd(0)}},
-    down(){hold=1;MG.f.classList.add('hold')},up(){hold=0;if(MG)MG.f.classList.remove('hold')},
-    end:fishEnd})}
 function forgeEnd(id,res,skip){if(res>0){s.wfb=s.wfb||{};const v=Math.min(2,(s.wfb[id]||0)+1);s.wfb[id]=v;say(`${skip==='auto'?(mgHelp('forge')?'Кіндрат постарався: ':'Звичне кування вдалося: '):'Добре кування: '}${wN(id)} б’є на 1 сильніше.`,'find')}else if(skip!==1)say('Кування вийшло звичайним. Зброя все одно стала кращою.','world')}
 const smithN=()=>1+Math.floor((s.b.forge||1)/2);
 function smithEnd(res,skip){if(res>0){const n=2+smithN()*2;add('iron',n);say(`${skip==='auto'?(mgHelp('forge')?'Кіндрат перехопив молот: ':'Звичний удар: '):'Дзвінко! '}розжарена заготовка дала ще ${R('iron',n)}.`,'find')}else if(skip!==1)say('Удари вийшли звичайними, заготовка охолола.','world')}
