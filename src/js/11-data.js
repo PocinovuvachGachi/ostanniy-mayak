@@ -82,17 +82,18 @@ function itemShort(id){const it=IT[id];if(!it)return'';
   if(it.slot==='armor')return`Броня ${it.arm}${it.hp?`, +${it.hp} здоров’я`:''}${it.ap?`, ${it.ap} ОД`:''}, вага ${it.wt||0}`;
   if(it.slot==='light')return`Світло в руці${it.per?`, +${it.per} Пильність`:''}`;
   if(it.slot==='charm')return[it.per?`+${it.per} Пильність`:'',it.hp?`+${it.hp} здоров’я`:'',it.ap?`+${it.ap} ОД`:''].filter(Boolean).join(', ');
-  if(it.use==='heal')return`Лікує ${it.v} здоров’я`;if(it.use==='net')return'Знерухомлює ворога';if(it.use==='smoke')return'Ховає від пострілів';if(it.use==='bomb')return`${it.v} урону по площі`;
+  if(healingItem(id))return foodEffectsText(it);if(it.use==='net')return'Знерухомлює ворога';if(it.use==='smoke')return'Ховає від пострілів';if(it.use==='bomb')return`${it.v} урону по площі`;
   return U(it.d).split('. ')[0].replace(/\.$/,'')}
 const TA=x=>`data-tip="${String(x).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}"`;
 const itemTip=id=>TA(`<b>${WT[id]?wN(id):IT[id].n}</b><br>${itemLong(id)}`);
+const FOODHP={fish:4,prov:10};
 const RD={ember:'Тепло великого вогню маяка. Ним відбудовують поверхи, на ньому працюють кузня й інші цехи. Дає його вогнище.',
   wood:'Плавник — дерево, яке викидає море: гілки, дошки, колоди. Головне паливо й будматеріал. Збирай на березі, став загорожу.',
   scrap:'Брухт — цвяхи, скоби й уламки металу з розбитих кораблів. З нього кузня виплавляє залізо.',
   iron:'Для зброї, обладунків і будівель. Його виплавляє кузня з брухту.',coal:'Гаряче паливо для сталі й скла. Ріж торф на болоті або збудуй вуглярню.',
   steel:'Гартоване залізо. Для другої форми зброї, сталевого обладунку й шхуни.',tar:'Нею конопатять човни й просмолюють тканини. Варить смоловарня.',
   oil:'Горить довго й рівно. Для ліхтарів, бомб і великого вогню.',sand:'Чистий білий пісок для скла.',gls:'Для еліксирів, підзорної труби й ліхтарів шхуни.',
-  fish:'Їжа. Відновлює 8 здоров’я.',prov:'Збережені харчові припаси. Лікує (+15), годує людей маяка, без неї не вийти в море.',
+  fish:`Звичайна риба. Відновлює ${FOODHP.fish} здоров’я поза боєм.`,prov:`Припаси для моря й поселенців. Відновлюють ${FOODHP.prov} здоров’я поза боєм.`,
   herb:'Верес, чебрець, полин. Для бинтів, зілля й ліків.',med:'Ліки з аптеки. Для еліксирів; добре продаються.',
   lore:'Знання з книг і записів. Витрачаються на дослідження.',coin:'Гроші для торгівлі в селищі.'};
 const GLOS=[['плавник','Плавник','дерево, яке море викидає на берег: гілки, дошки, цілі колоди. Тут це паливо й будматеріал. Не плутати з плавцем риби.'],
@@ -692,7 +693,15 @@ function rFolkList(){let h=`<section><h2>Громади шхер${ih(`Допом
       <div class="tbar" aria-hidden="true"><span class="zero"></span><span class="mk" style="left:${(v+100)/2}%"></span></div><p class="m" style="margin:0">${F.d}</p><ul class="perks">${perks}</ul>
       <div class="freq">${q?`<b>Прохання: ${q.n}</b><br><span class="m">Віддати ${costTxt(q.give)} → ${costTxt(q.rew)} і довіра +6${q.side?`, але ${q.side.map(([g,n])=>`${FAC[g].n} ${n}`).join(', ')}`:''}.</span><div class="act">${btn('Виконати','freq',f,{ok:()=>afford(q.give)})}${btn('Відмовитися','fdecl',f,{cls:'toggle'})}</div>`:(f==='silent'&&v<-39?'<span class="m">З тобою поки не розмовляють.</span>':'<span class="m">Зараз прохань немає. Загляни пізніше.</span>')}</div></div>`}
   return h+`</div>`}
-function crabWarn(){s.dlg=s.dlg||[];s.dlg.push({k:'fight',crabw:1,title:'Щось лізе з прибою',img:{t:'spr',id:'crab'},body:`<p>Вода біля ніг закипає, і з прибою вилазить краб завбільшки з відро. Він клацає клешнями й явно вважає цей берег своїм. Рибалити він не дасть.</p>${!s.eq.weapon?'<p>Біля уламків лежить ціле весло. Ти підхоплюєш його, поки краб наближається.</p>':''}`,btns:[tutKnown('combat')||noGap()?['До бою','fightGo','crab1']:['Далі','tutFight','']]})}
+const firstCrabWaiting=()=>s.f.crabWarn&&!s.f.crab1;
+function beginFirstCrab(){
+  if(!firstCrabWaiting())return;
+  tutRemember('combat');
+  if(!s.eq.weapon){if(!has('oar'))giveI('oar');else if(packHas('oar'))s.eq.weapon='oar'}
+  s.tab='shore';startFight('crab1','crab1');dirty=1;
+}
+function crabWarn(){s.dlg=s.dlg||[];s.dlg.push({k:'fight',crabw:1,title:'Щось лізе з прибою',img:{t:'spr',id:'crab'},body:`<p>Вода біля ніг закипає, і з прибою вилазить краб завбільшки з відро. Він клацає клешнями й явно вважає цей берег своїм.</p>${!s.eq.weapon?'<p>Біля уламків лежить ціле весло. Ним можна відбитися від краба.</p>':''}`,btns:[tutKnown('combat')||noGap()?['До бою','fightGo','crab1']:['Далі','tutFight',''],['Спочатку підготуватися','crabPrepare']]})}
+
 function freeOstap(){s.f.ostap=1;s.met.ostap=1;giveI('amulet');xp(60);
   return `${P('Остап')} тремтячими руками обіймає тебе. ${Q('Я знав, що вогонь когось розбудить. Повертайся до маяка, я буду в кабінеті. І пам’ятай: світло біжить прямо, доки дзеркало не поверне його')}. Він віддає тобі ${I('Оберіг Остапа')}.`}
 

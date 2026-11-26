@@ -242,7 +242,14 @@ function cAct(a,i){const c=s.cb;if(!c||c.over)return;if(c.eAnim){if(Date.now()<f
   else if(a==='c_wcmd'){c.wcmd=i||'';cbLog(i==='grab'?'Ти показуєш вовкові на ціль: «Хапай!»':i==='heel'?'«До ноги!» — вовк стає поруч.':'Вовк знову діє сам.')}
   else if(a==='c_guard'&&c.ap>=1&&!c.guard){c.guard=c.ap;c.ap=0;cbLog(`Ти стаєш у захисну стійку: удари зблизька −${guardPct(1)}%, постріли й чари −${guardPct(0)}%.`);endTurn();dirty=1;return}
   else if(a==='c_sw'){const it=IT[i];if(it&&packHas(i)&&has(i)&&c.ap>=1&&s.eq[it.slot]!==i){c.ap-=1;s.eq[it.slot]=i;c.mode='';cbLog(`Ти береш у руки: ${I(wN(i))}.`)}}
-  else if(a==='c_item'&&c.ap>=1&&beltHas(i)&&IT[i].use==='heal'){c.ap-=1;s.inv[i]--;s.h.hp=Math.min(maxHP(),s.h.hp+IT[i].v);dishEffect(i);fxP({t:'txt',x:c.hx,y:c.hy,v:'+'+IT[i].v,k:'heal'},0);cbLog(`${IT[i].n}: +${IT[i].v} здоров’я.`)}
+  else if(a==='c_item'&&c.ap>=1&&beltHas(i)&&IT[i]?.use==='heal'){
+    const use=useHealingItem(i);
+    if(use){c.ap--;
+      if(use.hp)fxP({t:'txt',x:c.hx,y:c.hy,v:'+'+fr(use.hp),k:'heal'},0);
+      const effects=[use.hp?`+${fr(use.hp)} здоров’я`:'',use.full?`ситість на ${use.full}`:'',use.regen?'зігрівання після бою':''].filter(Boolean);
+      cbLog(`${IT[i].n} · ${effects.join(' · ')}.`);
+    }
+  }
   else if(a==='c_net'&&c.ap>=1&&beltHas('net')){const u=selU();if(u&&!isObj(u)&&dist(c.hx,c.hy,u.x,u.y)<=3&&los(c,c.hx,c.hy,u.x,u.y)){c.ap-=1;s.inv.net--;u.pin=2;cbLog(`Сітка накриває ворога «${EN[u.t].n}»: 2 ходи не рухається й не ухиляється.`)}}
   else if(a==='c_smoke'&&c.ap>=1&&beltHas('smoke')){c.ap-=1;s.inv.smoke--;c.smoke=1;for(const v of c.u)v.aimed=0;cbLog('Густий дим огортає тебе: здалеку не влучать до твого наступного ходу.')}
   else if(a==='c_breath'&&s.h.ft.breath&&!c.breath){c.breath=1;const v=Math.round(maxHP()*.3);s.h.hp=Math.min(maxHP(),s.h.hp+v);cbLog(`Друге дихання: +${v} здоров’я.`)}
@@ -342,7 +349,7 @@ function finishWin(w){let m='';
 function lose(){const c=s.cb,lost=Math.floor(s.r.coin*0.2);s.r.coin-=lost;s.h.hp=Math.max(1,Math.round(maxHP()*0.3));s.cb=null;s.at='';
   if(c.win==='crab1'){s.c.fish=0;unlock('hero')}
   if(c.win==='raid'){for(const k of['wood','fish','prov'])s.r[k]*=0.8;s.dmgB=s.dmgB||{};for(const b of c.broken||[])s.dmgB[b]=1;dmgRandom();raidEnd()}
-  const m=`Тебе здолали. Ти отямився біля вогнища${lost?` і недорахувався ${R('coin',lost)}`:''}.`;say(m,'fight');dlg({k:'fight',title:'Поразка',img:{t:'yard'},body:`<p>${m}</p>`,gains:['Підлікуйся біля вогнища або з’їж провізію.','Спробуй іншу зброю: кожна потрібна проти свого ворога.','Укриття, вміння, пояс і захисна стійка рятують життя.']});dirty=1}
+  const m=`Тебе здолали. Ти отямився біля вогнища${lost?` і недорахувався ${R('coin',lost)}`:''}.`;say(m,'fight');dlg({k:'fight',title:'Поразка',img:{t:'yard'},body:`<p>${m}</p>`,gains:[c.win==='crab1'?'Злови рибу та поїж на березі. До краба можна повернутися, коли будеш готовий.':'З’їж рибу чи провізію або скористайся лікувальним предметом.','Спробуй іншу зброю: кожна потрібна проти свого ворога.','Укриття, вміння, пояс і захисна стійка рятують життя.']});dirty=1}
 function quickOk(encId){const E0=ENC[encId];return!!s.f.quick&&!E0.boss&&E0.e.filter(([t])=>!EN[t].obj).every(([t])=>s.kills[t]>0)}
 function quickFight(encId,win){const E0=ENC[encId];let hp=s.h.hp;
   const units=E0.e.filter(([t])=>!EN[t].obj&&!EN[t].ally).map(([t])=>({T:EN[t],hp:EN[t].hp*DIFF_HP*(E0.mult||1)}));

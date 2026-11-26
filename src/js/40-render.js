@@ -62,8 +62,13 @@ function rTop(){rBell();const el=$('top');if(!el)return;const items=[];
   if(s.cb){items.push(['cb','foe','','бій'],['hp','','',`здоров’я <b>${Math.max(0,Math.ceil(s.h.hp))}/${maxHP()}</b>`],['ap','','',`очки дії <b>${s.cb.ap}</b>`])}
   else{const r=rates();
     for(const k of RES)if(s.seen[k]){const rt=r[k]||0;items.push(['r:'+k,`rs rs-${k}`,`<b>${RN[k].charAt(0).toUpperCase()+RN[k].slice(1)}</b><br>${RD[k]||''}`,`${pimg(icoURL(k),16,16,'ri')}<span class="rn">${RN[k]} </span><b>${fmt(s.r[k])}</b>${(k==='fish'||k==='prov')&&typeof capOf==='function'?`<small>/${capOf(k)}</small>`:''}${Math.abs(rt)>=0.005?` <small>${rt>0?'+':''}${fr(rt)}/с</small>`:''}`])}
-    if(s.tabs.hero){const hurt=s.h.hp<maxHP()-.5,food=s.r.fish>=1||s.r.prov>=1;items.push(['hp',hurt?'hpl hurt':'hpl','<b>Здоров’я</b><br>Біля вогнища сили вертаються повільно, їжа лікує одразу.',`здоров’я <b>${Math.ceil(s.h.hp)}/${maxHP()}</b>${hurt&&food?' <button type="button" class="eatb" data-a="eatfull" data-i="">Поїсти</button>':''}`])}
+    if(s.tabs.hero){
+      const hurt=s.h.hp<maxHP(),meal=mealLabel();
+      items.push(['hp',hurt?'hpl hurt':'hpl','<b>Здоров’я</b><br>Їжа й ліки відновлюють сили. Юшка діє поступово поза боєм.',`здоров’я <b>${Math.ceil(s.h.hp)}/${maxHP()}</b>${meal?` <button type="button" class="eatb" data-a="eatfull" data-i="">Поїсти · ${meal}</button>`:''}`]);
+    }
     if(thrOn()){const v=Math.floor(s.threat||0);items.push(['thr',`thr${v>=75?' hi':''}`,`<b>Загроза Мли</b><br>Коли шкала дійде до 100, почнеться набіг. Мла збирається на метушню: збирання, будівництво, ремесло. Поки ти відпочиваєш, вона дрімає, а набіги чекають на тебе. Виграні бої її знижують, жаровні приглушують.`,`Мла <b>${v}%</b><span class="tb"><i style="width:${v}%"></i></span>`])}}
+  const status=healingStatus();
+  if(status)items.push(['food-effect','food-effect','',status]);
   const keys=items.map(x=>x[0]).join(',');
   if(keys===topK&&el.children&&el.children.length===items.length){items.forEach((x,i)=>{const c=el.children[i];const nw=c.classList&&c.classList.contains('rnew');const cl=x[1]+(nw?' rnew':'');if(c.className!==cl)c.className=cl;if(c.dataset.h!==x[3]){c.dataset.h=x[3];c.innerHTML=x[3]}if(x[2]&&c.getAttribute('data-tip')!==x[2])c.setAttribute('data-tip',x[2])});return}
   const old=new Set((topK||'').split(','));const anim=topK!==null&&!RM();
@@ -147,6 +152,7 @@ function shoreImg(){
 }
 function rShore(){let h=`<section><h2>Берег під маяком</h2><p>Мокрий пісок, водорості й плавник, викинутий прибоєм. Туман ховає обрій.</p>`;
   if(tideKnown()||s.tideEpoch!=null)h+=`<p class="tide-status"><strong aria-live="polite">${V(()=>tideStatus()[0])}</strong><span class="tide-clock">${V(()=>tideStatus()[1])}</span></p>`;
+  if(firstCrabWaiting()||s.f.rod&&s.h.hp<maxHP())h+=`<div class="tdet shore-recovery"><p class="m">Здоров’я ${V(()=>Math.ceil(s.h.hp)+' / '+maxHP())}.${firstCrabWaiting()?' Краб чекає біля уламків.':''}</p><div class="act">${rawFoodButtons()}${firstCrabWaiting()?btn(tutKnown('combat')?'Повернутися до краба':'Вийти проти краба','crabRetry'):''}</div></div>`;
   let al=`<div class="act">${btn('Збирати плавник','gather','',{cd:'gather',cs:1})}</div>`;
   if(s.f.wreck)al+=`<div class="act">${btn('Розбирати уламки човна','scrapw','',{cd:'scrapw',cs:2})}</div>`;
   if(shoreHookReady())al+=`<div class="act">${btn('Змайструвати багор','hook','',{ok:()=>afford(HOOKC)})}<span class="ccs">${costTxt(HOOKC)}</span></div>`;
@@ -280,7 +286,7 @@ function rHero(){const H=s.h;
     h+=`<section><h2>Торба</h2>${inv.length?'':'<p class="m">Поки порожньо.</p>'}<div class="bag">`;
     for(const id of inv){const it=IT[id];let b='';
       if(it.slot)b=s.eq[it.slot]===id?'<span class="done">у руках</span>':btn('Вдягти','equip',id);
-      else if(it.use==='heal')b=btn('Використати','use',id,{ok:()=>has(id)&&s.h.hp<maxHP()});
+      else if(healingItem(id))b=btn('Використати','use',id,{ok:()=>!!healingUse(id)});
       h+=`<div class="cell" ${itemTip(id)}><div class="ic" aria-hidden="true">${pimg(WT[id]?wIco(id):icoURL(id),36,36)}</div><b>${WT[id]?wN(id):it.n}${s.inv[id]>1?` × ${s.inv[id]}`:''}</b><span class="m">${itemShort(id)}</span>${b}</div>`}
     h+=`</div></section>`}
   if(s.ht==='talents')h+=rTalents();
@@ -481,7 +487,7 @@ const inR=u0&&inReach(u0),cv=u0?cover(c,c.hx,c.hy,u0.x,u0.y):0;
   const sw=(s.pack||[]).filter(k=>has(k)&&s.eq[IT[k].slot]!==k),belt=(s.belt||[]).filter(has);
   if(sw.length||belt.length){let gi='';
     for(const k of belt){const it=IT[k],n=s.inv[k];let a='',ap=1,m='';const L=[itemShort(k)];
-      if(it.use==='heal'){a='c_item';m=c.ap<1?noAP:s.h.hp>=maxHP()?'Здоров’я й так повне.':''}
+      if(it.use==='heal'){a='c_item';m=c.ap<1?noAP:!healingUse(k)?'Зараз страва чи ліки не дадуть користі.':''}
       else if(it.use==='bomb'){a='c_bomb';ap=2;m=!u0?noT:c.ap<2?noAP:!canBomb(u0)?'Ціль задалеко (до 4 клітинок) або її не видно.':'';if(u0&&d0<=1)L.push('<b>Ціль поруч: вибух зачепить і тебе.</b>')}
       else if(it.use==='net'){a='c_net';m=!u0||isObj(u0)?noT:c.ap<1?noAP:d0>3||!los(c,c.hx,c.hy,u0.x,u0.y)?'Сітку кидають до 3 клітинок, у ціль на видноті.':''}
       else if(it.use==='smoke'){a='c_smoke';m=c.ap<1?noAP:c.smoke?'Ти вже в диму.':''}
@@ -529,7 +535,8 @@ function render(){
   const tide=tideViewKey(),view=s.tab+'|'+(s.tab==='map'?s.at:'')+'|';
   paintingTide=!!tide&&!!paintedTide&&tide!==paintedTide&&lastView===view;
   const focused=document.activeElement;
-  const el=paintingTide||focused?.dataset?.a==='mussels'?focused:null,root=el?.closest('#stage,#main,#popl,#tabs');
+  const keepFocus=paintingTide||focused?.dataset?.a==='mussels'||focused?.closest?.('.shore-recovery');
+  const el=keepFocus?focused:null,root=el?.closest('#stage,#main,#popl,#tabs');
   paintedTide=tide;
   try{renderView();restoreTideFocus(el,root)}finally{tideRenderTime=null;paintingTide=false}
 }

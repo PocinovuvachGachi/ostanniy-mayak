@@ -953,6 +953,7 @@ body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .
 /* «Поїсти» біля здоров'я */
 #top .hpl .eatb{margin-left:6px;padding:1px 8px;min-height:24px;font:700 12px var(--mono);color:#2b1d12;background:#f0b84a;border:0;border-bottom:2px solid #a8763f;cursor:pointer;vertical-align:middle}
 #top .hpl.hurt b{color:#e0735f}
+#top .food-effect{font-size:.8rem;color:var(--mute)}
 /* майстерня: креслення — головне на вкладці */
 .wkmain .wkb .bag .cell{min-height:150px}.wkmain .wkb .bag .cell .ic img{width:48px;height:48px}.wkmain .wkb .bag .cell>b{font-size:1.05rem}
 /* бій: компактні піксельні смужки під ногами, наміри над постатями */

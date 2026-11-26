@@ -14,7 +14,7 @@ function add(k,v){s.r[k]+=v;if(v>0&&(k==='fish'||k==='prov')&&typeof capOf==='fu
 function giveI(id,n=1){s.inv[id]=(s.inv[id]||0)+n;s.seenI=s.seenI||{};s.seenI[id]=1;const it=IT[id];s.pack=s.pack||[];s.belt=s.belt||[];
   if(it.slot==='weapon'||it.slot==='ranged'){if(!s.pack.includes(id)&&s.pack.length<packSlots())s.pack.push(id);if(!s.eq[it.slot]&&s.pack.includes(id))s.eq[it.slot]=id}
   else if(it.slot&&!s.eq[it.slot])s.eq[it.slot]=id;
-  if(it.use&&!s.belt.includes(id)&&s.belt.length<beltSlots())s.belt.push(id);dirty=1}
+  if(beltItem(id)&&!s.belt.includes(id)&&s.belt.length<beltSlots())s.belt.push(id);dirty=1}
 function afford(c={},it={}){return Object.keys(c).every(k=>s.r[k]>=c[k])&&Object.keys(it).every(k=>(s.inv[k]||0)>=it[k])}
 function pay(c={},it={}){paidN++;for(const k in c)s.r[k]-=c[k];for(const k in it)s.inv[k]-=it[k]}
 function costTxt(c={},it={}){const ik=Object.keys(it),kn=ik.filter(k=>KN(k));return[...Object.keys(c).map(k=>R(k,fmt(c[k]))),...kn.map(k=>(it[k]>1?it[k]+' × ':'')+IT[k].n.toLowerCase()),...(kn.length<ik.length?['ще дещо, чого ти поки не знаєш']:[])].join(', ')}
@@ -83,8 +83,8 @@ const stageNo=()=>!s.f.fordDone?1:!(has('key')||s.floors.study)?2:!s.f.ostap?3:!
 const XPST=[1,1,3,7,10,11];
 /* Мла сильнішає з етапами: вороги міцніші й б'ють сильніше (сюжетні бої етапу I — без змін) */
 const FOEST=[1,1,1.3,1.4,1.5,1.5];
-function xp(n){if(!n)return;n*=XPST[stageNo()];if(s.h.ft.curious)n*=1.1;if(fuL('study')>=3)n*=1.1;if(!s.tabs.hero){s.h.xpb=(s.h.xpb||0)+n;return}s.h.xp+=n;while(s.h.xp>=need(s.h.lvl)){s.h.xp-=need(s.h.lvl);s.h.lvl++;if(s.h.lvl%5===0)mom('lvl',`Рівень ${s.h.lvl}`,'Хранитель став сильнішим і досвідченішим.',{t:'hero'});s.h.pts++;const sp=1+(s.h.lvl%3===0?1:0)+(s.h.a.int>=4&&s.h.lvl%4===0?1:0);s.h.sp+=sp;s.h.fp++;s.h.hp=maxHP();say(`Новий рівень: ${s.h.lvl}.`,'lvl');
-  const q=s.dlg||[],last=q[q.length-1],g=[s.nv.grow?`Вільних очок характеристик: ${s.h.pts}`:'',s.nv.grow?`Вільних очок умінь: ${s.h.sp}`:'',s.nv.tal?`Талантів до вибору: ${s.h.fp}`:'',s.nv.grow?`Стеля вмінь тепер ${skillCap()}`:'','Здоров’я відновлено повністю'].filter(Boolean);
+function xp(n){if(!n)return;n*=XPST[stageNo()];if(s.h.ft.curious)n*=1.1;if(fuL('study')>=3)n*=1.1;if(!s.tabs.hero){s.h.xpb=(s.h.xpb||0)+n;return}s.h.xp+=n;while(s.h.xp>=need(s.h.lvl)){s.h.xp-=need(s.h.lvl);s.h.lvl++;if(s.h.lvl%5===0)mom('lvl',`Рівень ${s.h.lvl}`,'Хранитель став сильнішим і досвідченішим.',{t:'hero'});s.h.pts++;const sp=1+(s.h.lvl%3===0?1:0)+(s.h.a.int>=4&&s.h.lvl%4===0?1:0);s.h.sp+=sp;s.h.fp++;say(`Новий рівень: ${s.h.lvl}.`,'lvl');
+  const q=s.dlg||[],last=q[q.length-1],g=[s.nv.grow?`Вільних очок характеристик: ${s.h.pts}`:'',s.nv.grow?`Вільних очок умінь: ${s.h.sp}`:'',s.nv.tal?`Талантів до вибору: ${s.h.fp}`:'',s.nv.grow?`Стеля вмінь тепер ${skillCap()}`:'',`Максимум здоров’я — ${maxHP()}`].filter(Boolean);
   if(last&&last.lvup){last.title=`Новий рівень: ${s.h.lvl}`;last.gains=g}else dlg({k:'lvl',lvup:1,title:`Новий рівень: ${s.h.lvl}`,img:{t:'hero'},body:s.nv.grow?'<p>Ти став сильнішим. Розподіли очки у вкладці «Герой → Розвиток».</p>':'<p>Ти став сильнішим і витривалішим. Тіло пригадує, як воно колись рухалося.</p>',gains:g})}}
 
 /* economy */
@@ -129,9 +129,9 @@ function flow(dt,dry){const L=s.b,d={};for(const k of RES)d[k]=0;const av=k=>s.r
   if(!dry)for(const k of RES)if(d[k]){add(k,d[k]);if(s.r[k]<0)s.r[k]=0}
   return d}
 function rates(){const d=flow(1,true);d.xp=(s.b.dummy||0)*0.08;return d}
-function produce(dt){s.play=(s.play||0)+dt;flow(dt);rdTick(dt);const L=s.b;
+function produce(dt,heal=true){s.play=(s.play||0)+dt;flow(dt);rdTick(dt);const L=s.b;
   if(L.dummy)xp(L.dummy*0.08*dt);
-  if(!s.cb)s.h.hp=Math.min(maxHP(),s.h.hp+regenRate()*dt);
+  if(heal)healingTick(dt);
 }
 /* progression */
 function storyCheck(quiet){s.bts=s.bts||{};
@@ -159,7 +159,6 @@ function checks(shoreDt=0){const F=s.f,oldFlot=s.flot,oldShf=s.shf;tutTick(false
   novTick(true);shoreTick();dryTick();shfTick();beamTick();folkTick();wolfTick();kitTick();rsiegeTick();curTick();stage3Tick();
   novPlanTick(true);novTick(false);novPlanTick(false);
   if(!s.tabs.chron&&s.chs.length&&!s.cb&&!(s.dlg||[]).some(d=>d.chap)&&novCan())unlock('chron');
-  if(F.crabWarn&&!F.crab1&&!s.cb&&!(s.dlg||[]).some(d=>d.crabw))crabWarn();
   raidCheck();tutTick();shoreFindTick();
   const newHook=hookWaterTick(shoreDt);
   rakeSandTick(shoreDt,newHook||!!(s.flot&&s.flot!==oldFlot)||!!(s.shf&&s.shf!==oldShf));

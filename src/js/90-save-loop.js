@@ -3,6 +3,14 @@ function save(){s.ts=Date.now();try{localStorage.setItem(KEY,JSON.stringify(s))}
 function load(){try{const raw=localStorage.getItem(KEY);if(!raw)return;const d=JSON.parse(raw),f=fresh();
   for(const k in d){if(f[k]&&typeof f[k]==='object'&&!Array.isArray(f[k])&&d[k]&&typeof d[k]==='object'&&!Array.isArray(d[k]))f[k]=Object.assign(f[k],d[k]);else f[k]=d[k]}
   s=f;if(s.cb&&!s.cb.u)s.cb=null;
+  const olderHealing=d.healingV!==1;
+  if(olderHealing){
+    s.healingV=1;s.belt=(s.belt||[]).filter(beltItem);
+    if(s.f.crabWarn&&!s.f.crab1&&!s.cb){
+      s.dlg=s.dlg.filter(q=>!q.crabw||((s.c.fish||0)>=5&&(!d.tutSeen?.combat||q.tut==='combat')));
+      for(const q of s.dlg)if(q.crabw&&q.btns&&!q.btns.some(b=>b[1]==='crabPrepare'))q.btns.push(['Спочатку підготуватися','crabPrepare']);
+    }
+  }
   if(s.jt==='odd')s.jt='goals';
   if(!d.oddRead)for(const id of Object.keys(OD)){
     if(OD[id].doc&&s.odd[id]&&!s.dlg.some(item=>item.odd===id))s.oddRead[id]=1;
@@ -40,8 +48,10 @@ function load(){try{const raw=localStorage.getItem(KEY);if(!raw)return;const d=J
   if(s.cb&&s.cb.over){const k=s.cb.over;s.cb.over=0;if(k==='lose')lose();else win()}
   if(d.wup&&!d.wf){for(const k in d.wup)if(d.wup[k]>=1&&WF[k])s.wf[k]=1}delete s.wup;
   if(s.cb&&s.cb.win==='raid')s.cb=null;s.raid=0;s.log=s.log.map(logOf);if(s.eq.ranged===undefined)s.eq.ranged='';
-  const off=Math.min(7200,(Date.now()-(s.ts||Date.now()))/1000);
-  if(off>5){for(let i=0;i<20;i++)produce(off/20);if(off>60)say(`Поки тебе не було, вогнище горіло ${Math.round(off/60)} хв.`,'world')}
+  const now=Date.now(),off=clamp((now-(s.ts||now))/1000,0,7200);
+  if(off>5){for(let i=0;i<20;i++)produce(off/20,false);if(off>60)say(`Поки тебе не було, вогнище горіло ${Math.round(off/60)} хв.`,'world')}
+  const healed=!d.cb&&healingTick(off),migrated=migrateWarm(now);
+  if(olderHealing||healed||migrated||off>5)save();
   }catch(e){s=fresh()}}
 
 let tipEl=null,lpT=0,lpF=0;

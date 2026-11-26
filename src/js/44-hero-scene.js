@@ -47,11 +47,13 @@ function heroScene(){const H=s.h,WW=HRW,HH=HRH;let h=`<span data-sk="bg" data-si
   const L={fire:[],win:[{x:216,y:120,r:240,e:.55,c:WARM,a:.35}]};
   return`<div class="scn hr" data-scn="hr" style="${scnD()}">${h}${fxCanvas('hr',WW,HH)}${lightLayers(WW,HH,L)}</div>`}
 function heroPopHTML(id){const card=(nm,lv,body,act)=>`<div class="bpop" role="dialog" aria-label="${nm}"><div class="bph"><b>${nm}</b>${lv?`<span class="bplv">${lv}</span>`:''}<button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div>${body}${act?`<div class="act">${act}</div>`:''}</div>`;
-  if(id==='hr:food'){const b=[];if(s.seen.fish||s.seen.prov)b.push(btn('Поїсти досхочу','eatfull','',{ok:()=>(s.r.fish>=1||s.r.prov>=1)&&s.h.hp<maxHP()}));if(s.seen.fish)b.push(btn('З’їсти рибу (+8)','eat','',{ok:()=>s.r.fish>=1&&s.h.hp<maxHP()}));if(s.seen.prov)b.push(btn('З’їсти провізію (+15)','eatp','',{ok:()=>s.r.prov>=1&&s.h.hp<maxHP()}));if(s.mst.olesya)b.push(btn('Перев’язка в Олесі','olheal','',{cd:'olheal',cs:120,ok:()=>s.h.hp<maxHP()}));
-    return card('Їжа','',`<p class="m">Здоров’я ${V(()=>Math.ceil(s.h.hp)+' / '+maxHP())}. Біля вогнища сили вертаються повільно${Date.now()<((s.h.buf||{}).warm||0)?' (зараз — утричі швидше: тепло юшки)':''}; їжа лікує одразу.</p>`,b.join(''))}
+  if(id==='hr:food'){
+    const doctor=s.mst.olesya?btn('Перев’язка в Олесі','olheal','',{cd:'olheal',cs:120,ok:()=>s.h.hp<maxHP()}):'';
+    return card('Їжа','',`<p class="m">Здоров’я ${V(()=>Math.ceil(s.h.hp)+' / '+maxHP())}. Риба й провізія відновлюють сили поза боєм.</p><p class="m">${V(healingStatus)}</p>`,rawFoodButtons()+doctor);
+  }
   if(id==='hr:pack'){const out=WEAP.filter(k=>has(k)&&!packHas(k));
     return card('Рюкзак',`${s.pack.length} з ${packSlots()}`,`<p class="m">У бій береш лише зброю з рюкзака.</p><div class="rlist">${s.pack.map(k=>`<div class="row"><span>${pimg(wIco(k),20,20)} ${wN(k)}</span>${s.eq[IT[k].slot]===k?'<span class="done">у руках</span>':btn('Взяти','equip',k)}</div>`).join('')}${out.map(k=>`<div class="row"><span class="m">${pimg(wIco(k),20,20)} ${wN(k)} — у маяку</span>${btn('Покласти','packAdd',k,{ok:s.pack.length<packSlots()})}</div>`).join('')}</div>`,'')}
-  if(id==='hr:belt'){const cons=Object.keys(s.inv).filter(k=>IT[k]&&IT[k].use&&has(k)&&!s.belt.includes(k));
+  if(id==='hr:belt'){const cons=Object.keys(s.inv).filter(k=>beltItem(k)&&has(k)&&!s.belt.includes(k));
     return card('Пояс',`${s.belt.length} з ${beltSlots()}`,`<p class="m">У бою можна взяти лише те, що на поясі.</p><div class="rlist">${s.belt.map(k=>`<div class="row"><span>${pimg(icoURL(k),20,20)} ${IT[k].n} × ${s.inv[k]||0}</span>${btn('Зняти','beltRem',k,{cls:'toggle'})}</div>`).join('')||'<p class="m">Поки порожньо.</p>'}${cons.map(k=>`<div class="row"><span class="m">${pimg(icoURL(k),20,20)} ${IT[k].n} × ${s.inv[k]}</span>${btn('Почепити','beltAdd',k,{ok:s.belt.length<beltSlots()})}</div>`).join('')}</div>`,'')}
   if(id.startsWith('hr:s:')){const sl=id.slice(5),cur=s.eq[sl],alt=Object.keys(s.inv).filter(k=>s.inv[k]>0&&IT[k]&&IT[k].slot===sl&&k!==cur),nm=k=>WT[k]?wN(k):IT[k].n;
     return card(SLOT[sl],cur?'вдягнено':'порожньо',`${cur?`<div class="row"><span>${pimg(WT[cur]?wIco(cur):icoURL(cur),24,24)} <b>${nm(cur)}</b><br><span class="m">${itemShort(cur)}</span></span></div>`:'<p class="m">Тут поки нічого.</p>'}

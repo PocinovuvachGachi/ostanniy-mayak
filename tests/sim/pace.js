@@ -9,7 +9,7 @@ const prof = process.argv[2] || 'active', LIMIT = +(process.argv[3] || 600);
 require('../harness.js')(`(()=>{NOGAP=0;
 const PROF=${JSON.stringify(prof)},LIMIT=${LIMIT};
 const P=PROF==='casual'?{click:2.5,act:5,read:12,fightStep:4,travel:25,think:180,idle:20}:{click:1.1,act:3,read:7,fightStep:3,travel:15,think:120,idle:10};
-let T=0,acts=0;const tried={};const ev=[],seen=new Set();
+let T=0,acts=0;const meals={fish:0,prov:0},tried={};const ev=[],seen=new Set();
 /* час іде: годинник, виробництво, перевірки — як у головному циклі */
 function wait(sec,present=true){while(sec>0){const d=Math.min(5,sec);__adv(d*1000);s.t+=d;produce(d);if(present)s.lastAct=Date.now();checks();sec-=d;T+=d;scan();spTick()}}
 function A(a,i,cost){acts++;act(a,i);wait(cost==null?P.act:cost)}
@@ -49,7 +49,8 @@ function progSnap(){const at=Object.values(s.h.a).reduce((a,b)=>a+b,0)-A0+(s.h.p
 /* діалоги: читаємо й тиснемо першу кнопку */
 function dialogs(){let g=0;while((s.dlg||[]).length&&g++<30){const d=s.dlg[0];if(d.title)mark('dlg:'+d.title,'діалог: '+d.title,0);wait(P.read);
   if(d.bgsel){act('bg',Object.keys(BGS)[0]);continue}
-  const b=d.btns&&d.btns[0];if(b){acts++;act(b[1],b[2]);if(s.cb)fight();continue}act('dlgok')}}
+  const prep=d.crabw&&s.h.hp<maxHP()*.8&&d.btns?.find(b=>b[1]==='crabPrepare');
+  const b=prep||d.btns?.[0];if(b){acts++;act(b[1],b[2]);if(s.cb)fight();continue}act('dlgok')}}
 let fightActs=0;const _act=act;act=(a,i)=>{if(s.cb)fightActs++;const result=_act(a,i);scan();return result};
 function fight(){if(${!!process.env.SIMSNAP}&&s.cb)console.log('SNAP '+JSON.stringify({t:T,enc:s.cb.enc,s}));fightActs=0;botFight(800);wait(fightActs*P.fightStep+10);mark('fight:'+(s.c.wins||0),'перемог у боях: '+(s.c.wins||0),0)}
 /* герой: очки характеристик, умінь, таланти; спорядження */
@@ -76,7 +77,8 @@ function buy(){let did=0;const tg=target();for(const[a,i,c,it]of want()){if(a===
     if(a==='bld'&&((s.b[i]||0)>=1||tg&&(tg[0]==='ford'||tg[0]==='schooner'))&&tg&&tg[1]!==i&&Object.keys(c).some(k=>tg[2][k]&&s.r[k]-c[k]<tg[2][k]))continue;
     if(afford(c,it||{})){A(a,i);did=1;if(a==='craft'){const rc=RC.find(x=>x.id===i);if(rc&&rc.out&&IT[rc.out]&&IT[rc.out].slot)A('equip',rc.out,1)}}}return did}
 /* чим зайнятися руками: збирати те, чого бракує на найближчу ціль */
-function gatherFor(){const L=want();let best=null,bv=1e9;for(const[a,i,c]of L){let need=0;for(const k in c)need+=Math.max(0,c[k]-s.r[k])/(k==='ember'?3:1);if(need>0&&need<bv){bv=need;best=c}}
+function gatherFor(){if(s.tabs.shore&&!s.at&&!atShore())act('tab','shore');
+  const L=want();let best=null,bv=1e9;for(const[a,i,c]of L){let need=0;for(const k in c)need+=Math.max(0,c[k]-s.r[k])/(k==='ember'?3:1);if(need>0&&need<bv){bv=need;best=c}}
   /* цікавість: нову дію гравець пробує кілька разів, навіть якщо вона ще не потрібна */
   if(tideLow()&&!onCd('pool')&&(tried.pool||0)<30){tried.pool=(tried.pool||0)+1;A('pool','',P.click);return 1}
   for(const a of ['fishing','scrapw','gather']){if(a==='scrapw'&&!s.f.wreck||a==='fishing'&&!s.f.rod||!s.tabs.shore)continue;if((tried[a]||0)<15&&!onCd(a)){tried[a]=(tried[a]||0)+1;A(a,'',P.click);return 1}}
@@ -95,7 +97,13 @@ function locTodo(l){const out=[];for(const S of LOC[l].spots){if(S.show&&!S.show
     if(Ac.cd&&!Ac.fight)continue; /* повторювані збирання — лише коли треба */
     if(!laOk(id))continue;if(Ac.fight&&!Ac.once&&s.done['win:'+id])continue;if((skipT[id]||0)>T)continue;out.push({id,fight:!!Ac.fight})}}return out}
 const skipT={};
-function heal(){let g=0;while(s.h.hp<maxHP()*.85&&g++<40){if(s.r.prov>=1&&maxHP()-s.h.hp>=15)A('eatp','',1);else if(s.r.fish>=1)A('eat','',1);else break}}
+function heal(){
+  let g=0;
+  while(s.h.hp<maxHP()*.85&&g++<40){
+    const prov=s.r.prov>=1&&(maxHP()-s.h.hp>=FOODHP.prov||s.r.fish<1);
+    if(prov){meals.prov++;A('eatp','',1)}else if(s.r.fish>=1){meals.fish++;A('eat','',1)}else break;
+  }
+}
 function explore(){const ls=Object.keys(s.disc).filter(l=>LOC[l]);for(const l of ls){const td=locTodo(l);if(!td.length)continue;if(l!==s.at){const[ok]=canGo(l);if(!ok)continue;if(s.at)A('leave','',2);A('go',l,P.travel)}
     let g=0;while(g++<20){dialogs();if(s.cb)fight();heal();const t=locTodo(l);const x=t.find(x=>x.p)||t.find(x=>x.r)||t.find(x=>x.id&&!x.fight)||t.find(x=>x.fight&&s.h.hp>=maxHP()*.8);if(!x)break;
       if(x.p){if(!puzzles(l,x.p))break;continue}
@@ -103,7 +111,12 @@ function explore(){const ls=Object.keys(s.disc).filter(l=>LOC[l]);for(const l of
       const w0=s.c.wins||0,sig0=JSON.stringify([s.done,s.f,s.inv,s.disc]).length;A('la',x.id);dialogs();if(s.cb){fight();if((s.c.wins||0)>w0)s.done['win:'+x.id]=1}
       else if(JSON.stringify([s.done,s.f,s.inv,s.disc]).length===sig0)skipT[x.id]=T+900}
     if(s.at)A('leave','',P.travel);return 1}return 0}
-function misc(){let d=0;if(s.wolf&&wTrainOn()){for(const N of WTR)if(!wHas(N.id)&&(!N.need||wHas(N.need))&&(s.wolf.tp||0)>=N.c){A('wlearn',N.id,1);d=1}if(!onCd('wlesson')){A('wlesson','',8);d=1}}
+function misc(){let d=0;
+  if(typeof firstCrabWaiting==='function'&&firstCrabWaiting()&&!s.at){
+    heal();
+    if(s.h.hp>=maxHP()*.8){if(!atShore())act('tab','shore');A('crabRetry');if(s.cb)fight();return 1}
+  }
+  if(s.wolf&&wTrainOn()){for(const N of WTR)if(!wHas(N.id)&&(!N.need||wHas(N.need))&&(s.wolf.tp||0)>=N.c){A('wlearn',N.id,1);d=1}if(!onCd('wlesson')){A('wlesson','',8);d=1}}
   if(s.wolf){if(!s.wolf.name)A('wname','Сірко',1);if(!wolfSated()&&afford(wolfFood())){A('wfeed','',1);d=1}}
   if(s.tabs.kitchen&&s.h.hp<maxHP()*.6)for(const D of DISH)if(rcpKnown(D.id)&&afford(D.c)&&(s.r.fish>20)){A('cookp',D.id,1);d=1;break}
   if(scanTarget()&&s.r.ember>=scanCost()){A('scan');d=1}
@@ -137,6 +150,7 @@ act('look');
 /* гравець заглядає в нові вкладки й підвкладки — це знімає позначки новизни */
 function looks(){s.nvU=s.nvU||{};for(const t in s.tabs)s.nvU[t]=1;if(s.tabs.hero)for(const k of['gear','bag','arms','grow','talents'])s.nvU[k]=1}
 while(T<LIMIT*60){looks();dialogs();if(s.cb)fight();hero();repairProduction();buy();convs();
+  if(s.h.hp<maxHP()*.8)heal();
   if(!s.f.looked&&s.tot.ember>=10)A('look');
   let did=buy()||misc();if(!did&&(s.h.hp>=maxHP()*.8||!Object.keys(s.disc).length))did=explore();
   if(!did)did=gatherFor();
@@ -147,6 +161,7 @@ while(T<LIMIT*60){looks();dialogs();if(s.cb)fight();hero();repairProduction();bu
 scan();
 /* звіт */
 const maj=ev.filter(e=>e.major);console.log('Профіль:',PROF,'· зіграно',mins(),'хв · дій',acts,'· розділів',s.chs.length,'· рівень',s.h.lvl,'· перемог',s.c.wins||0);
+console.log('Їжа на відновлення: риба',meals.fish,'провізія',meals.prov);
 /* м'які орієнтири, не пороги: ~10 хв на початку гри, ~20 хв далі (рішення автора) */
 const soft=t=>t<3600*3?10:20;let prev=0;const gaps=[];for(const e of [...maj,{t:T,label:'(кінець симуляції)'}]){const g=(e.t-prev)/60;if(g>=soft(prev))gaps.push([prev/60,e.t/60,g,e.label]);prev=e.t}
 console.log('\\nВідкриття (хвилина → що):');for(const e of maj)console.log(String((e.t/60).toFixed(1)).padStart(6),' ',e.label);

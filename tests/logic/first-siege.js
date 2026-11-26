@@ -2,7 +2,7 @@ require('../harness.js')(`
 let fails=0;function A(c,m){if(!c){fails++;console.log('FAIL',m)}}
 function T(n){for(let i=0;i<n;i++){produce(1);checks();storyCheck()}}
 const log=[];const dd=()=>{let g=0;while(s.dlg.length&&g++<60){if(g>50)console.log("STUCK",s.dlg[0].title,JSON.stringify(s.dlg[0].btns));log.push(s.dlg[0].title);if(s.dlg[0].bgsel){act('bg','fisher');continue}const b=(s.dlg[0].btns||[]).find(x=>x[1]==='raidGo');if(b){act('raidGo');botFight(900);continue}const n0=s.dlg.length;act('dlgok');if(s.dlg.length>=n0)s.dlg.shift()}};
-s.f.looked=1;s.r.ember=1e5;s.r.wood=500;s.r.scrap=200;act('bld','hearth');s.c.fish=5;s.r.fish=10;T(2);s.dlg=[];act('fightGo','crab1');botFight();dd();
+s.f.looked=1;s.r.ember=1e5;s.r.wood=500;s.r.scrap=200;act('bld','hearth');s.tabs.shore=1;s.tab='shore';s.f.rod=1;s.c.fish=4;s.r.fish=10;T(2);s.dlg=[];act('fishing');act('fightGo','crab1');botFight();dd();
 A(s.tabs.hero&&!s.h.bg,'hero w/o bg');s.tab='hero';render();T(2);dd();
 giveI('bandage',2);T(2);dd();console.log('after bandage:',log.splice(0).join(' | '));A(s.nv.bag,'bag released');
 s.tab='hero';s.ht='bag';render();

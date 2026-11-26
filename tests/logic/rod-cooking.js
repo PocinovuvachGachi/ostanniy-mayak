@@ -67,7 +67,7 @@ s.r.wood=2;
 act('cookp','bakedflounder');act('cookp','bakedflounder');
 A(!has('flounder')&&s.r.wood===0&&s.inv.bakedflounder===1&&beltHas('bakedflounder'),'оплата рівно однієї страви, готова їжа поміщається на пояс');
 s.h.hp=2;act('use','bakedflounder');
-A(s.h.hp===22&&!has('bakedflounder')&&IT.soup.v===15,'запечена камбала лікує на 20, юшка збережена');
+A(s.h.hp===22&&!has('bakedflounder')&&IT.soup.use==='regen','запечена камбала лікує на 20, камбала і юшка мають різне застосування');
 giveI('bakedflounder');startFight('crab1','crab1');s.h.hp=2;
 const ap=s.cb.ap;act('c_item','bakedflounder');
 A(!has('bakedflounder')&&s.h.hp===22&&s.cb.ap===ap-1,'страва на поясі лікує за одне ОД');
