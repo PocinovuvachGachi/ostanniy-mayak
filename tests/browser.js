@@ -6,7 +6,7 @@
    - події, що прийшли без гравця, ховаються в дзвіночок. */
 const path = require('path');
 const { chromium } = require('playwright');
-const URL = 'file://' + path.join(__dirname, '..', 'docs', 'index.html');
+const URL = process.env.BROWSER_GAME_URL || 'file://' + path.join(__dirname, '..', 'docs', 'index.html');
 let fails = 0;
 const A = (c, m) => { if (!c) { fails++; console.log('FAIL', m); } };
 const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED|fonts\.g/.test(t);
@@ -17,7 +17,7 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
   const page = async (w, h) => {
     const p = await b.newPage({ viewport: { width: w, height: h } });
     p.on('pageerror', e => errs.push(e.message));
-    p.on('console', m => { if (m.type() === 'error' && !isNoise(m.text())) errs.push(m.text()); });
+    p.on('console', m => { if (m.type() === 'error' && !isNoise(m.text() + ' ' + m.location().url)) errs.push(m.text()); });
     p.on('requestfailed', () => {});
     await p.goto(URL);
     await p.waitForTimeout(400);
@@ -47,6 +47,81 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await p.click('.scn [data-a="craft"][data-i="rod"]');
     A(await p.evaluate(()=>s.f.rod&&!s.floors.work),'вудку зроблено на березі');
     A(!!await p.$('.scn [data-a="fishing"]'),'рибалка після виготовлення');
+    await p.close();
+  }
+
+  // Сушарня: від останньої риболовлі до збирання партії після повернення.
+  {
+    const p = await page(390, 844);
+    await p.evaluate(() => {
+      s.tabs.shore = 1; s.tab = 'shore'; s.f.looked = 1;
+      s.f.wreck = 1; s.f.hook = 1; s.f.rod = 1; s.f.crab1 = 1; s.floors.work = 1;
+      giveI('oar');
+      s.c.fish = 7; s.r.wood = 30; s.r.scrap = 10; s.r.fish = 7;
+      s.bigT = Date.now(); s.tideEpoch = Date.now(); s.f.tideSeen = 1;
+      s.lastNov = -60; s.dlg = []; render();
+    });
+    const rack = p.locator('.scn [data-k="dryrack"]');
+    A(await rack.count() === 0 && await p.locator('#sec-dryrack').count() === 0, 'сушарня ще прихована');
+    await p.click('.scn [data-a="fishing"]');
+    await p.locator('#dlg h2', { hasText: 'Риба на вітрі' }).waitFor();
+    await p.click('#dlg [data-a="dlgok"]');
+    await rack.click();
+    await p.locator('#dlg .k-tutorial h2', { hasText: 'Сушарня' }).waitFor();
+    await p.click('#dlg [data-a="dlgok"]');
+    A(await p.evaluate(() => s.f.dryRack && !s.shf && !BD.find(b => b.id === 'smoke').show0()),
+      'сушарню збудовано, чайки й коптильня ще приховані');
+    await rack.click();
+    A(await p.evaluate(() => dryBusy() && s.r.fish === 4), 'партія риби на сушарні');
+
+    await p.evaluate(() => {
+      // Минув час поза грою. Відлік партії відновлюється через load() і produce().
+      s.r.prov = capOf('prov');
+      save();
+      const stored = JSON.parse(localStorage.getItem(KEY));
+      stored.ts -= 65_000;
+      localStorage.setItem(KEY, JSON.stringify(stored));
+    });
+    await p.reload();
+    await p.waitForFunction(() => dryReady() && s.shf === 'gullrack');
+    const position = await p.locator('.scn [data-k="shf:gullrack"]').evaluate(e => {
+      const bird = e.getBoundingClientRect();
+      const rack = e.closest('.scn').querySelector('[data-k="dryrack"]').getBoundingClientRect();
+      return (bird.left + bird.right) / 2 > rack.left && bird.bottom <= rack.top;
+    });
+    A(position, 'чайки над сушарнею, кнопки не перекриваються');
+    A(await p.locator('#sec-dryrack [data-a="drytake"]').isDisabled(), 'готова партія чекає місця після завантаження');
+    await p.evaluate(() => { s.r.prov--; render(); });
+    await rack.click();
+    A(await p.evaluate(() => !dryBusy() && s.r.prov === capOf('prov') && s.f.dryMade), 'провізію зібрано один раз');
+    A(await p.evaluate(() => document.documentElement.scrollWidth <= 390), 'сушарня без горизонтальної прокрутки сторінки');
+    await p.locator('.scn [data-k="shf:gullrack"]').click({ timeout: 5000 });
+    A(await p.evaluate(() => s.cb?.enc === 'gullrack'), 'натискання на чайок починає бій');
+    await p.close();
+  }
+
+  // Збереження до сушарні: старий бій, креслення й граблі доступні після load().
+  {
+    const p = await page(390, 844);
+    await p.evaluate(() => {
+      s.tabs.shore = 1; s.tab = 'shore'; s.f.looked = 1;
+      s.f.wreck = 1; s.f.rod = 1; s.f.crab1 = 1; s.floors.work = 1;
+      giveI('oar'); giveI('rake');
+      s.bdSeen.smoke = 1; s.r.fish = 8; s.shf = 'gullrack';
+      save();
+    });
+    await p.reload();
+    A(await p.evaluate(() => BD.find(b => b.id === 'smoke').show() && SHF.gullrack.ok() && s.tutSeen.rake),
+      'коптильня, чайки й урок граблів у старому збереженні');
+    A((await p.locator('.scn [data-k="shf:gullrack"]').getAttribute('data-tip')).includes('над уловом на березі'),
+      'пояснення старого бою відповідає стану берега');
+    await p.evaluate(() => {
+      s.done['chaika.hold.down'] = 1;
+      delete s.rel;
+      save();
+    });
+    await p.reload();
+    A(await p.evaluate(() => has('r_oar1') && s.rel.r_oar1), 'реліквію завершеного бою відновлено');
     await p.close();
   }
 

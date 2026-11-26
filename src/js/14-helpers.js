@@ -146,7 +146,7 @@ function checks(){const F=s.f;tutTick();mgHelpCheck();
   if(!s.disc.heart&&has('mlens')&&has('gkey')){reveal('heart');dlg({k:'story',title:'Острів, якого немає',img:{t:'face',id:'marta'},body:`<p>Крізь Лінзу Мли видно те, чого не видно оком: на півночі з води б’є стовп туману. ${P('Марта')}: ${Q('Ось воно. Ключ вартових відімкне шлях. Пливімо')}.</p>`})}
   if(s.tabs.hero&&!s.h.bg&&(s.nv||{}).grow)offerBg();
   // Спершу сюжетно потрібні відкриття, далі знайомство з системами.
-  novTick(true);shoreTick();shfTick();beamTick();folkTick();wolfTick();kitTick();rsiegeTick();curTick();stage3Tick();
+  novTick(true);shoreTick();dryTick();shfTick();beamTick();folkTick();wolfTick();kitTick();rsiegeTick();curTick();stage3Tick();
   novPlanTick(true);novTick(false);novPlanTick(false);
   if(!s.tabs.chron&&s.chs.length&&!s.cb&&!(s.dlg||[]).some(d=>d.chap)&&novCan())unlock('chron');
   if(F.crabWarn&&!F.crab1&&!s.cb&&!(s.dlg||[]).some(d=>d.crabw))crabWarn();
