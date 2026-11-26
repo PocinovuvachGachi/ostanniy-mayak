@@ -25,27 +25,66 @@ BLD3.cellar=HI(function(g){const w=[26,32,40][g-1],h=[13,15,18][g-1],b=pbuf(w+4,
    Варити можна звично (одна звичайна страва) або біля казана — тримати вогонь, щоб кипіло рівно: добре кипіння дає
    дві страви, а рівне до кінця — дві смачні (лікують більше й діють довше). Інгредієнти не пропадають за будь-якого результату. */
 Object.assign(IT,{
+  flounder:{n:'Камбала',ic:'~',d:'Прибережна риба. Інгредієнт для кухні.'},
+  cod:{n:'Тріска',ic:'~',d:'Риба з глибшої води. Інгредієнт для кухні.'},
+  bakedflounder:{n:'Запечена камбала',ic:'(~)',use:'heal',v:20,d:'Відновлює 20 здоров’я. У бою доступна з пояса за 1 ОД.'},
+  smokedcod:{n:'Копчена тріска',ic:'(~)',d:'З цієї страви виходить 3 звичайні провізії.'},
   ash:{n:'Риба в золі',ic:'(~)',use:'heal',v:12,d:'Відновлює 12 здоров’я. Найпростіша страва на світі.'},
   soupherb:{n:'Юшка з травами',ic:'(~)',use:'heal',v:20,warm:10,d:'Лікує 20 здоров’я і зігріває: десять хвилин здоров’я вертається втричі швидше.'},
   dried:{n:'В’ялена риба',ic:'(~)',use:'heal',v:10,full:1,d:'Лікує 10 здоров’я. Ситість: +1 очко дії на початку наступного бою.'},
   pie:{n:'Рибний пиріг',ic:'(~)',use:'heal',v:25,full:3,d:'Лікує 25 здоров’я. Ситість: +1 очко дії на початку трьох наступних боїв.'}});
 ICO.ash=ICO.soup;ICO.soupherb=ICO.soup;ICO.dried=ICO.soup;ICO.pie=['............','............','....8888....','..8ffffff8..','.8fgfgfgff8.','.8ffffffff8.','.8eeeeeeee8.','..8eeeeee8..','...888888...','............','............','............'];
+Object.assign(ICO,{
+  flounder:['............','............','............','...cdede....','..deemmd..d.','.cdeemeeddd.','.cdddeeeddd.','..cdeddd..d.','...cccc.....','............','............','............'],
+  cod:['............','............','.......4....','...44555..4.','..455665.44.','.4676665544.','.456665555..','..444544.44.','....44....4.','............','............','............'],
+  bakedflounder:['............','............','............','...ffff.....','..fgggffee..','.efggfffdee.','.edffffdeee.','..eeeeeeee..','...dddddd...','............','............','............'],
+  smokedcod:['............','............','.......a....','...ddeee..d.','..deemee.dd.','.demmeedddd.','.eddeeeed...','..cddddd.dd.','....dd....d.','............','............','............']
+});
+Object.assign(ILD,{flounder:IT.flounder.d,cod:IT.cod.d,bakedflounder:IT.bakedflounder.d,smokedcod:IT.smokedcod.d});
 const DISH=[
   {id:'ash',c:{fish:3},who:'Зиновій',how:'Риба в мокрому листі, просто в жар.',learn:()=>!!s.f.tracks},
   {id:'soup',c:{fish:8,prov:2},who:'Зиновій',how:'Риба, провізія — і довго на вогні.',learn:()=>!!s.f.tracks},
   {id:'soupherb',c:{fish:6,herb:2},who:'Ганна',how:'Чебрець і полин — і юшка гріє зсередини.',learn:()=>!!s.f.herbsDone},
   {id:'dried',c:{fish:6,prov:1},who:'Оксана',how:'Риба в солі на вітрі. Легка, в дорогу.',learn:()=>!!((s.vq||{}).t||{}).widow},
-  {id:'pie',c:{fish:5,prov:4,wood:2},who:'Зиновій',how:'Тісто з товченої провізії, риба всередині, жар знизу й зверху.',learn:()=>(s.c.cook||0)>=5}];
+  {id:'pie',c:{fish:5,prov:4,wood:2},who:'Зиновій',how:'Тісто з товченої провізії, риба всередині, жар знизу й зверху.',learn:()=>(s.c.cook||0)>=5},
+  {id:'bakedflounder',c:{wood:2},it:{flounder:1},ingredient:'flounder',who:'Зиновій',
+    how:'Розгорни листок тільки тоді, коли жар спаде.'},
+  {id:'smokedcod',c:{wood:2},it:{cod:1},ingredient:'cod',prov:3,who:'Зиновій',
+    how:'Повісь над димом так, щоб полум’я не торкалося риби.'}];
 /* смачні варіанти: лікують у півтора раза більше, тепло й ситість — довше */
-for(const D of DISH){const T=IT[D.id];IT[D.id+'_t']=Object.assign({},T,{n:'Смачна '+T.n.charAt(0).toLowerCase()+T.n.slice(1),v:Math.round(T.v*1.5),warm:T.warm?T.warm*2:0,full:T.full?T.full+1:0,tasty:1,
+for(const D of DISH){if(D.ingredient)continue;const T=IT[D.id];IT[D.id+'_t']=Object.assign({},T,{n:'Смачна '+T.n.charAt(0).toLowerCase()+T.n.slice(1),v:Math.round(T.v*1.5),warm:T.warm?T.warm*2:0,full:T.full?T.full+1:0,tasty:1,
   d:`Смачна! Лікує ${Math.round(T.v*1.5)} здоров’я.${T.warm?` Тепло — ${T.warm*2} хвилин.`:''}${T.full?` Ситість — ${T.full+1} ${T.full+1<5?'бої':'боїв'}.`:''}`});ICO[D.id+'_t']=ICO[D.id];ILD[D.id]=T.d;ILD[D.id+'_t']=IT[D.id+'_t'].d}
 const rcpKnown=id=>!!(s.rcp||{})[id];
 function kitTick(){if(typeof MGH!=='undefined'&&!MGH.cook)MGH.cook=MGH_COOK;if(!s.f.tracks)return;if(!s.tabs.kitchen){if(!novCan())return;novMark();s.tabs.kitchen=1;s.ttNew=typeof s.ttNew==='object'&&s.ttNew?s.ttNew:{};s.ttNew.kitchen=1;if(s.tabs.tower)s.newTab.tower=1;dlg({k:'world',title:'Відкрилося: Кухня',body:'<p>У нижній залі, біля вогнища, Зиновій поставив казан і стіл.</p>'});tutOffer('kitchen')}s.rcp=s.rcp||{};
-  for(const D of DISH)if(!s.rcp[D.id]&&D.learn()){const first=!Object.keys(s.rcp).length;if(!first&&!novCan())return;s.rcp[D.id]=1;if(!first){novMark();dlg({k:'find',title:'Новий рецепт',img:{t:'icon',id:D.id},body:`<p><b>${IT[D.id].n}.</b> ${D.who} показує, як: ${D.how.charAt(0).toLowerCase()+D.how.slice(1)}</p>`,gains:['Рецепт на кухні']})}if(!noGap())return}}
-const dishOk=D=>rcpKnown(D.id)&&afford(D.c);
+  for(const D of DISH)if(!D.ingredient&&!s.rcp[D.id]&&D.learn()){const first=!Object.keys(s.rcp).length;if(!first&&!novCan())return;s.rcp[D.id]=1;if(!first){novMark();dlg({k:'find',title:'Новий рецепт',img:{t:'icon',id:D.id},body:`<p><b>${IT[D.id].n}.</b> ${D.who} показує, як: ${D.how.charAt(0).toLowerCase()+D.how.slice(1)}</p>`,gains:['Рецепт на кухні']})}if(!noGap())return}}
+const atFishKitchen=()=>!s.at&&s.tabs.kitchen&&(s.tab==='kitchen'||s.tab==='tower'&&ttCur()==='kitchen');
+function fishRecipesReady(){
+  if(!atFishKitchen()||!(s.f.zinovii||s.mst.zinovii))return [];
+  return DISH.filter(D=>D.ingredient&&s.f[D.ingredient+'Caught']&&!rcpKnown(D.id));
+}
+function learnFishRecipe(id){
+  const D=fishRecipesReady().find(d=>d.id===id);
+  if(!D||s.cb||s.raid||s.dlg.length)return;
+  s.rcp=s.rcp||{};s.rcp[id]=1;s.rcpNew=1;
+  dlg({k:'find',title:IT[id].n,img:{t:'icon',id},body:`<p>${P('Зиновій')} поправляє жарини й показує, де полум’я стихає. ${Q(D.how)}</p>`,gains:['Рецепт у книзі на кухні']});
+}
+function fishRecipeButtons(){
+  return fishRecipesReady().map(D=>btn(D.ingredient==='cod'?'Запитати про тріску':'Запитати про камбалу','fishRecipe',D.id)).join('');
+}
+const dishOk=D=>rcpKnown(D.id)&&afford(D.c,D.it)&&(!D.prov||s.r.prov+D.prov<=capOf('prov'));
 function cookDone(id,q){const D=DISH.find(x=>x.id===id),n=q>=2?2:1,it=q>=3?id+'_t':id;giveI(it,n);s.c.cook=(s.c.cook||0)+1;
   say(q>=3?`${IT[it].n} — ${n} порції! Зиновій куштує й мовчки киває.`:q>=2?`${IT[id].n}: вийшло дві порції.`:`${IT[id].n}: готово.`,'build');kitTick();dirty=1}
-function cook(id,how){if(typeof MGH!=='undefined'&&!MGH.cook)MGH.cook=MGH_COOK;const D=DISH.find(x=>x.id===id);if(!D||!dishOk(D))return;pay(D.c);
+function cook(id,how){if(typeof MGH!=='undefined'&&!MGH.cook)MGH.cook=MGH_COOK;const D=DISH.find(x=>x.id===id);if(!D||!dishOk(D))return;
+  if(D.ingredient){
+    if(!atFishKitchen()||s.cb||s.raid||s.dlg.length)return;
+    pay(D.c,D.it);
+    if(D.prov){
+      add('prov',D.prov);s.c.cook=(s.c.cook||0)+1;
+      say(`Тріска готова. У коморі побільшало провізії: +${R('prov',D.prov)}.`,'build');kitTick();
+    }else cookDone(id,0);
+    return;
+  }
+  pay(D.c);
   if(how==='plain'){cookDone(id,0);return}
   mgRun('cook',()=>mgCook(id),(res,skip)=>cookDone(id,skip?(skip==='auto'?(res>0?1:0):0):res))}
 /* міні-гра: тримати вогонь, щоб кипіло рівно */
@@ -95,13 +134,13 @@ function kitchenScene(){const W=RMW,H=RMH;let h=`<span data-sk="bg" data-sig="bg
   const L={fire:[{x:85,y:192,r:110,e:.7,c:FIRE,n:4}],win:[{x:318,y:60,r:120,e:.8,c:WARM,a:.4}]};
   return`<div class="scn rm wk" data-scn="kt" style="${scnD()}">${h}${fxCanvas('kt',W,H)}${lightLayers(W,H,L)}</div>`}
 function kitPopHTML(id){const head=(t)=>`<div class="bpop wide" role="dialog" aria-label="${t}"><div class="bph"><b>${t}</b><button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div>`;
-  if(id==='kt:pot'){const L=DISH.filter(D=>rcpKnown(D.id));return head('Казан')+`<div class="rlist">${L.map(D=>`<div class="row"><span><b>${IT[D.id].n}</b><br><span class="m">${IT[D.id].d}</span></span><span class="ccs">${costTxt(D.c)}</span>${btn('Варити біля казана','cook',D.id,{ok:()=>dishOk(D)})}${btn('Звично','cookp',D.id,{ok:()=>dishOk(D)})}</div>`).join('')}</div>
+  if(id==='kt:pot'){const L=DISH.filter(D=>rcpKnown(D.id));return head('Казан')+`<div class="rlist">${L.map(D=>`<div class="row"><span><b>${IT[D.id].n}</b><br><span class="m">${IT[D.id].d}</span></span><span class="ccs">${costTxt(D.c,D.it)}</span>${D.ingredient?btn('Приготувати','cookp',D.id,{ok:()=>dishOk(D)}):btn('Варити біля казана','cook',D.id,{ok:()=>dishOk(D)})+btn('Звично','cookp',D.id,{ok:()=>dishOk(D)})}${D.prov?`<span class="m">${V(()=>s.r.prov+D.prov>capOf('prov')?'Потрібне місце для провізії.':'')}</span>`:''}</div>`).join('')}</div>
     <p class="hint">Біля казана: тримай кипіння рівним — вийде дві порції, а коли рівно до кінця — дві смачні. Звично — одна звичайна порція. Інгредієнти не пропадають.</p></div>`}
-  if(id==='kt:table')return head('Стіл із припасами')+`<p class="m">Риба ${fmt(s.r.fish)}/${capOf('fish')}, провізія ${fmt(s.r.prov)}/${capOf('prov')}${s.seen.herb?`, трави ${fmt(s.r.herb)}`:''}.</p><p class="m">Страви в торбі: ${Object.keys(IT).filter(k=>DISH.some(D=>k===D.id||k===D.id+'_t')&&has(k)).map(k=>`${IT[k].n} ×${s.inv[k]}`).join(', ')||'поки жодної'}.</p></div>`;
+  if(id==='kt:table')return head('Стіл із припасами')+`<p class="m">Риба ${fmt(s.r.fish)}/${capOf('fish')}, провізія ${fmt(s.r.prov)}/${capOf('prov')}${s.seen.herb?`, трави ${fmt(s.r.herb)}`:''}.</p>${['flounder','cod'].filter(has).map(id=>`<p class="m">${pimg(icoURL(id),20,20,'','')} ${IT[id].n} ×${s.inv[id]}</p>`).join('')}<p class="m">Страви в торбі: ${Object.keys(IT).filter(k=>DISH.some(D=>k===D.id||k===D.id+'_t')&&has(k)).map(k=>`${IT[k].n} ×${s.inv[k]}`).join(', ')||'поки жодної'}.</p></div>`;
   if(id==='kt:book'){s.rcpNew=0;return head('Книга рецептів')+`<div class="rlist">${DISH.filter(D=>rcpKnown(D.id)).map(D=>`<div class="row"><span><b>${IT[D.id].n}</b> <span class="m">— навчив${D.who==='Зиновій'?'':'ла'} ${D.who}</span><br><span class="m">${D.how}</span></span></div>`).join('')}</div><p class="hint">Далі ще чисті сторінки. Люди знають більше страв, ніж ти думаєш.</p></div>`}
-  if(id==='kt:zin')return head('Зиновій')+`<p class="m">${Q(['Казан не любить поспіху. Тріску — коли стихає, не раніше.','Голодний хранитель — поганий хранитель.','Ганна знає трави, Оксана — сіль. Питай людей, хранителю.','Смачне лікує краще. Це не я вигадав — це всі коки знають.'][Math.floor(Date.now()/60000)%4])}</p></div>`;
+  if(id==='kt:zin')return head('Зиновій')+`<p class="m">${Q(['Казан не любить поспіху. Підкидай тріски, коли вогонь стихає.','Голодний хранитель — поганий хранитель.','Ганна знає трави, Оксана — сіль. Питай людей, хранителю.','Смачне лікує краще. Це не я вигадав — це всі коки знають.'][Math.floor(Date.now()/60000)%4])}</p><div class="act">${fishRecipeButtons()}</div></div>`;
   return''}
-function rKitchen(){return`<section><h2>Кухня</h2><p class="m">Казан, стіл і книга рецептів — натискай на них у кухні. Біля казана страви виходять кращими.</p></section>`}
+function rKitchen(){return`<section><h2>Кухня</h2><p class="m">Казан, стіл і книга рецептів — натискай на них у кухні. Біля казана страви виходять кращими.</p><div class="act">${fishRecipeButtons()}</div></section>`}
 /* підвкладки «Маяка»: розріз, кухня, майстерня, кабінет */
 const ttCur=()=>{const t=s.tt||'cut';return t==='cut'||s.tabs[t]?t:'cut'};
 function ttGo(i){s.tt=i;delete s.newTab[i];if(s.ttNew&&typeof s.ttNew==='object')delete s.ttNew[i];snap9(i==='cut'?'tower':i)}

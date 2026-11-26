@@ -539,6 +539,92 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await p.close();
   }
 
+  // Вудка з котушкою, обидва місця та шлях особливого улову до кухні.
+  {
+    const p=await page(390,844);
+    await p.evaluate(()=>{
+      Math.random=()=>.99; // Без випадкової берегової події в момент появи кіл.
+      s.tabs.shore=1;s.tabs.tower=1;s.tab='shore';s.f.looked=1;s.f.rod=1;s.f.crab1=1;s.f.tideSeen=1;s.f.fishBiteSeen=1;
+      s.f.fishBiteResolved=1;s.tutSeen.fishBite=1;s.f.wreck=1;s.f.hook=1;s.f.fordSeen=1;s.f.boat=1;s.f.dryRack=1;s.r.fish=8;
+      s.dbgTide='low';s.c.fish=10;s.r.wood=70;s.r.scrap=30;s.lastAct=Date.now();s.dlg=[];s.tutPending=[];
+      s.bdSeen=Object.fromEntries(BD.map(b=>[b.id,1]));
+      s.rcSeen=Object.fromEntries(RC.filter(rc=>rc.id!=='rodUp').map(rc=>[rc.id,1]));
+      s.hookWater.pending={id:3,kind:'heavy',reward:{wood:4,scrap:3}};
+      giveI('rake');s.rakeSand.pending={id:1,kind:'wet',scrap:2};
+      render();
+    });
+    const stage=p.locator('.scn.sh');
+    const ripple=stage.locator('[data-a="rodReach"]');
+    const deep=stage.locator('[data-k="rod:deep"]');
+    const coast=stage.locator('[data-k="rod"]');
+    await ripple.waitFor();
+    A(!await deep.count()&&!await p.evaluate(()=>rcVisible(RC.find(rc=>rc.id==='rodUp'))),'за мілиною видно лише кола, креслення ще приховане');
+    const oldArt=await coast.locator('.obi').getAttribute('src');
+    await ripple.click();
+    await p.locator('#dlg h2',{hasText:'Кола за мілиною'}).waitFor();
+    await p.click('#dlg [data-a="dlgok"]');
+    await p.evaluate(()=>{
+      s.floors.work=1;s.tabs.work=1;s.tab='tower';ttGo('work');
+      s.lastAct=Date.now();s.lastNov=null;novPlanTick(false);render();
+    });
+    await p.locator('#dlg h2',{hasText:'Новий рецепт: Вудка з котушкою'}).waitFor();
+    await p.click('#dlg [data-a="dlggo"]');
+    await p.locator('#main [data-a="craft"][data-i="rodUp"]').click();
+    await p.click('#dlg [data-a="dlgok"]');
+    await p.click('#tabs [data-i="shore"]');
+    A(await coast.locator('.obi').getAttribute('src')!==oldArt,'котушку видно на спрайті вудки');
+    await deep.scrollIntoViewIfNeeded();
+    A(await deep.evaluate(e=>{
+      const r=e.getBoundingClientRect();
+      return e.contains(document.elementFromPoint((r.left+r.right)/2,(r.top+r.bottom)/2))
+        &&![...e.closest('.scn').querySelectorAll('button[data-a]')].some(b=>{
+          if(b===e)return false;
+          const q=b.getBoundingClientRect();
+          return Math.min(r.right,q.right)-Math.max(r.left,q.left)>1&&Math.min(r.bottom,q.bottom)-Math.max(r.top,q.top)>1;
+        });
+    }),'глибша вода має власну зону дії поруч з іншими об’єктами');
+    await p.evaluate(()=>{s.fishSpecies.deep={casts:15,offered:false};Math.random=()=>.9});
+    await deep.focus();await p.keyboard.press('Enter');
+    const marker=p.locator('.scn [data-k="sh:bite"]');
+    A(await p.evaluate(()=>s.bite?.place==='deep'&&s.bite.species==='cod'&&onCd('fishing')),'глибша вода з клавіатури, спільне відновлення');
+    await p.reload();
+    await p.emulateMedia({reducedMotion:'reduce'});
+    A(await marker.locator('.bob').evaluate(e=>getComputedStyle(e).animationName)==='none','поплавець глибшої води в reduced motion');
+    await marker.click();
+    await p.click('#popl [data-a="bigfish"]');
+    await p.waitForFunction(()=>!onCd('fishing'));
+    await p.evaluate(()=>{s.fishSpecies.shore={casts:15,offered:false};Math.random=()=>.9});
+    const list=p.locator('.shore-alist');
+    if(!await list.evaluate(e=>e.open))await list.locator('summary').click();
+    await list.getByRole('button',{name:'Прибережна вода',exact:true}).click();
+    await list.locator('[data-a="bigfish"]').click();
+    A(await p.evaluate(()=>has('flounder')&&has('cod')&&!s.belt.includes('flounder')&&!s.belt.includes('cod')),
+      'обидва інгредієнти в торбі й поза поясом');
+    await p.evaluate(()=>{
+      s.f.zinovii=1;s.tabs.kitchen=1;s.tab='tower';ttGo('kitchen');s.r.wood=10;
+      s.rcp={ash:1,soup:1};s.r.prov=capOf('prov')-2;render();
+    });
+    await p.click('#main [data-a="fishRecipe"][data-i="bakedflounder"]');
+    await p.locator('#dlg h2',{hasText:'Запечена камбала'}).waitFor();
+    await p.click('#dlg [data-a="dlgok"]');
+    await p.click('#main [data-a="fishRecipe"][data-i="smokedcod"]');
+    await p.locator('#dlg h2',{hasText:'Копчена тріска'}).waitFor();
+    await p.click('#dlg [data-a="dlgok"]');
+    await p.click('.scn [data-k="kt:pot"]');
+    const cod=p.locator('#popl [data-a="cookp"][data-i="smokedcod"]');
+    A(await cod.isDisabled(),'рецепт тріски чекає на місце в коморі');
+    await p.evaluate(()=>{s.r.prov--;refresh()});
+    await cod.click();
+    await p.click('#popl [data-a="cookp"][data-i="bakedflounder"]');
+    A(await p.evaluate(()=>!has('flounder')&&!has('cod')&&s.r.prov===capOf('prov')&&beltHas('bakedflounder')),'кухня готує обидва рецепти, готова камбала доступна на поясі');
+    await p.evaluate(()=>{s.tabs.hero=1;s.h.bg='old';s.tab='hero';s.nv.bag=1;s.ht='gear';s.h.hp=2;render()});
+    A(await p.locator('#main [data-a="beltRem"][data-i="bakedflounder"]').isVisible(),'готова камбала відображається на поясі');
+    await p.click('#main [data-a="ht"][data-i="bag"]');
+    await p.click('#main [data-a="use"][data-i="bakedflounder"]');
+    A(await p.evaluate(()=>!has('bakedflounder')&&s.h.hp>=22&&document.documentElement.scrollWidth<=390),'торба, лікування та мобільна ширина');
+    await p.close();
+  }
+
   // 4. Жарина й місце для вогнища — різні об'єкти з різними діями
   {
     const p = await page(1100, 900);

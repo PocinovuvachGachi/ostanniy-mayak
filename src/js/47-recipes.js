@@ -1,5 +1,5 @@
 /* ============ v14: RECIPES ============ */
-const RCI={hookUp:'hookUp',rod:'rod',pack1:'pack',pack2:'pack',belt1:'belt'};
+const RCI={rodUp:'rodUp',hookUp:'hookUp',rod:'rod',pack1:'pack',pack2:'pack',belt1:'belt'};
 const rcName=rc=>rc.tool?rc.n:IT[rc.out].n;
 const rcImg=rc=>rc.tool?{t:'icon',id:RCI[rc.id]||'crate'}:WT[rc.out]?{t:'wico',id:rc.out}:{t:'icon',id:rc.out};
 const rcURL=rc=>{const m=rcImg(rc);return m.t==='wico'?wIco(m.id):icoURL(m.id)};
