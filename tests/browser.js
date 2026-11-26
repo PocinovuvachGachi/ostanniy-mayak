@@ -543,6 +543,7 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
   {
     const p=await page(390,844);
     await p.evaluate(()=>{
+      Math.random=()=>.99; // Без випадкової берегової події в момент появи кіл.
       s.tabs.shore=1;s.tabs.tower=1;s.tab='shore';s.f.looked=1;s.f.rod=1;s.f.crab1=1;s.f.tideSeen=1;s.f.fishBiteSeen=1;
       s.f.fishBiteResolved=1;s.tutSeen.fishBite=1;s.f.wreck=1;s.f.hook=1;s.f.fordSeen=1;s.f.boat=1;s.f.dryRack=1;s.r.fish=8;
       s.dbgTide='low';s.c.fish=10;s.r.wood=70;s.r.scrap=30;s.lastAct=Date.now();s.dlg=[];s.tutPending=[];
