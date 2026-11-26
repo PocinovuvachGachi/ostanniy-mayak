@@ -133,7 +133,7 @@ function shoreHS(){const W=SW,H=SH,S=(x,y,w,h)=>PCT(x,y,w,h,W,H);let h=fogs(8,22
   if(s.f.wreck)h+=ob('wreck','scrapw','',obURL('wreck3',wreckObj3),186,69,W,H,'Розбирати уламки','<b>Уламки човна</b><br>Цвяхи, скоби, обшивка: усе згодиться.'+(has('rake')?'<br>Граблі допомагають діставати дрібний брухт.':''),{pulse:1,cd:'scrapw',cs:2,inner:'<i class="spk"></i>'});
   if(s.f.rod)h+=shoreRodHS(W,H);
   else if(shoreRodReady()){const c=RC.find(r=>r.id==='rod').c;h+=ob('rod','craft','rod',obURL('rod3',rodObj3),162,45,W,H,'Змайструвати просту вудку',`<b>Проста вудка</b><br>Жердина, линва й гачок.<br>Ціна: ${costTxt(c)}`,{pulse:1,always:1,ok:afford(c)})}
-  h+=dryRackHS(W,H)+shoreFordHS(W,H)+shoreFightHS(W,H)+shoreRuneHS(W,H);
+  h+=dryRackHS(W,H)+shoreFordHS(W,H)+shoreMusselHS(W,H)+shoreFightHS(W,H)+shoreRuneHS(W,H);
   if(s.flot)h+=ob('flot:'+s.flot.k,'flotmg','',obURL('flot3:'+s.flot.k,()=>flotObj3(s.flot.k)),126,78,W,H,'Оглянути знахідку','<b>Прибій щось викинув</b><br>Підчепи гаком, поки хвилі не забрали.',{pulse:1,always:1,idle:'i-bob'});
   h+=hookWaterHS(W,H)+rakeSandHS(W,H);
   const[lu,lo,lw,lh]=obURL('log3',log3Buf),pul=!(s.hsU||{}).gather,zx=33,zy=60,zw=66,zh=33,rx=26,ry=19;

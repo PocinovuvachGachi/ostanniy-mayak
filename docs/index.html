@@ -1052,6 +1052,14 @@ body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .
 .tide-status{display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 10px;width:fit-content;max-width:100%;padding:4px 9px;border:1px solid #526976;background:#263d48;color:#f0e9d6;font-size:.9rem}
 .tide-clock{font-variant-numeric:tabular-nums;color:#cddde0}
 .tide-clock:has(span:empty){display:none}
+
+.mussel-pick{position:absolute;inset:0;z-index:131;pointer-events:none}
+.mussel-pick img{position:absolute;image-rendering:pixelated}
+.mussel-hand{animation:mussel-reach .72s ease-in-out both}
+.mussel-lift{animation:mussel-lift .72s ease-in-out both}
+@keyframes mussel-reach{0%{transform:translate(-40%,-70%);opacity:0}40%,52%{transform:translate(0,0);opacity:1}100%{transform:translate(-45%,-80%);opacity:0}}
+@keyframes mussel-lift{0%,40%{opacity:0}48%{transform:translate(0,0);opacity:1}85%,100%{transform:translate(-70%,-100%);opacity:0}}
+@media (prefers-reduced-motion:reduce){.mussel-hand{display:none}.mussel-lift{animation:none;transform:translate(-20%,-45%)}}
 </style>
 </head>
 <body>
@@ -3397,7 +3405,7 @@ function fresh(){return{
   r:Object.fromEntries(RES.map(k=>[k,0])),play:0,tideEpoch:null,reserveFree:{},novUsed:{},novLast:'',tutSeen:{},tutPending:[],eraT:[0],nv:{},nvU:{},mom:[{t:0,k:'start',n:'Пробудження',d:'Ти прокидаєшся в темряві з єдиною жариною в долонях.',img:null,mj:1,e:0}],on:{},fac:{rot:0,cape:0,sails:0,silent:-50},req:{},reqT:{},threat:0,def:{},dmgB:{},glSeen:{},fu:{},exp:[],beam:0,wf:{},mst:{},pop:0,popT:0,wk:{},bog:0,bogFail:0,ht:'gear',sig:0,pack:[],belt:[],wm:{},wup:{},dlg:[],raid:0,raidT:0,
   tot:{ember:0,wood:0,scrap:0,fish:0},
   seen:{ember:1},tabs:{home:1},tab:'home',newTab:{},
-  f:{},fishSpecies:{},hookWater:{gathers:0,pulls:0,wait:0,pending:null},rakeSand:{actions:0,searched:0,wait:0,pending:null},shfCyc:null,shfDeferred:{},c:{gather:0,fish:0,wins:0},cd:{},b:{},floors:{},rs:{},
+  f:{},fishSpecies:{},hookWater:{gathers:0,pulls:0,wait:0,pending:null},rakeSand:{actions:0,searched:0,wait:0,pending:null},shfCyc:null,shfDeferred:{},musselCyc:null,c:{gather:0,fish:0,wins:0},cd:{},b:{},floors:{},rs:{},
   h:{lvl:1,xp:0,hp:25,pts:0,sp:0,fp:0,a:{str:2,dex:2,con:2,per:2,int:2},k:{melee:0,mech:0,stealth:0,speech:0,craft:0},ft:{}},
   eq:{weapon:'',ranged:'',armor:'',light:'',charm:''},inv:{},
   pages:[],books:[],odd:{},oddRead:{},oddFate:{},shoreFindMiss:{},met:{},seenE:{},kills:{},disc:{},done:{},visited:{},wrong:{},
@@ -5182,6 +5190,7 @@ function act0(a,i){
   case 'dryload':dryLoad();break;
   case 'drytake':dryTake();break;
   case 'pool':poolPick();break;
+  case 'mussels':musselPick(i);break;
   case 'ford':fordPart(i);break;
   case 'shfgo':shfGo(i);break;
   case 'rune':runeRead(i);break;
@@ -5487,6 +5496,9 @@ function rShore(){let h=`<section><h2>Берег під маяком</h2><p>Мо
   if(s.f.rodUp)al+=`<div class="act">${btn('Глибша вода','fishing','deep',{cd:'fishing',cs:3})}</div>`;
   else if(s.f.rodRipple&&!s.f.rodLimitSeen)al+=`<div class="act">${btn('Оглянути кола на воді','rodReach')}</div>`;
   if(tideLow())al+=`<div class="act">${btn('Оглянути калюжі','pool','',{cd:'pool',cs:4})}</div>`;
+  const mussels=musselCycle();
+  if(mussels!=null)al+=`<div class="act">${btn('Зібрати мідії','mussels',String(mussels))}</div>`;
+  if(has('mussel'))al+=`<div class="act">${btn('З’їсти мідії','use','mussel',{ok:()=>has('mussel')&&s.h.hp<maxHP()})} <span class="m">+6 здоров’я</span></div>`;
   if(s.f.fordSeen&&!s.f.fordDone)al+=`<div class="act">${btn('Оглянути брід','bpop','sh:ford')}</div>`;
   if(!s.runes?.b&&RUNE.b.ok())al+=`<div class="act">${btn('Оглянути камінь на відпливі','rune','b')}</div>`;
   const event=shfVisible();
@@ -5842,7 +5854,7 @@ let paintedTide='',paintingTide=false;
 function tideViewKey(){
   if(s.cb)return '';
   const t=tidePhase(),low=Number(tideLow(t));
-  if(atShore())return `shore:${tideStage(t)}:${low}`;
+  if(atShore())return `shore:${tideStage(t)}:${low?String(tideCyc()):'high'}`;
   if(s.tab==='map'&&(['bay','shoal'].includes(s.at)||!s.at&&(s.disc.bay||s.disc.fort)))return `map:${s.at}:${low}`;
   return '';
 }
@@ -5857,7 +5869,8 @@ function render(){
   tideRenderTime=Date.now();
   const tide=tideViewKey(),view=s.tab+'|'+(s.tab==='map'?s.at:'')+'|';
   paintingTide=!!tide&&!!paintedTide&&tide!==paintedTide&&lastView===view;
-  const el=paintingTide?document.activeElement:null,root=el?.closest('#stage,#main,#popl,#tabs');
+  const focused=document.activeElement;
+  const el=paintingTide||focused?.dataset?.a==='mussels'?focused:null,root=el?.closest('#stage,#main,#popl,#tabs');
   paintedTide=tide;
   try{renderView();restoreTideFocus(el,root)}finally{tideRenderTime=null;paintingTide=false}
 }
@@ -6364,7 +6377,7 @@ function shoreHS(){const W=SW,H=SH,S=(x,y,w,h)=>PCT(x,y,w,h,W,H);let h=fogs(8,22
   if(s.f.wreck)h+=ob('wreck','scrapw','',obURL('wreck3',wreckObj3),186,69,W,H,'Розбирати уламки','<b>Уламки човна</b><br>Цвяхи, скоби, обшивка: усе згодиться.'+(has('rake')?'<br>Граблі допомагають діставати дрібний брухт.':''),{pulse:1,cd:'scrapw',cs:2,inner:'<i class="spk"></i>'});
   if(s.f.rod)h+=shoreRodHS(W,H);
   else if(shoreRodReady()){const c=RC.find(r=>r.id==='rod').c;h+=ob('rod','craft','rod',obURL('rod3',rodObj3),162,45,W,H,'Змайструвати просту вудку',`<b>Проста вудка</b><br>Жердина, линва й гачок.<br>Ціна: ${costTxt(c)}`,{pulse:1,always:1,ok:afford(c)})}
-  h+=dryRackHS(W,H)+shoreFordHS(W,H)+shoreFightHS(W,H)+shoreRuneHS(W,H);
+  h+=dryRackHS(W,H)+shoreFordHS(W,H)+shoreMusselHS(W,H)+shoreFightHS(W,H)+shoreRuneHS(W,H);
   if(s.flot)h+=ob('flot:'+s.flot.k,'flotmg','',obURL('flot3:'+s.flot.k,()=>flotObj3(s.flot.k)),126,78,W,H,'Оглянути знахідку','<b>Прибій щось викинув</b><br>Підчепи гаком, поки хвилі не забрали.',{pulse:1,always:1,idle:'i-bob'});
   h+=hookWaterHS(W,H)+rakeSandHS(W,H);
   const[lu,lo,lw,lh]=obURL('log3',log3Buf),pul=!(s.hsU||{}).gather,zx=33,zy=60,zw=66,zh=33,rx=26,ry=19;
@@ -6654,6 +6667,65 @@ function mapPopHTML(id){const card=(nm,lv,body,act)=>`<div class="bpop" role="di
     if(!b)b='<p class="hand">Звідси видно лише найближчі береги. Вище, з оглядової, було б видно далі.</p>';return card('Маяк','',`<div class="rlist">${b}</div>`,a)}
   const L=LOC[k];if(!L||!s.disc[k])return'';const[ok,why]=canGo(k);const tags=[s.visited[k]?'відвідано':'нове',L.sea===2?'шхуна':L.sea?'море':'',L.dark?'темрява':''].filter(Boolean).map(t=>`<span class="chip">${t}</span>`).join(' ');
   return card(L.n,'',`${pimg(pxURL('lc3:'+lcSig(k)+':'+GR,()=>lkBg3(k)),264,147,'thumb')}<div class="chips">${tags}</div><p class="m">${k==='fort'?V(()=>canGo(k)[1]||L.d):why||L.d}</p>${L.sea&&s.f.boat?`<p class="m">Вихід у море: ${R('prov',seaCost(L))}.</p>`:''}`,btn('Вирушити','go',k,{ok:()=>canGo(k)[0],cls:'main'}))}
+/* Об’єкт на камені та предмет у торбі походять із PR #67 (Vitaliy Sazoniuk і Codex). */
+IT.mussel={n:'Мідії',ic:'()',use:'heal',v:6,d:'Відновлюють 6 здоров’я. У бою з пояса за 1 ОД.'};
+ICO.mussel=['............','.....dd.....','....d99d....','...d9a8d....','..d9a88d....','..d9888d....','..d888d....','...ddd......','.....yyy....','............','............','............'];
+ILD.mussel=IT.mussel.d;
+
+function musselCycle(now=tideRenderTime??Date.now()){
+  if(!atShore()||!tideKnown()||!tideLow(tidePhase(now)))return null;
+  const cycle=tideCyc(now);
+  return s.musselCyc!=null&&cycle<=s.musselCyc?null:cycle;
+}
+
+const MUSSEL_X=129,MUSSEL_Y=105,MUSSEL_FX_MS=720;
+let musselFx=null;
+const musselFxActive=()=>!!musselFx&&Date.now()<musselFx.until;
+function musselPick(id){
+  const cycle=musselCycle(Date.now());
+  if(cycle==null||id!==String(cycle)||s.cb||s.raid||s.dlg.length)return;
+  s.musselCyc=cycle;
+  s.f.musselGathered=1;
+  giveI('mussel');
+  say('Ти знімаєш із каменя жменю мідій і загортаєш їх у ганчірку.','find');
+  const fx={until:Date.now()+MUSSEL_FX_MS};
+  musselFx=fx;
+  if(typeof setTimeout==='function')setTimeout(()=>{
+    if(musselFx===fx){musselFx=null;dirty=1}
+  },MUSSEL_FX_MS);
+  tutOffer('mussels');
+  save();
+}
+
+const musselStoneArt=HI(function(shells){
+  const b=pbuf(16,11);
+  polyFill(b,[[0,9],[3,5],[11,4],[15,9],[12,10],[2,10]],(x,y)=>pset(b,x,y,y<8?'G':'E'));
+  if(shells)for(const[x,y]of[[3,6],[8,5],[11,7]]){
+    polyFill(b,[[x-1,y+2],[x,y-2],[x+2,y-3],[x+4,y-1],[x+2,y+2]],(px,py)=>pset(b,px,py,px<=x+1?'D':'C'));
+    pline(b,x,y+1,x+2,y-2,'H');
+    pset(b,x+2,y-2,'U');
+  }
+  return b;
+});
+const musselHandArt=HI(function(){
+  const b=pbuf(17,14);
+  polyFill(b,[[3,0],[7,1],[12,8],[9,11],[4,8],[0,4]],()=> 'V');
+  polyFill(b,[[8,7],[10,5],[12,6],[12,8],[15,8],[16,9],[15,11],[11,13],[8,11]],(x,y)=>pset(b,x,y,y<10?'f':'e'));
+  pline(b,12,10,15,9,'g');
+  return b;
+});
+function shoreMusselHS(W,H){
+  const cycle=musselCycle();
+  if(cycle!=null)return ob('mussels','mussels',String(cycle),obURL('mussel3',()=>musselStoneArt(true)),MUSSEL_X,MUSSEL_Y,W,H,
+    'Зібрати мідії','<b>Мідії</b><br>На мокрому камені темніють мушлі.',{pulse:1});
+  if(!musselFxActive()||!tideLow())return '';
+  const img=(cls,url,x,y,w,h)=>`<img class="${cls}" src="${url}" alt="" style="${PCT(MUSSEL_X+x,MUSSEL_Y+y,w,h,W,H)}">`;
+  return `<div class="mussel-pick" data-sk="mussel-pick" data-sig="${musselFx.until}" aria-hidden="true">
+    ${img('mussel-stone',pxURL('mussel-stone',()=>musselStoneArt(false)),0,0,16,11)}
+    ${img('mussel-hand',pxURL('mussel-hand',musselHandArt),-4,-9,17,14)}
+    ${img('mussel-lift',icoURL('mussel'),7,-1,10,10)}
+  </div>`;
+}
 /* Сухий пісок нижче плавника, вологий — за уламком біля крайки води. */
 const RAKE_POS={dry:[56,98],wet:[263,82]};
 const RAKE_EFFECT_MS=800;
@@ -7412,6 +7484,7 @@ const TUT={
   dryrack:{n:'Сушарня',ready:()=>s.f.dryRack,body:'<p>Розвісь чотири рибини на жердинах. Через хвилину забери одну провізію. Провізія має окрему місткість запасу й краще відновлює сили.</p><p>Поки риба сушиться, можна займатися іншими справами. Партія не зникає, якщо ти відійшов.</p>'},
   rod:{n:'Риболовля',ready:()=>s.f.rod,body:'<p>На березі натисни на вудку, щоб ловити рибу. Дочекайся відновлення дії за її шкалою.</p><p>Риба накопичується у кошику. Стеж за запасом і місткістю в рядку ресурсів.</p>'},
   tide:{n:'Приплив і відплив',ready:()=>s.f.tideSeen,body:'<p>Приблизно кожні 15 хвилин море відступає; відплив триває близько 5 хвилин. На березі з’являються калюжі, де можна збирати рибу та знахідки.</p><p>Час до зміни води показано у вкладці «Берег». Не потрібно чекати біля калюжі: займись іншими справами.</p>'},
+  mussels:{n:'Мідії на камені',ready:()=>!!s.f.musselGathered,body:'<p>Коли вода спадає, з каменя можна зняти одну порцію мідій. Зібране залишається в торбі. На березі мідії також можна з’їсти через список дій.</p><p>Мідії відновлюють 6 здоров’я. У бою їх можна з’їсти з пояса за одне очко дії.</p>'},
   combat:{n:'Перший бій',ready:()=>s.f.crabWarn||s.f.crab1||s.cb,body:'<div class="tut-diagram" aria-hidden="true"><span class="tut-cell player">Ти<i></i></span><span class="tut-cell step">→</span><span class="tut-cell enemy">Ворог<i></i></span></div><p>Натискай на клітинку, щоб пересуватися, або обирай ворога для удару. Рух і атаки витрачають очки дії.</p><p>Зелені та червоні смужки під постатями показують здоров’я. Позначка над ворогом — його намір. Враховуй напрямок удару й відстань.</p><p>Коли завершиш дії, натисни «Кінець ходу»: вороги виконають свої дії, а твої очки відновляться.</p>'},
   hero:{n:'Спорядження героя',ready:()=>s.tabs.hero,body:'<p>У вкладці «Герой» переглядай здоров’я і спорядження. Натискай на предмети, щоб побачити їхні властивості або спорядити їх.</p><p>Не забувай відновлювати здоров’я між боями.</p>'},
   kitchen:{n:'Кухня',ready:()=>s.tabs.kitchen,body:'<p>Відкрий кухню у вкладці «Маяк». Вибери відомий рецепт, перевір інгредієнти та приготуй їжу.</p><p>Їжу можна використати для лікування; її властивості зазначено в картці страви.</p>'},
@@ -7433,7 +7506,9 @@ function tutRemember(id){s.tutSeen=s.tutSeen||{};s.tutSeen[id]=1;s.tutPending=(s
 let fishLessonLoadedAt=0;
 function tutTick(shoreLesson=true){
   if(noGap()||s.cb||s.raid||s.bellHold||away()||(s.dlg||[]).length)return;
-  const id=(s.tutPending||[]).find(k=>tutReady(k)&&(k!=='tide'||!s.f.tideIntro||atShore())&&(k!=='fishBite'||(shoreLesson&&s.tab==='shore'&&s.lastAct>fishLessonLoadedAt)));
+  const id=(s.tutPending||[]).find(k=>tutReady(k)&&(k!=='tide'||!s.f.tideIntro||atShore())
+    &&(k!=='fishBite'||(shoreLesson&&s.tab==='shore'&&s.lastAct>fishLessonLoadedAt))
+    &&(k!=='mussels'||(atShore()&&!musselFxActive())));
   if(!id)return;
   tutRemember(id);dlg(tutDialog(id));
 }
@@ -7463,6 +7538,7 @@ function load(){try{const raw=localStorage.getItem(KEY);if(!raw)return;const d=J
   if((s.tutPending||[]).includes('fishBite'))fishLessonLoadedAt=Date.now();
   if(s.bite&&!s.bite.place)s.bite.place='shore';
   if(!('fishSpecies' in d)&&s.f.fishBiteSeen&&!s.bite)s.f.fishBiteResolved=1;
+  if(s.musselCyc!=null||has('mussel')||s.seenI?.mussel)s.f.musselGathered=1;
   if(SHF[s.shf]?.lowWater&&s.shfCyc==null&&s.shfT?.[s.shf])s.shfCyc=tideCyc(s.shfT[s.shf]);
   shfCheckTide();
   delete s.bigT;

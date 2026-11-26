@@ -155,6 +155,9 @@ function rShore(){let h=`<section><h2>Берег під маяком</h2><p>Мо
   if(s.f.rodUp)al+=`<div class="act">${btn('Глибша вода','fishing','deep',{cd:'fishing',cs:3})}</div>`;
   else if(s.f.rodRipple&&!s.f.rodLimitSeen)al+=`<div class="act">${btn('Оглянути кола на воді','rodReach')}</div>`;
   if(tideLow())al+=`<div class="act">${btn('Оглянути калюжі','pool','',{cd:'pool',cs:4})}</div>`;
+  const mussels=musselCycle();
+  if(mussels!=null)al+=`<div class="act">${btn('Зібрати мідії','mussels',String(mussels))}</div>`;
+  if(has('mussel'))al+=`<div class="act">${btn('З’їсти мідії','use','mussel',{ok:()=>has('mussel')&&s.h.hp<maxHP()})} <span class="m">+6 здоров’я</span></div>`;
   if(s.f.fordSeen&&!s.f.fordDone)al+=`<div class="act">${btn('Оглянути брід','bpop','sh:ford')}</div>`;
   if(!s.runes?.b&&RUNE.b.ok())al+=`<div class="act">${btn('Оглянути камінь на відпливі','rune','b')}</div>`;
   const event=shfVisible();
@@ -510,7 +513,7 @@ let paintedTide='',paintingTide=false;
 function tideViewKey(){
   if(s.cb)return '';
   const t=tidePhase(),low=Number(tideLow(t));
-  if(atShore())return `shore:${tideStage(t)}:${low}`;
+  if(atShore())return `shore:${tideStage(t)}:${low?String(tideCyc()):'high'}`;
   if(s.tab==='map'&&(['bay','shoal'].includes(s.at)||!s.at&&(s.disc.bay||s.disc.fort)))return `map:${s.at}:${low}`;
   return '';
 }
@@ -525,7 +528,8 @@ function render(){
   tideRenderTime=Date.now();
   const tide=tideViewKey(),view=s.tab+'|'+(s.tab==='map'?s.at:'')+'|';
   paintingTide=!!tide&&!!paintedTide&&tide!==paintedTide&&lastView===view;
-  const el=paintingTide?document.activeElement:null,root=el?.closest('#stage,#main,#popl,#tabs');
+  const focused=document.activeElement;
+  const el=paintingTide||focused?.dataset?.a==='mussels'?focused:null,root=el?.closest('#stage,#main,#popl,#tabs');
   paintedTide=tide;
   try{renderView();restoreTideFocus(el,root)}finally{tideRenderTime=null;paintingTide=false}
 }

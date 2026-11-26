@@ -738,6 +738,71 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await p.close();
   }
 
+  // Окрема дія на камені та у списку, зі збереженим номером відпливу.
+  {
+    const p=await page(390,844);
+    await p.evaluate(()=>{
+      Math.random=()=>.99;
+      s.tabs.shore=1;s.tab='shore';
+      Object.assign(s.f,{looked:1,tideSeen:1,crab1:1,rod:1,rodUp:1,fordSeen:1,wreck:1,hook:1,rats:1,dryRack:1,boat:1});
+      s.tutSeen.fishBite=1;s.f.fishBiteSeen=1;
+      s.hookWater.pending={id:3,kind:'heavy',reward:{wood:4,scrap:3}};
+      s.bite={kind:'species',species:'cod',place:'deep'};
+      giveI('rake');s.rakeSand.pending={id:1,kind:'wet',scrap:2};
+      s.bts=Object.fromEntries(CH.flatMap(ch=>ch.beats.map(beat=>[beat[0],1])));s.chs=CH.map(ch=>ch.id);s.tabs.chron=1;
+      s.bdSeen=Object.fromEntries(BD.map(b=>[b.id,1]));s.rcSeen=Object.fromEntries(RC.map(rc=>[rc.id,1]));
+      s.lastNov=s.play;s.dlg=[];s.tutPending=[];s.tideEpoch=Date.now()-120000;s.lastAct=Date.now();render();
+    });
+    const scene=p.locator('.scn.sh'),stone=scene.locator('[data-a="mussels"]');
+    const fx=scene.locator('.mussel-pick'),list=p.locator('.shore-alist'),listPick=list.locator('[data-a="mussels"]');
+    A(!await stone.count()&&!await listPick.count(),'мідії приховані на високій воді');
+    await p.evaluate(()=>{s.tideEpoch=Date.now()-620000;s.shf='poolcrab';s.shfCyc=0});
+    await stone.waitFor();
+    const separate=()=>stone.evaluate(e=>{
+      e.scrollIntoView({block:'center'});
+      const r=e.getBoundingClientRect();
+      const overlap=[...e.closest('.scn').querySelectorAll('button[data-a]')].some(other=>{
+        if(e===other)return false;
+        const q=other.getBoundingClientRect();
+        return Math.min(r.right,q.right)-Math.max(r.left,q.left)>1&&Math.min(r.bottom,q.bottom)-Math.max(r.top,q.top)>1;
+      });
+      return !overlap&&e.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));
+    });
+    A(await separate(),'камінь окремо від калюж, крабів, уламків, руни, броду, вудок, багра й мокрого піску');
+    await p.evaluate(()=>{s.shf='tracks';s.shfCyc=null;s.flot={k:'survivor',until:Date.now()+20000};render()});
+    A(await separate(),'камінь окремо від слідів і сюжетного прибою');
+    await p.evaluate(()=>{s.shf='poolcrab';s.shfCyc=0;s.flot=null;render()});
+    await stone.focus();await p.keyboard.press('Enter');
+    A(await fx.locator('.mussel-hand').evaluate(e=>getComputedStyle(e).animationName)==='mussel-reach',
+      'збір зі сцени клавіатурою запускає анімацію руки');
+    A(await scene.locator('[data-k="gather"]').evaluate(e=>e===document.activeElement),'фокус лишається у сцені після збирання');
+    const lesson=p.locator('#dlg .k-tutorial h2',{hasText:'Мідії на камені'});
+    await lesson.waitFor();await p.click('#dlg [data-a="dlgok"]');
+    await p.evaluate(()=>{s.tideEpoch=Date.now()-120000;s.h.hp=8;save()});
+    await p.reload();
+    if(!await list.evaluate(e=>e.open))await list.locator('summary').click();
+    await list.locator('[data-a="use"][data-i="mussel"]').click();
+    A(await p.evaluate(()=>s.h.hp>=14&&s.h.hp<15&&!has('mussel')&&s.f.musselGathered),'мідії з торби можна з’їсти зі списку після припливу й reload');
+    const atLow=cycle=>p.evaluate(cycle=>{s.tideEpoch=Date.now()-(620+cycle*TIDE)*1000;s.lastAct=Date.now()},cycle);
+    await atLow(0);await scene.and(p.locator('[data-tide="low"]')).waitFor();
+    A(!await listPick.count()&&!await stone.count(),'спожиту порцію не відновлює той самий ID циклу');
+    await p.emulateMedia({reducedMotion:'reduce'});
+    await atLow(2);
+    await listPick.and(p.locator('[data-i="2"]')).waitFor();await listPick.click();
+    A(await fx.locator('.mussel-lift').evaluate(e=>getComputedStyle(e).animationName==='none'&&getComputedStyle(e).opacity==='1'),
+      'збір зі списку дає статичну реакцію у reduced motion');
+    await atLow(3);
+    await stone.and(p.locator('[data-i="3"]')).click();
+    A(await p.evaluate(()=>s.inv.mussel===2&&s.bite.species==='cod'&&s.hookWater.pending.id===3&&s.rakeSand.pending.id===1&&document.documentElement.scrollWidth<=390),
+      'накопичення, відсутність горизонтального скролу та три незалежні взаємодії');
+    await p.evaluate(()=>{s.tabs.hero=1;s.h.bg='old';s.tab='hero';s.nv.bag=1;s.ht='bag';render()});
+    A(await p.locator('#main [data-a="use"][data-i="mussel"]').isVisible(),'інгредієнт відображається у чинній торбі');
+    await p.evaluate(()=>{s.h.hp=5;startFight('crab1','crab1');window.apBefore=s.cb.ap;render()});
+    await p.locator('#main [data-a="c_item"][data-i="mussel"]').click();
+    A(await p.evaluate(()=>s.h.hp===11&&s.cb.ap===apBefore-1&&s.inv.mussel===1),'у бою мідії відновлюють 6 HP за 1 ОД з пояса');
+    await p.close();
+  }
+
   // 4. Жарина й місце для вогнища — різні об'єкти з різними діями
   {
     const p = await page(1100, 900);

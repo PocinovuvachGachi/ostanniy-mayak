@@ -1038,3 +1038,11 @@ body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .
 .tide-status{display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 10px;width:fit-content;max-width:100%;padding:4px 9px;border:1px solid #526976;background:#263d48;color:#f0e9d6;font-size:.9rem}
 .tide-clock{font-variant-numeric:tabular-nums;color:#cddde0}
 .tide-clock:has(span:empty){display:none}
+
+.mussel-pick{position:absolute;inset:0;z-index:131;pointer-events:none}
+.mussel-pick img{position:absolute;image-rendering:pixelated}
+.mussel-hand{animation:mussel-reach .72s ease-in-out both}
+.mussel-lift{animation:mussel-lift .72s ease-in-out both}
+@keyframes mussel-reach{0%{transform:translate(-40%,-70%);opacity:0}40%,52%{transform:translate(0,0);opacity:1}100%{transform:translate(-45%,-80%);opacity:0}}
+@keyframes mussel-lift{0%,40%{opacity:0}48%{transform:translate(0,0);opacity:1}85%,100%{transform:translate(-70%,-100%);opacity:0}}
+@media (prefers-reduced-motion:reduce){.mussel-hand{display:none}.mussel-lift{animation:none;transform:translate(-20%,-45%)}}
