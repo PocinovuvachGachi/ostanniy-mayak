@@ -149,8 +149,10 @@ function rShore(){let h=`<section><h2>Берег під маяком</h2><p>Мо
   if(shoreRodReady()){const c=RC.find(r=>r.id==='rod').c;al+=`<div class="act">${btn('Змайструвати просту вудку','craft','rod',{ok:()=>afford(c)})}<span class="ccs">${costTxt(c)}</span></div>`}
   if(s.f.rod)al+=`<div class="act">${btn('Рибалити','fishing','',{cd:'fishing',cs:3})}</div>`;
   al+=`<div class="act">${btn('До маяка','tab','home',{cls:'toggle'})}</div>`;
+  const floating=hookWaterVisible();
+  const hookCard=floating?`<div class="act">${btn(hookWaterLabel(floating),'hookWater',String(floating.id))}</div>`:'';
   const catchCard=s.f.rod&&s.bite?`<div class="tdet"><b>${fishBiteLabel()}</b>${fishBiteControls()}</div>`:'';
-  h+=`<details class="alist shore-alist"${shoreListOpen?' open':''}><summary>Усі дії списком</summary><div>${catchCard}${al}</div></details>`;
+  h+=`<details class="alist shore-alist"${shoreListOpen?' open':''}><summary>Усі дії списком</summary><div>${catchCard}${hookCard}${al}</div></details>`;
   if(s.flot){const FN={crate:'Ящик',barrel:'Бочка',cargo:'Розкиданий вантаж',bottle:'Пляшка з запискою',survivor:'Людина на уламку щогли'};h+=`<div class="tdet" id="sec-flot"><b>На березі: ${FN[s.flot.k]}</b>${fresh9('fl:'+s.flot.until)}<p class="m">Прибій щось викинув. Хвилі заберуть його за ${V(()=>s.flot?Math.max(0,Math.ceil((s.flot.until-Date.now())/1000)):0)} с.</p>${btn('Оглянути','flot','',{cls:'main'})}</div>`}
   h+=`<p class="m" style="margin-top:8px">Зібрано за весь час: ${V(()=>fmt(s.tot.wood))} плавника${s.f.wreck?`, ${V(()=>fmt(s.tot.scrap))} брухту`:''}${s.f.rod?`, ${V(()=>fmt(s.tot.fish))} риби`:''}.</p></section>`;
   h+=rDryRack();
@@ -191,7 +193,7 @@ function rWork(){const L=rWorkList(),i=L.indexOf('</section>')+10;return`<div cl
 function rWorkList(){let h=`<section class="wkb"><h2>Креслення на верстаку</h2><p class="m">Що можна змайструвати з того, що є. Нові креслення приходять від людей, із записів і знахідок.</p>`;const vis=RC.filter(rcVisible);
   if(!vis.length)h+=`<p class="m">Поки що нічого нового. Шукай креслення й вивчай записи.</p>`;
   h+=`<div class="bag">`;
-  for(const rc of vis){const c=rcCost(rc),nm=rc.tool?rc.n:IT[rc.out].n,d=rc.tool?rc.d:itemShort(rc.out),cr=rc.craft||0,ik=rc.tool?(rc.id==='rod'?'rod':rc.id==='belt1'?'belt':'pack'):rc.out;
+  for(const rc of vis){const c=rcCost(rc),nm=rc.tool?rc.n:IT[rc.out].n,d=rc.tool?rc.d:itemShort(rc.out),cr=rc.craft||0,ik=rcImg(rc).id;
     h+=`<div class="cell" ${rc.out?itemTip(rc.out):TA(`<b>${nm}</b><br>${d}`)}><div class="ic" aria-hidden="true">${pimg(icoURL(ik),36,36)}</div><b>${nm}</b>${fresh9('r:'+rc.id)}${rc.multi&&has(rc.out)?`<span class="m">є ${s.inv[rc.out]}</span>`:''}<span class="m">${d}</span>${rc.src?`<span class="m src">${rc.src}</span>`:''}<span class="ccs">${costChips(c,rc.it)}</span>${cr?`<span>${chk('craft',cr)}</span>`:''}${btn('Зробити','craft',rc.id,{ok:()=>st('craft')>=cr&&afford(rcCost(rc),rc.it)})}</div>`}
   h+=`</div></section>`;
   if(s.b.forge){const own=WEAP.filter(has);if(own.length){h+=`<section><h2>Кузня: удосконалення зброї${ih('Зброю можна зробити кращою: вона битиме сильніше й отримає нову особливість, а старі особливості й прийоми лишаться. Для цього потрібні майстерність, трохи металу й особлива знахідка, яка пасує саме до цієї зброї. Такі речі трапляються в шхерах: у сутичках, на уламках, у чужих сховках.')}</h2><p class="hand">Горн теплий. Була б тільки добра річ, щоб прикласти її до клинка.</p><div class="bag">`;

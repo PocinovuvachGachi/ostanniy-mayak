@@ -72,7 +72,7 @@ document.addEventListener('pointercancel',()=>{ptr=0});
 load();checks();snap9(s.tab);render();auUI();
 let last=Date.now(),sv=0;
 setInterval(()=>{const now=Date.now(),dt=Math.max(0,Math.min(7200,(now-last)/1000));last=now;s.t+=dt;
-  for(let r=dt;r>0;r-=5)produce(Math.min(5,r));checks();
+  for(let r=dt;r>0;r-=5)produce(Math.min(5,r));checks(dt);
   const typing=document.activeElement&&document.activeElement.tagName==='INPUT'&&document.activeElement.type!=='range';
   cbOverTick();
   const anim=s.cb&&Date.now()<fxBusy;

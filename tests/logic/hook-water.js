@@ -1,0 +1,82 @@
+require('../harness.js')(`
+let fails=0;function A(c,m){if(!c){fails++;console.log('FAIL',m)}}
+let raw;
+localStorage.setItem=(key,value)=>{raw=value};
+localStorage.getItem=()=>raw;
+const tick=(dt=.25)=>{s.lastAct=Date.now();hookWaterTick(dt)};
+const wait=n=>{for(let t=0;t<n;t++)tick(1)};
+const drain=()=>{while(s.dlg.length)act('dlgok')};
+const gather=()=>{s.cd.gather=0;act('gather');tick()};
+const recipe=RC.find(r=>r.id==='hookUp');
+const random=Math.random;
+const ring=()=>s.hookWater.pending;
+const take=id=>act('hookWater',id);
+Math.random=()=>0;
+
+s=fresh();s.tabs.shore=1;s.tab='shore';s.f.hookPlan=1;s.f.wreck=1;s.r.wood=30;s.r.scrap=1;
+gather();take(1);
+A(s.r.wood===31&&!ring()&&s.hookWater.gathers===0,'звичайний збір до багра; без багра нема підтягування');
+act('hook');drain();
+A(s.f.hook&&s.r.wood===19&&s.r.scrap===0,'ціна старого багра не змінилась');
+gather();act('gather');tick();gather();
+A(s.hookWater.gathers===2&&!ring()&&s.r.wood===23&&onCd('gather'),'рахуються лише успішні ручні збори, ×2 і шкала цілі');
+s.tutPending=['rod'];s.f.rod=1;gather();
+A(!ring(),'малий предмет чекає, доки буде показано урок');
+s.tutPending=[];dlg({k:'story',title:'Сюжет'});tick();
+A(!ring(),'малий предмет чекає сюжетного вікна');
+drain();tick();
+const first=JSON.stringify(ring());
+A(ring()?.kind==='plank'&&ring().reward.wood===3,'перший малий предмет гарантовано, результат визначився при появі');
+act('tab','home');wait(120);
+A(JSON.stringify(ring())===first,'інші вкладки не змінюють предмет');
+const old=JSON.parse(raw);
+old.ts-=1800_000;raw=JSON.stringify(old);Math.random=()=>0.99;
+load();
+A(JSON.stringify(ring())===first&&s.hookWater.wait===0,'предмет не перекидається після офлайн-часу й reload');
+
+act('tab','shore');s.at='village';take(1);
+A(ring()&&!hookWaterVisible(),'не можна підтягнути під час перебування в іншій локації');
+act('leave');s.f.fordDone=1;
+s.floors.gallery=1;s.flot={k:'barrel',until:Date.now()+180000};
+take(1);
+A(!hookWaterVisible()&&JSON.stringify(ring())===first,'старий прибій має пріоритет, ранній запис лишається');
+act('flot');A(hookWaterVisible()?.kind==='plank'&&s.r.oil>0,'старий вантаж дає чинну винагороду');
+const beforeC=JSON.stringify(s.c),beforeWood=s.r.wood;
+Math.random=()=>0;
+take(1);take(1);
+A(!ring()&&s.hookWater.pulls===1&&s.r.wood===beforeWood+3&&JSON.stringify(s.c)===beforeC&&!MG,'один платіж ресурсів без лічильників звичних дій і мінігри');
+A(tutKnown('hookWater')&&s.hookWater.wait===60,'після першого разу є довідник і відлік активного берега');
+const waiting=JSON.parse(raw);waiting.ts-=3600_000;raw=JSON.stringify(waiting);load();tick(3600);
+A(s.hookWater.wait===60&&!ring(),'офлайн і довгий такт не накопичують час або предмети');
+act('tab','home');wait(60);A(s.hookWater.wait===60,'поза берегом час не йде');
+act('tab','shore');Math.random=()=>.3;wait(59);
+A(!ring()&&s.hookWater.wait===1,'раніше від збереженої затримки нового предмета немає');
+tick(1);A(ring()?.kind==='tackle'&&ring().reward.scrap===1,'другий предмет отримує інший тип і пробну нагороду');
+take(1);A(ring()?.id===2,'застаріле натискання не може зібрати інший предмет');take(2);
+A(!ring()&&s.hookWater.wait===78&&s.hookWater.pulls===2,'винагорода вдруге й новий збережений інтервал');
+wait(78);
+const heavy=JSON.stringify(ring());
+A(ring()?.kind==='heavy'&&!s.f.hookLimitSeen&&!rcVisible(recipe),'важкий ящик після двох підтягувань; креслення приховане');
+take(3);take(3);
+A(s.f.hookLimitSeen&&s.dlg.length===1&&JSON.stringify(ring())===heavy,'простий багор один раз показує обмеження, не пересуваючи ящик');
+drain();
+save();load();A(JSON.stringify(ring())===heavy&&!rcVisible(recipe),'ящик і спостереження пережили завантаження без майстерні');
+s.r.wood=30;s.r.scrap=10;act('craft','hookUp');A(!s.f.hookUp&&s.r.wood===30,'обмеження лишається без майстерні');
+s.floors.work=1;s.tabs.tower=1;s.tabs.work=1;
+A(!rcVisible(recipe),'креслення лише після черги відкриттів');
+for(let i=0;i<4&&!rcVisible(recipe);i++){novPlanTick(false);drain()}
+A(rcVisible(recipe),'черга відкриває рецепт після майстерні й спостереження');
+drain();act('craft','hookUp');A(!s.f.hookUp&&s.r.wood===30,'підсилення доступне лише в майстерні');
+act('tab','work');s.r.scrap=5;act('craft','hookUp');A(!s.f.hookUp&&s.r.wood===30,'бракує брухту для підсилення');
+s.r.scrap=6;act('craft','hookUp');act('craft','hookUp');
+A(s.f.hookUp&&s.r.wood===18&&s.r.scrap===0&&!rcVisible(recipe),'одноразова ціна 12 плавника та 6 брухту');
+drain();act('tab','shore');s.dbgTide='low';
+A(JSON.stringify(hookWaterVisible())===heavy,'на відпливі доступний той самий ящик');
+take(3);take(3);A(s.r.wood===22&&s.r.scrap===3&&!ring(),'підсилення підтягує важкий ящик, нагорода один раз');
+gather();A(s.r.wood===24,'після підсилення базовий бонус досі ×2');
+
+save();const legacy=JSON.parse(raw);delete legacy.hookWater;raw=JSON.stringify(legacy);load();
+A(s.f.hook&&s.hookWater.gathers===0&&!ring(),'старе збереження без даних багра має безпечні значення');
+Math.random=random;
+console.log('fails',fails)
+`);

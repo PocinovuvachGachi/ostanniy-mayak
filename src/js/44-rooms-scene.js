@@ -54,7 +54,7 @@ for(const f of['workRoom3','wkBench3','wkNote3','wkForge3','wkScrap3','wkGrind3'
 const NOTEXY=i=>[255+(i%5)*20,34+Math.floor(i/5)*32];
 function workScene(){const tr=floorBuilt('work')?fuL('work'):0,st={tr,ph:GR},W=RMW,H=RMH;let h=`<span data-sk="bg" data-sig="bg" class="scbg">${VH(()=>pimg(pxURL('wkr3:'+tr+GR,()=>workRoom3(st)),864,480,'scene','Майстерня'))}</span>`;
   h+=ob('wk:bench','bpop','wk:bench',obURL('wkb3:'+tr,()=>wkBench3(st)),40,140,W,H,'Верстак','<b>Верстак</b><br>Тут роблять речі з креслень на дошці.',{});
-  const vis=RC.filter(rcVisible);vis.slice(0,15).forEach((rc,i)=>{const ik=rc.tool?(rc.id==='rod'?'rod':rc.id==='belt1'?'belt':'pack'):rc.out,fr=!prev9['r:'+rc.id],nm=rc.tool?rc.n:IT[rc.out].n,[x,y]=NOTEXY(i);
+  const vis=RC.filter(rcVisible);vis.slice(0,15).forEach((rc,i)=>{const ik=rcImg(rc).id,fr=!prev9['r:'+rc.id],nm=rc.tool?rc.n:IT[rc.out].n,[x,y]=NOTEXY(i);
     h+=ob('wk:r:'+rc.id,'bpop','wk:r:'+rc.id,obURL('wkn3:'+ik+(fr?1:0),()=>wkNote3(ik,fr)),x,y,W,H,nm,`<b>${nm}</b><br>Креслення. Натисни, щоб подивитися.`,{pulse:fr?1:0,always:fr?1:0})});
   if(s.b.forge&&WEAP.some(has))h+=ob('wk:forge','bpop','wk:forge',obURL('wkf3',wkForge3),214,148,W,H,'Горн і ковадло','<b>Горн і ковадло</b><br>Тут удосконалюють зброю.',{});
   const dl=Object.keys(s.inv).filter(canDism);if(dl.length)h+=ob('wk:scrap','bpop','wk:scrap',obURL('wks3:'+Math.min(6,dl.length),()=>wkScrap3(dl.length)),8,170,W,H,'Ящик для розбору','<b>Ящик для розбору</b><br>Непотрібне спорядження — на матеріали.',{});

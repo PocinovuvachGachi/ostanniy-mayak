@@ -401,6 +401,78 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await p.close();
   }
 
+  // Багор на воді: той самий вантаж у двох фазах, зі сцени й зі списку.
+  {
+    const p=await page(390,844);
+    await p.evaluate(()=>{
+      s.tabs.shore=1;s.tabs.tower=1;s.tab='shore';s.f.looked=1;s.f.hook=1;s.f.rod=1;s.f.crab1=1;s.f.tideSeen=1;s.f.wreck=1;
+      s.dbgTide='high';s.c.gather=25;s.r.wood=50;s.r.scrap=20;s.dlg=[];s.lastAct=Date.now();
+      s.tutPending=[];s.bdSeen=Object.fromEntries(BD.map(b=>[b.id,1]));
+      s.rcSeen=Object.fromEntries(RC.filter(rc=>rc.id!=='hookUp').map(rc=>[rc.id,1]));
+      Math.random=()=>0;render();
+    });
+    const gather=p.locator('.scn [data-sk="gather"]');
+    const water=p.locator('.scn [data-a="hookWater"]');
+    const pull=p.locator('.hook-pull');
+    const list=p.locator('.shore-alist');
+    for(let n=0;n<3;n++){
+      await p.waitForFunction(()=>!onCd('gather'));
+      await gather.click();
+    }
+    await water.waitFor();
+    A(await p.evaluate(()=>s.hookWater.pending.kind==='plank'&&s.c.gather===28),'перший плавучий предмет після трьох справжніх зборів');
+    const unobstructed=await water.evaluate(e=>{
+      const r=e.getBoundingClientRect(), hit=document.elementFromPoint((r.left+r.right)/2,(r.top+r.bottom)/2);
+      return !!hit&&e.contains(hit);
+    });
+    A(unobstructed&&await p.evaluate(()=>document.documentElement.scrollWidth<=390),'предмет на високій воді доступний без горизонтальної прокрутки');
+    await water.focus();await p.keyboard.press('Enter');
+    A(await pull.locator('.hook-tool').evaluate(e=>getComputedStyle(e).animationName)==='hook-tool','окрема анімація підтягування з клавіатури');
+    await p.click('#tabs [data-i="home"]');
+    A(await p.evaluate(()=>!s.hookWater.pending&&s.hookWater.pulls===1&&JSON.parse(localStorage.getItem(KEY)).hookWater.pulls===1)
+      &&!await pull.count(),'вихід під час анімації зберігає результат');
+    await p.click('#tabs [data-i="shore"]');
+    await p.evaluate(()=>{Math.random=()=>.3;s.hookWater.wait=0});
+    await water.waitFor();
+    await list.locator('summary').click();
+    await list.locator('[data-a="hookWater"]').click();
+    A(await p.evaluate(()=>s.hookWater.pulls===2&&!s.hookWater.pending),'список дій користується тим самим підтягуванням');
+    await p.evaluate(()=>{s.hookWater.wait=0;s.dbgTide='low';render()});
+    await water.waitFor();
+    const lowHit=await water.evaluate(e=>{
+      const r=e.getBoundingClientRect();
+      return e.contains(document.elementFromPoint((r.left+r.right)/2,(r.top+r.bottom)/2));
+    });
+    A(lowHit&&await p.locator('.scn [data-a="pool"]').count()===1,'на відпливі ящик і калюжі доступні окремо');
+    A(await p.evaluate(()=>!rcVisible(RC.find(rc=>rc.id==='hookUp'))),'креслення приховано до спроби');
+    await water.click();
+    await p.locator('#dlg h2',{hasText:'Жердина прогинається'}).waitFor();
+    await p.click('#dlg [data-a="dlgok"]');
+    await p.reload();
+    await water.waitFor();
+    A(await p.evaluate(()=>s.f.hookLimitSeen&&s.hookWater.pending.id===3&&!s.f.hookUp),'той самий ящик після завантаження');
+    const baseHookArt=await p.locator('.scn [data-sk="hook"] .obi').getAttribute('src');
+    await p.evaluate(()=>{
+      s.floors.work=1;s.tabs.work=1;s.tab='tower';ttGo('work');
+      s.lastAct=Date.now();s.lastNov=null;novPlanTick(false);render();save();
+    });
+    await p.locator('#dlg h2',{hasText:'Новий рецепт: Посилений багор'}).waitFor();
+    await p.click('#dlg [data-a="dlggo"]');
+    const plan=p.locator('.scn [data-k="wk:r:hookUp"]');
+    await plan.click();
+    await p.locator('.bpop [data-a="craft"][data-i="hookUp"]').click();
+    await p.locator('#dlg h2',{hasText:'Посилений багор'}).waitFor();
+    await p.click('#dlg [data-a="dlgok"]');
+    await p.click('#tabs [data-i="shore"]');
+    A(baseHookArt!==await p.locator('.scn [data-sk="hook"] .obi').getAttribute('src'),'посилена версія має інший вигляд');
+    await p.emulateMedia({reducedMotion:'reduce'});
+    await water.click();
+    A(await pull.locator('.hook-tool').evaluate(e=>getComputedStyle(e).animationName)==='none'
+      &&await p.evaluate(()=>s.hookWater.pulls===3&&!s.hookWater.pending),'статична реакція й завершення з reduced motion');
+    A(await p.evaluate(()=>document.documentElement.scrollWidth<=390),'берег і майстерня вміщуються на телефоні');
+    await p.close();
+  }
+
   // 4. Жарина й місце для вогнища — різні об'єкти з різними діями
   {
     const p = await page(1100, 900);
@@ -566,4 +638,10 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
   await b.close();
   console.log('fails', fails);
   process.exit(fails ? 1 : 0);
-})().catch(e => { console.log('FAIL', e.message); console.log('fails', 1); process.exit(1); });
+})().catch(e => {
+  const target=e.message.split('\n').find(line=>line.includes('waiting for locator'));
+  const at=e.stack?.split('\n').find(line=>line.includes('browser.js:'));
+  console.log('FAIL',e.message.split('\n')[0],at?.trim()||'',target?.trim()||'');
+  console.log('fails',1);
+  process.exit(1);
+});
