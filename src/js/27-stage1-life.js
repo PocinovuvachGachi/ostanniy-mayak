@@ -18,6 +18,14 @@ Object.assign(ODI,{mplate:'lore',mbell:'key',mladle:'shell'});
 OSET.martin={n:'Речі з «Мартина»',gain:()=>{s.h.fp=(s.h.fp||0)+1;s.f.martinSet=1},gt:'+1 талант до вибору',
   after:()=>dlg({k:'story',title:'Прощання з «Мартином»',img:{t:'face',id:'zinovii'},body:`<p>Зиновій довго тримає в руках свій черпак. ${Q('Двадцять років я варив на «Мартині». Нехай хоч речі його будуть біля вогню')}. Він ставить їх на полицю, поруч одну з одною, і вперше відтоді, як прийшов, усміхається.</p>`})};
 
+const martinLadleReady=()=>!!(s.f.zinovii&&s.odd.mladle&&!s.f.martinLadleStory&&!s.f.martinSet);
+function martinLadleTalk(){
+  if(!martinLadleReady())return;
+  s.f.martinLadleStory=1;
+  dlg({k:'story',title:'Рибка на держаку',img:{t:'face',id:'zinovii'},
+    body:`<p>Зиновій бере черпак і обертає держак до світла. ${Q('Оцю рибку вирізав наш стерновий. Казав, що в шторм навіть на юшку треба мати свого стернового')}.</p><p>Він витирає з дерева сіль рукавом і кладе черпак назад на полицю.</p>`})
+}
+
 Object.assign(SHF,{
   tracks:{n:'Сліди на мокрому піску',npc:1,tip:'Натисни, щоб роздивитися.',pos:[88,90],
     d:'Від самої води до маяка тягнуться сліди босих ніг.',once:1,

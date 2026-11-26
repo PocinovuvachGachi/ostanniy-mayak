@@ -622,7 +622,7 @@ button.hs.zone:hover,button.hs.zone:focus-visible{background:transparent;border:
 #foot{margin-top:20px;font-size:.9rem;color:var(--mute)}
 .yard{width:100%;max-width:640px;height:auto;aspect-ratio:144/80;border:1px solid var(--rule);background:#0b1418;margin:0 0 12px}
 /* dialogs */
-#dlg .dlgbg{position:fixed;inset:0;z-index:30;background:rgba(6,12,15,.62);display:flex;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+#dlg .dlgbg{position:fixed;inset:0;z-index:3500;background:rgba(6,12,15,.62);display:flex;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
 #dlg .dlgbox{background:var(--panel);border:1px solid var(--rule);border-top:4px solid var(--lamp);max-width:560px;width:100%;max-height:100%;overflow:auto;box-shadow:0 12px 40px rgba(0,0,0,.4)}
 #dlg .k-fight{border-top-color:var(--bad)}#dlg .k-find{border-top-color:var(--c-coin)}#dlg .k-lvl{border-top-color:var(--good)}#dlg .k-world{border-top-color:var(--sea)}
 #dlg .scene,#dlg .yard{margin:0;border:0;border-bottom:1px solid var(--rule);max-width:none}
@@ -4095,6 +4095,7 @@ function shelfHS(W,H){const n=Object.keys(s.odd).length;if(!s.b.hearth||!n)retur
 function shelfPopHTML(){s.oddNew=0;const got=Object.keys(OD).filter(k=>s.odd[k]),sets=Object.keys(OSET).filter(st=>got.some(k=>OD[k].set===st));
   return`<div class="bpop wide" role="dialog" aria-label="Полиця хранителя"><div class="bph"><b>Полиця хранителя</b><button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div>
   <div class="ogrid">${got.map(k=>`<div class="ocard">${pimg(icoURL(ODI[k]),40,40,'',OD[k].n)}<b class="itm">${OD[k].n}</b><br><span class="m">${OD[k].d}</span></div>`).join('')}<div class="ocard empty" aria-hidden="true"></div><div class="ocard empty" aria-hidden="true"></div></div>
+  ${martinLadleReady()?btn('Показати черпак Зиновію','martinLadle'):''}
   ${sets.map(st=>(s.oset||{})[st]?`<p class="m">✓ ${OSET[st].n}: набір зібрано (${OSET[st].gt}).</p>`:`<p class="hint">${OSET[st].n}: здається, на полиці бракує ще чогось схожого.</p>`).join('')}</div>`}
 /* ============ ЕТАП I: ІНСТРУМЕНТИ Й ПЕРШИЙ СЕКРЕТ ============
    Граблі — перший інструмент, що змінює берег: уламок віддає більше брухту.
@@ -4164,6 +4165,14 @@ OD.logpage.set='martin';
 Object.assign(ODI,{mplate:'lore',mbell:'key',mladle:'shell'});
 OSET.martin={n:'Речі з «Мартина»',gain:()=>{s.h.fp=(s.h.fp||0)+1;s.f.martinSet=1},gt:'+1 талант до вибору',
   after:()=>dlg({k:'story',title:'Прощання з «Мартином»',img:{t:'face',id:'zinovii'},body:`<p>Зиновій довго тримає в руках свій черпак. ${Q('Двадцять років я варив на «Мартині». Нехай хоч речі його будуть біля вогню')}. Він ставить їх на полицю, поруч одну з одною, і вперше відтоді, як прийшов, усміхається.</p>`})};
+
+const martinLadleReady=()=>!!(s.f.zinovii&&s.odd.mladle&&!s.f.martinLadleStory&&!s.f.martinSet);
+function martinLadleTalk(){
+  if(!martinLadleReady())return;
+  s.f.martinLadleStory=1;
+  dlg({k:'story',title:'Рибка на держаку',img:{t:'face',id:'zinovii'},
+    body:`<p>Зиновій бере черпак і обертає держак до світла. ${Q('Оцю рибку вирізав наш стерновий. Казав, що в шторм навіть на юшку треба мати свого стернового')}.</p><p>Він витирає з дерева сіль рукавом і кладе черпак назад на полицю.</p>`})
+}
 
 Object.assign(SHF,{
   tracks:{n:'Сліди на мокрому піску',npc:1,tip:'Натисни, щоб роздивитися.',pos:[88,90],
@@ -4736,6 +4745,7 @@ function act0(a,i){
   case 'wlesson':wLesson();break;
   case 'three':threeLights();break;
   case 'cache':cacheOpen();break;
+  case 'martinLadle':martinLadleTalk();break;
   case 'scrapw':if(F.wreck&&!onCd('scrapw')){setCd('scrapw',2);s.c.scrap=(s.c.scrap||0)+1;add('scrap',1+(s.rs.metal?1:0)+(s.h.ft.thrifty?1:0)+(has('rake')?1:0))}break;
   case 'fishing':if(F.rod&&!onCd('fishing')){setCd('fishing',3);if(!s.bite&&s.c.fish>=6&&F.crab1&&Date.now()-(s.bigT||0)>240000&&Math.random()<1/6){s.bigT=Date.now();if(mgHabit('fish')||s.quickMG){s.c.fish++;mgRun('fish',mgFish,fishEnd);break}s.bite={until:Date.now()+30000};say('Вудка вигнулася дугою: щось велике тягне линву!','find');break}add('fish',wolf());s.c.fish++;
     if(!F.crab1&&!F.crabWarn&&s.c.fish>=5){F.crabWarn=1;crabWarn()}}break;
