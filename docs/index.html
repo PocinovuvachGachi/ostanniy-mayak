@@ -715,11 +715,6 @@ button.hs.zone:hover,button.hs.zone:focus-visible{background:transparent;border:
 .stats{display:grid;grid-template-columns:repeat(4,auto);gap:2px 10px;font:12px/1.5 var(--mono);margin:6px 0;color:var(--mute)}
 .stats b{color:var(--ink);display:block;font-size:14px}
 .habit{display:inline-block;font:12px/1.6 var(--mono);border:1px solid var(--rule);padding:0 6px;margin:2px 4px 2px 0;border-radius:2px}
-.ogrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
-.ocard{border:1px solid var(--rule);background:var(--panel);padding:8px;text-align:center}
-.ocard img{width:48px;height:48px;margin:4px auto 6px;background:#16252e;border:1px solid var(--rule)}
-.ocard.lock{color:var(--mute);border-style:dashed}
-.ocard.lock .q{display:grid;place-items:center;width:48px;height:48px;margin:4px auto 6px;font:700 20px var(--mono);border:1px dashed var(--rule)}
 .logl{list-style:none;padding:0;margin:0}
 .logl li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:baseline;padding:6px 0;border-top:1px dashed var(--rule)}
 .logl li:first-child{border-top:0}
@@ -897,7 +892,7 @@ body.th-home #main section.jr .bm button{background:#c9584a;color:#fff0b0;border
 body.th-home #main section.jr .bm button:nth-child(3n+2){background:#4a7486;border-bottom-color:#2f5163}
 body.th-home #main section.jr .bm button:nth-child(3n){background:#6f8a4c;border-bottom-color:#3d5a34}
 body.th-home #main section.jr .bm button.on{transform:translateY(-3px);box-shadow:0 3px 0 rgba(0,0,0,.25)}
-body.th-home #main section.jr .card,body.th-home #main section.jr .note,body.th-home #main section.jr .ocard{background:rgba(255,255,255,.35);border:1px solid #8a9aa0}
+body.th-home #main section.jr .card,body.th-home #main section.jr .note{background:rgba(255,255,255,.35);border:1px solid #8a9aa0}
 @media (max-width:560px){body.th-home #main section.jr{padding-left:40px}body.th-home #main section.jr::before{width:20px}body.th-home #main section.jr::after{left:32px}body.th-home #main section.chr,body.th-home #main section.chrp{padding:14px 26px}}
 body.th-home #main section.jr .note{color:#22313a;background:#f3eedf;border:1px solid #8a9aa0;box-shadow:0 3px 0 rgba(0,0,0,.12)}
 body.th-home #main section.jr .note .no,body.th-home #main section.jr .note .sig{color:#8f2f2b}
@@ -923,7 +918,6 @@ body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .
 .dial.px .bch{position:absolute;inset:0;width:100%;height:100%;border-radius:50%;image-rendering:pixelated}
 .dial.px .wedge{mix-blend-mode:screen}
 
-.ocard.empty{border:1px dashed rgba(200,180,140,.35);background:transparent;min-height:60px}
 /* v33: арена бою як сцена */
 .arf{border:12px solid transparent;border-image:var(--fr-stone) 4 / 12px round;box-shadow:0 6px 0 rgba(0,0,0,.4);background:#0b1418;width:100%;box-sizing:border-box}
 .arf.in{border-image:var(--fr-wood) 4 / 12px round}
@@ -1001,6 +995,16 @@ body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .
 .tut-cell.step{min-width:42px;background:transparent;border:1px dashed #66858b}
 .tut-cell i{position:absolute;bottom:4px;left:12%;width:76%;height:5px;background:#8fc46a;border:1px solid #101e27}
 .tut-cell.enemy i{background:#c9584a;width:55%}
+
+/* Полиця хранителя */
+.shelf-gallery{max-height:min(52vh,480px);overflow:auto;overscroll-behavior:contain;margin-top:8px;padding:2px 3px 4px}
+.shelf-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(82px,1fr));gap:6px}
+.shelf-slot{display:grid;justify-items:center;align-content:start;gap:3px;min-height:70px;padding:5px;font-size:12px;line-height:1.2;overflow-wrap:anywhere}
+.shelf-slot img,.shelf-item img{background:#16252e;border:1px solid var(--rule)}
+.shelf-space{min-height:70px;border:1px dashed var(--rule)}
+.shelf-item{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:start;margin:10px 0}
+.shelf-item h3{margin:0;font-size:1rem}
+.shelf-item p{overflow-wrap:anywhere}
 </style>
 </head>
 <body>
@@ -2608,7 +2612,7 @@ function KN(id){if(PPL.includes(id))return!!(s.met[id]||(id==='gnat'&&s.seenE.gn
 const U=x=>String(x==null?'':x).replace(/\{(\w+):([^|{}]*)\|([^{}]*)\}/g,(m,id,a,b)=>KN(id)?a:b);
 const ODI={gull:'o_gull',compass:'o_compass',flute:'o_flute',tooth:'o_tooth',eye:'o_eye',button:'o_button',fogbottle:'o_fog',star:'o_star',pipe:'o_pipe',holestone:'o_hole',minerlamp:'o_lamp',crabcrown:'o_crown',monkbell:'o_bell'};
 const TABV={chron:'Ти заводиш грубий зошит і виводиш першу дату. Колись хтось захоче знати, як усе було.',folk:'Шхери не порожні. У кожного селища своя пам’ять і свої рахунки.',tower:'Сходи ведуть угору, у темряву поверхів.',work:'Верстак, лещата й запах смоли. Тут можна щось змайструвати.',study:'Книжки, карти й скриня з хитрим замком. Остап жив тут довше, ніж будь-де.',hero:'Тіло пам’ятає більше, ніж розум. Час з’ясувати, на що ти здатен.',map:'З висоти шхери лежать, як на долоні.',trade:'Ярема розкладає товар просто на причалі.',journal:'Записки Остапа варто тримати разом.'};
-const TABINFO={chron:'Літопис маяка: доби, розділи й важливі події, позначені днями від Згасання. Тут видно, що і коли сталося.',folk:'Громади шхер: довіра людей, їхні прохання й те, що вони готові для тебе зробити.',talents:'Дерево талантів: шість гілок від простих основ до сильних умінь.',shore:'Берег під маяком: тут збирають плавник, розбирають уламки й рибалять.',tower:'Поверхи маяка. Кожен відбудований поверх відкриває нові можливості.',work:'Майстерня: верстак для спорядження й розбирання непотрібного, а з кузнею — удосконалення зброї.',study:'Кабінет Остапа: дослідження за знання й скриня з кодовим замком.',hero:'Хранитель: спорядження, рюкзак, пояс, майстерність зброї й розвиток.',map:'Мапа шхер: вирушай у знайдені місця, оглядай обрій і клич кораблі сигнальним вогнищем.',trade:'Крамниця Яреми: купуй, продавай.',journal:'Журнал хранителя: цілі, сюжет, записи, персонажі, бестіарій, дивини.'};
+const TABINFO={chron:'Літопис маяка: доби, розділи й важливі події, позначені днями від Згасання. Тут видно, що і коли сталося.',folk:'Громади шхер: довіра людей, їхні прохання й те, що вони готові для тебе зробити.',talents:'Дерево талантів: шість гілок від простих основ до сильних умінь.',shore:'Берег під маяком: тут збирають плавник, розбирають уламки й рибалять.',tower:'Поверхи маяка. Кожен відбудований поверх відкриває нові можливості.',work:'Майстерня: верстак для спорядження й розбирання непотрібного, а з кузнею — удосконалення зброї.',study:'Кабінет Остапа: дослідження за знання й скриня з кодовим замком.',hero:'Хранитель: спорядження, рюкзак, пояс, майстерність зброї й розвиток.',map:'Мапа шхер: вирушай у знайдені місця, оглядай обрій і клич кораблі сигнальним вогнищем.',trade:'Крамниця Яреми: купуй, продавай.',journal:'Журнал хранителя: цілі, сюжет, записи, персонажі, бестіарій і довідник.'};
 const FT=[
   {id:'grip',br:'melee',tier:0,n:'Міцна хватка',d:'+5% до влучання в ближньому бою.',req:{}},
   {id:'steady',br:'ranged',tier:0,n:'Тверда рука',d:'+5% до влучання пострілами.',req:{}},
@@ -3339,7 +3343,7 @@ function fresh(){return{
   f:{},c:{gather:0,fish:0,wins:0},cd:{},b:{},floors:{},rs:{},
   h:{lvl:1,xp:0,hp:25,pts:0,sp:0,fp:0,a:{str:2,dex:2,con:2,per:2,int:2},k:{melee:0,mech:0,stealth:0,speech:0,craft:0},ft:{}},
   eq:{weapon:'',ranged:'',armor:'',light:'',charm:''},inv:{},
-  pages:[],books:[],odd:{},met:{},seenE:{},kills:{},disc:{},done:{},visited:{},wrong:{},
+  pages:[],books:[],odd:{},oddRead:{},oddFate:{},shoreFindMiss:{},met:{},seenE:{},kills:{},disc:{},done:{},visited:{},wrong:{},
   chs:[],chv:2,bts:{},seenK:{},seenI:{},chSeen:0,at:'',cb:null,bell:[],bellFail:0,scans:0,jt:'goals',
   chest:[0,0,0],chestFail:0,stones:[0,1,3],stoneFail:0,mirrors:{A:'/',B:'/',C:'\\',D:'\\'},
   log:[{m:'Темрява. У долонях тліє жарина з великого вогню маяка.',t:'story'}],ts:Date.now(),t:0
@@ -3379,7 +3383,16 @@ const calm=()=>noGap()||(s.play||0)-(s.lastNov==null?-1e9:s.lastNov)>=NOVGAP;
 function unlock(t,quiet=false){if(!s.tabs[t]){s.tabs[t]=1;novMark();s.newTab[t]=1;if(SUBT[t]){s.newTab.tower=1;s.ttNew=typeof s.ttNew==='object'&&s.ttNew?s.ttNew:{};s.ttNew[t]=1}dirty=1;if(t==='hero'){if(s.h.xpb){const b=s.h.xpb;s.h.xpb=0;xp(b)}}const nm=(TABS.find(x=>x[0]===t)||[0,SUBT[t]||''])[1];if(t!=='shore'&&!quiet)dlg({k:'world',title:`Відкрито: ${nm}`,body:`<p>${TABV[t]||(TUT[t]?'':TABINFO[t])||''}${!TUT[t]&&TABV[t]&&TABINFO[t]?ih(TABINFO[t]):''}</p>`,gains:[SUBT[t]?`«${nm}» — у вкладці «Маяк».`:`Відкрилася вкладка «${nm}».`]});tutOffer(t)}}
 function page(n){if(!s.pages.includes(n)){s.pages.push(n);if(n===1)s.met.ostap=1;dlg({k:'story',title:n==='m'?'Записка Остапа без номера':`Записка Остапа, аркуш ${n}`,body:`<div class="note">${PG[n].replace(/ — О\.$/,'')}<span class="sig">— О.</span></div>`,gains:['Записку збережено в журналі.']});unlock('journal');dirty=1}}
 function book(id){if(!s.books.includes(id)){s.books.push(id);dirty=1}}
-function odd(id,pre){if(s.odd[id])return;s.odd[id]=1;s.oddNew=(s.oddNew||0)+1;xp(20);const item=OD[id];say((pre?pre+' ':'')+`Дивина: ${I(item.n)}. +${Math.round(20*XPST[stageNo()])} досвіду.`,'find');dlg({k:'find',odd:id,title:`Дивина: ${item.n}`,img:{t:'icon',id:ODI[id]},body:`<p>${pre?pre+' ':''}${item.d}</p>`,gains:['+20 досвіду',`Знайдено дивин: ${Object.keys(s.odd).length}`],btns:item.btns?.()})}
+function odd(id,pre){
+  const item=OD[id];
+  if(!item||s.odd[id])return;
+  s.odd[id]=1;s.oddNew=(s.oddNew||0)+1;
+  const reward=item.xp??20;
+  if(reward)xp(reward);
+  const line=(pre?pre+' ':'')+`Дивина: ${I(item.n)}.`;
+  say(reward?`${line} +${Math.round(reward*XPST[stageNo()])} досвіду.`:line,'find');
+  dlg({k:'find',odd:id,title:`Дивина: ${item.n}`,img:{t:'icon',id:ODI[id]},body:`<p>${pre?pre+' ':''}${item.d}</p>`,gains:reward?[`+${reward} досвіду`]:[],btns:item.btns?.()});
+}
 function reveal(id,quiet=false){if(!s.disc[id]){s.disc[id]=1;dirty=1;const L=LOC[id];mom('disc',L.n,L.d,{t:'scene',id:id==='bay'?'bayHigh':id});if(!quiet)dlg({k:'world',title:`Нове місце: ${L.n}`,img:{t:'scene',id:id==='bay'?'bayHigh':id},body:`<p>${L.d}</p>`,gains:['Нове місце на мапі.',L.sea?'Туди можна дістатися лише човном, і вихід у море коштує провізію.':'',L.dark?'Там темно: візьми в руку ліхтар.':''].filter(Boolean)})}}
 function boat(){s.f.boat=1;reveal('reef')}
 function logOf(x){return typeof x==='string'?{m:x,t:'info'}:x}
@@ -3498,7 +3511,7 @@ function checks(){const F=s.f;tutTick(false);mgHelpCheck();
   novPlanTick(true);novTick(false);novPlanTick(false);
   if(!s.tabs.chron&&s.chs.length&&!s.cb&&!(s.dlg||[]).some(d=>d.chap)&&novCan())unlock('chron');
   if(F.crabWarn&&!F.crab1&&!s.cb&&!(s.dlg||[]).some(d=>d.crabw))crabWarn();
-  raidCheck();tutTick();
+  raidCheck();tutTick();shoreFindTick();
 }
 
 
@@ -3984,7 +3997,9 @@ function fordPart(id){const P=FORD.find(p=>p.id===id);if(!P||!s.f.fordSeen||(s.f
   else say(`${P.n}: готово. Брід стає надійнішим.`,'build');return true}
 /* Калюжі на відпливі */
 function poolPick(){if(!tideLow()||onCd('pool'))return;setCd('pool',4);s.c.pool=(s.c.pool||0)+1;const n=1+(Math.random()<.4?1:0);add('fish',n);
-  if(typeof collFind==='function'&&Math.random()<((s.mst||{}).horpyna?.14:.07))collFind('pool');}
+  if(Math.random()<((s.mst||{}).horpyna?.14:.07)&&collFind('pool'))return;
+  queueShoreFind('pool');
+}
 /* Об'єкти берега: калюжа між камінням і кілок біля броду */
 function poolObj3(){const b=pbuf(34,14);hiRect(b,0,0,34,14,(i,j,x,y)=>{const d=((x-17)/16)**2+((y-8)/6)**2;if(d>1)return;const r=vnz(i,j,4,21);if(d>.62||r>.7)return r>.5?'F':'E';if(d>.5)return'D';return hh2(i,j)<.06?'u':y<7?'T':'S'});
   for(const[x,y]of[[8,7],[22,9],[14,10]]){pset(b,x,y,'x');pset(b,x+1,y,'D')}pset(b,26,5,'v');pset(b,27,5,'t');return b}
@@ -4059,30 +4074,115 @@ function shoreFightHS(W,H){const id=s.shf;if(!id)return'';const F=SHF[id],pos=F.
    Набір дає трохи сили героєві (частина «необов'язкових» 40 % прогресії). Без «N з M»: на полиці видно лише знайдене
    й одне-два порожні місця — натяк, що щось ще є. collFind(джерело) — випадкова ще не знайдена дивина з цього джерела. */
 Object.assign(OD,{
+  seaglass:{n:'Морське скло',d:'Хвилі сточили гострі краї. На світлі в зеленому склі проступають бульбашки, наче в застиглій воді.',xp:0},
+  amberbit:{n:'Шматочок бурштину',d:'Між камінцями він здавався звичайною смолою. Біля вогню всередині видно тонку хвойну голку.',xp:0},
+  oldhook:{n:'Старий гачок',d:'Кінчик притупився, зате вушко досі міцне. Хтось обв’язував його волосінню так щільно, що на міді лишився слід.',xp:0},
+  woodhorse:{n:'Дерев’яний коник',d:'Одне вухо сколоте, а на боці ще видно слід червоної фарби. Знизу хтось видряпав коліщатко.',xp:0,
+    gift:{label:'Подарувати Петрикові',ready:()=>!!s.f.horpyna,record:'Коник лишився в Петрика. Тепер він живе на підвіконні біля Горпининих сітей.',
+      react:()=>dlg({k:'story',title:'Коник для Петрика',img:{t:'icon',id:ODI.woodhorse},
+        body:'<p>Петрик оглядає сколоте вухо й усміхається. «То від вітру. Він дуже швидкий». Він ставить коника на підвіконня мордою до моря.</p>'})}},
   medallion:{n:'Мідний медальйон',d:'Море затерло візерунок. Під зеленою патиною ще видно дві тонкі риски. Вушко ціле, а шнурка немає.'},
   spiral:{n:'Спіральна мушля',d:'Закручена туго, як мотузка на кнехті. Таких біля маяка не буває — її принесло здалеку.',src:'pool',set:'shells'},
   pearl:{n:'Перламутрова стулка',d:'Усередині переливається, як олія на воді. Друга половинка десь на дні.',src:'pool',set:'shells'},
   ear:{n:'Мушля-вушко',d:'Прикладеш до вуха — чути не море, а далекий дзвін.',src:'pool',set:'shells'},
-  letter1:{n:'Лист у пляшці',d:'«Мамо, ми зимуємо на Причалі. Вогонь на маяку погас, і капітан каже, що з півночі йде туман, який не розвіює вітер…» Далі чорнило розпливлося.',src:'flot'},
+  letter1:{doc:true,n:'Лист у пляшці',d:'«Мамо, ми зимуємо на Причалі. Вогонь на маяку погас, і капітан каже, що з півночі йде туман, який не розвіює вітер…» Далі чорнило розпливлося.',src:'flot'},
   holecoin:{n:'Монета з дірочкою',d:'Карбування стерте. Хтось носив її на шиї — від утоплення, кажуть.',src:'flot'},
-  logpage:{n:'Сторінка суднового журналу',d:'«…туман прийшов не з моря, а з півночі, проти вітру. Боцман бачив у ньому людей. Ми звернули до маяка, але маяк мовчав…»',src:'rats'}});
-Object.assign(ODI,{medallion:'coin',spiral:'shell',pearl:'shell',ear:'shell',letter1:'lore',holecoin:'coin',logpage:'lore'});
+  logpage:{doc:true,n:'Сторінка суднового журналу',d:'«…туман прийшов не з моря, а з півночі, проти вітру. Боцман бачив у ньому людей. Ми звернули до маяка, але маяк мовчав…»',src:'rats'}});
+Object.assign(ODI,{seaglass:'o_glass',amberbit:'o_amber',oldhook:'o_hook',woodhorse:'o_horse',
+  medallion:'o_medallion',spiral:'o_spiral',pearl:'shell',ear:'o_ear',letter1:'o_letter',holecoin:'coin',logpage:'lore'});
+Object.assign(ICO,{
+  o_glass:['............','............','.....kll....','...kl666k...','..kl6776lk..','..k5666llk..','...k5lllk...','....kkkk....','............','............','............','............'],
+  o_amber:['............','............','.....ff.....','...fgggf....','..fghgggf...','..fggcggf...','..fgccggf...','...fggff....','....fff.....','............','............','............'],
+  o_hook:['............','.......ee...','......e..e..','.......ee...','........d...','........d...','...g....d...','...ed..ee...','....eeed....','............','............','............'],
+  o_horse:['............','....c.......','...ece......','..eede......','.eeede......','..ccdeeee...','....eeeeec..','....ejejecc.','....c..ce...','....c..c....','...ccc.cc...','............'],
+  o_medallion:['............','.....kk.....','....k..k....','.....dd.....','...deeed....','..deblled...','..debleed...','..debeled...','...deeed....','....ddd.....','............','............'],
+  o_spiral:['............','............','....nnn.....','..nmmmmn....','..nmnmmn....','.nmmnnmn....','.nmmmmmn....','..nmmnn.....','...nn.......','............','............','............'],
+  o_ear:['............','............','......bb....','....bb66b...','...b667b....','..b667b.....','..b66b......','...bb.......','............','............','............','............'],
+  o_letter:['............','.....cd.....','.....cd.....','.....45.....','....4665....','...46h665...','...46h665...','...456655...','....4444....','............','............','............'],
+  o_plate:['............','............','............','.dccddccd...','.dggdgdgd...','.dggdgdgd...','.dccddccd...','...c...c....','............','............','............','............'],
+  o_clapper:['............','.....kk.....','....k..k....','.....kd.....','.....ke.....','.....ke.....','.....kd.....','....kke.....','...kkeed....','...kkdd.....','............','............'],
+  o_ladle:['............','.........e..','........de..','.......de...','......de....','..ceeede....','.cdeeec.....','.cdddc......','..ccc.......','............','............','............']
+});
 const OSET={shells:{n:'Мушлі відпливу',gain:()=>{s.h.pts=(s.h.pts||0)+1},gt:'+1 очко характеристик'}};
 function collFind(src){const L=Object.keys(OD).filter(k=>OD[k].src===src&&!s.odd[k]);if(!L.length)return false;const id=L[Math.floor(Math.random()*L.length)];odd(id);setCheck(id);return true}
 function setCheck(id){const st=OD[id]&&OD[id].set;if(!st||(s.oset||{})[st])return;const all=Object.keys(OD).filter(k=>OD[k].set===st);if(!all.every(k=>s.odd[k]))return;
   s.oset=s.oset||{};s.oset[st]=1;OSET[st].gain();dlg({k:'find',title:`Набір: ${OSET[st].n}`,img:{t:'icon',id:ODI[id]},body:`<p>Речі лягли на полицю поруч — і разом вони щось розповідають. Здається, ти став уважнішим до світу.</p>`,gains:[OSET[st].gt]});if(OSET[st].after)OSET[st].after()}
+// Придатна ручна дія дає одну спробу після сюжетних перевірок.
+const SHORE_FINDS={
+  gather:{items:{seaglass:.05,woodhorse:.03},ready:()=>s.b.hearth&&s.c.gather>18,step:.015,max:.17},
+  scrapw:{items:{oldhook:.05},ready:()=>s.f.rod&&s.c.fish>=3&&s.c.scrap>=4,step:.015,max:.17},
+  pool:{items:{amberbit:.12},ready:()=>s.f.tideSeen&&tideLow(),step:.04,max:.28}
+};
+let shoreFindPending=null;
+function queueShoreFind(source){
+  if(s.tab==='shore'&&!s.dlg.length&&!s.tutPending.some(tutReady))shoreFindPending={source,log:s.log[0]};
+}
+function shoreFindTick(){
+  const pending=shoreFindPending;
+  shoreFindPending=null;
+  if(!pending||s.tab!=='shore'||s.cb||s.raid||s.dlg.length||s.tutPending.some(tutReady))return;
+  if(s.log[0]!==pending.log&&['story','find','fight'].includes(s.log[0]?.t))return;
+  const source=pending.source,cfg=SHORE_FINDS[source];
+  const id=Object.keys(cfg.items).find(k=>!s.odd[k]);
+  if(!id||!cfg.ready())return;
+  const base=cfg.items[id],misses=s.shoreFindMiss[source]||0;
+  if(Math.random()<Math.min(cfg.max,base+misses*cfg.step)){
+    s.shoreFindMiss[source]=0;
+    odd(id);save();
+  }else s.shoreFindMiss[source]=Math.min(misses+1,Math.ceil((cfg.max-base)/cfg.step));
+}
+
+function readOddDocument(id){
+  if(!OD[id]?.doc||!s.odd[id]||s.oddRead[id])return;
+  s.oddRead[id]=1;dirty=1;
+}
+const oddDocumentIds=()=>Object.keys(OD).filter(id=>OD[id].doc&&s.odd[id]&&s.oddRead[id]);
+
 /* Полиця в нижній залі */
-function shelf3(n){const b=pbuf(40,26);prect(b,0,0,40,26,'V');prect(b,1,1,38,24,'x');for(const y of[11,24]){prect(b,1,y,38,2,'W');prect(b,1,y,38,1,'Y')}
-  for(let k=0;k<Math.min(8,n);k++){const x=3+(k%4)*9,y=k<4?4:17;prect(b,x,y+3,5,4,['O','N','e','H','6','T','b','g'][k%8]);prect(b,x+1,y+2,3,1,'u')}return b}
+let shelfSelected='';
+const shelfIcon=id=>s.oddFate[id]?'lore':ODI[id];
+const shelfItems=()=>Object.keys(s.odd).filter(id=>s.odd[id]&&OD[id]);
+
+function shelf3(ids){
+  const cols=ids.length>6?4:3,rows=Math.ceil(ids.length/cols);
+  const w=cols*12+4,h=rows*14+2,b=pbuf(w,h);
+  prect(b,0,0,w,h,'V');prect(b,2,1,w-4,h-2,'x');
+  for(let row=0;row<rows;row++){
+    prect(b,1,row*14+13,w-2,3,'W');prect(b,1,row*14+13,w-2,1,'Y');
+  }
+  ids.forEach((id,index)=>pblit(b,(ICO[shelfIcon(id)]||ICO.crate),2+(index%cols)*12,1+Math.floor(index/cols)*14));
+  return b;
+}
 globalThis.shelf3=HI(shelf3);
-function shelfHS(W,H){const n=Object.keys(s.odd).length;if(!s.b.hearth||!n)return'';const[x,y,w,h]=twBox('hall');
-  return ob('cl:shelf','bpop','cl:shelf',obURL('shelf3:'+Math.min(8,n),()=>shelf3(n)),x+w-48,y+14,W,H,'Полиця хранителя','<b>Полиця хранителя</b><br>Дивини, які дало море.',{pulse:(s.oddNew||0)>0?1:0,z:290})}
-function shelfPopHTML(){s.oddNew=0;const got=Object.keys(OD).filter(k=>s.odd[k]),sets=Object.keys(OSET).filter(st=>got.some(k=>OD[k].set===st));
-  return`<div class="bpop wide" role="dialog" aria-label="Полиця хранителя"><div class="bph"><b>Полиця хранителя</b><button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div>
-  <div class="ogrid">${got.map(k=>`<div class="ocard">${pimg(icoURL(ODI[k]),40,40,'',OD[k].n)}<b class="itm">${OD[k].n}</b><br><span class="m">${OD[k].d}</span></div>`).join('')}<div class="ocard empty" aria-hidden="true"></div><div class="ocard empty" aria-hidden="true"></div></div>
-  ${martinLadleReady()?btn('Показати черпак Зиновію','martinLadle'):''}
-  ${martinLogReady()?btn(MARTIN_LOG_LABEL,'martinLog'):''}
-  ${sets.map(st=>(s.oset||{})[st]?`<p class="m">✓ ${OSET[st].n}: набір зібрано (${OSET[st].gt}).</p>`:`<p class="hint">${OSET[st].n}: здається, на полиці бракує ще чогось схожого.</p>`).join('')}</div>`}
+function shelfHS(W,H){
+  const found=shelfItems();
+  if(!s.b.hearth||!found.length)return'';
+  const ids=found.slice(-12),[x,y,w]=twBox('hall');
+  const art=obURL('shelf3:'+ids.map(id=>shelfIcon(id)).join(','),()=>shelf3(ids));
+  return ob('cl:shelf','bpop','cl:shelf',art,x+w-art[2]-5,y+54-art[3],W,H,'Полиця хранителя','<b>Полиця хранителя</b><br>Дивини, які дало море.',{pulse:(s.oddNew||0)>0?1:0,z:290});
+}
+function shelfPopHTML(){
+  s.oddNew=0;
+  const got=shelfItems(),id=shelfSelected,item=s.odd[id]&&OD[id];
+  let content;
+  if(item){
+    const gift=item.gift,fate=s.oddFate[id]&&gift?.record;
+    const unread=item.doc&&!s.oddRead[id];
+    const show=item.show?.ready()?btn(item.show.label,item.show.act):'';
+    const give=gift?.ready()&&!fate?btn(gift.label,'shelfGive',id):'';
+    const read=unread?btn('Прочитати','shelfRead',id):'';
+    content=`<div class="shelf-item">${pimg(icoURL(shelfIcon(id)),56,56,'','')}
+      <div><h3>${item.n}</h3><p>${fate||(unread?'Можна розгорнути й прочитати.':item.d)}</p></div></div>
+      <div class="act">${read}${show}${give}${btn('До полиці','shelfInspect','',{cls:'toggle'})}</div>`;
+  }else{
+    const sets=Object.keys(OSET).filter(st=>got.some(k=>OD[k].set===st));
+    const tiles=got.map(k=>`<button type="button" class="shelf-slot" data-a="shelfInspect" data-i="${k}">
+      ${pimg(icoURL(shelfIcon(k)),36,36,'','')}<span>${OD[k].n}</span></button>`).join('');
+    content=`<div class="shelf-gallery"><div class="shelf-grid">${tiles}<i class="shelf-space" aria-hidden="true"></i></div>
+      ${sets.map(st=>(s.oset||{})[st]?`<p class="m">✓ ${OSET[st].n}: набір зібрано (${OSET[st].gt}).</p>`:`<p class="hint">${OSET[st].n}: здається, на полиці бракує ще чогось схожого.</p>`).join('')}</div>`;
+  }
+  return `<div class="bpop wide shelf-pop" role="dialog" aria-label="Полиця хранителя"><div class="bph"><b>Полиця хранителя</b><button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div>${content}</div>`;
+}
 /* ============ ЕТАП I: ІНСТРУМЕНТИ Й ПЕРШИЙ СЕКРЕТ ============
    Граблі — перший інструмент, що змінює берег: уламок віддає більше брухту.
    Три камені з вибитими літерами: перший — на піску біля маяка, другий виходить із води на відпливі,
@@ -4148,29 +4248,44 @@ Object.assign(OD,{
   mbell:{n:'Язичок суднового дзвона',d:'Мідний, позеленілий. На «Мартині» ним відбивали склянки кожні пів години.',src:'seal',set:'martin'},
   mladle:{n:'Черпак кока',d:'Дерев’яний черпак, на держаку вирізана рибка. Хтось дуже ним дорожив.',src:'seal',set:'martin'}});
 OD.logpage.set='martin';
-Object.assign(ODI,{mplate:'lore',mbell:'key',mladle:'shell'});
+Object.assign(ODI,{mplate:'o_plate',mbell:'o_clapper',mladle:'o_ladle'});
 OSET.martin={n:'Речі з «Мартина»',gain:()=>{s.h.fp=(s.h.fp||0)+1;s.f.martinSet=1},gt:'+1 талант до вибору',
   after:()=>dlg({k:'story',title:'Прощання з «Мартином»',img:{t:'face',id:'zinovii'},body:`<p>Зиновій довго тримає в руках свій черпак. ${Q('Двадцять років я варив на «Мартині». Нехай хоч речі його будуть біля вогню')}. Він ставить їх на полицю, поруч одну з одною, і вперше відтоді, як прийшов, усміхається.</p>`})};
 
-const martinLadleReady=()=>!!(s.f.zinovii&&s.odd.mladle&&!s.f.martinLadleStory&&!s.f.martinSet);
-function martinLadleTalk(){
-  if(!martinLadleReady())return;
+const MARTIN_LADLE_LABEL='Показати черпак Зиновію';
+const martinLadleReady=()=>!!(s.f.zinovii&&s.odd.mladle&&!s.f.martinLadleStory);
+OD.mladle.show={label:MARTIN_LADLE_LABEL,act:'martinLadle',ready:martinLadleReady};
+OD.mladle.btns=()=>martinLadleReady()?[
+  ['Продовжити','dlgok'],
+  [MARTIN_LADLE_LABEL,'martinLadle','find']
+]:undefined;
+function martinLadleTalk(fromFind){
+  if(!martinLadleReady()||(fromFind?s.dlg[0]?.odd!=='mladle':s.dlg.length>0))return;
   s.f.martinLadleStory=1;
-  dlg({k:'story',title:'Рибка на держаку',img:{t:'face',id:'zinovii'},
-    body:`<p>Зиновій бере черпак і обертає держак до світла. ${Q('Оцю рибку вирізав наш стерновий. Казав, що в шторм навіть на юшку треба мати свого стернового')}.</p><p>Він витирає з дерева сіль рукавом і кладе черпак назад на полицю.</p>`})
+  const opening=s.f.martinSet&&!fromFind
+    ? 'Зиновій підходить до полиці, де вони лишили речі після прощання з «Мартином». Бере черпак і обертає держак до світла.'
+    : 'Зиновій бере черпак і обертає держак до світла.';
+  const story={k:'story',title:'Рибка на держаку',img:{t:'face',id:'zinovii'},
+    body:`<p>${opening} ${Q('Оцю рибку вирізав наш стерновий. Казав, що в шторм навіть на юшку треба мати свого стернового')}.</p><p>Він витирає з дерева сіль рукавом і кладе черпак назад на полицю.</p>`};
+  if(fromFind){s.dlg[0]=story;dirty=1}
+  else dlg(story);
 }
 
 const MARTIN_LOG_LABEL='Показати сторінку Зиновію';
-const martinLogReady=()=>!!(s.odd.logpage&&s.f.zinovii&&!s.f.tracks&&!s.f.martinLogStory);
+const martinLogReady=()=>!!(s.odd.logpage&&s.f.zinovii&&!s.f.martinLogStory);
+OD.logpage.show={label:MARTIN_LOG_LABEL,act:'martinLog',ready:martinLogReady};
 OD.logpage.btns=()=>martinLogReady()?[
   ['Продовжити','dlgok'],
   [MARTIN_LOG_LABEL,'martinLog','find']
 ]:undefined;
 function martinLogTalk(fromFind){
   if(!martinLogReady()||(fromFind?s.dlg[0]?.odd!=='logpage':s.dlg.length>0))return;
-  s.f.martinLogStory=1;
+  s.f.martinLogStory=1;readOddDocument('logpage');
+  const memory=s.f.tracks
+    ? 'Пам’ятаєш сліди біля маяка? Коли ми їх побачили, я впізнав той холодний пісок. На «Мартині» він лежав біля дверей камбуза.'
+    : 'Отут він приписав: «Палуба суха, а біля дверей пісок». Ми тоді ще не знали, звідки той пісок';
   const story={k:'story',title:'На полях журналу',img:{t:'face',id:'zinovii'},
-    body:`<p>Зиновій нахиляє аркуш до вогню. На полях проступають дві нерівні лінії, від намальованого борту до дверей камбуза.</p><p>${Q('Боцманів почерк. Він усе занотовував, навіть коли здавалося, що то дрібниця. Отут він приписав: «Палуба суха, а біля дверей пісок». Ми тоді ще не знали, звідки той пісок')}.</p>`};
+    body:`<p>Зиновій нахиляє аркуш до вогню. На полях проступають дві нерівні лінії, від намальованого борту до дверей камбуза.</p><p>${Q('Боцманів почерк. Він усе занотовував, навіть коли здавалося, що то дрібниця. '+memory)}.</p>`};
   if(fromFind){s.dlg[0]=story;dirty=1}
   else dlg(story);
 }
@@ -4733,10 +4848,10 @@ function act0(a,i){
   if(a==='tutList'){tutLibrary();return}
   if(a==='tutRead'){tutRead(i);return}
   if(a==='tutFight'){tutFight();return}
-  if(a==='dlgok'){(s.dlg||[]).shift();dirty=1;return}
+  if(a==='dlgok'){readOddDocument((s.dlg||[]).shift()?.odd);dirty=1;return}
   if(a==='bellOpen'){s.bellHold=0;dirty=1;return}
   if(a==='bellDefer'){s.bellHold=1;dirty=1;return}
-  if(a==='bpop'){popB=popB===i?'':(i||'');dirty=1;return}
+  if(a==='bpop'){popB=popB===i?'':(i||'');if(popB==='cl:shelf')shelfSelected='';dirty=1;return}
   if(a==='hsgo'||a==='hsbd'){hlT=(a==='hsbd'?'bd-':'sec-')+i;dirty=1;return}
   if(a==='novgo'){(s.dlg||[]).shift();if(!s.cb&&s.tabs.hero){s.tab='hero';s.ht=i}dirty=1;return}
   if(a==='dlggo'){(s.dlg||[]).shift();if(!s.cb&&s.tabs[i])s.tab=i;dirty=1;return}
@@ -4761,7 +4876,9 @@ function act0(a,i){
   case 'hook':if(shoreHookReady()&&afford(HOOKC)){pay(HOOKC);F.hook=1;novUse('tool:hook');tutOffer('hook');dlg({k:'find',title:'Багор',img:{t:'ob',k:'hook3',f:'hookObj3'},body:'<p>Ти прив’язуєш до довгої жердини зігнутий цвях із уламків. Тепер плавник, що пропливає за кілька кроків від берега, теж твій.</p>'})}break;
   case 'gather':if(!onCd('gather')){setCd('gather',1);add('wood',wolf()*(F.hook?2:1));s.c.gather++;
     if(s.c.gather===6){say('Між водоростями блищить пляшка, заткнута воском. Усередині записка. Відкрито: Журнал.','story');page(1)}
-    if(s.c.gather===60)odd('gull','У плавнику застрягла вирізана з дерева чайка.')}break;
+    if(s.c.gather===60)odd('gull','У плавнику застрягла вирізана з дерева чайка.');
+    if(s.c.gather!==6&&s.c.gather!==60)queueShoreFind('gather');
+  }break;
   case 'drybuild':dryBuild();break;
   case 'dryload':dryLoad();break;
   case 'drytake':dryTake();break;
@@ -4775,9 +4892,21 @@ function act0(a,i){
   case 'wlesson':wLesson();break;
   case 'three':threeLights();break;
   case 'cache':cacheOpen();break;
-  case 'martinLadle':martinLadleTalk();break;
+  case 'shelfInspect':if(popB==='cl:shelf'&&(!i||OD[i]&&s.odd[i]))shelfSelected=i;break;
+  case 'shelfRead':if(popB==='cl:shelf')readOddDocument(i);break;
+  case 'shelfGive':if(popB==='cl:shelf'&&s.odd[i]){
+    const gift=OD[i]?.gift;
+    if(gift?.ready()&&!s.oddFate[i]&&!s.dlg.length){
+      s.oddFate[i]=1;gift.react();
+    }
+  }break;
+  case 'martinLadle':martinLadleTalk(i==='find');break;
   case 'martinLog':martinLogTalk(i==='find');break;
-  case 'scrapw':if(F.wreck&&!onCd('scrapw')){setCd('scrapw',2);s.c.scrap=(s.c.scrap||0)+1;add('scrap',1+(s.rs.metal?1:0)+(s.h.ft.thrifty?1:0)+(has('rake')?1:0))}break;
+  case 'scrapw':if(F.wreck&&!onCd('scrapw')){
+    setCd('scrapw',2);s.c.scrap=(s.c.scrap||0)+1;
+    add('scrap',1+(s.rs.metal?1:0)+(s.h.ft.thrifty?1:0)+(has('rake')?1:0));
+    queueShoreFind('scrapw');
+  }break;
   case 'fishing':if(F.rod&&!onCd('fishing')){
     setCd('fishing',3);add('fish',wolf());s.c.fish++;
     if(!F.crab1&&!F.crabWarn&&s.c.fish>=5){F.crabWarn=1;crabWarn()}
@@ -5244,11 +5373,11 @@ function rTradeList(){let h=`<section class="spot">${pimg(faceURL('yarema'),64,6
   return h+`</section>`}
 
 function ago(at){if(!at)return'';const m=Math.floor((Date.now()-at)/60000);return m<1?'щойно':m<60?`${m} хв тому`:`${Math.floor(m/60)} год тому`}
-function rJournal(){const nOdd=Object.keys(s.odd).length,nOD=Object.keys(OD).length,kills=Object.values(s.kills).reduce((a,b)=>a+b,0);
-  const sub=[['goals','Цілі',1],['story','Сюжет',s.chs.length||Object.keys(s.bts||{}).length],['pages','Записи Остапа',s.pages.length],['chars','Персонажі',Object.keys(s.met).length],['foes','Бестіарій',Object.keys(s.seenE).filter(k=>EN[k]&&!EN[k].obj&&!EN[k].ally).length],['odd','Дивини',nOdd],['gloss','Словник',Object.keys(s.glSeen||{}).length],['log','Події',1],['help','Довідник',tutIds().length]].filter(x=>x[2]);
+function rJournal(){const documents=oddDocumentIds(),kills=Object.values(s.kills).reduce((a,b)=>a+b,0);
+  const sub=[['goals','Цілі',1],['story','Сюжет',s.chs.length||Object.keys(s.bts||{}).length],['pages','Записи Остапа',s.pages.length],['chars','Персонажі',Object.keys(s.met).length],['foes','Бестіарій',Object.keys(s.seenE).filter(k=>EN[k]&&!EN[k].obj&&!EN[k].ally).length],['documents','Прочитані документи',documents.length],['gloss','Словник',Object.keys(s.glSeen||{}).length],['log','Події',1],['help','Довідник',tutIds().length]].filter(x=>x[2]);
   if(!sub.some(x=>x[0]===s.jt))s.jt='goals';
   let h=`<section class="jr"><div class="jhead"><div><h2>Журнал хранителя</h2><span class="hand">Записано рукою того, хто береже вогонь</span></div>
-  <div class="chips"><span class="chip">розділів пройдено <b>${s.chs.length}</b></span><span class="chip">записок <b>${s.pages.length}</b></span><span class="chip">дивин <b>${nOdd}</b></span><span class="chip">перемог <b>${kills}</b></span></div></div>
+  <div class="chips"><span class="chip">розділів пройдено <b>${s.chs.length}</b></span><span class="chip">записок <b>${s.pages.length}</b></span><span class="chip">перемог <b>${kills}</b></span></div></div>
   <div class="bm" role="tablist">${sub.map(x=>btn(x[1],'jt',x[0],{cls:s.jt===x[0]?'on':''})).join('')}</div>`;
   if(s.jt==='goals'){const gs=GO.filter(g=>g[1]());const cur=gs.find(g=>!g[2]());
     h+=`<ul class="goals">${gs.map(g=>{const dn=g[2]();return`<li class="${dn?'off':g===cur?'now':''}"><span class="box" aria-hidden="true">${dn?'✓':''}</span><span>${g[0]()}${g===cur?' <span class="stt on">зараз</span>':''}</span></li>`}).join('')}</ul>`;
@@ -5263,7 +5392,7 @@ function rJournal(){const nOdd=Object.keys(s.odd).length,nOD=Object.keys(OD).len
   if(s.jt==='foes')h+=`<div class="cards">${Object.keys(EN).filter(k=>s.seenE[k]&&!EN[k].obj&&!EN[k].ally).map(k=>{const e=EN[k];return`<div class="card"><div class="pcard">${pimg(sprURL(k),64,64,'',e.n)}<div><b class="foe">${e.n}</b><span class="m">${e.d}</span></div></div>
     <div class="stats"><span>здоров’я<b>${e.hp}</b></span><span>броня<b>${e.arm}</b></span><span>ухилення<b>${e.eva}%</b></span><span>хід<b>${e.mv}${e.fly?' лет':''}${e.swim?' вода':''}</b></span></div>
     <div>${e.p.map(x=>`<span class="habit">${x[2].toLowerCase()}${x[1]&&x[0]!=='heal'?' '+x[1]:''}</span>`).join('')}</div><p class="m" style="margin:6px 0 0">Переможено: ${s.kills[k]||0}</p></div>`}).join('')}</div>`;
-  if(s.jt==='odd')h+=`<div class="ogrid">${Object.keys(OD).filter(k=>s.odd[k]).map(k=>`<div class="ocard">${pimg(icoURL(ODI[k]),48,48,'',OD[k].n)}<b class="itm">${OD[k].n}</b><br><span class="m">${OD[k].d}</span></div>`).join('')}</div><p class="m" style="margin-top:8px">${nOdd?'Кожна дивина дає 20 досвіду. Шхери ховають ще чимало дивного.':'Поки жодної. Придивляйся до дрібниць: море викидає дивні речі.'}</p>`;
+  if(s.jt==='documents')h+=`<div class="notes">${documents.map(id=>`<article class="note"><h3>${OD[id].n}</h3><p>${OD[id].d}</p></article>`).join('')}</div>`;
   if(s.jt==='gloss')h+=`<p class="m ink">Старі морські слова, які трапляються в записах. У тексті вони підкреслені пунктиром: наведи курсор або торкнися, щоб побачити пояснення.</p><dl class="gloss">${GLOS.filter(g=>(s.glSeen||{})[g[0]]).map(g=>`<dt><b>${g[1]}</b></dt><dd class="ink">${g[2].charAt(0).toUpperCase()+g[2].slice(1)}</dd>`).join('')}</dl>`;
   if(s.jt==='help')h+='<p class="m">Пояснення вже відкритих механік.</p>'+tutListHTML();
   if(s.jt==='log')h+=`<ul class="logl">${s.log.slice(0,40).map(x=>{x=logOf(x);return`<li><span class="tag t-${x.t}">${TAGN[x.t]}</span><span class="ev-text">${x.m}</span><time>${ago(x.at)}</time></li>`}).join('')}</ul>`;
@@ -6804,6 +6933,10 @@ function save(){s.ts=Date.now();try{localStorage.setItem(KEY,JSON.stringify(s))}
 function load(){try{const raw=localStorage.getItem(KEY);if(!raw)return;const d=JSON.parse(raw),f=fresh();
   for(const k in d){if(f[k]&&typeof f[k]==='object'&&!Array.isArray(f[k])&&d[k]&&typeof d[k]==='object'&&!Array.isArray(d[k]))f[k]=Object.assign(f[k],d[k]);else f[k]=d[k]}
   s=f;if(s.cb&&!s.cb.u)s.cb=null;
+  if(s.jt==='odd')s.jt='goals';
+  if(!d.oddRead)for(const id of Object.keys(OD)){
+    if(OD[id].doc&&s.odd[id]&&!s.dlg.some(item=>item.odd===id))s.oddRead[id]=1;
+  }
   if(s.f.hook){s.f.hookPlan=1;if(!s.tutSeen.hook)tutRemember('hook')}
   if(s.f.rod||s.floors.work)s.f.rodPlan=1;
   if(has('rake')&&!s.tutSeen.rake)tutRemember('rake');
@@ -6846,7 +6979,7 @@ document.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse')return;co
   if(!el.closest('button')){showTip(el,e.clientX,e.clientY);setTimeout(hideTip,4000);return}
   clearTimeout(lpT);lpF=0;const x=e.clientX,y=e.clientY;lpT=setTimeout(()=>{lpF=1;showTip(el,x,y)},450)});
 document.addEventListener('pointerup',()=>clearTimeout(lpT));
-document.addEventListener('click',e=>{if(popB&&!e.target.closest('.bpop')&&!e.target.closest('[data-a="bpop"]')){popB='';dirty=1;if(!e.target.closest('[data-a]'))render()}},true);
+document.addEventListener('click',e=>{if(popB&&!e.target.closest('.bpop,[data-a="bpop"]')&&!(popB==='cl:shelf'&&e.target.closest('#dlg'))){popB='';dirty=1;if(!e.target.closest('[data-a]'))render()}},true);
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&popB){popB='';render()}});
 if(typeof addEventListener==='function')addEventListener('resize',()=>{if(popB)placePop()});
 document.addEventListener('toggle',e=>{const d=e.target;if(d&&d.isConnected&&d.classList.contains('shore-alist'))shoreListOpen=d.open?1:0;if(d&&d.classList&&d.classList.contains('ledg'))s.ldOpen=d.open?1:0;if(d&&d.classList&&d.classList.contains('sett'))ftOpen=d.open?1:0},true);

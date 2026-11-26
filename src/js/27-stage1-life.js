@@ -14,29 +14,44 @@ Object.assign(OD,{
   mbell:{n:'Язичок суднового дзвона',d:'Мідний, позеленілий. На «Мартині» ним відбивали склянки кожні пів години.',src:'seal',set:'martin'},
   mladle:{n:'Черпак кока',d:'Дерев’яний черпак, на держаку вирізана рибка. Хтось дуже ним дорожив.',src:'seal',set:'martin'}});
 OD.logpage.set='martin';
-Object.assign(ODI,{mplate:'lore',mbell:'key',mladle:'shell'});
+Object.assign(ODI,{mplate:'o_plate',mbell:'o_clapper',mladle:'o_ladle'});
 OSET.martin={n:'Речі з «Мартина»',gain:()=>{s.h.fp=(s.h.fp||0)+1;s.f.martinSet=1},gt:'+1 талант до вибору',
   after:()=>dlg({k:'story',title:'Прощання з «Мартином»',img:{t:'face',id:'zinovii'},body:`<p>Зиновій довго тримає в руках свій черпак. ${Q('Двадцять років я варив на «Мартині». Нехай хоч речі його будуть біля вогню')}. Він ставить їх на полицю, поруч одну з одною, і вперше відтоді, як прийшов, усміхається.</p>`})};
 
-const martinLadleReady=()=>!!(s.f.zinovii&&s.odd.mladle&&!s.f.martinLadleStory&&!s.f.martinSet);
-function martinLadleTalk(){
-  if(!martinLadleReady())return;
+const MARTIN_LADLE_LABEL='Показати черпак Зиновію';
+const martinLadleReady=()=>!!(s.f.zinovii&&s.odd.mladle&&!s.f.martinLadleStory);
+OD.mladle.show={label:MARTIN_LADLE_LABEL,act:'martinLadle',ready:martinLadleReady};
+OD.mladle.btns=()=>martinLadleReady()?[
+  ['Продовжити','dlgok'],
+  [MARTIN_LADLE_LABEL,'martinLadle','find']
+]:undefined;
+function martinLadleTalk(fromFind){
+  if(!martinLadleReady()||(fromFind?s.dlg[0]?.odd!=='mladle':s.dlg.length>0))return;
   s.f.martinLadleStory=1;
-  dlg({k:'story',title:'Рибка на держаку',img:{t:'face',id:'zinovii'},
-    body:`<p>Зиновій бере черпак і обертає держак до світла. ${Q('Оцю рибку вирізав наш стерновий. Казав, що в шторм навіть на юшку треба мати свого стернового')}.</p><p>Він витирає з дерева сіль рукавом і кладе черпак назад на полицю.</p>`})
+  const opening=s.f.martinSet&&!fromFind
+    ? 'Зиновій підходить до полиці, де вони лишили речі після прощання з «Мартином». Бере черпак і обертає держак до світла.'
+    : 'Зиновій бере черпак і обертає держак до світла.';
+  const story={k:'story',title:'Рибка на держаку',img:{t:'face',id:'zinovii'},
+    body:`<p>${opening} ${Q('Оцю рибку вирізав наш стерновий. Казав, що в шторм навіть на юшку треба мати свого стернового')}.</p><p>Він витирає з дерева сіль рукавом і кладе черпак назад на полицю.</p>`};
+  if(fromFind){s.dlg[0]=story;dirty=1}
+  else dlg(story);
 }
 
 const MARTIN_LOG_LABEL='Показати сторінку Зиновію';
-const martinLogReady=()=>!!(s.odd.logpage&&s.f.zinovii&&!s.f.tracks&&!s.f.martinLogStory);
+const martinLogReady=()=>!!(s.odd.logpage&&s.f.zinovii&&!s.f.martinLogStory);
+OD.logpage.show={label:MARTIN_LOG_LABEL,act:'martinLog',ready:martinLogReady};
 OD.logpage.btns=()=>martinLogReady()?[
   ['Продовжити','dlgok'],
   [MARTIN_LOG_LABEL,'martinLog','find']
 ]:undefined;
 function martinLogTalk(fromFind){
   if(!martinLogReady()||(fromFind?s.dlg[0]?.odd!=='logpage':s.dlg.length>0))return;
-  s.f.martinLogStory=1;
+  s.f.martinLogStory=1;readOddDocument('logpage');
+  const memory=s.f.tracks
+    ? 'Пам’ятаєш сліди біля маяка? Коли ми їх побачили, я впізнав той холодний пісок. На «Мартині» він лежав біля дверей камбуза.'
+    : 'Отут він приписав: «Палуба суха, а біля дверей пісок». Ми тоді ще не знали, звідки той пісок';
   const story={k:'story',title:'На полях журналу',img:{t:'face',id:'zinovii'},
-    body:`<p>Зиновій нахиляє аркуш до вогню. На полях проступають дві нерівні лінії, від намальованого борту до дверей камбуза.</p><p>${Q('Боцманів почерк. Він усе занотовував, навіть коли здавалося, що то дрібниця. Отут він приписав: «Палуба суха, а біля дверей пісок». Ми тоді ще не знали, звідки той пісок')}.</p>`};
+    body:`<p>Зиновій нахиляє аркуш до вогню. На полях проступають дві нерівні лінії, від намальованого борту до дверей камбуза.</p><p>${Q('Боцманів почерк. Він усе занотовував, навіть коли здавалося, що то дрібниця. '+memory)}.</p>`};
   if(fromFind){s.dlg[0]=story;dirty=1}
   else dlg(story);
 }

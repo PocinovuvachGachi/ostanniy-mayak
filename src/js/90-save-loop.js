@@ -3,6 +3,10 @@ function save(){s.ts=Date.now();try{localStorage.setItem(KEY,JSON.stringify(s))}
 function load(){try{const raw=localStorage.getItem(KEY);if(!raw)return;const d=JSON.parse(raw),f=fresh();
   for(const k in d){if(f[k]&&typeof f[k]==='object'&&!Array.isArray(f[k])&&d[k]&&typeof d[k]==='object'&&!Array.isArray(d[k]))f[k]=Object.assign(f[k],d[k]);else f[k]=d[k]}
   s=f;if(s.cb&&!s.cb.u)s.cb=null;
+  if(s.jt==='odd')s.jt='goals';
+  if(!d.oddRead)for(const id of Object.keys(OD)){
+    if(OD[id].doc&&s.odd[id]&&!s.dlg.some(item=>item.odd===id))s.oddRead[id]=1;
+  }
   if(s.f.hook){s.f.hookPlan=1;if(!s.tutSeen.hook)tutRemember('hook')}
   if(s.f.rod||s.floors.work)s.f.rodPlan=1;
   if(has('rake')&&!s.tutSeen.rake)tutRemember('rake');
@@ -45,7 +49,7 @@ document.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse')return;co
   if(!el.closest('button')){showTip(el,e.clientX,e.clientY);setTimeout(hideTip,4000);return}
   clearTimeout(lpT);lpF=0;const x=e.clientX,y=e.clientY;lpT=setTimeout(()=>{lpF=1;showTip(el,x,y)},450)});
 document.addEventListener('pointerup',()=>clearTimeout(lpT));
-document.addEventListener('click',e=>{if(popB&&!e.target.closest('.bpop')&&!e.target.closest('[data-a="bpop"]')){popB='';dirty=1;if(!e.target.closest('[data-a]'))render()}},true);
+document.addEventListener('click',e=>{if(popB&&!e.target.closest('.bpop,[data-a="bpop"]')&&!(popB==='cl:shelf'&&e.target.closest('#dlg'))){popB='';dirty=1;if(!e.target.closest('[data-a]'))render()}},true);
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&popB){popB='';render()}});
 if(typeof addEventListener==='function')addEventListener('resize',()=>{if(popB)placePop()});
 document.addEventListener('toggle',e=>{const d=e.target;if(d&&d.isConnected&&d.classList.contains('shore-alist'))shoreListOpen=d.open?1:0;if(d&&d.classList&&d.classList.contains('ledg'))s.ldOpen=d.open?1:0;if(d&&d.classList&&d.classList.contains('sett'))ftOpen=d.open?1:0},true);

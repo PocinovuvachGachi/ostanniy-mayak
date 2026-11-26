@@ -352,11 +352,11 @@ function rTradeList(){let h=`<section class="spot">${pimg(faceURL('yarema'),64,6
   return h+`</section>`}
 
 function ago(at){if(!at)return'';const m=Math.floor((Date.now()-at)/60000);return m<1?'щойно':m<60?`${m} хв тому`:`${Math.floor(m/60)} год тому`}
-function rJournal(){const nOdd=Object.keys(s.odd).length,nOD=Object.keys(OD).length,kills=Object.values(s.kills).reduce((a,b)=>a+b,0);
-  const sub=[['goals','Цілі',1],['story','Сюжет',s.chs.length||Object.keys(s.bts||{}).length],['pages','Записи Остапа',s.pages.length],['chars','Персонажі',Object.keys(s.met).length],['foes','Бестіарій',Object.keys(s.seenE).filter(k=>EN[k]&&!EN[k].obj&&!EN[k].ally).length],['odd','Дивини',nOdd],['gloss','Словник',Object.keys(s.glSeen||{}).length],['log','Події',1],['help','Довідник',tutIds().length]].filter(x=>x[2]);
+function rJournal(){const documents=oddDocumentIds(),kills=Object.values(s.kills).reduce((a,b)=>a+b,0);
+  const sub=[['goals','Цілі',1],['story','Сюжет',s.chs.length||Object.keys(s.bts||{}).length],['pages','Записи Остапа',s.pages.length],['chars','Персонажі',Object.keys(s.met).length],['foes','Бестіарій',Object.keys(s.seenE).filter(k=>EN[k]&&!EN[k].obj&&!EN[k].ally).length],['documents','Прочитані документи',documents.length],['gloss','Словник',Object.keys(s.glSeen||{}).length],['log','Події',1],['help','Довідник',tutIds().length]].filter(x=>x[2]);
   if(!sub.some(x=>x[0]===s.jt))s.jt='goals';
   let h=`<section class="jr"><div class="jhead"><div><h2>Журнал хранителя</h2><span class="hand">Записано рукою того, хто береже вогонь</span></div>
-  <div class="chips"><span class="chip">розділів пройдено <b>${s.chs.length}</b></span><span class="chip">записок <b>${s.pages.length}</b></span><span class="chip">дивин <b>${nOdd}</b></span><span class="chip">перемог <b>${kills}</b></span></div></div>
+  <div class="chips"><span class="chip">розділів пройдено <b>${s.chs.length}</b></span><span class="chip">записок <b>${s.pages.length}</b></span><span class="chip">перемог <b>${kills}</b></span></div></div>
   <div class="bm" role="tablist">${sub.map(x=>btn(x[1],'jt',x[0],{cls:s.jt===x[0]?'on':''})).join('')}</div>`;
   if(s.jt==='goals'){const gs=GO.filter(g=>g[1]());const cur=gs.find(g=>!g[2]());
     h+=`<ul class="goals">${gs.map(g=>{const dn=g[2]();return`<li class="${dn?'off':g===cur?'now':''}"><span class="box" aria-hidden="true">${dn?'✓':''}</span><span>${g[0]()}${g===cur?' <span class="stt on">зараз</span>':''}</span></li>`}).join('')}</ul>`;
@@ -371,7 +371,7 @@ function rJournal(){const nOdd=Object.keys(s.odd).length,nOD=Object.keys(OD).len
   if(s.jt==='foes')h+=`<div class="cards">${Object.keys(EN).filter(k=>s.seenE[k]&&!EN[k].obj&&!EN[k].ally).map(k=>{const e=EN[k];return`<div class="card"><div class="pcard">${pimg(sprURL(k),64,64,'',e.n)}<div><b class="foe">${e.n}</b><span class="m">${e.d}</span></div></div>
     <div class="stats"><span>здоров’я<b>${e.hp}</b></span><span>броня<b>${e.arm}</b></span><span>ухилення<b>${e.eva}%</b></span><span>хід<b>${e.mv}${e.fly?' лет':''}${e.swim?' вода':''}</b></span></div>
     <div>${e.p.map(x=>`<span class="habit">${x[2].toLowerCase()}${x[1]&&x[0]!=='heal'?' '+x[1]:''}</span>`).join('')}</div><p class="m" style="margin:6px 0 0">Переможено: ${s.kills[k]||0}</p></div>`}).join('')}</div>`;
-  if(s.jt==='odd')h+=`<div class="ogrid">${Object.keys(OD).filter(k=>s.odd[k]).map(k=>`<div class="ocard">${pimg(icoURL(ODI[k]),48,48,'',OD[k].n)}<b class="itm">${OD[k].n}</b><br><span class="m">${OD[k].d}</span></div>`).join('')}</div><p class="m" style="margin-top:8px">${nOdd?'Кожна дивина дає 20 досвіду. Шхери ховають ще чимало дивного.':'Поки жодної. Придивляйся до дрібниць: море викидає дивні речі.'}</p>`;
+  if(s.jt==='documents')h+=`<div class="notes">${documents.map(id=>`<article class="note"><h3>${OD[id].n}</h3><p>${OD[id].d}</p></article>`).join('')}</div>`;
   if(s.jt==='gloss')h+=`<p class="m ink">Старі морські слова, які трапляються в записах. У тексті вони підкреслені пунктиром: наведи курсор або торкнися, щоб побачити пояснення.</p><dl class="gloss">${GLOS.filter(g=>(s.glSeen||{})[g[0]]).map(g=>`<dt><b>${g[1]}</b></dt><dd class="ink">${g[2].charAt(0).toUpperCase()+g[2].slice(1)}</dd>`).join('')}</dl>`;
   if(s.jt==='help')h+='<p class="m">Пояснення вже відкритих механік.</p>'+tutListHTML();
   if(s.jt==='log')h+=`<ul class="logl">${s.log.slice(0,40).map(x=>{x=logOf(x);return`<li><span class="tag t-${x.t}">${TAGN[x.t]}</span><span class="ev-text">${x.m}</span><time>${ago(x.at)}</time></li>`}).join('')}</ul>`;
