@@ -125,6 +125,47 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await p.close();
   }
 
+  // Речі з «Мартина» можна обговорити до завершення набору.
+  {
+    const p = await page(390, 844);
+    await p.evaluate(() => {
+      s.tabs.tower = 1;
+      s.tab = 'tower';
+      s.b.hearth = 1;
+      s.odd.mbell = 1;
+      s.f.zinovii = 1;
+      render();
+    });
+    const shelf = p.locator('.scn [data-i="cl:shelf"]');
+    await shelf.click();
+    const talk = p.locator('.bpop [data-a="martinLadle"]');
+    A(await talk.count() === 0, 'на полиці є лише вже відомі речі');
+    await p.evaluate(() => { s.odd.mladle = 1; render(); });
+    await talk.click();
+    A((await p.locator('#dlg h2').innerText()) === 'Рибка на держаку', 'Зиновій упізнав черпак');
+    A(await p.evaluate(() => s.odd.mladle && !s.f.martinSet), 'розмова зберігає знахідку й не завершує набір');
+    await p.click('#dlg [data-a="dlgok"]');
+    await p.reload();
+    await shelf.click();
+    A(await talk.count() === 0, 'розмова не повторюється після завантаження');
+    await p.close();
+  }
+
+  // Мобільна картка місця не заважає закрити сюжетний діалог.
+  {
+    const p = await page(390, 844);
+    await p.emulateMedia({ reducedMotion: 'reduce' });
+    await p.evaluate(() => {
+      s.tabs.map = 1; s.tab = 'map'; s.disc.village = 1; s.at = 'village';
+      render();
+    });
+    await p.click('.scn [data-i="lc:tavern"]');
+    await p.click('.bpop [data-i="village.tavern.talk"]');
+    await p.click('#dlg [data-a="dlgok"]', { timeout: 5000 });
+    A(await p.evaluate(() => !!s.met.levko && !s.dlg.length), 'діалог Левка закривається поверх мобільної картки');
+    await p.close();
+  }
+
   // 1. Усі вкладки на телефоні й на широкому екрані
   for (const [w, h] of [[390, 844], [1280, 900]]) {
     const p = await page(w, h);

@@ -608,7 +608,7 @@ button.hs.zone:hover,button.hs.zone:focus-visible{background:transparent;border:
 #foot{margin-top:20px;font-size:.9rem;color:var(--mute)}
 .yard{width:100%;max-width:640px;height:auto;aspect-ratio:144/80;border:1px solid var(--rule);background:#0b1418;margin:0 0 12px}
 /* dialogs */
-#dlg .dlgbg{position:fixed;inset:0;z-index:30;background:rgba(6,12,15,.62);display:flex;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+#dlg .dlgbg{position:fixed;inset:0;z-index:3500;background:rgba(6,12,15,.62);display:flex;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
 #dlg .dlgbox{background:var(--panel);border:1px solid var(--rule);border-top:4px solid var(--lamp);max-width:560px;width:100%;max-height:100%;overflow:auto;box-shadow:0 12px 40px rgba(0,0,0,.4)}
 #dlg .k-fight{border-top-color:var(--bad)}#dlg .k-find{border-top-color:var(--c-coin)}#dlg .k-lvl{border-top-color:var(--good)}#dlg .k-world{border-top-color:var(--sea)}
 #dlg .scene,#dlg .yard{margin:0;border:0;border-bottom:1px solid var(--rule);max-width:none}
