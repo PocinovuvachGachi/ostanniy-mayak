@@ -439,6 +439,7 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     A(await p.evaluate(()=>s.hookWater.pulls===2&&!s.hookWater.pending),'список дій користується тим самим підтягуванням');
     await p.evaluate(()=>{s.hookWater.wait=0;s.dbgTide='low';render()});
     await water.waitFor();
+    await water.scrollIntoViewIfNeeded();
     const lowHit=await water.evaluate(e=>{
       const r=e.getBoundingClientRect();
       return e.contains(document.elementFromPoint((r.left+r.right)/2,(r.top+r.bottom)/2));
@@ -470,6 +471,71 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     A(await pull.locator('.hook-tool').evaluate(e=>getComputedStyle(e).animationName)==='none'
       &&await p.evaluate(()=>s.hookWater.pulls===3&&!s.hookWater.pending),'статична реакція й завершення з reduced motion');
     A(await p.evaluate(()=>document.documentElement.scrollWidth<=390),'берег і майстерня вміщуються на телефоні');
+    await p.close();
+  }
+
+  // Граблі: сухий і вологий пісок, хвилі, винагорода та доступність.
+  {
+    const p=await page(390,844);
+    await p.evaluate(()=>{
+      s.tabs.shore=1;s.tab='shore';s.f.looked=1;s.f.wreck=1;s.f.hook=1;s.f.rod=1;s.f.crab1=1;
+      s.f.tideSeen=1;s.f.fordSeen=1;s.f.rats=1;s.f.horpyna=1;s.f.dryRack=1;s.f.boat=1;
+      s.hookWater.pending={id:3,kind:'heavy',reward:{wood:4,scrap:3}};
+      s.shf='tracks';s.r.fish=6;s.c.gather=25;s.tutPending=[];s.dlg=[];s.lastAct=Date.now();
+      s.dbgTide='high';s.bdSeen=Object.fromEntries(BD.map(b=>[b.id,1]));
+      Math.random=()=>0;giveI('rake');render();
+    });
+    const stage=p.locator('.scn.sh');
+    const spot=stage.locator('[data-a="rakeSand"]');
+    const list=p.locator('.shore-alist');
+    const sweep=stage.locator('.rake-sweep');
+    const unobstructed=async()=>{
+      await spot.scrollIntoViewIfNeeded();
+      return spot.evaluate(e=>{
+        const r=e.getBoundingClientRect(),hit=document.elementFromPoint((r.left+r.right)/2,(r.top+r.bottom)/2);
+        const overlaps=[...e.closest('.scn').querySelectorAll('button[data-a]')].some(b=>{
+          if(b===e)return false;
+          const q=b.getBoundingClientRect();
+          return Math.min(r.right,q.right)-Math.max(r.left,q.left)>1&&Math.min(r.bottom,q.bottom)-Math.max(r.top,q.top)>1;
+        });
+        return e.contains(hit)&&!overlaps&&document.documentElement.scrollWidth<=390;
+      });
+    };
+    A(!await spot.count(),'без трьох ручних дій ділянка не показується');
+    await stage.locator('[data-a="gather"]').click();
+    await stage.locator('[data-a="scrapw"]').click();
+    await stage.locator('[data-a="fishing"]').click();
+    await spot.waitFor();
+    await p.evaluate(()=>{s.shf='rats';render()});
+    A(await spot.getAttribute('aria-label')==='Оглянути сухий пісок'&&await unobstructed(),'суха ділянка на високій воді має власну зону');
+    await spot.focus();await p.keyboard.press('Enter');
+    A(await sweep.locator('.rake-tool').evaluate(e=>getComputedStyle(e).animationName)==='rake-tool'
+      &&await sweep.locator('.rake-metal').evaluate(e=>getComputedStyle(e).animationName)==='rake-metal','рух граблів і поява металу зі сцени клавіатурою');
+    await p.click('#tabs [data-i="home"]');
+    A(!await sweep.count()&&await p.evaluate(()=>JSON.parse(localStorage.getItem(KEY)).rakeSand.searched===1),'вихід під час анімації зберігає нагороду');
+
+    await p.click('#tabs [data-i="shore"]');
+    await p.evaluate(()=>{s.dbgTide='low';s.rakeSand.wait=0});
+    await spot.waitFor();
+    A(await spot.getAttribute('aria-label')==='Оглянути вологий пісок'&&await unobstructed(),'волога ділянка окремо від рун, броду, багра, калюж, сушарні й бою');
+    const record=await p.evaluate(()=>JSON.stringify(s.rakeSand.pending));
+    await list.locator('summary').click();
+    const listSpot=list.locator('[data-a="rakeSand"]');
+    A(await listSpot.isVisible(),'та сама волога ділянка є в списку');
+    await p.evaluate(()=>{s.dbgTide='high';save()});
+    await spot.waitFor({state:'detached'});
+    A(!await listSpot.count(),'приплив прибирає дію і зі списку');
+    await p.reload();
+    A(await p.evaluate(saved=>JSON.stringify(s.rakeSand.pending)===saved,record)&&!await spot.count(),'волога ділянка чекає після reload');
+    await p.evaluate(()=>{s.dbgTide='low';});
+    await spot.waitFor();
+    await p.emulateMedia({reducedMotion:'reduce'});
+    if(!await list.evaluate(el=>el.open))await list.locator('summary').click();
+    await listSpot.click();
+    A(await sweep.locator('.rake-metal').evaluate(e=>getComputedStyle(e).animationName==='none'&&getComputedStyle(e).opacity==='1'),
+      'у reduced motion дію зі списку видно статично');
+    A(await p.evaluate(()=>s.rakeSand.searched===2&&s.hookWater.pending?.kind==='heavy'&&document.documentElement.scrollWidth<=390),
+      'пошук не забирає вантаж багра та не розширює сторінку');
     await p.close();
   }
 

@@ -151,8 +151,10 @@ function rShore(){let h=`<section><h2>Берег під маяком</h2><p>Мо
   al+=`<div class="act">${btn('До маяка','tab','home',{cls:'toggle'})}</div>`;
   const floating=hookWaterVisible();
   const hookCard=floating?`<div class="act">${btn(hookWaterLabel(floating),'hookWater',String(floating.id))}</div>`:'';
+  const sand=rakeSandVisible();
+  const sandCard=sand?`<div class="act">${btn(RAKE_SPOTS[sand.kind].name,'rakeSand',String(sand.id))}</div>`:'';
   const catchCard=s.f.rod&&s.bite?`<div class="tdet"><b>${fishBiteLabel()}</b>${fishBiteControls()}</div>`:'';
-  h+=`<details class="alist shore-alist"${shoreListOpen?' open':''}><summary>Усі дії списком</summary><div>${catchCard}${hookCard}${al}</div></details>`;
+  h+=`<details class="alist shore-alist"${shoreListOpen?' open':''}><summary>Усі дії списком</summary><div>${catchCard}${hookCard}${sandCard}${al}</div></details>`;
   if(s.flot){const FN={crate:'Ящик',barrel:'Бочка',cargo:'Розкиданий вантаж',bottle:'Пляшка з запискою',survivor:'Людина на уламку щогли'};h+=`<div class="tdet" id="sec-flot"><b>На березі: ${FN[s.flot.k]}</b>${fresh9('fl:'+s.flot.until)}<p class="m">Прибій щось викинув. Хвилі заберуть його за ${V(()=>s.flot?Math.max(0,Math.ceil((s.flot.until-Date.now())/1000)):0)} с.</p>${btn('Оглянути','flot','',{cls:'main'})}</div>`}
   h+=`<p class="m" style="margin-top:8px">Зібрано за весь час: ${V(()=>fmt(s.tot.wood))} плавника${s.f.wreck?`, ${V(()=>fmt(s.tot.scrap))} брухту`:''}${s.f.rod?`, ${V(()=>fmt(s.tot.fish))} риби`:''}.</p></section>`;
   h+=rDryRack();
