@@ -321,7 +321,9 @@ button.hs.no:hover{border-color:#8a8f96;background:rgba(138,143,150,.12)}
 .dlog{position:absolute;left:22%;top:66%;width:31%;height:auto;image-rendering:pixelated;transform:translate(calc(var(--p,0)*70%),calc(var(--p,0)*-330%)) rotate(calc(var(--p,0)*-8deg));opacity:calc(1 - var(--p,0)*.55);pointer-events:none}
 .hs[data-k="gather"]::before{content:"";position:absolute;left:18%;top:60%;width:40%;height:30%;border-radius:50%;background:radial-gradient(circle,rgba(255,240,176,.55),rgba(255,240,176,0) 70%);opacity:calc(1 - min(1,var(--p,0)*100));animation:embp 1.6s ease-in-out infinite;pointer-events:none}
 .ob .bob{position:absolute;left:79%;top:53%;width:13%;height:4%;background:#c9584a;box-shadow:0 -3px 0 #e3ebe6;animation:bob 1.3s ease-in-out infinite;pointer-events:none}
-.hs:not([style*="--p: 0"]) .bob{}
+.ob.rod-catch .bob{background:#e9ad69;box-shadow:0 -3px 0 #fff1d7,0 2px 5px #1c303f;transform:translateY(2px);animation:fish-bob-tug .48s ease-out 2}
+@keyframes fish-bob-tug{50%{transform:translate(2px,6px) rotate(-18deg)}}
+@media (prefers-reduced-motion:reduce){.ob .bob,.ob.rod-catch .bob{animation:none}}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(35%)}}
 .bang{position:absolute;left:60%;top:30%;font:700 15px/1 var(--mono);color:#fff0b0;background:#c9584a;border:2px solid #0b1418;padding:1px 4px;opacity:0;animation:bang .6s ease-in-out infinite alternate;pointer-events:none;font-style:normal}
 @keyframes bang{to{transform:translateY(-4px)}}
@@ -405,15 +407,11 @@ button.hs.zone:hover,button.hs.zone:focus-visible{background:transparent;border:
 .mgitem{position:absolute;left:42%;width:16%;image-rendering:pixelated}
 .mghook{position:absolute;left:44%;bottom:2%;font-size:28px;color:#c3c9cf}
 .mgbig{position:absolute;left:30%;top:10%;width:40%;image-rendering:pixelated}
-.mgbar,.mgcrate,.mgrope,.mgfish,.mgforge{position:absolute;inset:0;background:linear-gradient(#2b1d12,#1d140d)}
+.mgbar,.mgcrate,.mgrope,.mgforge{position:absolute;inset:0;background:linear-gradient(#2b1d12,#1d140d)}
 .mghoop{position:absolute;top:62%;width:5%;height:20%;background:#8a8f96;border:2px solid #0b1418;transform:translateX(-50%)}.mghoop.off{opacity:.15}
 .mgham{position:absolute;top:44%;font-size:22px;color:#f0b84a;transform:translateX(-50%)}
 .mgnail{position:absolute;width:22px;height:22px;background:#c3c9cf;border:3px solid #0b1418;box-shadow:0 0 0 3px #f0b84a;animation:hsp 1s infinite;cursor:pointer}
 .mgrope .mgbig{top:30%}.mgpulse{position:absolute;left:50%;top:50%;width:120px;height:120px;margin:-60px 0 0 -60px;border:4px solid #9ccbd8;border-radius:50%;pointer-events:none}
-.mgten{position:absolute;left:6%;right:6%;top:18%;height:26px;background:#3a2718;border:3px solid #0b1418}.mggreen{position:absolute;top:0;bottom:0;background:#3d5a34}
-.mgneedle{position:absolute;top:-8px;bottom:-8px;width:4px;background:#fff0b0;transform:translateX(-2px)}
-.mgprog{position:absolute;left:6%;right:6%;top:58%;height:12px;background:#0b1418}.mgprog i{display:block;height:100%;background:#f0b84a;width:0}
-.mgfi{position:absolute;top:70%;width:36px;image-rendering:pixelated}
 .mgmetal{position:absolute;left:20%;right:20%;top:36%;height:22%;background:linear-gradient(#ffe08a,#e5662a);border:3px solid #0b1418}
 .mgw{position:absolute;left:44%;top:8%;width:12%;image-rendering:pixelated}
 .mgheat{position:absolute;left:20%;right:20%;top:70%;height:10px;background:#0b1418}.mgheat i{display:block;height:100%;background:linear-gradient(90deg,#e5662a,#fff0b0)}
@@ -717,22 +715,7 @@ button.hs.zone:hover,button.hs.zone:focus-visible{background:transparent;border:
 #foot{display:flex;flex-wrap:wrap;align-items:flex-start;gap:8px 14px}
 .sett summary{cursor:pointer;font:600 13px var(--mono);color:var(--mute)}
 .sett .setb{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
-/* Риба: плавна версія */
-.mgfish{background:linear-gradient(#2a5a73 0,#174055 40%,#0c2230 100%)}
-.mgwv{position:absolute;left:0;right:0;top:30%;height:6px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.18) 0 18px,transparent 18px 36px);animation:mgwv 3s linear infinite}
-@keyframes mgwv{to{background-position:36px 0}}
-.mgline{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
-.mgline line{stroke:#a5d98e;stroke-width:2;transition:stroke .2s}
-.mgfish .mgfi{position:absolute;top:80%;left:50%;width:40px;transform:translate(-50%,-50%);image-rendering:pixelated;will-change:left,top,transform}
-.mgfish .mgten{top:7%}
-.mgfish .mgprog{top:auto;bottom:6%}
-.mgredz{position:absolute;top:0;bottom:0;right:0;background:#5a2418}
-.mgten.hot{box-shadow:0 0 0 2px #e5533a;animation:mghot .3s ease-in-out infinite alternate}
-@keyframes mghot{to{box-shadow:0 0 0 4px rgba(229,83,58,.5)}}
-.mgfish.tug .mgfi{filter:drop-shadow(0 0 6px rgba(255,240,176,.8))}
-.mgneedle{will-change:left}
 .mghab{background:#3d5a34;color:#efe3c8}
-@media (prefers-reduced-motion:reduce){.mgwv,.mgten.hot{animation:none}}
 /* Дзвіночок відкладених подій */
 #bell{position:fixed;z-index:3500;top:calc(10px + env(safe-area-inset-top,0px));right:max(10px,env(safe-area-inset-right,0px))}
 #bell:empty{display:none}

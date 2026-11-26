@@ -18,6 +18,7 @@ const TUT={
   kitchen:{n:'Кухня',ready:()=>s.tabs.kitchen,body:'<p>Відкрий кухню у вкладці «Маяк». Вибери відомий рецепт, перевір інгредієнти та приготуй їжу.</p><p>Їжу можна використати для лікування; її властивості зазначено в картці страви.</p>'},
   ford:{n:'Облаштування броду',ready:()=>s.f.fordSeen,body:'<p>На березі натисни на брід. Картка показує вже виконані роботи і наступну доступну дію.</p><p>Будувати можна лише на відпливі. Перевір ресурси та час до повернення води.</p>'},
   people:{n:'Поселенці',ready:()=>s.pop>0,body:'<p>Поселенців можна призначати на роботу через картки будівель у господарстві. Кожен додає до виробництва половину рівня будівлі; вільні працівники збирають плавник.</p><p>Усі мешканці споживають провізію, а голодні працюють удвічі гірше. Стеж за запасами їжі.</p>'},
+  fishBite:{n:'Незвичайне клювання',ready:()=>s.f.fishBiteSeen,body:'<p>Якщо поплавець пірнув або волосінь натяглася, натисни на вудку й обери «Витягнути улов». Ця дія є також у списку дій на березі.</p><p>Звичайний улов уже в кошику. Можеш залишити волосінь і повернутися пізніше, закинути знову або відпустити.</p>'},
   map:{n:'Мапа й подорожі',ready:()=>s.tabs.map,body:'<p>На вкладці «Мапа» натисни на відоме місце, щоб відкрити його картку і вирушити туди.</p><p>Розмовляй із людьми, досліджуй місцевість та повертайся до маяка. Нові напрямки з’являються за ходом подій.</p>'}
 };
 const tutKnown=id=>!!(s.tutSeen||{})[id];
@@ -27,7 +28,7 @@ function tutOffer(id){if(!tutReady(id)||tutKnown(id))return;s.tutPending=s.tutPe
   if(noGap()){s.tutSeen[id]=1;return}s.tutPending.push(id);dirty=1}
 function tutDialog(id,fight=false){const t=TUT[id];return{k:'tutorial',tut:id,crabw:fight?1:undefined,title:t.n,body:t.body,btns:fight?[['До бою','fightGo','crab1']]:[['Зрозуміло','dlgok']]}}
 function tutRemember(id){s.tutSeen=s.tutSeen||{};s.tutSeen[id]=1;s.tutPending=(s.tutPending||[]).filter(k=>k!==id);dirty=1}
-function tutTick(){if(noGap()||s.cb||s.raid||s.bellHold||away()||(s.dlg||[]).length)return;const id=(s.tutPending||[]).find(tutReady);if(!id)return;tutRemember(id);dlg(tutDialog(id))}
+function tutTick(shoreLesson=true){if(noGap()||s.cb||s.raid||s.bellHold||away()||(s.dlg||[]).length)return;const id=(s.tutPending||[]).find(k=>tutReady(k)&&(k!=='fishBite'||(shoreLesson&&s.tab==='shore')));if(!id)return;tutRemember(id);dlg(tutDialog(id))}
 function tutFight(){const d=(s.dlg||[])[0];if(!d||!d.crabw||s.cb||!tutReady('combat'))return;
   tutRemember('combat');s.dlg[0]=tutDialog('combat',true);dirty=1}
 function tutRead(id){if(!TUT[id]||!tutKnown(id)||s.cb)return;const q=s.dlg||[];if(q[0]&&q[0].tutList)q.shift();else if(q.length)return;dlg(tutDialog(id));dirty=1}

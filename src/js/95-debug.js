@@ -7,8 +7,8 @@ const DBG=[
   ['Відкрити все',()=>{const F=s.f;Object.assign(F,{looked:1,lk:1,wreck:1,rod:1,crab1:1,people:1,boat:1,siege1:1,mlaNote:1});s.b.hearth=Math.max(3,s.b.hearth||0);
     for(const fl of['work','gallery','study','lantern'])s.floors[fl]=s.floors[fl]||1;s.pop=Math.max(3,s.pop||0);s.b.house=Math.max(2,s.b.house||0);for(const t of TABS)s.tabs[t[0]]=1;if(!s.h.bg)s.h.bg='old';s.nvU.gear=1}],
   ['Герой +1 рівень',()=>xp(need(s.h.lvl)-s.h.xp+1)],
-  ['Риба',()=>mgFish()],['Бочка',()=>mgFlot('barrel')],['Ящик',()=>mgFlot('crate')],['Людина',()=>mgFlot('survivor')],
-  ['Кування',()=>mgForge('smith')],['Клює велика',()=>{s.f.rod=1;s.bite={until:Date.now()+30000};s.tab='shore'}],['Заготовка',()=>{s.b.forge=s.b.forge||1;s.hot={until:Date.now()+30000};s.tab='home'}],
+  ['Бочка',()=>mgFlot('barrel')],['Ящик',()=>mgFlot('crate')],['Людина',()=>mgFlot('survivor')],
+  ['Кування',()=>mgForge('smith')],['Незвичайне клювання',()=>{s.f.rod=1;s.tabs.shore=1;s.tab='shore';fishBiteOffer()}],['Заготовка',()=>{s.b.forge=s.b.forge||1;s.hot={until:Date.now()+30000};s.tab='home'}],
   ['Знахідка в прибої',()=>{s.floors.gallery=1;const ks=['crate','barrel','cargo','bottle','survivor'];s.flot={k:ks[Math.floor(Math.random()*ks.length)],until:Date.now()+180000};s.tab='shore'}],
   ['Мла +25',()=>{s.threat=Math.min(100,(s.threat||0)+25)}],
   ['Набіг зараз',()=>{s.f.siege1=1;s.threat=100;s.lastAct=Date.now();raidCheck()}],

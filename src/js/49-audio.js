@@ -50,6 +50,7 @@ function sfx(k){if(!AU.ctx||!auS().on)return;try{const t=AU.ctx.currentTime+0.01
   case'hit':auTone(t,{f:880,peak:0.12,dec:0.25});auTone(t+0.07,{f:1320,peak:0.1,dec:0.35});break;
   case'miss':auTone(t,{f:220,f2:150,type:'triangle',peak:0.12,dec:0.18});break;
   case'nope':auTone(t,{f:330,f2:260,type:'triangle',peak:0.06,dec:0.1});break;
+  case'fishBite':auTone(t,{f:523,peak:0.035,dec:0.27});auTone(t+0.13,{f:659,peak:0.025,dec:0.32});break;
   case'chime':[0,4,7,12].forEach((st,i)=>auTone(t+i*0.11,{f:392*Math.pow(2,st/12),peak:0.09,dec:1.2}));break;
   case'page':auBurst(t,{f:2500,type:'bandpass',q:0.5,peak:0.12,a:0.03,dec:0.18,bus:'sfx'});break;
   case'bell':auTone(t,{f:1568,peak:0.08,dec:1.4});auTone(t,{f:2350,peak:0.04,dec:0.9});break;
