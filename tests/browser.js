@@ -24,6 +24,32 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     return p;
   };
 
+  // Довідник і урок на вузькому екрані: лише відомі механіки.
+  {
+    const p = await page(390, 844);
+    await p.evaluate(() => {s.lastAct=Date.now();s.tot.ember=3;tutOffer('ember');tutTick();render()});
+    A(!!await p.$('#dlg .k-tutorial'), 'навчальний діалог');
+    A(await p.evaluate(()=>document.documentElement.scrollWidth<=390), 'урок без горизонтальної прокрутки');
+    await p.click('#dlg [data-a="dlgok"]');await p.waitForTimeout(300);
+    await p.click('#foot [data-a="tutList"]');
+    A(!!await p.$('#dlg [data-a="tutRead"][data-i="ember"]')&&!await p.$('#dlg [data-i="map"]'), 'довідник не показує майбутні уроки');
+    await p.click('#dlg [data-a="tutRead"][data-i="ember"]');
+    A((await p.locator('#dlg h2').innerText())==='Жарина','повторне читання уроку');
+    await p.close();
+  }
+  
+  // Ранні інструменти: доступні на березі, не у майстерні.
+  {
+    const p = await page(390, 844);
+    await p.evaluate(() => {s.tabs.shore=1;s.tab='shore';s.f.looked=1;s.f.wreck=1;s.f.hookPlan=1;s.f.rodPlan=1;s.r.wood=50;s.r.scrap=10;s.dlg=[];render()});
+    A(!!await p.$('.scn [data-a="hook"]')&&!!await p.$('.scn [data-a="craft"][data-i="rod"]'),'інструменти на березі');
+    A(await p.evaluate(()=>!s.floors.work&&!rcVisible(RC.find(r=>r.id==='rod'))),'вудка не потребує майстерні');
+    await p.click('.scn [data-a="craft"][data-i="rod"]');
+    A(await p.evaluate(()=>s.f.rod&&!s.floors.work),'вудку зроблено на березі');
+    A(!!await p.$('.scn [data-a="fishing"]'),'рибалка після виготовлення');
+    await p.close();
+  }
+
   // 1. Усі вкладки на телефоні й на широкому екрані
   for (const [w, h] of [[390, 844], [1280, 900]]) {
     const p = await page(w, h);
@@ -48,7 +74,7 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
   {
     const p = await page(1100, 900);
     await p.evaluate(() => {
-      window.dlg = () => {}; s.f.looked = 1; s.tabs = { home: 1, shore: 1 }; s.tab = 'shore'; s.f.wreck = 1; s.f.rod = 1;
+      window.dlg = () => {}; s.f.looked = 1; s.tabs = { home: 1, shore: 1 }; s.tab = 'shore'; s.f.wreck = 1; s.f.rod = 1; s.f.hook = 1; // стабільна сцена: нове відкриття багра має власну анімацію появи
       s.seen.wood = 1; s.seen.scrap = 1; s.seen.fish = 1; s.hsU = { gather: 1, rod: 1, wreck: 1 }; render();
     });
     await p.waitForTimeout(500);
@@ -72,6 +98,28 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
       await p.evaluate(() => { if (window.MG) mgEnd(0, 1); __scan(true); });
     }
     A(await p.evaluate(() => __bad) === 0, 'кліки на березі перезапускають чужі анімації');
+    await p.close();
+  }
+
+  // Збір плавника: окрема анімація, відсутність стрибка від cooldown, спокій у кінці.
+  {
+    const p = await page(390, 844);
+    await p.evaluate(() => { s.tabs.shore=1; s.tab='shore'; s.f.looked=1; s.dlg=[]; s.hsU={gather:1}; render(); });
+    await p.locator('[data-sk="gather"]').click();
+    A(await p.locator('[data-sk="gather"] .dlw').evaluate(e=>e.getAnimations().length>0), 'плавник не має анімації підбору');
+    await p.waitForTimeout(300);
+    A(await p.locator('[data-sk="gather"]').evaluate(e=>{const c=getComputedStyle(e,'::after');return c.display!=='none'&&Number(c.opacity)>0}), 'шкала відновлення плавника прихована');
+    await p.waitForTimeout(1200);
+    A(await p.locator('[data-sk="gather"] .dlw').evaluate(e=>getComputedStyle(e).transform==='none'), 'плавник не повернувся в початкову позицію');
+    A(await p.locator('[data-sk="gather"]').evaluate(e=>Number(getComputedStyle(e,'::after').opacity)<.05), 'шкала не зникла після відновлення');
+    await p.close();
+  }
+  // Смужки HP: під героєм і ворогом, у межах клітинки.
+  {
+    const p = await page(390, 844);
+    await p.evaluate(() => {s.dlg=[]; s.tabs.hero=1; startFight('gullrack','S:gullrack'); render();});
+    const bars=await p.evaluate(()=>[...document.querySelectorAll('.grid.ar .uhp')].map(e=>{const r=e.getBoundingClientRect(), b=e.parentElement.getBoundingClientRect();return {k:e.className,ok:r.top>=b.top+b.height*.65&&r.bottom<=b.bottom+1};}));
+    A(bars.some(b=>b.k.includes('me'))&&bars.some(b=>b.k.includes('fo'))&&bars.every(b=>b.ok),'смужки HP не під бойовими юнітами');
     await p.close();
   }
 
@@ -108,7 +156,7 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
   // 5. Маяк у розрізі: картка поверху відновлює його
   {
     const p = await page(1100, 1000);
-    await p.evaluate(() => { window.dlg = () => {}; s.f.looked = 1; s.b.hearth = 2; for (const k of RES) s.r[k] = 5000; s.tabs = { home: 1, tower: 1 }; s.dlg = []; s.tab = 'tower'; render(); });
+    await p.evaluate(() => { window.dlg = () => {}; s.f.looked = 1; s.f.crab1=1; s.b.hearth = 2; for (const k of RES) s.r[k] = 5000; s.tabs = { home: 1, tower: 1 }; s.dlg = []; s.tab = 'tower'; render(); });
     await p.waitForTimeout(300);
     const el = await p.$('.scn [data-k="fl:work"]'), bb = el && await el.boundingBox();
     if (bb) { await p.mouse.click(bb.x + bb.width / 2, bb.y + bb.height / 2); await p.waitForTimeout(300); }
@@ -122,7 +170,7 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
   // 6. Майстерня й кабінет: речі в кімнаті відкривають картки з діями
   {
     const p = await page(1100, 1000);
-    await p.evaluate(() => { window.dlg = () => {}; storyCheck = () => {}; s.f.looked = 1; s.b.hearth = 3; s.floors = { work: 1, gallery: 1, study: 1 }; for (const k of RES) s.r[k] = 5000; s.tabs = { home: 1, tower: 1, work: 1, study: 1 }; s.dlg = []; s.tab = 'work'; render(); });
+    await p.evaluate(() => { window.dlg = () => {}; storyCheck = () => {}; s.f.looked = 1; s.b.hearth = 3; s.floors = { work: 1, gallery: 1, study: 1 }; for (const k of RES) s.r[k] = 5000; s.tabs = { home: 1, tower: 1, work: 1, study: 1 }; s.dlg = []; s.tab = 'work'; s.lastAct=Date.now(); s.lastNov=null; novPlanTick(true); s.dlg=[]; render(); });
     await p.waitForTimeout(300);
     const n = await p.$('.scn [data-k^="wk:r:"]');
     A(!!n, 'креслення на дошці в майстерні');

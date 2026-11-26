@@ -40,7 +40,7 @@ function scan(){for(const t in s.tabs)mark('tab:'+t,'вкладка «'+(TABS.fi
   if(s.vq&&s.vq.t)for(const k in s.vq.t)mark('vq:'+k,'прохання: '+k,1);if(s.c&&s.c.vg)mark('vg:'+s.c.vg,'справа на Причалі №'+s.c.vg,1);if(s.f.reefmap)mark('reefmap','карта рифів',1);if(s.met.levko)mark('rot:'+rotRank(),'Причал: '+RW[rotRank()],1);if(has('key'))mark('key','ключ Ганни',1);for(const k in s.odd)mark('odd:'+k,'дивина: '+OD[k].n,1);for(const k in s.runes||{})mark('rune:'+k,'камінь з написом',1);for(const k in s.ford||{})mark('ford:'+k,'брід: '+k,1);
   mark('lvl:'+s.h.lvl,'рівень героя '+s.h.lvl,0);
   for(const[n,ok]of[['I',()=>s.f.fordDone],['II',()=>has('key')||s.floors.study],['III',()=>s.f.ostap],['IV',()=>s.f.schooner],['V',()=>s.f.won2]])if(!PROG[n]&&ok())PROG[n]=progSnap();
-  for(const k of ['rod','wreck','people','boat','schooner','won','siege1','ostap','chest','crypt','stones','fordSeen','fordDone','gullrack','rats','drown1','zinovii','horpyna','cache','tracks','seal','signal','martinSet','reunion','herbsDone','rsiege','curMet','goatDone','three','lightPlan'])if(s.f[k])mark('f:'+k,'подія: '+k,1)}
+  for(const k of ['hookPlan','hook','rodPlan','rod','wreck','people','boat','schooner','won','siege1','ostap','chest','crypt','stones','fordSeen','fordDone','gullrack','rats','drown1','zinovii','horpyna','cache','tracks','seal','signal','martinSet','reunion','herbsDone','rsiege','curMet','goatDone','three','lightPlan'])if(s.f[k])mark('f:'+k,'подія: '+k,1)}
 const PROG={},A0=Object.values(s.h.a).reduce((a,b)=>a+b,0);
 function progSnap(){const at=Object.values(s.h.a).reduce((a,b)=>a+b,0)-A0+(s.h.pts||0),sk=Object.values(s.h.k).reduce((a,b)=>a+b,0)+(s.h.sp||0),tl=Object.keys(s.h.ft).filter(k=>s.h.ft[k]).length+(s.h.fp||0);let xt=s.h.xp;for(let l=1;l<s.h.lvl;l++)xt+=need(l);return{t:T,lvl:s.h.lvl,at,sk,tl,xt:Math.round(xt)}}
 /* діалоги: читаємо й тиснемо першу кнопку */
@@ -56,11 +56,12 @@ function hero(){let g=0;while(s.h.pts>0&&g++<20){const k=Object.keys(s.h.a).sort
 const want=()=>{const L=[];const fi=FL.findIndex(f=>!s.floors[f.id]);const f=FL[fi];if(f&&(!f.req||f.req())&&(!f.it||afford({},f.it)))L.push(['floor',f.id,f.c]);
   for(const rc of RC)if(rcVisible(rc)&&!rc.multi&&(rc.craft||0)<=st('craft'))L.push(['craft',rc.id,rcCost(rc),rc.it]);
   if(s.tabs.study&&!s.rd)for(const r of RS)if(!s.rs[r.id]&&rsReady(r)&&rsNeedOk(r))L.push(['rs',r.id,(s.rdp||{})[r.id]!=null?{}:{lore:rsCost(r)}]);
-  if(!s.f.hook&&(s.c.gather||0)>=8)L.push(['hook','',HOOKC]);
+  if(shoreHookReady())L.push(['hook','',HOOKC]);
+  if(shoreRodReady())L.unshift(['craft','rod',RC.find(r=>r.id==='rod').c]);
   if((s.b.hearth||0)<8)L.push(['bld','hearth',bCost(HEARTH)]);
   for(const b of BD)if(b.show()&&!(b.max&&(s.b[b.id]||0)>=b.max)&&(s.b[b.id]||0)<6)L.push(['bld',b.id,bCost(b)]);
   if(s.b.shipyard&&!s.f.schooner)L.unshift(['schooner','',SCHOONER]);
-  if(s.f.fordSeen&&!s.f.fordDone)for(const P of FORD)if(!(s.ford||{})[P.id]&&(!P.req||P.req()))L.unshift(['ford',P.id,P.c]);
+  if(s.f.fordSeen&&!s.f.fordDone){const P=fordReady();if(P)L.unshift(['ford',P.id,P.c])}
   /* провізія на походи: якщо є куди плисти, а нема з чим */
   for(const l in s.disc){const Lc=LOC[l];if(!Lc||!Lc.sea||l===s.at)continue;if(typeof locTodo==='function'&&!locTodo(l).length)continue;const need=seaCost(Lc)*2;if(s.r.prov<need){L.push(['trip',l,{prov:need}]);break}}
   return L};
@@ -99,7 +100,7 @@ function explore(){const ls=Object.keys(s.disc).filter(l=>LOC[l]);for(const l of
 function misc(){let d=0;if(s.wolf&&wTrainOn()){for(const N of WTR)if(!wHas(N.id)&&(!N.need||wHas(N.need))&&(s.wolf.tp||0)>=N.c){A('wlearn',N.id,1);d=1}if(!onCd('wlesson')){A('wlesson','',8);d=1}}
   if(s.wolf){if(!s.wolf.name)A('wname','Сірко',1);if(!wolfSated()&&afford(wolfFood())){A('wfeed','',1);d=1}}
   if(s.tabs.kitchen&&s.h.hp<maxHP()*.6)for(const D of DISH)if(rcpKnown(D.id)&&afford(D.c)&&(s.r.fish>20)){A('cookp',D.id,1);d=1;break}
-  if(s.floors.gallery&&s.tabs.map&&SCAN.some(x=>!s.disc[x])&&s.r.ember>=scanCost()){A('scan');d=1}
+  if(scanTarget()&&s.r.ember>=scanCost()){A('scan');d=1}
   for(const f in s.req||{}){if(afford(s.req[f].give)){A('freq',f);d=1}}
   if(s.tabs.trade)for(const it of SHOP){if((it.show&&!it.show())||s.bought&&s.bought[it.id])continue;const p=price(it.p);if(IT[it.id]&&has(it.id))continue;if(s.r.coin>=p*1.5){A('buy',it.id);s.bought=s.bought||{};s.bought[it.id]=1;d=1}}
   if(s.shf&&(SHF[s.shf].npc||s.h.hp>=maxHP()*.7)){A('shfgo','',2);if(s.cb)fight();d=1}

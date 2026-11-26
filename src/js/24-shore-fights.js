@@ -14,7 +14,7 @@ EN.rat.pack=1;EN.rat.d='Сірий, жирний і сміливий, поки �
 const SHF={
   poolcrab:{n:'Краби в калюжах',d:'Між камінням ворушаться панцирі. Краби ховаються в них — бий, коли розкриються.',
     ok:()=>s.f.crab1&&tideLow()&&!s.f.fordDone,gap:360,win(){add('fish',3);return'Краби лежать догори черевом. Буде юшка.'}},
-  gullrack:{n:'Чайки над рибою',d:'Зграя кружляє над сушінням і пікірує на рибу. Налітають з усіх боків — бий тих, що ближче.',once:1,
+  gullrack:{n:'Чайки над рибою',d:'Зграя кружляє над рибою, яку ти приніс на берег. Чайки пікірують з усіх боків.',once:1,
     ok:()=>s.f.crab1&&s.floors.work&&s.r.fish>=8&&!!(s.eq||{}).weapon,win(){add('fish',6);xp(20);return'Зграя розлітається з криком. Риба ціла.'}},
   rats:{n:'Пацюки з трюму',d:'З-під обшивки уламка вибігає зграя. Поодинці вони боягузи, гуртом — ні: не давай себе оточити.',once:1,
     ok:()=>!!s.f.zinovii&&((s.c.scrap||0)>=25||Date.now()-(s.zinT||0)>12*60000),win(){add('scrap',25);add('oil',4);xp(25);if(typeof collFind==='function')collFind('rats');return'Трюм вільний. Серед гнилих дощок — скринька з цвяхами й кілька цінних дрібниць.'}},
@@ -26,8 +26,8 @@ const SHF={
     ok:()=>!!s.f.tracks&&s.h.lvl>=2&&(dayPh()!=='y'||Date.now()-(s.tracksT||0)>8*60000),win(){xp(30);if(!s.pages.includes('m'))page('m');return'Постать розсипається мокрим піском. Таке вже не може бути людиною. Хто ж вони — ті, кого забирає туман?'}}};
 /* події спливають самі, але лише поки гравець поруч */
 function shfTick(){if(s.cb||s.raid||s.shf||away()||!s.tabs.shore)return;const now=Date.now();s.shfT=s.shfT||{};
-  for(const id in SHF){const F=SHF[id];if(F.once&&s.f[id])continue;if(F.gap&&now-(s.shfT[id]||0)<F.gap*1000)continue;if(!s.shfT[id]&&!calm())continue;if(!F.ok())continue;if(!s.shfT[id])novMark();
-    if(id==='poolcrab'&&Math.random()>.15)continue;s.shf=id;s.shfT[id]=now;say(F.n+'. '+F.d.split('.')[0]+'.',F.npc?'world':'fight');dirty=1;return}}
+  for(const id in SHF){const F=SHF[id];if(F.once&&s.f[id])continue;if(F.gap&&now-(s.shfT[id]||0)<F.gap*1000)continue;if(!s.shfT[id]&&!novCan())continue;if(!F.ok())continue;
+    if(id==='poolcrab'&&Math.random()>.15)continue;if(!s.shfT[id])novMark();s.shf=id;s.shfT[id]=now;say(F.n+'. '+F.d.split('.')[0]+'.',F.npc?'world':'fight');dirty=1;return}}
 function shfGo(){const id=s.shf;if(!id||s.cb)return;s.shf='';if(SHF[id].npc){SHF[id].go();dirty=1;return}s.h.hp=Math.max(s.h.hp,1);startFight(id,'S:'+id)}
 function shfWin(id){const F=SHF[id];if(!F)return'';if(F.once)s.f[id]=1;if(id==='rats')s.ratsT=Date.now();return F.win()}
 /* об'єкт на березі */

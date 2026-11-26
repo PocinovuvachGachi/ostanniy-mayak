@@ -2,6 +2,9 @@
 function act0(a,i){
   if(a.indexOf('c_')===0){cAct(a,i);return}
   if(a==='tclose'){const at=+i;for(const x of s.log)if(x&&x.at===at)x.cl=1;lastToast=null;dirty=1;return}
+  if(a==='tutList'){tutLibrary();return}
+  if(a==='tutRead'){tutRead(i);return}
+  if(a==='tutFight'){tutFight();return}
   if(a==='dlgok'){(s.dlg||[]).shift();dirty=1;return}
   if(a==='bellOpen'){s.bellHold=0;dirty=1;return}
   if(a==='bellDefer'){s.bellHold=1;dirty=1;return}
@@ -12,7 +15,7 @@ function act0(a,i){
   if(a==='evr'){(s.dlg||[]).shift();if(i==='keep'){trust('silent',15,'ти прихистив утікача');trust('rot',-10,'у Причалі незадоволені');if(s.f.people&&(s.pop||0)<2*(s.b.house||0)){s.pop++;say('Колишній Мовчун лишається біля маяка й обіцяє працювати.','world')}else{add('coin',10);say('Вранці він іде, лишивши кілька монет і подяку.','world')}}
     else if(i==='away'){trust('rot',3);say('Ти зачиняєш двері. Кроки віддаляються в туман.','world')}else{trust('rot',15,'ти видав Мовчуна');trust('silent',-15,'ти видав свого');add('coin',20)}dirty=1;return}
   if(a==='evf'){(s.dlg||[]).shift();if(i==='give'){const g=Math.min(30,Math.floor(s.r.prov));s.r.prov-=g;const n=Math.round(15*g/30);trust('rot',Math.max(2,n),'ти нагодував Причал');say(`Ти віддаєш ${R('prov',g)}. Ганна мовчки тисне тобі руку.`,'world')}else{trust('rot',-8,'ти відмовив голодним')}dirty=1;return}
-  if(a==='fightGo'){(s.dlg||[]).shift();if(i==='crab1'&&!s.f.crab1&&!s.cb){s.tab='shore';startFight('crab1','crab1')}dirty=1;return}
+  if(a==='fightGo'){(s.dlg||[]).shift();if(i==='crab1'&&!s.f.crab1&&!s.cb){tutRemember('combat');if(!s.eq.weapon){if(!has('oar'))giveI('oar');else if(packHas('oar'))s.eq.weapon='oar'}s.tab='shore';startFight('crab1','crab1')}dirty=1;return}
   if(a==='bg'){const B=BGS[i];if(!B||s.h.bg)return;for(const k in B.a)s.h.a[k]+=B.a[k];for(const k in B.k)s.h.k[k]+=B.k[k];s.h.bg=i;s.h.fp++;s.h.hp=maxHP();s.dlg=(s.dlg||[]).filter(d=>!d.bgsel);
     say(`Ти згадуєш: колись ти був — ${B.n.toLowerCase()}. Минуле ще дасть про себе знати.`,'info');dirty=1;return}
   if(a==='raidGo'||a==='raidHide'){(s.dlg||[]).shift();raidResolve(a==='raidGo');dirty=1;return}
@@ -26,8 +29,8 @@ function act0(a,i){
   case 'chok':s.chSeen=s.chs.length;break;
   case 'jt':s.jt=i;break;
   case 'look':if(!F.looked&&s.tot.ember>=10){F.looked=1;unlock('shore');say('Ти в нижній залі маяка. Сходи вгору тонуть у темряві, крізь щілину дверей чути море. Жарині потрібне паливо. Відкрито: Берег.','story')}break;
-  case 'blow':if(!s.b.hearth&&!onCd('blow')){setCd('blow',2);add('ember',3);s.c.blow=(s.c.blow||0)+1}break;
-  case 'hook':if(!F.hook&&afford(HOOKC)){pay(HOOKC);F.hook=1;dlg({k:'find',title:'Багор',img:{t:'ob',k:'hook3',f:'hookObj3'},body:'<p>Ти прив’язуєш до довгої жердини зігнутий цвях із уламків. Тепер плавник, що пропливає за кілька кроків від берега, теж твій.</p><p>А якщо поставити в прибої загорожу з кілків, хвилі самі зганятимуть до неї дерево.</p>',gains:['Плавника за раз — удвічі більше','Відкрилося: загорожа для плавника — прибій сам приноситиме плавник']})}break;
+  case 'blow':if(!s.b.hearth&&!onCd('blow')){setCd('blow',2);add('ember',3);s.c.blow=(s.c.blow||0)+1;tutOffer('ember')}break;
+  case 'hook':if(shoreHookReady()&&afford(HOOKC)){pay(HOOKC);F.hook=1;novUse('tool:hook');tutOffer('hook');dlg({k:'find',title:'Багор',img:{t:'ob',k:'hook3',f:'hookObj3'},body:'<p>Ти прив’язуєш до довгої жердини зігнутий цвях із уламків. Тепер плавник, що пропливає за кілька кроків від берега, теж твій.</p>'})}break;
   case 'gather':if(!onCd('gather')){setCd('gather',1);add('wood',wolf()*(F.hook?2:1));s.c.gather++;
     if(s.c.gather===6){say('Між водоростями блищить пляшка, заткнута воском. Усередині записка. Відкрито: Журнал.','story');page(1)}
     if(s.c.gather===60)odd('gull','У плавнику застрягла вирізана з дерева чайка.')}break;
@@ -44,20 +47,20 @@ function act0(a,i){
   case 'scrapw':if(F.wreck&&!onCd('scrapw')){setCd('scrapw',2);s.c.scrap=(s.c.scrap||0)+1;add('scrap',1+(s.rs.metal?1:0)+(s.h.ft.thrifty?1:0)+(has('rake')?1:0))}break;
   case 'fishing':if(F.rod&&!onCd('fishing')){setCd('fishing',3);if(!s.bite&&s.c.fish>=6&&F.crab1&&Date.now()-(s.bigT||0)>240000&&Math.random()<1/6){s.bigT=Date.now();if(mgHabit('fish')||s.quickMG){s.c.fish++;mgRun('fish',mgFish,fishEnd);break}s.bite={until:Date.now()+30000};say('Вудка вигнулася дугою: щось велике тягне линву!','find');break}add('fish',wolf());s.c.fish++;
     if(!F.crab1&&!F.crabWarn&&s.c.fish>=5){F.crabWarn=1;crabWarn()}}break;
-  case 'bld':{const b=i==='hearth'?HEARTH:BD.find(x=>x.id===i);if(b.max&&(s.b[i]||0)>=b.max)break;const c=bCost(b);if(afford(c)){pay(c);s.b[i]=(s.b[i]||0)+1;upT[i]=Date.now();if(typeof setTimeout==="function")setTimeout(()=>{dirty=1},1700);
+  case 'bld':{const b=i==='hearth'?HEARTH:BD.find(x=>x.id===i);if(!b||(!noGap()&&i!=='hearth'&&!s.b[i]&&!b.show())||(b.max&&(s.b[i]||0)>=b.max))break;const c=bCost(b);if(afford(c)){pay(c);s.b[i]=(s.b[i]||0)+1;if(i==='hearth')tutOffer('hearth');novUse('b:'+i);upT[i]=Date.now();if(typeof setTimeout==="function")setTimeout(()=>{dirty=1},1700);
     say(i==='hearth'&&s.b[i]===1?'Ти складаєш вогнище з плавника й кладеш у нього жарину. Полум’я оживає, а приплив тепер сам приносить трохи плавника до порогу.':`${b.n}: рівень ${s.b[i]}.`,'world')}break}
   case 'floor':{const ix=FL.findIndex(x=>x.id===i),f=FL[ix];if(!f||s.floors[i])break;if(ix>0&&!s.floors[FL[ix-1].id])break;
     if((f.req&&!f.req())||!afford(f.c,f.it))break;pay(f.c,f.use);s.floors[i]=1;
-    if(i==='work'){unlock('work');say('Майстерня знову пахне смолою й залізом. У господарстві тепер можна ставити загорожу для плавника. Відкрито: Майстерня.','story')}
-    if(i==='gallery'&&!s.f.fordSeen){s.f.fordSeen=1;dlg({k:'story',title:'Вогні за протокою',img:{t:'scene',id:'shore'},body:'<p>З оглядової далеко видно. За протокою, на великому острові, ночами горять вогні — там живуть люди. А на відпливі з води виходить смуга каміння: брід. Позначити б його, щоб не збитися в тумані.</p>',gains:['Відкрилося: брід на відпливі']})}
+    if(i==='work'){unlock('work');say('Майстерня знову пахне смолою й залізом. На верстаку знову можна працювати.','story')}
+    if(i==='gallery'&&!s.f.fordSeen){s.f.fordSeen=1;dlg({k:'story',title:'Вогні за протокою',img:{t:'scene',id:'shore'},body:'<p>З оглядової далеко видно. За протокою, на великому острові, ночами горять вогні — там живуть люди. А на відпливі з води виходить смуга каміння: брід. Позначити б його, щоб не збитися в тумані.</p>',gains:['Відкрилося: брід на відпливі']});tutOffer('ford')}
     if(i==='study'){unlock('study');say('Ключ Ганни підходить. Відкрито: Кабінет.','story')}
     if(i==='lantern')say('Ліхтарню відбудовано. Лінза стоїть у рамі, але дзеркала треба налаштувати, щоб світло пішло в море.','story');
-    dlg({k:'story',title:`Відновлено: ${f.n}`,img:{t:'yard'},body:`<p>${f.d}</p>`,gains:[{work:'Відкрилися: майстерня, кузня й загорожа для плавника',gallery:'Відкрилися: мапа шхер, далекогляд, сигнальне вогнище й смоловарня',study:'Відкрилися: дослідження, книги й скриня Остапа',lantern:'Відкрилося: налаштування дзеркал, щоб запалити маяк'}[i]]});
+    dlg({k:'story',title:`Відновлено: ${f.n}`,img:{t:'yard'},body:`<p>${f.d}</p>`,gains:[{work:'Майстерня відновлена',gallery:'З оглядової видно брід за протокою',study:'Відкрилися: дослідження, книги й скриня Остапа',lantern:'Відкрилося: налаштування дзеркал, щоб запалити маяк'}[i]]});
     break}
   case 'mirror':if(s.floors.lantern&&!F.won&&s.mirrors[i]){s.mirrors[i]=s.mirrors[i]==='/'?'\\':'/';if(beam().out){F.won=1;dlg({k:'story',title:'Маяк горить',img:{t:'yard'},body:'<p>Промінь пробиває вікно ліхтарні й лягає на воду. Великий вогонь маяка горить над шхерами, а Мла відступає.</p><p>Але це ще не кінець. Наступного ранку до Гнилого Причалу заходить чужий корабель.</p>',gains:['Кораблі платять мито: +2 монети щосекунди','У гавані Гнилого Причалу чекає капітанка: друга дія','Набіги Мли тривають, тож хранитель потрібен і далі']});say('Промінь пробиває вікно ліхтарні й лягає на воду. Великий вогонь маяка горить над шхерами!','story')}}break;
-  case 'craft':{const rc=RC.find(x=>x.id===i);if(!rc||!rcVisible(rc))break;const c=rcCost(rc);
-    if((rc.craft||0)>st('craft')||!afford(c,rc.it))break;pay(c,rc.it);s.f.craft1=1;
-    if(rc.tool){if(rc.id==='rod'){F.rod=1;say('Вудка готова. Тепер на березі можна рибалити.','find')}else{if(rc.id==='pack1')F.pack=1;if(rc.id==='pack2')F.pack=2;if(rc.id==='belt1')F.belt=1;dlg({k:'find',title:`Зроблено: ${rc.n}`,img:{t:'icon',id:rc.id==='belt1'?'belt':'pack'},body:`<p>${rc.d}</p>`,gains:[`Рюкзак: ${packSlots()} зброї, вантаж до ${loadCap()}`,`Пояс: ${beltSlots()} предмети`]})}}else{giveI(rc.out);let ex='';if(rc.multi&&Math.random()<0.05*st('craft')){giveI(rc.out);ex=' Вдалося зробити дві!'}say(`Зроблено: ${I(IT[rc.out].n)}.${ex}`,'find')}break}
+  case 'craft':{const rc=RC.find(x=>x.id===i);if(!rc||(i==='rod'?!shoreRodReady():!rcVisible(rc)))break;const c=i==='rod'?rc.c:rcCost(rc);
+    if((rc.craft||0)>st('craft')||!afford(c,rc.it))break;pay(c,rc.it);novUse('r:'+i);if(i!=='rod')s.f.craft1=1;
+    if(rc.tool){if(rc.id==='rod'){F.rod=1;say('Вудка готова. Тепер на березі можна рибалити.','find');tutOffer('rod')}else{if(rc.id==='pack1')F.pack=1;if(rc.id==='pack2')F.pack=2;if(rc.id==='belt1')F.belt=1;dlg({k:'find',title:`Зроблено: ${rc.n}`,img:{t:'icon',id:rc.id==='belt1'?'belt':'pack'},body:`<p>${rc.d}</p>`,gains:[`Рюкзак: ${packSlots()} зброї, вантаж до ${loadCap()}`,`Пояс: ${beltSlots()} предмети`]})}}else{giveI(rc.out);let ex='';if(rc.multi&&Math.random()<0.05*st('craft')){giveI(rc.out);ex=' Вдалося зробити дві!'}say(`Зроблено: ${I(IT[rc.out].n)}.${ex}`,'find')}break}
   case 'rs':rsStart(i);break;
   case 'repok':s.report=null;break;
   case 'attr':if(s.h.pts>0&&s.h.a[i]!==undefined&&s.h.a[i]<ACAP){s.h.pts--;s.h.a[i]++;if(i==='con')s.h.hp+=5}break;
@@ -86,7 +89,7 @@ function act0(a,i){
   case 'tt':popB='';if(i==='cut'||s.tabs[i]){zoomPrep(i);ttGo(i)}break;
   case 'eat':if(s.r.fish>=1&&s.h.hp<maxHP()){s.r.fish--;s.h.hp=Math.min(maxHP(),s.h.hp+8)}break;
   case 'eatp':if(s.r.prov>=1&&s.h.hp<maxHP()){s.r.prov--;s.h.hp=Math.min(maxHP(),s.h.hp+15)}break;
-  case 'scan':{const nx=SCAN.find(x=>!s.disc[x]);if(nx&&s.tabs.map&&s.r.ember>=scanCost()){s.r.ember-=scanCost();s.scans++;reveal(nx);say(SCANMSG[nx]+' Місце з’явилося на мапі.','world')}break}
+  case 'scan':{const nx=scanTarget();if(nx&&s.r.ember>=scanCost()){s.r.ember-=scanCost();s.scans++;novMark();reveal(nx);say(SCANMSG[nx]+' Місце з’явилося на мапі.','world')}break}
   case 'go':{const[ok,why]=canGo(i);if(!ok){say(why);break}snap9('map');if(LOC[i].sea){const pv=seaCost(LOC[i]);s.r.prov-=pv;say(`Ти виходиш у море. Витрачено ${R('prov',pv)}.`,'world')}s.at=i;s.tab='map';popB='';if(!s.visited[i]){s.visited[i]=1;xp(5);if(LOC[i].first)LOC[i].first()}wolfSniff(i);break}
   case 'leave':s.at='';popB='';break;
   case 'la':doLA(i);break;
@@ -106,6 +109,7 @@ function act0(a,i){
   case 'buy':{const it=SHOP.find(x=>x.id===i),p=price(it.p);if(s.r.coin<p||(it.show&&!it.show()))break;s.r.coin-=p;
     if(it.res)for(const k in it.res)add(k,it.res[k]);else if(it.book)book(it.book);else if(it.reveal)reveal(it.reveal);else giveI(i);say(`Куплено: ${I(it.n)}.`,'find');break}
   case 'tog':s.on[i]=s.on[i]===false;break;
+  case 'reserve':if(s.b[i]&&reserveInputs(i).length){s.reserveFree=s.reserveFree||{};s.reserveFree[i]=reserveOn(i)?1:0}break;
   case 'ht':s.ht=i;break;
   case 'tsel':s.tsel=i;break;
   case 'freq':{const q=(s.req||{})[i];if(!q||!afford(q.give))break;pay(q.give);for(const k in q.rew)add(k,q.rew[k]);trust(i,6,q.n.toLowerCase());for(const[g,n]of q.side||[])trust(g,n);delete s.req[i];s.reqT=s.reqT||{};s.reqT[i]=Date.now()+300000;say(`Прохання виконано: ${q.n}. Отримано ${costTxt(q.rew)}.`,'find');break}
@@ -140,7 +144,7 @@ function act0(a,i){
 function dismVal(id){const rc=RC.find(r=>r.out===id);let c={};if(rc){for(const k in rc.c)if(k!=='ember'){const v=Math.floor(rc.c[k]/2);if(v>0)c[k]=v}}else c=Object.assign({},DIS[id]||{});return Object.keys(c).length?c:null}
 function canDism(id){const it=IT[id];if(!it||!it.slot||!has(id))return false;const eqd=(s.eq[it.slot]===id||packHas(id))?1:0;return s.inv[id]>eqd}
 let RCOPEN=0;
-function rcVisible(rc){if(s.floors.work&&s.rcSeen&&!s.rcSeen[rc.id]&&!RCOPEN&&!noGap())return false;if(rc.req&&!rc.req())return false;if(rc.tool)return rc.id==='rod'?!s.f.rod:rc.id==='pack1'?!(s.f.pack>=1):rc.id==='pack2'?s.f.pack===1:rc.id==='belt1'?!s.f.belt:false;if(!rc.multi&&has(rc.out))return false;if(rc.id==='sling'&&!s.tabs.hero)return false;return true}
+function rcVisible(rc){if(rc.id==='rod')return false;if(!noGap()&&!RCOPEN&&(!s.floors.work||!s.rcSeen||!s.rcSeen[rc.id]))return false;if(rc.req&&!rc.req())return false;if(rc.tool)return rc.id==='rod'?!s.f.rod:rc.id==='pack1'?!(s.f.pack>=1):rc.id==='pack2'?s.f.pack===1:rc.id==='belt1'?!s.f.belt:false;if(!rc.multi&&has(rc.out))return false;if(rc.id==='sling'&&!s.tabs.hero)return false;return true}
 
 
 /* Мла збирається на метушню: її додають лише дії гравця. Поки біля маяка тихо — вона дрімає. */

@@ -377,7 +377,9 @@ button.ob:hover:not(:disabled),button.ob:focus-visible{background:transparent;ou
 @keyframes sway2{0%,100%{transform:rotate(-1.5deg)}50%{transform:rotate(1.5deg)}}
 button.hs.zone{border:0;background:transparent;box-shadow:none}
 button.hs.zone:hover,button.hs.zone:focus-visible{background:transparent;border:0;box-shadow:none}
-.dlw{position:absolute;display:block;transform:translate(calc(var(--p,0)*120%),calc(var(--p,0)*-260%));opacity:calc(1 - var(--p,0)*.5);transition:transform .26s linear}
+.dlw{position:absolute;display:block;transform:none;opacity:1;transform-origin:50% 70%}
+/* Плавник підіймається з води; наступний приносить хвиля. Позиція не залежить від кроків refresh. */
+.zone[data-k="gather"]::after{display:block}
 .zone{transition:--p .26s linear}
 .smk{position:absolute;width:1.1%;aspect-ratio:1;background:#8c9097;opacity:0;pointer-events:none;z-index:1;animation:smk2 3s linear infinite;animation-delay:calc(var(--d) - var(--o))}
 @keyframes smk2{0%{transform:translate(0,0);opacity:0}12%{opacity:.75}100%{transform:translate(120%,-700%) scale(2.4);opacity:0}}
@@ -975,14 +977,29 @@ body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .
 #top .hpl.hurt b{color:#e0735f}
 /* майстерня: креслення — головне на вкладці */
 .wkmain .wkb .bag .cell{min-height:150px}.wkmain .wkb .bag .cell .ic img{width:48px;height:48px}.wkmain .wkb .bag .cell>b{font-size:1.05rem}
-/* бій: смужки здоров'я, наміри над постатями */
-.grid.ar button .uhp{position:absolute;left:16%;right:16%;top:-9%;height:6px;z-index:4;background:#0b1418;border:1px solid #0b1418;pointer-events:none;display:block}
-.grid.ar button .uhp b{display:block;height:100%;background:#c9584a}.grid.ar button .uhp.al b{background:#8fc46a}.grid.ar button .uhp.me b{background:#f0b84a}.grid.ar button .uhp.lo b{background:#ff6b5e}
+/* бій: компактні піксельні смужки під ногами, наміри над постатями */
+.grid.ar button .uhp{position:absolute;left:12%;right:12%;bottom:0;top:auto;height:5px;box-sizing:border-box;z-index:4;background:#302423;border:1px solid #0b1418;box-shadow:0 1px 0 #0b1418,0 -1px 0 #a1987b66;pointer-events:none;display:block;overflow:hidden}
+.grid.ar button .uhp b{display:block;height:100%;background:#c9584a;box-shadow:inset 0 1px 0 #ffffff38}.grid.ar button .uhp.al b,.grid.ar button .uhp.me b{background:#8fc46a}.grid.ar button .uhp.lo b{background:#ff6b5e}
+@media (max-width:560px){.grid.ar button .uhp{height:4px}}
 .grid.ar button .uin{position:absolute;left:-8%;top:-34%;z-index:5;display:flex;align-items:center;gap:2px;font:700 11px/1 var(--mono);font-style:normal;color:#fff0b0;background:#7a2e28;border:1px solid #0b1418;padding:1px 3px 1px 2px;pointer-events:none}
 .grid.ar button .uin img{width:9px!important;height:9px!important;scale:1!important;translate:none!important;image-rendering:pixelated}
 .grid.ar button .uin.k-iheal{background:#3d5a2e}
-.grid.ar button .chb{top:auto;bottom:-6%;right:-6%}
+.grid.ar button .chb{top:-8%;bottom:auto;right:-6%}
 /* Словник: темне чорнило на папері, щоб текст не губився на розлінованому тлі */
 .gloss dt b{color:#1f1710}
 .gloss dd{margin:0 0 10px;padding:2px 6px;background:rgba(246,238,214,.72);box-shadow:0 0 0 1px rgba(120,90,50,.15)}
 .ink{color:#2b2014!important}
+
+/* Туторіал: окрема сланцева картка, не сюжетний пергамент. */
+#dlg .dlgbox.k-tutorial{--ink:#e3eae7;--panel:#233741;--mute:#b2c3c4;--rule:#66858b;--lamp:#c9b58c;--sea:#a8ccd0;--good:#8fc46a;--bad:#df8a7a;background:#233741;color:var(--ink);border:1px solid #66858b;border-top:4px solid #9bbdc0;box-shadow:0 0 0 2px #101e27,0 14px 44px #0008;color-scheme:dark}
+#dlg .dlgbox.k-tutorial .tag{color:#c2dadd!important;border-color:#66858b!important;background:#172932!important}
+#dlg .dlgbox.k-tutorial button.main{background:#d0e0dc;color:#182d36;border-color:#7e9b9c}
+#dlg .dlgbox.k-tutorial button.toggle{color:#c2dadd;border-color:#66858b}
+.tut-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:8px;margin:10px 0}
+.tut-list button{display:flex;justify-content:space-between;align-items:center;text-align:left;white-space:normal;padding:10px 12px;min-height:42px;gap:10px}
+#dlg .tut-list button{background:#172932;color:#e3eae7;border-color:#66858b}
+.tut-diagram{display:flex;justify-content:center;align-items:center;gap:4px;padding:12px 0}
+.tut-cell{display:flex;position:relative;align-items:center;justify-content:center;min-width:74px;height:52px;border:2px solid #66858b;background:#15262e;font:12px var(--mono)}
+.tut-cell.step{min-width:42px;background:transparent;border:1px dashed #66858b}
+.tut-cell i{position:absolute;bottom:4px;left:12%;width:76%;height:5px;background:#8fc46a;border:1px solid #101e27}
+.tut-cell.enemy i{background:#c9584a;width:55%}

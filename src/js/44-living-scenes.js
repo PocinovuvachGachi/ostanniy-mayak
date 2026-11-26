@@ -68,11 +68,11 @@ function bpopHTML(){const id=popB;if(!id)return'';let nm,lvl,d,btns='',extra='';
   if(id.startsWith('hr:'))return heroPopHTML(id);
   if(id.startsWith('fk:')||id.startsWith('tr:'))return villagePopHTML(id);
   if(id==='hearth'){const n=s.b.hearth||0,c=bCost(HEARTH);nm='Вогнище';lvl=n;d=`+${2*n} жару/с, спалює ${fr(0.12*n)} плавника/с.`;
-    btns=`${btn('Підкинути дров','bld','hearth',{ok:()=>afford(c),cls:'main'})}<span class="ccs">${costChips(c)}</span>${btn(s.on.hearth===false?'Розпалити':'Пригасити','tog','hearth',{cls:'toggle'})}`}
+    btns=`${btn('Підкинути дров','bld','hearth',{ok:()=>afford(c),cls:'main'})}<span class="ccs">${costChips(c)}</span>${btn(s.on.hearth===false?'Розпалити':'Пригасити','tog','hearth',{cls:'toggle'})}${reserveButton('hearth')}`;extra+=`<p class="m">${reserveText('hearth')}</p>`}
   else{const b=BD.find(x=>x.id===id);if(!b)return'';const n=s.b[id]||0,w=(s.wk||{})[id]||0,mx=b.max&&n>=b.max,dm=(s.dmgB||{})[id];nm=b.n;lvl=n;d=typeof b.d==='function'?b.d():b.d||'';
     if(dm){const rc=repCost(b);extra+=`<p class="foe">Мла зламала будівлю. Поки її не полагодиш, вона не працює.</p>`;btns+=`${btn('Полагодити','repair',id,{ok:()=>afford(rc),cls:'main'})}<span class="ccs">${costChips(rc)}</span>`}
     else{if(s.f.people&&n&&WKB.includes(id))extra+=`<div class="bpw">${mstOf(id)?'<span class="chip">майстер ×2</span> ':''}робітники <b>${w}</b> з ${n} ${btn('−','wk-',id,{cls:'toggle',ok:w>0,lab:'Зняти робітника'})}${btn('+','wk+',id,{cls:'toggle',ok:()=>freeW()>0&&w<n,lab:'Додати робітника'})}</div>`;
-      if(b.conv&&n)btns+=btn(s.on[id]===false?'Увімкнути':'Вимкнути','tog',id,{cls:'toggle'});
+      if(b.conv&&n){btns+=btn(s.on[id]===false?'Увімкнути':'Вимкнути','tog',id,{cls:'toggle'})+reserveButton(id);if(reserveInputs(id).length)extra+=`<p class="m">${reserveText(id)}</p>`}
       btns+=mx?'<span class="done">збудовано</span>':`${btn(n?'Покращити':'Збудувати','bld',id,{ok:()=>afford(bCost(b)),cls:'main'})}<span class="ccs">${costChips(bCost(b))}</span>`;
       if(n&&n<5&&!b.max)extra+=`<p class="hand bph2">${n<3?'Ще трохи роботи — і будівля помітно розростеться.':'Ще кілька рівнів — і вона стане справжньою окрасою двору.'}</p>`}}
   const html=`<div class="bpop" role="dialog" aria-label="${nm}"><div class="bph"><b>${nm}</b>${lvl?`<span class="bplv">рівень ${lvl}</span>`:'<span class="bplv">ще не збудовано</span>'}<button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div><p class="m">${d}</p>${extra}<div class="act">${btns}</div></div>`;
@@ -116,12 +116,13 @@ function homeHS(){const W=YW,H=YH;let h='';const st=yardSt2();
 function shoreHS(){const W=SW,H=SH,S=(x,y,w,h)=>PCT(x,y,w,h,W,H);let h=fogs(8,22)+mlaLayer(6,62)+fxCanvas('sh',W,H);
   h+=ob('home','tab','home',obURL('door3',doorObj3),6,51,W,H,'До маяка','<b>Двері маяка</b><br>Назад, до вогнища.');
   if(s.f.hook)h+=ob('hook','','',obURL('hook3',hookObj3),104,52,W,H,'Багор','');
-  else if((s.c.gather||0)>=8)h+=ob('hook','hook','',obURL('hook3',hookObj3),104,52,W,H,'Змайструвати багор',`<b>Багор</b><br>Довга жердина з гаком, щоб діставати плавник, який пропливає далі від берега.<br>Ціна: ${costTxt(HOOKC)}`,{pulse:1,always:1,ok:afford(HOOKC)});
+  else if(shoreHookReady())h+=ob('hook','hook','',obURL('hook3',hookObj3),104,52,W,H,'Змайструвати багор',`<b>Багор</b><br>Довга жердина з гаком, щоб діставати плавник, який пропливає далі від берега.<br>Ціна: ${costTxt(HOOKC)}`,{pulse:1,always:1,ok:afford(HOOKC)});
   if(s.ship)h+=ob('ship','hsgo','ship',obURL('ship3',shipObj3),168,0,W,H,'Торговий когг','<b>Торговий когг</b><br>Подивитися обміни.',{pulse:1,always:1,idle:'i-bob'});
   if(s.f.boat)h+=ob('pier','hsgo','pier',obURL('pier3'+((s.exp||[]).length?'o':''),()=>pierObj3({boatOut:!!(s.exp||[]).length})),231,48,W,H,'Пристань','<b>Пристань</b><br>Виходи в море й кораблі.');
   if(s.f.wreck)h+=ob('wreck','scrapw','',obURL('wreck3',wreckObj3),186,69,W,H,'Розбирати уламки','<b>Уламки човна</b><br>Цвяхи, скоби, обшивка: усе згодиться.',{pulse:1,cd:'scrapw',cs:2,inner:'<i class="spk"></i>'});
   if(s.f.rod)h+=s.bite?ob('rod','bigfish','',obURL('rod3',rodObj3),162,45,W,H,'Тягнути велику рибу','<b>Клює щось велике!</b><br>Натисни, щоб виводити. Можна й не чіпати: риба зірветься, нічого не втратиш.',{cls:'bite',inner:'<i class="bob"></i><i class="bang">!</i>'})
     :ob('rod','fishing','',obURL('rod3',rodObj3),162,45,W,H,'Рибалити','<b>Вудка</b><br>Закинь і чекай, поки клюне.',{pulse:1,cd:'fishing',cs:3,idle:'i-sway',inner:'<i class="bob"></i>'});
+  else if(shoreRodReady()){const c=RC.find(r=>r.id==='rod').c;h+=ob('rod','craft','rod',obURL('rod3',rodObj3),162,45,W,H,'Змайструвати просту вудку',`<b>Проста вудка</b><br>Жердина, линва й гачок.<br>Ціна: ${costTxt(c)}`,{pulse:1,always:1,ok:afford(c)})}
   h+=shoreFordHS(W,H)+shoreFightHS(W,H)+shoreRuneHS(W,H);
   if(s.flot)h+=ob('flot:'+s.flot.k,'flotmg','',obURL('flot3:'+s.flot.k,()=>flotObj3(s.flot.k)),126,78,W,H,'Оглянути знахідку','<b>Прибій щось викинув</b><br>Підчепи гаком, поки хвилі не забрали.',{pulse:1,always:1,idle:'i-bob'});
   const[lu,lo,lw,lh]=obURL('log3',log3Buf),pul=!(s.hsU||{}).gather,zx=33,zy=60,zw=66,zh=33,rx=26,ry=19;
@@ -145,10 +146,11 @@ function hsPop(el,e,r0){try{const out=[];for(const k in s.r){const d=(s.r[k]||0)
 
 /* Реакція на натискання: об'єкт важко присідає (без пружини), матеріал відповідає частинками й світлом */
 const MATK=(k,a)=>{k=k||'';if(a==='blow'||a==='smith'||a==='smithhot'||k==='hearth'||k==='hearth0')return{k:'spark',n:14,fl:1};
-  if(a==='fishing'||a==='bigfish'||a==='flotmg'||a==='flot')return{k:'splash',n:12};if(a==='gather')return{k:'splash',n:8,also:'chip'};if(a==='scrapw')return{k:'chip',n:12,also:'dust'};
+  if(a==='fishing'||a==='bigfish'||a==='flotmg'||a==='flot')return{k:'splash',n:12};if(a==='gather')return{k:'splash',n:6};if(a==='scrapw')return{k:'chip',n:12,also:'dust'};
   if(a==='bld'||a==='floor'||a==='flu')return{k:'dust',n:16};if(k.startsWith('b:')||k.startsWith('fl:'))return{k:'dust',n:5};return{k:'dust',n:4}};
-function pressFx(el,e){try{if(!el.classList.contains('ob')&&!el.classList.contains('hs'))return;el.classList.remove('press');void el.offsetWidth;el.classList.add('press');setTimeout(()=>el.classList.remove('press'),180);
-  if(!actOk||RM()||!FX.cv)return;const scn=el.closest('.scn');if(!scn)return;const r=scn.getBoundingClientRect(),b=el.getBoundingClientRect(),cx=e&&e.clientX?e.clientX:b.left+b.width/2,cy=e&&e.clientY?e.clientY:b.top+b.height/2,
+function gatherFx(el){if(!actOk)return;el.style.setProperty('--p',pOf('gather').toFixed(3));if(RM())return;const log=el.querySelector('.dlw');if(!log||!log.animate)return;for(const a of log.getAnimations())a.cancel();log.animate([{transform:'translate(0,0) rotate(0)',opacity:1},{transform:'translate(-30%,-75%) rotate(-8deg)',opacity:1,offset:.17},{transform:'translate(-58%,-130%) rotate(-13deg)',opacity:0,offset:.34},{transform:'translate(48%,42%) rotate(7deg)',opacity:0,offset:.35},{transform:'translate(12%,9%) rotate(2deg)',opacity:.9,offset:.77},{transform:'translate(0,0) rotate(0)',opacity:1}],{duration:900,easing:'ease-in-out'});}
+function pressFx(el,e){try{if(!el.classList.contains('ob')&&!el.classList.contains('hs'))return;const gather=el.dataset.a==='gather';if(gather)gatherFx(el);else{el.classList.remove('press');void el.offsetWidth;el.classList.add('press');setTimeout(()=>el.classList.remove('press'),180)}
+  if(!actOk||RM()||!FX.cv)return;const scn=el.closest('.scn');if(!scn)return;const r=scn.getBoundingClientRect(),b=(gather?el.querySelector('.dlw')||el:el).getBoundingClientRect(),cx=!gather&&e&&e.clientX?e.clientX:b.left+b.width/2,cy=!gather&&e&&e.clientY?e.clientY:b.top+b.height/2,
     W=FX.W/SK,H=FX.H/SK,x=(cx-r.left)/r.width*W,y=(cy-r.top)/r.height*H,m=MATK(el.dataset.k,el.dataset.a);fxBurst(FX.sc,x,y,m.k,m.n);if(m.also)fxBurst(FX.sc,x,y,m.also,6);if(m.fl)fxFlash(FX.sc,x,y)}catch(er){}}
 
 /* Картка поверху маяка: опис, відновлення, покращення, перехід до пов'язаної вкладки */

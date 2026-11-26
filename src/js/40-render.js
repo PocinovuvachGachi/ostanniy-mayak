@@ -31,7 +31,7 @@ function playFx(list){const wrap=$('gwrap'),lay=$('fxl');if(!wrap||!lay||!wrap.g
       const P=(e.p&&e.p.length>1?e.p:[[e.x0,e.y0],[e.x1,e.y1]]).map(([x,y])=>{const q=cell(x,y);return q?[q.x-c1.x,q.y-c1.y]:null}).filter(Boolean),n=P.length-1,hop=c1.w*(e.m==='fly'?.16:e.m==='swim'?0:.09),fr=[];
       for(let i=0;i<=n;i++){fr.push({offset:n?i/n:1,transform:`translate(${P[i][0]}px,${P[i][1]}px)`});
         if(i<n){const mx=(P[i][0]+P[i+1][0])/2,my=(P[i][1]+P[i+1][1])/2,rot=e.m==='fly'||e.m==='swim'?0:(i%2?4:-4);fr.push({offset:(i+.5)/n,transform:`translate(${mx}px,${my-hop}px) rotate(${rot}deg)`})}}
-      im.animate(fr,{duration:(e.d||220)*k,delay:at,fill:'backwards',easing:'linear'})}
+      const opt={duration:(e.d||220)*k,delay:at,fill:'backwards',easing:'linear'};im.animate(fr,opt);const bar=c1.b.querySelector('.uhp');if(bar&&bar.animate)bar.animate(P.map(([x,y],i)=>({offset:n?i/n:1,transform:`translate(${x}px,${y}px)`})),opt)}
     else if(e.t==='turn'){const c1=cell(e.x,e.y);if(!c1)continue;const el=mk('fxt');el.style.width=el.style.height=c1.w*.9+'px';el.style.opacity='0';const a=el.animate([{opacity:0,transform:`translate(${c1.x-c1.w*.45}px,${c1.y-c1.w*.45}px) scale(.6)`},{opacity:.9,transform:`translate(${c1.x-c1.w*.45}px,${c1.y-c1.w*.45}px) scale(1)`,offset:.4},{opacity:0,transform:`translate(${c1.x-c1.w*.45}px,${c1.y-c1.w*.45}px) scale(1.15)`}],{duration:420,delay:at,fill:'both'});a.onfinish=()=>el.remove()}
     else if(e.t==='bump'){const c0=cell(e.x0,e.y0),c1=cell(e.x1,e.y1);if(!c0||!c1)continue;const im=c0.b.querySelector('img');const dx=(c1.x-c0.x)*0.45,dy=(c1.y-c0.y)*0.45;if(im&&im.animate)im.animate([{transform:'none'},{transform:`translate(${-dx*.15}px,${-dy*.15}px) scale(1.05)`,offset:.35},{transform:`translate(${dx}px,${dy}px) scale(1.08)`,offset:.6},{transform:'none'}],{duration:260,delay:at,easing:'ease-out'})}
     else if(e.t==='txt'){const c1=cell(e.x,e.y);if(!c1)continue;const el=mk('fxn '+(e.k||''),e.v);el.style.opacity='0';const a=el.animate([{opacity:0,transform:`translate(${c1.x}px,${c1.y-c1.w*0.1}px) translate(-50%,-50%) scale(.7)`},{opacity:1,transform:`translate(${c1.x}px,${c1.y-c1.w*0.35}px) translate(-50%,-50%) scale(1.1)`,offset:.2},{opacity:0,transform:`translate(${c1.x}px,${c1.y-c1.w*1.1}px) translate(-50%,-50%)`}],{duration:950,delay:at,fill:'both'});a.onfinish=()=>el.remove();
@@ -116,24 +116,25 @@ function rPeople(){const cap=2*(s.b.house||0),pop=s.pop||0,ms=Object.keys(MST).f
 const scnD=()=>`--d:-${((Date.now()/1000)%30).toFixed(2)}s;--d2:-${((Date.now()/1000)%180).toFixed(2)}s`;
 function homeScene(){return`<div class="scn yd" data-scn="yd" style="${scnD()}"><span data-sk="bg" data-sig="bg" class="scbg">${VH(yardBgImg)}</span>${homeHS()}</div>`}
 function shoreScene(){return`<div class="scn sh" data-scn="sh" style="${scnD()}"><span data-sk="bg" data-sig="bg" class="scbg">${VH(shoreImg)}</span>${shoreHS()}</div>`}
+function reserveButton(id){return reserveInputs(id).length?btn(reserveOn(id)?'Дозволити витрачати резерв':'Захищати резерв','reserve',id,{cls:'toggle'}):''}
 function rHome(){let h=`<div>`;
   h+=`<section><div class="big">${V(()=>fmt(s.r.ember))}</div><p class="m">жару, ${V(()=>{const v=rates().ember;return(v>=0?'+':'')+fr(v)})} за секунду</p><p>${homeText()}</p>`;
   let al='';if(!s.b.hearth)al+=btn('Подмухати на жарину','blow','',{cd:'blow',cs:2});
   if(!s.f.looked&&s.f.lk)al+=btn('Роззирнутися','look','',{cls:'main'});
   if(s.f.looked&&s.seen.wood){const n=s.b.hearth||0;
     al+=`<div class="act">${btn(`${n?'Підкинути дров':'Скласти вогнище'} (${costTxt(bCost(HEARTH))})`,'bld','hearth',{ok:()=>afford(bCost(HEARTH)),cls:n?'':'main'})}${n?btn(s.on.hearth===false?'Розпалити':'Пригасити','tog','hearth',{cls:'toggle'}):''}</div>`;
-    if(n)h+=`<p class="m">Вогнище, рівень ${n}: дає +${2*n} жару/с і спалює ${fr(0.12*n)} плавника/с. Без плавника ледь тліє.</p>`}
+    if(n)h+=`<p class="m">Вогнище, рівень ${n}: дає +${2*n} жару/с і спалює ${fr(0.12*n)} плавника/с. Без плавника ледь тліє.</p><p class="m">${V(()=>reserveText('hearth'))}</p>${reserveButton('hearth')}`}
   if(s.tabs.tower)al+=btn('Нагору, до поверхів','tab','tower',{cls:'toggle'});if(s.tabs.shore)al+=btn('До берега','tab','shore',{cls:'toggle'});
   h+=`<details class="alist"><summary>Усі дії списком</summary><div>${al}</div></details></section>`;
   if(thrOn())h+=rDefense();
   if(s.f.people)h+=rPeople();
   const vis=BD.filter(b=>b.show());
-  if(vis.length){h+=`<section class="ledger"><details class="ledg"${s.ldOpen?' open':''}><summary><span class="lgt">Книга обліку</span><span class="m"> · усі будівлі одним списком</span></summary><h2 class="sr">Господарство${ih(`Цехи переробляють сировину, поки ввімкнені. Вимкни цех, щоб він не з’їдав те, що потрібне деінде.${s.f.people?' Робітник додає будівлі пів рівня, а майстер у своїй будівлі подвоює все.':''}`)}</h2>`;
+  if(vis.length){h+=`<section class="ledger"><details class="ledg"${s.ldOpen?' open':''}><summary><span class="lgt">Книга обліку</span><span class="m"> · усі будівлі одним списком</span></summary><h2 class="sr">Господарство${ih(`Цехи автоматично бережуть резерв сировини. Дозволь витрачати резерв для окремого цеху або вимкни цех зовсім.${s.f.people?' Робітник додає будівлі пів рівня, а майстер у своїй будівлі подвоює все.':''}`)}</h2>`;
     for(const b of vis){const n=s.b[b.id]||0,w=(s.wk||{})[b.id]||0,mx=b.max&&n>=b.max;
       const wk=s.f.people&&n&&WKB.includes(b.id)?`<br><span class="wk">${mstOf(b.id)?'<span class="chip">майстер ×2</span> ':''}робітники <b>${w}</b> з ${n} ${btn('−','wk-',b.id,{cls:'toggle',ok:w>0,lab:'Зняти робітника'})}${btn('+','wk+',b.id,{cls:'toggle',ok:()=>freeW()>0&&w<n,lab:'Додати робітника'})}</span>`:(n&&mstOf(b.id)&&!b.nw?'<br><span class="chip">майстер ×2</span>':'');
       const dm=(s.dmgB||{})[b.id],rc=dm?repCost(b):null;
       if(dm){h+=`<div class="row" id="bd-${b.id}"><div><b>${b.n}</b> <span class="foe">пошкоджено</span><br><span class="m">Мла зламала будівлю. Поки її не полагодиш, вона не працює.</span></div>${btn(`Полагодити (${costTxt(rc)})`,'repair',b.id,{ok:()=>afford(rc),cls:'main'})}</div>`;continue}
-      h+=`<div class="row" id="bd-${b.id}"><div><b>${b.n}</b>${fresh9('b:'+b.id)}${n&&!b.max?`, рівень ${n}`:''}${b.conv&&n&&s.on[b.id]===false?' <span class="m">(зупинено)</span>':''}<br><span class="m">${b.d()}</span>${wk}</div><div class="act" style="flex:0 1 auto">${b.conv&&n?btn(s.on[b.id]===false?'Увімкнути':'Вимкнути','tog',b.id,{cls:'toggle'}):''}${mx?'<span class="done">збудовано</span>':btn(`${n?'Покращити':'Збудувати'} (${costTxt(bCost(b))})`,'bld',b.id,{ok:()=>afford(bCost(b))})}</div></div>`}
+      h+=`<div class="row" id="bd-${b.id}"><div><b>${b.n}</b>${fresh9('b:'+b.id)}${n&&!b.max?`, рівень ${n}`:''}${b.conv&&n&&s.on[b.id]===false?' <span class="m">(зупинено)</span>':''}<br><span class="m">${b.d()}</span>${n&&b.conv&&reserveInputs(b.id).length?`<br><span class="m">${V(()=>reserveText(b.id))}</span>`:''}${wk}</div><div class="act" style="flex:0 1 auto">${b.conv&&n?btn(s.on[b.id]===false?'Увімкнути':'Вимкнути','tog',b.id,{cls:'toggle'})+reserveButton(b.id):''}${mx?'<span class="done">збудовано</span>':btn(`${n?'Покращити':'Збудувати'} (${costTxt(bCost(b))})`,'bld',b.id,{ok:()=>afford(bCost(b))})}</div></div>`}
     h+=`</details></section>`}
   if(s.b.shipyard){h+=`<section><h2>Верф Захара</h2>`;
     h+=s.f.schooner?`<p>Шхуна «Остап» стоїть біля причалу. На ній можна плисти до північних островів.</p>`:`<div class="row"><div><b>Шхуна</b><br><span class="m">Двощогловий корабель, що пройде крізь північні тумани. Сталь на обшивку, скло на ліхтарі.</span></div>${btn(`Збудувати (${costTxt(SCHOONER)})`,'schooner','',{ok:()=>afford(SCHOONER),cls:'main'})}</div>`;
@@ -144,6 +145,8 @@ function shoreImg(){const sig=[Math.round(tideLv()*4),s.f.fordSeen?1:0,FORD.map(
 function rShore(){let h=`<section><h2>Берег під маяком</h2><p>Мокрий пісок, водорості й плавник, викинутий прибоєм. Туман ховає обрій.</p>${s.f.tideSeen?`<p class="m">${VH(tideTxt)}</p>`:''}`;
   let al=`<div class="act">${btn('Збирати плавник','gather','',{cd:'gather',cs:1})}</div>`;
   if(s.f.wreck)al+=`<div class="act">${btn('Розбирати уламки човна','scrapw','',{cd:'scrapw',cs:2})}</div>`;
+  if(shoreHookReady())al+=`<div class="act">${btn('Змайструвати багор','hook','',{ok:()=>afford(HOOKC)})}<span class="ccs">${costTxt(HOOKC)}</span></div>`;
+  if(shoreRodReady()){const c=RC.find(r=>r.id==='rod').c;al+=`<div class="act">${btn('Змайструвати просту вудку','craft','rod',{ok:()=>afford(c)})}<span class="ccs">${costTxt(c)}</span></div>`}
   if(s.f.rod)al+=`<div class="act">${btn('Рибалити','fishing','',{cd:'fishing',cs:3})}</div>`;
   al+=`<div class="act">${btn('До маяка','tab','home',{cls:'toggle'})}</div>`;
   h+=`<details class="alist"><summary>Усі дії списком</summary><div>${al}</div></details>`;
@@ -162,7 +165,7 @@ function towerImg(){const F=s.floors,st={floors:F,hearth:s.b.hearth,forge:s.b.fo
   const u=AF[key];return u[0]?`<img class="px" src="${u[0]}" data-fr="${key}" data-xk="${key}" width="300" height="400" alt="Маяк у розрізі">`:''}
 function floorBuilt(id){return id==='hall'?!!s.b.hearth:!!s.floors[id]}
 function rTower(){let h=`<section><h2>Маяк</h2><p class="m">Натискай на поверхи, щоб зазирнути всередину.</p>`;
-  const nx=FL.find((f,ix)=>!s.floors[f.id]&&(ix===0||s.floors[FL[ix-1].id]));if(nx&&s.b.hearth)h+=`<p class="m">Далі можна відбудувати: <b>${nx.n}</b>.</p>`;
+  const nx=FL.find((f,ix)=>!s.floors[f.id]&&(ix===0||s.floors[FL[ix-1].id]));if(nx&&s.b.hearth&&(!nx.req||nx.req()))h+=`<p class="m">Далі можна відбудувати: <b>${nx.n}</b>.</p>`;
   if(s.floors.lantern&&!s.f.won)h+=`<p class="m">Світло в ліхтарні ще б’ється об стіни. Зазирни нагору.</p>`;if(s.lost)h+=`<p class="foe">Ріжок у тумані! Поверни промінь у ліхтарні.</p>`;
   if(s.floors.lantern)h+=`<details class="ledg"${s.ldOpen?' open':''}><summary>Усе списком</summary>${s.f.won?rBeam():rLens()}</details>`;return h+`</section>`}
 function rBeam(){const L=s.lost,tele=fuL('gallery')>=1,cur=s.beam||0;
@@ -310,7 +313,7 @@ function rMapList(){const u=0;
       h+=`<button type="button" class="mk${s.visited[k]?' vis':''}${ok?'':' far'}" style="left:${x/160*100}%;top:${y/108*100}%" data-a="go" data-i="${k}" aria-label="${LOC[k].n}"><span>${LOC[k].n}</span></button>`}
     h+=`<span class="mk home" style="left:${MAPPT.tower[0]/160*100}%;top:${MAPPT.tower[1]/108*100}%"><span>Маяк</span></span></div>`}
 
-  if(SCAN.some(x=>!s.disc[x]))h+=`<div class="row"><div><b>Далекогляд</b><br><span class="m">Пробити млу й знайти нове місце.</span></div>${btn(`Оглянути обрій (${R('ember',fmt(scanCost()))})`,'scan','',{ok:()=>s.r.ember>=scanCost()})}</div>`;
+  if(scanTarget())h+=`<div class="row"><div><b>Далекогляд</b><br><span class="m">Пробити млу й знайти нове місце.</span></div>${btn(`Оглянути обрій (${R('ember',fmt(scanCost()))})`,'scan','',{ok:()=>s.r.ember>=scanCost()})}</div>`;
   h+=`<div class="row"><div><b>Сигнальне вогнище</b><br><span class="m">Великий вогонь на оглядовій кличе кораблі, що минають шхери. Вони скидають вантаж. Раз на дві хвилини.</span></div>${btn(`Запалити (${R('ember',fmt(sigCost()))})`,'signal','',{ok:()=>s.r.ember>=sigCost(),cd:'signal',cs:120})}</div>`;
   h+=`</section><section><h2>Відомі місця</h2>${s.f.boat?`<p class="m">Вихід у море коштує ${R('prov',SEAFOOD)}${s.f.schooner?`, похід на шхуні — ${R('prov',SEAFOOD*2)}`:''}.</p>`:''}<div class="lcards">`;
   for(const id in LOC)if(s.disc[id]){const L=LOC[id],[ok,why]=canGo(id);
@@ -348,7 +351,7 @@ function rTradeList(){let h=`<section class="spot">${pimg(faceURL('yarema'),64,6
 
 function ago(at){if(!at)return'';const m=Math.floor((Date.now()-at)/60000);return m<1?'щойно':m<60?`${m} хв тому`:`${Math.floor(m/60)} год тому`}
 function rJournal(){const nOdd=Object.keys(s.odd).length,nOD=Object.keys(OD).length,kills=Object.values(s.kills).reduce((a,b)=>a+b,0);
-  const sub=[['goals','Цілі',1],['story','Сюжет',s.chs.length||Object.keys(s.bts||{}).length],['pages','Записи Остапа',s.pages.length],['chars','Персонажі',Object.keys(s.met).length],['foes','Бестіарій',Object.keys(s.seenE).filter(k=>EN[k]&&!EN[k].obj&&!EN[k].ally).length],['odd','Дивини',nOdd],['gloss','Словник',Object.keys(s.glSeen||{}).length],['log','Події',1]].filter(x=>x[2]);
+  const sub=[['goals','Цілі',1],['story','Сюжет',s.chs.length||Object.keys(s.bts||{}).length],['pages','Записи Остапа',s.pages.length],['chars','Персонажі',Object.keys(s.met).length],['foes','Бестіарій',Object.keys(s.seenE).filter(k=>EN[k]&&!EN[k].obj&&!EN[k].ally).length],['odd','Дивини',nOdd],['gloss','Словник',Object.keys(s.glSeen||{}).length],['log','Події',1],['help','Довідник',tutIds().length]].filter(x=>x[2]);
   if(!sub.some(x=>x[0]===s.jt))s.jt='goals';
   let h=`<section class="jr"><div class="jhead"><div><h2>Журнал хранителя</h2><span class="hand">Записано рукою того, хто береже вогонь</span></div>
   <div class="chips"><span class="chip">розділів пройдено <b>${s.chs.length}</b></span><span class="chip">записок <b>${s.pages.length}</b></span><span class="chip">дивин <b>${nOdd}</b></span><span class="chip">перемог <b>${kills}</b></span></div></div>
@@ -368,14 +371,15 @@ function rJournal(){const nOdd=Object.keys(s.odd).length,nOD=Object.keys(OD).len
     <div>${e.p.map(x=>`<span class="habit">${x[2].toLowerCase()}${x[1]&&x[0]!=='heal'?' '+x[1]:''}</span>`).join('')}</div><p class="m" style="margin:6px 0 0">Переможено: ${s.kills[k]||0}</p></div>`}).join('')}</div>`;
   if(s.jt==='odd')h+=`<div class="ogrid">${Object.keys(OD).filter(k=>s.odd[k]).map(k=>`<div class="ocard">${pimg(icoURL(ODI[k]),48,48,'',OD[k].n)}<b class="itm">${OD[k].n}</b><br><span class="m">${OD[k].d}</span></div>`).join('')}</div><p class="m" style="margin-top:8px">${nOdd?'Кожна дивина дає 20 досвіду. Шхери ховають ще чимало дивного.':'Поки жодної. Придивляйся до дрібниць: море викидає дивні речі.'}</p>`;
   if(s.jt==='gloss')h+=`<p class="m ink">Старі морські слова, які трапляються в записах. У тексті вони підкреслені пунктиром: наведи курсор або торкнися, щоб побачити пояснення.</p><dl class="gloss">${GLOS.filter(g=>(s.glSeen||{})[g[0]]).map(g=>`<dt><b>${g[1]}</b></dt><dd class="ink">${g[2].charAt(0).toUpperCase()+g[2].slice(1)}</dd>`).join('')}</dl>`;
+  if(s.jt==='help')h+='<p class="m">Пояснення вже відкритих механік.</p>'+tutListHTML();
   if(s.jt==='log')h+=`<ul class="logl">${s.log.slice(0,40).map(x=>{x=logOf(x);return`<li><span class="tag t-${x.t}">${TAGN[x.t]}</span><span class="ev-text">${x.m}</span><time>${ago(x.at)}</time></li>`}).join('')}</ul>`;
   return h+`</section>`}
 const AFL={pierv:'sand',pierfog:'plank',yardA:'sand',shoreL:'sand',heartL:'stone',shore:'sand',hold:'plank',cliff:'grass',bay:'sand',cave:'stone',fort:'grass',tower:'stone',store:'plank',bog:'grass',mine:'stone',shoal:'sand',spit:'sand',isle:'sand',monastery:'stone',guard:'stone',heartA:'stone'};
 const TK={'#':'rock','+':'crate','~':'water','E':'exit','f':'floor'};
 const INDOOR={hold:1,cave:1,tower:1,store:1,mine:1,monastery:1};
 /* шанс влучити — на самій цілі, коли її можна вдарити чи підстрелити */
-/* над постаттю: смужка здоров'я й намір ворога (#43) */
-function uBar(hp,mx,k){const p=Math.max(0,Math.min(100,hp/mx*100));return`<i class="uhp ${k}${p<34?' lo':''}"><b style="width:${p.toFixed(0)}%"></b></i>`}
+/* смужка здоров'я під постаттю; намір ворога над нею */
+function uBar(hp,mx,k){const p=Math.max(0,Math.min(100,hp/mx*100));return`<i class="uhp ${k}${p<34?' lo':''}" aria-hidden="true"><b style="width:${p.toFixed(0)}%"></b></i>`}
 function uIntentChip(u){if(u.stun)return'';const[k,v]=uIntent(u);if(STANCE[k])return'';const ic=k==='shoot'||k==='aim'?'ishoot':k==='heal'?'iheal':['hit','cold','wrap'].includes(k)?'ihit':'';if(!ic)return'';
   const n=['hit','cold','wrap'].includes(k)?v*(u.wind?2:1):k==='shoot'||k==='heal'?v:'';return`<i class="uin k-${ic}"><img src="${stiURL(ic)}" alt="">${n}</i>`}
 function chBadge(c,u){const d=dist(c.hx,c.hy,u.x,u.y);const ch=d<=1?meleeCh(u):canShoot(u)?shotCh(u):null;if(ch==null)return'';return`<i class="chb${ch>=75?' hi':ch<50?' lo':''}">${Math.round(ch)}%</i>`}
@@ -507,7 +511,7 @@ function render(){B={};bn=0;
   if(!s.cb&&s.tab==='chron'&&view!==prevView){try{const tl=mn.querySelector('.chr-tl');if(tl)tl.scrollLeft=tl.scrollWidth}catch(e){}}
   if(view==='cb'&&prevView!=='cb'&&s.cb&&!RM()){const ci=$('cbin');if(ci&&ci.classList){const fo=s.cb.u.filter(u=>!isObj(u)).map(u=>EN[u.t].n);ci.innerHTML=`<div><b>${s.cb.title||'Бій'}</b><span>${[...new Set(fo)].join(' · ')}</span></div>`;ci.classList.remove('go');void ci.offsetWidth;ci.classList.add('go')}}
   if(s.cb&&s.cb.fx&&s.cb.fx.length){const f=s.cb.fx;s.cb.fx=[];s.cb.fxt=0;try{playFx(f)}catch(e){}}
-  $('foot').innerHTML=resetAsk?`Стерти весь прогрес і почати з самого початку? ${btn('Так, стерти','resetYes')}${btn('Скасувати','resetNo')}`:`<details class="sett"${ftOpen?' open':''}><summary>Налаштування</summary><div class="setb">${btn(s.quickMG?'Доступність: без міні-ігор — так':'Доступність: без міні-ігор — ні','qmg','',{cls:'toggle'})}${Object.keys(MGH).filter(t=>(s.mgUn||{})[t]&&mgCan(t)).map(t=>btn(`${{fish:'Велика риба',flot:'Знахідки в прибої',forge:'Кування'}[t]}: ${(s.mgHab||{})[t]?'звично':'власноруч'}`,'mghab',t,{cls:'toggle'})).join('')}${btn('Почати спочатку','reset')}</div></details><span class="m">Гра зберігається автоматично.</span>`;
+  $('foot').innerHTML=resetAsk?`Стерти весь прогрес і почати з самого початку? ${btn('Так, стерти','resetYes')}${btn('Скасувати','resetNo')}`:`${tutIds().length?btn('Довідник','tutList','',{cls:'toggle'}):''}<details class="sett"${ftOpen?' open':''}><summary>Налаштування</summary><div class="setb">${btn(s.quickMG?'Доступність: без міні-ігор — так':'Доступність: без міні-ігор — ні','qmg','',{cls:'toggle'})}${Object.keys(MGH).filter(t=>(s.mgUn||{})[t]&&mgCan(t)).map(t=>btn(`${{fish:'Велика риба',flot:'Знахідки в прибої',forge:'Кування'}[t]}: ${(s.mgHab||{})[t]?'звично':'власноруч'}`,'mghab',t,{cls:'toggle'})).join('')}${btn('Почати спочатку','reset')}</div></details><span class="m">Гра зберігається автоматично.</span>`;
   dirty=0;refresh()}
 let ftOpen=0;
 function refresh(){
@@ -528,7 +532,7 @@ function rDlg(){const q=s.dlg||[];if(!q.length)s.bellHold=0;const d=s.bellHold&&
   const key=d.title+'|'+String(d.body||'').length+'|'+(d.btns||[]).length+'|'+(s.dlg.length>1);if(key===lastDlg){try{const q=el.querySelector('.dlgq');if(q)q.textContent=s.dlg.length>1?`Ще подій у черзі: ${s.dlg.length-1}`:''}catch(e){}return}const fi=!lastDlg&&!RM();lastDlg=key;sfx(d.chap||d.k==='lvl'?'chime':d.k==='fight'?'horn':'page');
   if(d.chap){el.innerHTML=`<div class="dlgbg chapbg${fi?' fi':''}"><div class="dlgbox chap" role="dialog" aria-modal="true" aria-labelledby="dlgt"><div class="chapno">Розділ ${ROM(d.no)} завершено</div><h2 id="dlgt">${d.sub}</h2><div class="orn" aria-hidden="true">✦ ✦ ✦</div>${dlgImg(d.img)}<div class="dlgbody">${d.body||''}</div><div class="act"><button type="button" class="main" data-a="dlgok" data-i="">Гортати далі</button>${s.dlg.length>1?'<button type="button" class="toggle" data-a="bellDefer" data-i="">Відкласти решту</button>':''}</div><p class="more dlgq">${s.dlg.length>1?`Ще подій у черзі: ${s.dlg.length-1}`:''}</p></div></div>`;
     glossify(el);try{const b=el.querySelector&&el.querySelector('button');if(b)b.focus()}catch(e){}return}
-  el.innerHTML=`<div class="dlgbg${fi?' fi':''}"><div class="dlgbox k-${d.k||'info'}" role="dialog" aria-modal="true" aria-labelledby="dlgt">${dlgImg(d.img)}<div class="dlgin"><span class="tag t-${d.k||'info'}"><img class="tico" src="${tagURL(d.k||'info')}" alt="" width="14" height="14">${TAGN[d.k||'info']}</span><h2 id="dlgt">${d.title}</h2><div class="dlgbody">${d.body||''}</div>${d.gains&&d.gains.length?`<ul class="gains">${d.gains.map(g=>`<li>${g}</li>`).join('')}</ul>`:''}<div class="act">${(d.btns||[['Зрозуміло','dlgok']]).map(b=>`<button type="button" class="main" data-a="${b[1]}" data-i="${b[2]||''}">${b[0]}</button>`).join('')}${s.dlg.length>1&&!d.btns&&d.k!=='fight'?'<button type="button" class="toggle" data-a="bellDefer" data-i="">Відкласти решту</button>':''}</div><p class="m dlgq">${s.dlg.length>1?`Ще подій у черзі: ${s.dlg.length-1}`:''}</p></div></div></div>`;
+  el.innerHTML=`<div class="dlgbg${fi?' fi':''}"><div class="dlgbox k-${d.k||'info'}" role="dialog" aria-modal="true" aria-labelledby="dlgt">${dlgImg(d.img)}<div class="dlgin"><span class="tag t-${d.k||'info'}"><img class="tico" src="${tagURL(d.k==='tutorial'?'info':d.k||'info')}" alt="" width="14" height="14">${d.k==='tutorial'?'навчання':TAGN[d.k||'info']}</span><h2 id="dlgt">${d.title}</h2><div class="dlgbody">${d.body||''}</div>${d.gains&&d.gains.length?`<ul class="gains">${d.gains.map(g=>`<li>${g}</li>`).join('')}</ul>`:''}<div class="act">${(d.btns||[['Зрозуміло','dlgok']]).map(b=>`<button type="button" class="main" data-a="${b[1]}" data-i="${b[2]||''}">${b[0]}</button>`).join('')}${s.dlg.length>1&&!d.btns&&d.k!=='fight'?'<button type="button" class="toggle" data-a="bellDefer" data-i="">Відкласти решту</button>':''}</div><p class="m dlgq">${s.dlg.length>1?`Ще подій у черзі: ${s.dlg.length-1}`:''}</p></div></div></div>`;
   glossify(el);try{const b=el.querySelector&&el.querySelector('button');if(b)b.focus()}catch(e){}}
 let lastToast='';
 /* Сповіщення — темні плашки внизу: звичайні тримаються 11 с, історія — 18 с, знахідки — 14 с, рівень — доки не закриєш ✕.
