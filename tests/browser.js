@@ -803,6 +803,70 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await p.close();
   }
 
+  // Після першої поразки можна зловити їжу й повернутися за власним рішенням.
+  {
+    const p=await page(390,844);
+    await p.emulateMedia({reducedMotion:'reduce'});
+    await p.evaluate(()=>{
+      Math.random=()=>.99;s.tabs.shore=1;s.tabs.chron=1;s.tab='shore';s.f.looked=1;s.f.rod=1;s.dbgTide='high';
+      s.h.hp=1;s.c.fish=4;s.tutSeen.rod=1;s.lastNov=s.play;s.dlg=[];s.tutPending=[];
+      s.bts=Object.fromEntries(CH.flatMap(ch=>ch.beats.map(beat=>[beat[0],1])));s.chs=CH.map(ch=>ch.id);render();
+    });
+    const fishing=p.locator('#stage [data-a="fishing"]');
+    const recovery=p.locator('.shore-recovery'),retry=recovery.locator('[data-a="crabRetry"]');
+    await fishing.click();
+    await p.locator('#dlg [data-a="crabPrepare"]').click();
+    await recovery.locator('[data-a="eat"]').focus();await p.keyboard.press('Enter');
+    A(await p.evaluate(()=>s.h.hp===5&&!s.tabs.hero&&!s.r.fish),'їжа доступна до вкладки героя');
+    await retry.click();await p.locator('#dlg [data-a="tutFight"]').click();await p.locator('#dlg [data-a="fightGo"]').click();
+    await p.evaluate(()=>{s.cb.poison=5;for(let i=0;i<8&&s.cb;i++){act('c_end');if(s.cb)s.cb.eAnim=0}render()});
+    await p.locator('#dlg h2',{hasText:'Поразка'}).waitFor();await p.locator('#dlg [data-a="dlgok"]').click();
+    while(await p.locator('#dlg [data-a="dlgok"]').isVisible())await p.locator('#dlg [data-a="dlgok"]').click();
+    await p.waitForFunction(()=>tutKnown('hero'));
+    if(await p.locator('#dlg .k-tutorial [data-a="dlgok"]').isVisible())await p.locator('#dlg .k-tutorial [data-a="dlgok"]').click();
+    A(await p.evaluate(()=>s.h.hp===8&&!s.r.fish&&!s.r.prov&&!s.dlg.some(d=>d.crabw)),'після поразки немає повторного примусового виклику');
+    await p.waitForFunction(()=>!onCd('fishing'));
+    await fishing.click();
+    const meal=recovery.locator('[data-a="eatfull"]');
+    A((await meal.innerText()).includes('риба ×1'),'до натискання видно витрати їжі');
+    await meal.click();
+    A(await p.evaluate(()=>s.h.hp===12&&!s.cb&&!s.r.fish&&document.documentElement.scrollWidth<=390),'звичайний улов лікує після поразки за високої води');
+    await retry.focus();await p.keyboard.press('Enter');
+    A(await p.evaluate(()=>s.cb?.win==='crab1'),'добровільне повернення до бою з клавіатури');
+    await p.close();
+  }
+
+  // Юшка з мідіями та одночасна бойова підготовка у чинній торбі.
+  {
+    const p=await page(390,844);
+    await p.evaluate(()=>{
+      Math.random=()=>.99;s.tabs.tower=1;s.tabs.kitchen=1;s.tab='tower';ttGo('kitchen');
+      s.f.musselGathered=1;s.f.zinovii=1;s.r.fish=2;s.r.wood=1;giveI('mussel');
+      s.bts=Object.fromEntries(CH.flatMap(ch=>ch.beats.map(beat=>[beat[0],1])));s.chs=CH.map(ch=>ch.id);s.tabs.chron=1;
+      s.lastNov=s.play;s.dlg=[];s.tutPending=[];render();
+    });
+    await p.click('#main [data-a="fishRecipe"][data-i="musselsoup"]');
+    await p.locator('#dlg h2',{hasText:'Юшка з мідіями'}).waitFor();
+    A(await p.locator('#dlg .dlgface img').count()===1&&await p.evaluate(()=>has('mussel')),'власний спрайт рецепта й розмова без оплати');
+    await p.click('#dlg [data-a="dlgok"]');
+    await p.click('.scn [data-k="kt:pot"]');
+    A((await p.locator('#popl .bpop').innerText()).includes('26 здоров’я за 180 с поза боєм'),'у картці видно бюджет і час');
+    await p.click('#popl [data-a="cookp"][data-i="musselsoup"]');
+    await p.evaluate(()=>{s.tabs.hero=1;s.h.bg='old';s.tab='hero';s.nv.bag=1;s.ht='bag';s.h.hp=10;popB='';render()});
+    await p.click('#main [data-a="use"][data-i="musselsoup"]');
+    await p.waitForFunction(()=>activeRegen()?.left<180);
+    A((await p.locator('#top .food-effect').innerText()).includes('HP')&&await p.evaluate(()=>!beltHas('musselsoup')&&!has('mussel')),
+      'у торбі можна випити юшку, активний відлік видно у верхній панелі');
+    await p.evaluate(()=>{s.h.hp=maxHP();giveI('dried');render()});
+    await p.locator('#main [data-a="use"][data-i="dried"]').focus();await p.keyboard.press('Enter');
+    A((await p.locator('#top .food-effect').innerText()).includes('Ситість')&&await p.evaluate(()=>!!activeRegen()&&s.h.buf.full===1),
+      'бойовий бонус застосовується при повному HP поряд із регенерацією');
+    await p.evaluate(()=>{startFight('rats','test');render()});
+    A((await p.locator('#top .food-effect').innerText()).includes('пауза в бою')&&await p.evaluate(()=>document.documentElement.scrollWidth<=390),
+      'у бою видно паузу ефекту без горизонтальної прокрутки');
+    await p.close();
+  }
+
   // 4. Жарина й місце для вогнища — різні об'єкти з різними діями
   {
     const p = await page(1100, 900);

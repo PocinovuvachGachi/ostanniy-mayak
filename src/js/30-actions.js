@@ -15,7 +15,8 @@ function act0(a,i){
   if(a==='evr'){(s.dlg||[]).shift();if(i==='keep'){trust('silent',15,'ти прихистив утікача');trust('rot',-10,'у Причалі незадоволені');if(s.f.people&&(s.pop||0)<2*(s.b.house||0)){s.pop++;say('Колишній Мовчун лишається біля маяка й обіцяє працювати.','world')}else{add('coin',10);say('Вранці він іде, лишивши кілька монет і подяку.','world')}}
     else if(i==='away'){trust('rot',3);say('Ти зачиняєш двері. Кроки віддаляються в туман.','world')}else{trust('rot',15,'ти видав Мовчуна');trust('silent',-15,'ти видав свого');add('coin',20)}dirty=1;return}
   if(a==='evf'){(s.dlg||[]).shift();if(i==='give'){const g=Math.min(30,Math.floor(s.r.prov));s.r.prov-=g;const n=Math.round(15*g/30);trust('rot',Math.max(2,n),'ти нагодував Причал');say(`Ти віддаєш ${R('prov',g)}. Ганна мовчки тисне тобі руку.`,'world')}else{trust('rot',-8,'ти відмовив голодним')}dirty=1;return}
-  if(a==='fightGo'){(s.dlg||[]).shift();if(i==='crab1'&&!s.f.crab1&&!s.cb){tutRemember('combat');if(!s.eq.weapon){if(!has('oar'))giveI('oar');else if(packHas('oar'))s.eq.weapon='oar'}s.tab='shore';startFight('crab1','crab1')}dirty=1;return}
+  if(a==='crabPrepare'){if(s.dlg[0]?.crabw){s.dlg.shift();s.tab='shore';dirty=1}return}
+  if(a==='fightGo'){if(i==='crab1'&&s.dlg[0]?.crabw&&!s.cb&&!s.raid){s.dlg.shift();beginFirstCrab()}return}
   if(a==='bg'){const B=BGS[i];if(!B||s.h.bg)return;for(const k in B.a)s.h.a[k]+=B.a[k];for(const k in B.k)s.h.k[k]+=B.k[k];s.h.bg=i;s.h.fp++;s.h.hp=maxHP();s.dlg=(s.dlg||[]).filter(d=>!d.bgsel);
     say(`Ти згадуєш: колись ти був — ${B.n.toLowerCase()}. Минуле ще дасть про себе знати.`,'info');dirty=1;return}
   if(a==='raidGo'||a==='raidHide'){(s.dlg||[]).shift();raidResolve(a==='raidGo');dirty=1;return}
@@ -25,6 +26,7 @@ function act0(a,i){
   if(s.cb)return;
   const F=s.f;
   switch(a){
+  case 'crabRetry':if(atShore()&&firstCrabWaiting()&&!s.raid&&!s.dlg.length){if(tutKnown('combat')||noGap())beginFirstCrab();else crabWarn()}break;
   case 'tab':popB='';if(SUBT[i]){if(s.tabs[i]){zoomPrep(i);s.tab='tower';ttGo(i)}break}if(s.tabs[i]){zoomPrep(i);s.tab=i;delete s.newTab[i];snap9(i)}break;
   case 'chok':s.chSeen=s.chs.length;break;
   case 'jt':s.jt=i;break;
@@ -104,7 +106,7 @@ function act0(a,i){
   case 'equip':if(has(i)&&IT[i].slot){const sl=IT[i].slot;if(sl==='weapon'||sl==='ranged'){if(!packHas(i)){if(s.pack.length>=packSlots()){const old=s.eq[sl];if(!old||!packHas(old)){say('Рюкзак повний. Виклади щось із нього у вкладці «Спорядження».');break}s.pack[s.pack.indexOf(old)]=i;say(`${IT[old].n} лишається в маяку, а в рюкзак іде ${IT[i].n}.`)}else s.pack.push(i)}}s.eq[sl]=i;s.h.hp=Math.min(s.h.hp,maxHP())}break;
   case 'packAdd':if(has(i)&&IT[i].slot&&(IT[i].slot==='weapon'||IT[i].slot==='ranged')&&!packHas(i)&&s.pack.length<packSlots())s.pack.push(i);break;
   case 'packRem':s.pack=s.pack.filter(x=>x!==i);for(const sl of['weapon','ranged'])if(s.eq[sl]===i)s.eq[sl]='';break;
-  case 'beltAdd':if(has(i)&&IT[i].use&&!s.belt.includes(i)&&s.belt.length<beltSlots())s.belt.push(i);break;
+  case 'beltAdd':if(has(i)&&beltItem(i)&&!s.belt.includes(i)&&s.belt.length<beltSlots())s.belt.push(i);break;
   case 'beltRem':s.belt=s.belt.filter(x=>x!==i);break;
   case 'wup':{const tier=wF(i),cst=wfCost(tier),rel=REL[i]&&REL[i][tier];if(!cst||!WF[i]||!s.b.forge||!has(i)||wmLv(i)<WFM[tier]||!rel||!has(rel)||!afford(cst))break;const old=wN(i);pay(cst);s.inv[rel]--;s.wf=s.wf||{};s.wf[i]=tier+1;
     say(`Кузня: ${I(old)} тепер ${I(wN(i))}.`,'find');dlg({k:'find',title:`Удосконалено: ${wN(i)}`,img:{t:'wico',id:i},body:`<div class="fgx" aria-hidden="true"><span class="fgh"></span><b></b><b></b><b></b><b></b><b></b></div><p>${tier&&s.mst.kindrat?`${P('Кіндрат')} гартує сталь, і ${old.toLowerCase()} стає зовсім іншою зброєю.`:`Кузня гуде до ночі. ${IT[rel].n} лягає на своє місце, і ${old.toLowerCase()} виходить з горна новою зброєю.`}</p>`,gains:['+2 урону',`Нова особливість: ${WF[i][tier].tr}`,'Старі особливості й прийоми майстерності лишаються']});break}
@@ -116,15 +118,15 @@ function act0(a,i){
     if(o[1]){s.bog=(s.bog||0)+1;if(s.bog>=BOGP.length){F.bogPath=1;s.bog=0;xp(30);dlg({k:'find',title:'Шлях через болото',img:{t:'scene',id:'bog'},body:'<p>Остання кочка пружинить під ногою, і ти стоїш на сухому порозі хати Устини.</p>',gains:['Хата Устини тепер доступна']})}else say(`${o[0]} тримає. Ступаєш далі.`)}
     else{s.bog=0;s.bogFail=(s.bogFail||0)+1;s.h.hp=Math.max(1,s.h.hp-4);say('Нога провалюється в чорну воду. Ти ледве вибираєшся назад на край болота: −4 здоров’я.')}}break;
   case 'unequip':s.eq[i]='';s.h.hp=Math.min(s.h.hp,maxHP());break;
-  case 'use':if(has(i)&&IT[i].use==='heal'&&s.h.hp<maxHP()){s.inv[i]--;s.h.hp=Math.min(maxHP(),s.h.hp+IT[i].v);dishEffect(i)}break;
+  case 'use':useHealingItem(i);break;
   case 'eatfull':eatFull();break;
   case 'fishRecipe':learnFishRecipe(i);break;
   case 'cook':cook(i);break;
   case 'cookp':cook(i,'plain');break;
   case 'curt':if(CUR.includes(i)){s.cur=s.cur||{on:{},t:0,gain:0};s.cur.on[i]=!s.cur.on[i]}break;
   case 'tt':popB='';if(i==='cut'||s.tabs[i]){zoomPrep(i);ttGo(i)}break;
-  case 'eat':if(s.r.fish>=1&&s.h.hp<maxHP()){s.r.fish--;s.h.hp=Math.min(maxHP(),s.h.hp+8)}break;
-  case 'eatp':if(s.r.prov>=1&&s.h.hp<maxHP()){s.r.prov--;s.h.hp=Math.min(maxHP(),s.h.hp+15)}break;
+  case 'eat':eatOne('fish');break;
+  case 'eatp':eatOne('prov');break;
   case 'scan':{const nx=scanTarget();if(nx&&s.r.ember>=scanCost()){s.r.ember-=scanCost();s.scans++;novMark();reveal(nx);say(SCANMSG[nx]+' Місце з’явилося на мапі.','world')}break}
   case 'go':{const[ok,why]=canGo(i);if(!ok){say(why);break}snap9('map');if(LOC[i].sea){const pv=seaCost(LOC[i]);s.r.prov-=pv;say(`Ти виходиш у море. Витрачено ${R('prov',pv)}.`,'world')}s.at=i;s.tab='map';popB='';if(!s.visited[i]){s.visited[i]=1;xp(5);if(LOC[i].first)LOC[i].first()}wolfSniff(i);break}
   case 'leave':s.at='';popB='';break;

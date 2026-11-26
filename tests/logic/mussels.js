@@ -47,6 +47,6 @@ now+=TIDE*1000;pick();A(s.inv.mussel===1&&s.musselCyc===legacy+1,'старий �
 NOGAP=0;shore();now+=TIDE*1000+600000;pick();
 A(s.inv.mussel===1&&s.musselCyc===1&&s.tutPending.includes('mussels'),'пропущений перший відплив не втрачає відкриття');
 const recipes=JSON.stringify(s.rcp||{});s.f.zinovii=1;s.tabs.kitchen=1;s.tab='kitchen';
-A(!fishRecipesReady().some(d=>d.ingredient==='mussel')&&JSON.stringify(s.rcp||{})===recipes,'збір не відкриває майбутній рецепт');
+A(fishRecipesReady().some(d=>d.ingredient==='mussel')&&JSON.stringify(s.rcp||{})===recipes,'збір дає можливість запитати про рецепт на кухні, самої юшки ще не відкрито');
 console.log('fails',fails)
 })()`);

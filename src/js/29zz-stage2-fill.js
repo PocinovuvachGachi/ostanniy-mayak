@@ -25,10 +25,11 @@ LOC.village.spots.find(S=>S.id==='pier').acts.push({id:'night',t:'Вийти з 
   if(Math.random()<.15&&typeof collFind==='function'&&collFind('pool'))return'Ви вертаєтеся перед світанком із повним човном. У сітях, серед риби, — щось дивне.';
   return['Мирон гребе мовчки, а над водою світить маяк — твій маяк. Він каже: «Я тридцять років рибалю, а таким тихим море не бачив». Риби — повний кошик.','Ви ставите сіті при ліхтарі. Мирон розповідає про сестру, якою вона була малою. Риби — повний кошик.'][(s.c.night=(s.c.night||0)+1)%2]}});
 /* нові рецепти — додаються до кухні */
-Object.assign(IT,{zbyten:{n:'Збитень',ic:'(~)',use:'heal',v:8,warm:15,d:'Гарячий трав’яний напій. Лікує 8 здоров’я і зігріває на п’ятнадцять хвилин.'},
+Object.assign(IT,{zbyten:{n:'Збитень',ic:'(~)',use:'heal',v:8,warm:15,d:'Гарячий трав’яний напій. Відновлює 8 здоров’я одразу й зігріває на 15 хв поза боєм. Сила зігрівання фіксується під час споживання.'},
   fishersoup:{n:'Рибальська юшка',ic:'(~)',use:'heal',v:30,d:'Густа, на трьох рибах. Лікує 30 здоров’я.'}});
 ICO.zbyten=ICO.soup;ICO.fishersoup=ICO.soup;
 for(const D of[{id:'zbyten',c:{herb:3,prov:1},who:'Левко',how:'Трави, ложка провізії для гущі — і на повільний вогонь.',learn:()=>rotRank()>=4&&!!s.met.levko},
   {id:'fishersoup',c:{fish:10,herb:1},who:'Мирон',how:'Три різні риби, одна за одною, і жменя чебрецю наостанок.',learn:()=>!!s.f.boat&&!!s.f.reunion}]){
-  DISH.push(D);const T=IT[D.id];IT[D.id+'_t']=Object.assign({},T,{n:'Смачний '+T.n.charAt(0).toLowerCase()+T.n.slice(1),v:Math.round(T.v*1.5),warm:T.warm?T.warm*2:0,tasty:1,d:`Смачний! Лікує ${Math.round(T.v*1.5)} здоров’я.${T.warm?` Тепло — ${T.warm*2} хвилин.`:''}`});
-  if(D.id==='fishersoup')IT.fishersoup_t.n='Смачна рибальська юшка';ICO[D.id+'_t']=ICO[D.id];ILD[D.id]=T.d;ILD[D.id+'_t']=IT[D.id+'_t'].d}
+  DISH.push(D);
+  addTastyDish(D.id,D.id==='zbyten'?'Смачний збитень':'Смачна рибальська юшка');
+}
