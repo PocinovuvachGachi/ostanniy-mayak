@@ -18,6 +18,7 @@ function load(){try{const raw=localStorage.getItem(KEY);if(!raw)return;const d=J
   if((s.tutPending||[]).includes('fishBite'))fishLessonLoadedAt=Date.now();
   if(s.bite&&!s.bite.place)s.bite.place='shore';
   if(!('fishSpecies' in d)&&s.f.fishBiteSeen&&!s.bite)s.f.fishBiteResolved=1;
+  if(s.musselCyc!=null||has('mussel')||s.seenI?.mussel)s.f.musselGathered=1;
   if(SHF[s.shf]?.lowWater&&s.shfCyc==null&&s.shfT?.[s.shf])s.shfCyc=tideCyc(s.shfT[s.shf]);
   shfCheckTide();
   delete s.bigT;
