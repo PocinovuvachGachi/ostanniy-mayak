@@ -13,7 +13,7 @@ function load(){try{const raw=localStorage.getItem(KEY);if(!raw)return;const d=J
   if(!d.seenK){s.seenK={};for(const tb of TABS)markSeen(tb[0])}
   if(!d.fac){s.fac={rot:(s.f.herbsDone?15:0)+(s.f.netsDone?10:0)+(s.f.crateDone?10:0)+(s.mst.olesya?10:0)+(s.f.medDone?15:0),cape:(s.f.millSafe?20:0)+(s.f.motrya?10:0)+(s.f.coveDone?12:0),sails:(s.met.marta?10:0)+Math.min(40,5*(s.saved||0)),silent:-50+(s.f.gnat?(has('sabre')?-10:30):0)}}
   if(d.threat===undefined&&s.floors.gallery)s.threat=30;if(s.cb&&s.cb.win==='raid'){s.cb=null;s.raid=0}
-  if(!d.rel){s.rel={};for(const l in LOC)for(const S of LOC[l].spots)for(const A of S.acts||[])if(A.fight&&RELE[A.fight]&&s.done[`${l}.${S.id}.${A.id}`])relicFor(A.fight,1)}
+  if(!d.rel){s.rel={};for(const l in LOC)for(const S of LOC[l].spots)for(const A of S.acts||[])if(s.done[`${l}.${S.id}.${A.id}`])relicFor(A.fight,1)}
   if(!d.nv){s.nv={};s.nvU={};if(s.tabs.hero){for(const k of['bag','arms','grow','tal'])s.nv[k]=1;for(const k of['hero','gear','bag','arms','grow','talents','map'])s.nvU[k]=1}
     if(s.floors.gallery&&s.tabs.hero){s.nv.mla=1;s.f.mlaNote=1;s.f.siege1=1;if(!s.pages.includes('m'))s.pages.push('m')}if(s.floors.work)s.f.craft1=1}
   if(!d.bdSeen){s.bdSeen={};for(const b of BD)if(b.show0())s.bdSeen[b.id]=1}
