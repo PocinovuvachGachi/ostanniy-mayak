@@ -229,8 +229,11 @@ for(const k in BLD3)BLD3[k]=HI(BLD3[k]);anvilObj3=HI(anvilObj3);
 
 /* багор: довга жердина з залізним гаком (#41) */
 const HOOKC={wood:12,scrap:1};
-function hookObj3(){const b=pbuf(16,60);
+function hookObj3(up=false){const b=pbuf(16,60);
   hiRect(b,0,0,16,60,(i,j,x,y)=>{const ax=3,ay=59,bx=11,by=9,dx=bx-ax,dy=by-ay,L2=dx*dx+dy*dy,t=((x-ax)*dx+(y-ay)*dy)/L2;if(t<0||t>1)return;
     const px=ax+dx*t,py=ay+dy*t,d=((x-px)*(-dy)+(y-py)*dx)/Math.sqrt(L2);if(Math.abs(d)>.75)return;return d<-.25?'e':d>.35?'c':'d'});
   pline(b,11,9,12,4,'9');pline(b,12,4,14,2,'a');pset(b,15,3,'p');pset(b,15,4,'q');pset(b,14,5,'p');pset(b,13,5,'a');pline(b,10,8,8,6,'9');pset(b,8,5,'p');
-  prect(b,10,10,3,2,'a');pset(b,10,10,'p');return b}
+  prect(b,10,10,3,2,'a');pset(b,10,10,'p');
+  if(up){pline(b,8,12,4,43,'c');prect(b,9,8,4,5,'p');prect(b,9,8,4,1,'q');pset(b,10,11,'8');pset(b,12,9,'7');pline(b,11,8,14,2,'q');pset(b,13,4,'7')}
+  return b
+}

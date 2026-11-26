@@ -991,3 +991,22 @@ body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .
 .shelf-item{display:grid;grid-template-columns:auto minmax(0,1fr);gap:12px;align-items:start;margin:10px 0}
 .shelf-item h3{margin:0;font-size:1rem}
 .shelf-item p{overflow-wrap:anywhere}
+
+/* Багор на воді */
+.hook-float .obi,.hook-float .obo{animation:hook-drift 3s ease-in-out infinite}
+.hook-wake{position:absolute;left:15%;right:13%;top:75%;height:14%;border-bottom:2px solid #b3c5c4;border-radius:50%;opacity:.75;pointer-events:none}
+.hook-pull{position:absolute;inset:0;pointer-events:none;z-index:155}
+.hook-pull img,.hook-pull i{position:absolute;image-rendering:pixelated}
+.hook-tool{animation:hook-tool .98s ease-in-out both}
+.hook-cargo{animation:hook-cargo .98s ease-in-out both}
+.hook-splash{border:2px solid #e3ebe6;border-left-style:dashed;border-right-style:dashed;border-radius:50%;animation:hook-splash .98s ease-out both}
+@keyframes hook-drift{50%{translate:0 -9%}}
+@keyframes hook-tool{0%{translate:-62% 62%;rotate:-10deg;opacity:0}25%,39%{translate:0 0;rotate:0deg;opacity:1}82%{translate:-58% 78%;opacity:1}100%{translate:-62% 84%;opacity:0}}
+@keyframes hook-cargo{0%,36%{transform:none;opacity:1}78%{transform:translate(-68%,220%) rotate(-11deg);opacity:1}100%{transform:translate(-75%,244%) rotate(-13deg);opacity:0}}
+@keyframes hook-splash{0%,25%{transform:scale(.4);opacity:0}41%{transform:scale(.95);opacity:1}100%{transform:scale(1.7);opacity:0}}
+@media (prefers-reduced-motion:reduce){
+  .hook-float .obi,.hook-float .obo,.hook-pull>*{animation:none}
+  .hook-tool{translate:-58% 78%}
+  .hook-cargo{transform:translate(-68%,220%)}
+  .hook-splash{opacity:.75}
+}
