@@ -34,6 +34,9 @@ function act0(a,i){
   case 'gather':if(!onCd('gather')){setCd('gather',1);add('wood',wolf()*(F.hook?2:1));s.c.gather++;
     if(s.c.gather===6){say('Між водоростями блищить пляшка, заткнута воском. Усередині записка. Відкрито: Журнал.','story');page(1)}
     if(s.c.gather===60)odd('gull','У плавнику застрягла вирізана з дерева чайка.')}break;
+  case 'drybuild':dryBuild();break;
+  case 'dryload':dryLoad();break;
+  case 'drytake':dryTake();break;
   case 'pool':poolPick();break;
   case 'ford':fordPart(i);break;
   case 'shfgo':shfGo();break;
@@ -60,7 +63,7 @@ function act0(a,i){
   case 'mirror':if(s.floors.lantern&&!F.won&&s.mirrors[i]){s.mirrors[i]=s.mirrors[i]==='/'?'\\':'/';if(beam().out){F.won=1;dlg({k:'story',title:'Маяк горить',img:{t:'yard'},body:'<p>Промінь пробиває вікно ліхтарні й лягає на воду. Великий вогонь маяка горить над шхерами, а Мла відступає.</p><p>Але це ще не кінець. Наступного ранку до Гнилого Причалу заходить чужий корабель.</p>',gains:['Кораблі платять мито: +2 монети щосекунди','У гавані Гнилого Причалу чекає капітанка: друга дія','Набіги Мли тривають, тож хранитель потрібен і далі']});say('Промінь пробиває вікно ліхтарні й лягає на воду. Великий вогонь маяка горить над шхерами!','story')}}break;
   case 'craft':{const rc=RC.find(x=>x.id===i);if(!rc||(i==='rod'?!shoreRodReady():!rcVisible(rc)))break;const c=i==='rod'?rc.c:rcCost(rc);
     if((rc.craft||0)>st('craft')||!afford(c,rc.it))break;pay(c,rc.it);novUse('r:'+i);if(i!=='rod')s.f.craft1=1;
-    if(rc.tool){if(rc.id==='rod'){F.rod=1;say('Вудка готова. Тепер на березі можна рибалити.','find');tutOffer('rod')}else{if(rc.id==='pack1')F.pack=1;if(rc.id==='pack2')F.pack=2;if(rc.id==='belt1')F.belt=1;dlg({k:'find',title:`Зроблено: ${rc.n}`,img:{t:'icon',id:rc.id==='belt1'?'belt':'pack'},body:`<p>${rc.d}</p>`,gains:[`Рюкзак: ${packSlots()} зброї, вантаж до ${loadCap()}`,`Пояс: ${beltSlots()} предмети`]})}}else{giveI(rc.out);let ex='';if(rc.multi&&Math.random()<0.05*st('craft')){giveI(rc.out);ex=' Вдалося зробити дві!'}say(`Зроблено: ${I(IT[rc.out].n)}.${ex}`,'find')}break}
+    if(rc.tool){if(rc.id==='rod'){F.rod=1;say('Вудка готова. Тепер на березі можна рибалити.','find');tutOffer('rod')}else{if(rc.id==='pack1')F.pack=1;if(rc.id==='pack2')F.pack=2;if(rc.id==='belt1')F.belt=1;dlg({k:'find',title:`Зроблено: ${rc.n}`,img:{t:'icon',id:rc.id==='belt1'?'belt':'pack'},body:`<p>${rc.d}</p>`,gains:[`Рюкзак: ${packSlots()} зброї, вантаж до ${loadCap()}`,`Пояс: ${beltSlots()} предмети`]})}}else{giveI(rc.out);let ex='';if(rc.multi&&Math.random()<0.05*st('craft')){giveI(rc.out);ex=' Вдалося зробити дві!'}say(`Зроблено: ${I(IT[rc.out].n)}.${ex}`,'find');if(i==='rake')tutOffer('rake')}break}
   case 'rs':rsStart(i);break;
   case 'repok':s.report=null;break;
   case 'attr':if(s.h.pts>0&&s.h.a[i]!==undefined&&s.h.a[i]<ACAP){s.h.pts--;s.h.a[i]++;if(i==='con')s.h.hp+=5}break;

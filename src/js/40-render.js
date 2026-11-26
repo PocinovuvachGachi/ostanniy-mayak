@@ -152,6 +152,7 @@ function rShore(){let h=`<section><h2>Берег під маяком</h2><p>Мо
   h+=`<details class="alist"><summary>Усі дії списком</summary><div>${al}</div></details>`;
   if(s.flot){const FN={crate:'Ящик',barrel:'Бочка',cargo:'Розкиданий вантаж',bottle:'Пляшка з запискою',survivor:'Людина на уламку щогли'};h+=`<div class="tdet" id="sec-flot"><b>На березі: ${FN[s.flot.k]}</b>${fresh9('fl:'+s.flot.until)}<p class="m">Прибій щось викинув. Хвилі заберуть його за ${V(()=>s.flot?Math.max(0,Math.ceil((s.flot.until-Date.now())/1000)):0)} с.</p>${btn('Оглянути','flot','',{cls:'main'})}</div>`}
   h+=`<p class="m" style="margin-top:8px">Зібрано за весь час: ${V(()=>fmt(s.tot.wood))} плавника${s.f.wreck?`, ${V(()=>fmt(s.tot.scrap))} брухту`:''}${s.f.rod?`, ${V(()=>fmt(s.tot.fish))} риби`:''}.</p></section>`;
+  h+=rDryRack();
   if(s.f.boat){h+=`<section id="sec-pier"><h2>Пристань</h2><p class="m">Звідси поселенці виходять у море, а сюди заходять кораблі. Вільних рук: ${V(()=>Math.max(0,freeW()))}.</p>`;
     for(const id in EXP){const X=EXP[id],on=(s.exp||[]).find(e=>e.id===id);
       h+=`<div class="row"><div><b>${X.n}</b><br><span class="m">${X.d} Команда: ${X.crew}, ${Math.round(X.t/60*10)/10} хв.</span>${on?`<div class="bar xp">${W(()=>{const e=(s.exp||[]).find(e=>e.id===id);return e?Math.min(100,100-(e.until-Date.now())/(X.t*10)):100})}</div>`:''}</div>${on?'<span class="m">у морі</span>':btn(`Вирушити (${costTxt(X.c)})`,'exp',id,{ok:()=>freeW()>=X.crew&&afford(X.c)})}</div>`}
