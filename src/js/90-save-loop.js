@@ -6,12 +6,13 @@ function load(){try{const raw=localStorage.getItem(KEY);if(!raw)return;const d=J
   if(s.f.hook){s.f.hookPlan=1;if(!s.tutSeen.hook)tutRemember('hook')}
   if(s.f.rod||s.floors.work)s.f.rodPlan=1;
   if(has('rake')&&!s.tutSeen.rake)tutRemember('rake');
+  if(!d.tutSeen)tutMigrate();
   if(s.bite&&!s.bite.kind&&typeof s.bite.until==='number'){
     s.bite={kind:'fish',amount:Math.round(5*wolf())};
-    s.f.fishBiteSeen=1;tutRemember('fishBite');
+    s.f.fishBiteSeen=1;tutOffer('fishBite');
   }
+  if((s.tutPending||[]).includes('fishBite'))fishLessonLoadedAt=Date.now();
   delete s.bigT;
-  if(!d.tutSeen)tutMigrate();
   if(!d.pack){s.pack=[];for(const sl of['weapon','ranged'])if(s.eq[sl])s.pack.push(s.eq[sl]);for(const k of WEAP)if(has(k)&&!s.pack.includes(k)&&s.pack.length<packSlots())s.pack.push(k)}
   if(!d.belt){s.belt=[];for(const k of['bandage','potion','bomb'])if(has(k)&&s.belt.length<beltSlots())s.belt.push(k)}
   if(d.chv!==2){s.chv=2;s.chs=[];s.bts={};storyCheck(true)}

@@ -286,6 +286,8 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     const marker=p.locator('.scn [data-k="sh:bite"]');
     const pop=p.locator('#popl .bpop');
     const list=p.locator('.shore-alist');
+    const hasDiamond=e=>getComputedStyle(e,'::before').content==='""'&&getComputedStyle(e,'::before').transform!=='none';
+    A(!await rod.locator('.bob').evaluate(hasDiamond),'звичайний поплавець без ромба');
     await rod.click();
     A(await p.evaluate(()=>s.r.fish===5&&s.c.fish===5&&s.bite?.kind==='fish'),'базовий улов і бонус після натискання на вудку');
     A(await marker.locator('.bob').evaluate(e=>getComputedStyle(e).animationName)==='fish-bob-tug','окрема анімація поплавця');
@@ -304,8 +306,12 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await p.reload();
     await p.click('#tabs [data-i="shore"]');
     A(await marker.isVisible()&&await p.evaluate(()=>s.bite?.amount===2),'сцена відновлює поплавець після повернення й reload');
+    const bob=marker.locator('.bob');
+    await p.waitForFunction(()=>document.querySelector('.rod-catch .bob')?.getAnimations().every(a=>a.playState!=='running'));
+    A(await bob.evaluate(hasDiamond),'після анімації на поплавці видно ромб');
     await p.emulateMedia({reducedMotion:'reduce'});
-    A(await marker.locator('.bob').evaluate(e=>getComputedStyle(e).animationName)==='none','reduced motion прибирає рух поплавця');
+    A(await bob.evaluate(e=>getComputedStyle(e).animationName)==='none'&&await bob.evaluate(hasDiamond),
+      'у reduced motion ромб видно без анімації');
     await marker.click();
     A(await pop.getByRole('button',{name:'Витягнути улов'}).isVisible(),'після повернення улов доступний зі сцени');
     A(await p.evaluate(()=>document.documentElement.scrollWidth<=390),'картка клювання не розширює сторінку');

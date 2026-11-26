@@ -336,6 +336,7 @@ button.hs.no:hover{border-color:#8a8f96;background:rgba(138,143,150,.12)}
 .hs[data-k="gather"]::before{content:"";position:absolute;left:18%;top:60%;width:40%;height:30%;border-radius:50%;background:radial-gradient(circle,rgba(255,240,176,.55),rgba(255,240,176,0) 70%);opacity:calc(1 - min(1,var(--p,0)*100));animation:embp 1.6s ease-in-out infinite;pointer-events:none}
 .ob .bob{position:absolute;left:79%;top:53%;width:13%;height:4%;background:#c9584a;box-shadow:0 -3px 0 #e3ebe6;animation:bob 1.3s ease-in-out infinite;pointer-events:none}
 .ob.rod-catch .bob{background:#e9ad69;box-shadow:0 -3px 0 #fff1d7,0 2px 5px #1c303f;transform:translateY(2px);animation:fish-bob-tug .48s ease-out 2}
+.ob.rod-catch .bob::before{content:"";position:absolute;top:-13px;left:50%;width:8px;height:8px;background:#fff1d7;border:2px solid #1c303f;transform:translateX(-50%) rotate(45deg)}
 @keyframes fish-bob-tug{50%{transform:translate(2px,6px) rotate(-18deg)}}
 @media (prefers-reduced-motion:reduce){.ob .bob,.ob.rod-catch .bob{animation:none}}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(35%)}}
@@ -6784,7 +6785,14 @@ function tutOffer(id){if(!tutReady(id)||tutKnown(id))return;s.tutPending=s.tutPe
   if(noGap()){s.tutSeen[id]=1;return}s.tutPending.push(id);dirty=1}
 function tutDialog(id,fight=false){const t=TUT[id];return{k:'tutorial',tut:id,crabw:fight?1:undefined,title:t.n,body:t.body,btns:fight?[['До бою','fightGo','crab1']]:[['Зрозуміло','dlgok']]}}
 function tutRemember(id){s.tutSeen=s.tutSeen||{};s.tutSeen[id]=1;s.tutPending=(s.tutPending||[]).filter(k=>k!==id);dirty=1}
-function tutTick(shoreLesson=true){if(noGap()||s.cb||s.raid||s.bellHold||away()||(s.dlg||[]).length)return;const id=(s.tutPending||[]).find(k=>tutReady(k)&&(k!=='fishBite'||(shoreLesson&&s.tab==='shore')));if(!id)return;tutRemember(id);dlg(tutDialog(id))}
+// Урок про клювання, що чекав у збереженні, показуємо після першої дії гравця.
+let fishLessonLoadedAt=0;
+function tutTick(shoreLesson=true){
+  if(noGap()||s.cb||s.raid||s.bellHold||away()||(s.dlg||[]).length)return;
+  const id=(s.tutPending||[]).find(k=>tutReady(k)&&(k!=='fishBite'||(shoreLesson&&s.tab==='shore'&&s.lastAct>fishLessonLoadedAt)));
+  if(!id)return;
+  tutRemember(id);dlg(tutDialog(id));
+}
 function tutFight(){const d=(s.dlg||[])[0];if(!d||!d.crabw||s.cb||!tutReady('combat'))return;
   tutRemember('combat');s.dlg[0]=tutDialog('combat',true);dirty=1}
 function tutRead(id){if(!TUT[id]||!tutKnown(id)||s.cb)return;const q=s.dlg||[];if(q[0]&&q[0].tutList)q.shift();else if(q.length)return;dlg(tutDialog(id));dirty=1}
@@ -6799,12 +6807,13 @@ function load(){try{const raw=localStorage.getItem(KEY);if(!raw)return;const d=J
   if(s.f.hook){s.f.hookPlan=1;if(!s.tutSeen.hook)tutRemember('hook')}
   if(s.f.rod||s.floors.work)s.f.rodPlan=1;
   if(has('rake')&&!s.tutSeen.rake)tutRemember('rake');
+  if(!d.tutSeen)tutMigrate();
   if(s.bite&&!s.bite.kind&&typeof s.bite.until==='number'){
     s.bite={kind:'fish',amount:Math.round(5*wolf())};
-    s.f.fishBiteSeen=1;tutRemember('fishBite');
+    s.f.fishBiteSeen=1;tutOffer('fishBite');
   }
+  if((s.tutPending||[]).includes('fishBite'))fishLessonLoadedAt=Date.now();
   delete s.bigT;
-  if(!d.tutSeen)tutMigrate();
   if(!d.pack){s.pack=[];for(const sl of['weapon','ranged'])if(s.eq[sl])s.pack.push(s.eq[sl]);for(const k of WEAP)if(has(k)&&!s.pack.includes(k)&&s.pack.length<packSlots())s.pack.push(k)}
   if(!d.belt){s.belt=[];for(const k of['bandage','potion','bomb'])if(has(k)&&s.belt.length<beltSlots())s.belt.push(k)}
   if(d.chv!==2){s.chv=2;s.chs=[];s.bts={};storyCheck(true)}

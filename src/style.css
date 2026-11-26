@@ -322,6 +322,7 @@ button.hs.no:hover{border-color:#8a8f96;background:rgba(138,143,150,.12)}
 .hs[data-k="gather"]::before{content:"";position:absolute;left:18%;top:60%;width:40%;height:30%;border-radius:50%;background:radial-gradient(circle,rgba(255,240,176,.55),rgba(255,240,176,0) 70%);opacity:calc(1 - min(1,var(--p,0)*100));animation:embp 1.6s ease-in-out infinite;pointer-events:none}
 .ob .bob{position:absolute;left:79%;top:53%;width:13%;height:4%;background:#c9584a;box-shadow:0 -3px 0 #e3ebe6;animation:bob 1.3s ease-in-out infinite;pointer-events:none}
 .ob.rod-catch .bob{background:#e9ad69;box-shadow:0 -3px 0 #fff1d7,0 2px 5px #1c303f;transform:translateY(2px);animation:fish-bob-tug .48s ease-out 2}
+.ob.rod-catch .bob::before{content:"";position:absolute;top:-13px;left:50%;width:8px;height:8px;background:#fff1d7;border:2px solid #1c303f;transform:translateX(-50%) rotate(45deg)}
 @keyframes fish-bob-tug{50%{transform:translate(2px,6px) rotate(-18deg)}}
 @media (prefers-reduced-motion:reduce){.ob .bob,.ob.rod-catch .bob{animation:none}}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(35%)}}

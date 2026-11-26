@@ -28,7 +28,14 @@ function tutOffer(id){if(!tutReady(id)||tutKnown(id))return;s.tutPending=s.tutPe
   if(noGap()){s.tutSeen[id]=1;return}s.tutPending.push(id);dirty=1}
 function tutDialog(id,fight=false){const t=TUT[id];return{k:'tutorial',tut:id,crabw:fight?1:undefined,title:t.n,body:t.body,btns:fight?[['До бою','fightGo','crab1']]:[['Зрозуміло','dlgok']]}}
 function tutRemember(id){s.tutSeen=s.tutSeen||{};s.tutSeen[id]=1;s.tutPending=(s.tutPending||[]).filter(k=>k!==id);dirty=1}
-function tutTick(shoreLesson=true){if(noGap()||s.cb||s.raid||s.bellHold||away()||(s.dlg||[]).length)return;const id=(s.tutPending||[]).find(k=>tutReady(k)&&(k!=='fishBite'||(shoreLesson&&s.tab==='shore')));if(!id)return;tutRemember(id);dlg(tutDialog(id))}
+// Урок про клювання, що чекав у збереженні, показуємо після першої дії гравця.
+let fishLessonLoadedAt=0;
+function tutTick(shoreLesson=true){
+  if(noGap()||s.cb||s.raid||s.bellHold||away()||(s.dlg||[]).length)return;
+  const id=(s.tutPending||[]).find(k=>tutReady(k)&&(k!=='fishBite'||(shoreLesson&&s.tab==='shore'&&s.lastAct>fishLessonLoadedAt)));
+  if(!id)return;
+  tutRemember(id);dlg(tutDialog(id));
+}
 function tutFight(){const d=(s.dlg||[])[0];if(!d||!d.crabw||s.cb||!tutReady('combat'))return;
   tutRemember('combat');s.dlg[0]=tutDialog('combat',true);dirty=1}
 function tutRead(id){if(!TUT[id]||!tutKnown(id)||s.cb)return;const q=s.dlg||[];if(q[0]&&q[0].tutList)q.shift();else if(q.length)return;dlg(tutDialog(id));dirty=1}
