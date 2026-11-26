@@ -454,7 +454,7 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     const baseHookArt=await p.locator('.scn [data-sk="hook"] .obi').getAttribute('src');
     await p.evaluate(()=>{
       s.floors.work=1;s.tabs.work=1;s.tab='tower';ttGo('work');
-      s.lastAct=Date.now();novPlanTick(false);render();save();
+      s.lastAct=Date.now();s.lastNov=null;novPlanTick(false);render();save();
     });
     await p.locator('#dlg h2',{hasText:'Новий рецепт: Посилений багор'}).waitFor();
     await p.click('#dlg [data-a="dlggo"]');
@@ -638,4 +638,10 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
   await b.close();
   console.log('fails', fails);
   process.exit(fails ? 1 : 0);
-})().catch(e => { console.log('FAIL', e.message); console.log('fails', 1); process.exit(1); });
+})().catch(e => {
+  const target=e.message.split('\n').find(line=>line.includes('waiting for locator'));
+  const at=e.stack?.split('\n').find(line=>line.includes('browser.js:'));
+  console.log('FAIL',e.message.split('\n')[0],at?.trim()||'',target?.trim()||'');
+  console.log('fails',1);
+  process.exit(1);
+});
