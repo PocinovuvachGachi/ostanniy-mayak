@@ -11,7 +11,7 @@ const PROF=${JSON.stringify(prof)},LIMIT=${LIMIT};
 const P=PROF==='casual'?{click:2.5,act:5,read:12,fightStep:4,travel:25,think:180,idle:20}:{click:1.1,act:3,read:7,fightStep:3,travel:15,think:120,idle:10};
 let T=0,acts=0;const tried={};const ev=[],seen=new Set();
 /* час іде: годинник, виробництво, перевірки — як у головному циклі */
-function wait(sec,present=true){while(sec>0){const d=Math.min(5,sec);__adv(d*1000);s.t+=d;produce(d);if(present)s.lastAct=Date.now();checks();sec-=d;T+=d;spTick()}}
+function wait(sec,present=true){while(sec>0){const d=Math.min(5,sec);__adv(d*1000);s.t+=d;produce(d);if(present)s.lastAct=Date.now();checks();sec-=d;T+=d;scan();spTick()}}
 function A(a,i,cost){acts++;act(a,i);wait(cost==null?P.act:cost)}
 const mins=()=>(T/60).toFixed(1);
 /* SIMSPOIL=1: шукає в показаному тексті назви місць, людей і громад, яких гравець ще не знає (#39) */
@@ -31,6 +31,9 @@ function mark(k,label,major){if(seen.has(k))return;seen.add(k);ev.push({t:T,k,la
 function scan(){for(const t in s.tabs)mark('tab:'+t,'вкладка «'+(TABS.find(x=>x[0]===t)||[t,SUBT[t]||t])[1]+'»',1);
   for(const f in s.floors)if(s.floors[f])mark('floor:'+f,'поверх: '+((FL.find(x=>x.id===f)||{}).n||f),1);
   if(s.b.hearth)mark('b:hearth','вогнище',1);for(const b of BD)if(s.b[b.id])mark('b:'+b.id,'будівля: '+b.n,1);
+  for(const b of BD)if(s.bdSeen?.[b.id])mark('bp:'+b.id,'креслення: '+b.n,1);
+  for(const r of RC)if(s.rcSeen?.[r.id])mark('rc:'+r.id,'рецепт: '+(r.n||IT[r.out]?.n||r.id),1);
+  if(s.shf&&SHF[s.shf])mark('shf:'+s.shf,'на березі: '+SHF[s.shf].n,1);
   for(const l in s.disc)mark('disc:'+l,'місце на мапі: '+LOC[l].n,1);for(const l in s.visited||{})mark('vis:'+l,'побував: '+LOC[l].n,0);
   for(const r in s.rs)mark('rs:'+r,'дослідження: '+(RS.find(x=>x.id===r)||{}).n,1);
   for(const n in s.nv||{})if(s.nv[n])mark('nv:'+n,'нова механіка: '+n,1);
@@ -44,10 +47,10 @@ function scan(){for(const t in s.tabs)mark('tab:'+t,'вкладка «'+(TABS.fi
 const PROG={},A0=Object.values(s.h.a).reduce((a,b)=>a+b,0);
 function progSnap(){const at=Object.values(s.h.a).reduce((a,b)=>a+b,0)-A0+(s.h.pts||0),sk=Object.values(s.h.k).reduce((a,b)=>a+b,0)+(s.h.sp||0),tl=Object.keys(s.h.ft).filter(k=>s.h.ft[k]).length+(s.h.fp||0);let xt=s.h.xp;for(let l=1;l<s.h.lvl;l++)xt+=need(l);return{t:T,lvl:s.h.lvl,at,sk,tl,xt:Math.round(xt)}}
 /* діалоги: читаємо й тиснемо першу кнопку */
-function dialogs(){let g=0;while((s.dlg||[]).length&&g++<30){const d=s.dlg[0];wait(P.read);
+function dialogs(){let g=0;while((s.dlg||[]).length&&g++<30){const d=s.dlg[0];if(d.title)mark('dlg:'+d.title,'діалог: '+d.title,0);wait(P.read);
   if(d.bgsel){act('bg',Object.keys(BGS)[0]);continue}
   const b=d.btns&&d.btns[0];if(b){acts++;act(b[1],b[2]);if(s.cb)fight();continue}act('dlgok')}}
-let fightActs=0;const _act=act;act=(a,i)=>{if(s.cb)fightActs++;return _act(a,i)};
+let fightActs=0;const _act=act;act=(a,i)=>{if(s.cb)fightActs++;const result=_act(a,i);scan();return result};
 function fight(){if(${!!process.env.SIMSNAP}&&s.cb)console.log('SNAP '+JSON.stringify({t:T,enc:s.cb.enc,s}));fightActs=0;botFight(800);wait(fightActs*P.fightStep+10);mark('fight:'+(s.c.wins||0),'перемог у боях: '+(s.c.wins||0),0)}
 /* герой: очки характеристик, умінь, таланти; спорядження */
 function hero(){let g=0;while(s.h.pts>0&&g++<20){const k=Object.keys(s.h.a).sort((a,b)=>s.h.a[a]-s.h.a[b])[0];A('attr',k,1)}
@@ -122,16 +125,18 @@ function misc(){let d=0;if(s.wolf&&wTrainOn()){for(const N of WTR)if(!wHas(N.id)
 function target(){const L=want();const tr=L.find(x=>x[0]==='trip'||x[0]==='ford'||x[0]==='schooner');if(tr)return tr;let best=null,bv=1e9;for(const w of L){let need=0;for(const k in w[2])need+=Math.max(0,w[2][k]-s.r[k])/Math.max(1,w[2][k]);if(need>0&&need<bv){bv=need;best=w}}return best}
 function lackSet(){const lack=new Set(),tg=target();if(tg)for(const k in tg[2])if(s.r[k]<tg[2][k])lack.add(k);
   /* ланцюжки: якщо бракує того, що робить перетворювач, бракує і його сировини */
-  for(let g=0;g<3;g++){if(lack.has('ember')&&s.b.hearth)lack.add('wood');for(const id in CONV){if(!s.b[id])continue;const C=CONV[id];if(Object.keys(C.out).some(k=>lack.has(k)))for(const k in C.in)if(s.r[k]<50)lack.add(k)}}return lack}
+  for(let g=0;g<3;g++){if(lack.has('ember')&&s.b.hearth)lack.add('wood');for(const id in CONV){if(!s.b[id])continue;const C=CONV[id];if(Object.keys(C.out).some(k=>lack.has(k)))for(const k in C.in)if(reserveAvailable(id,k,s.r[k])<50)lack.add(k)}}return lack}
+function repairProduction(){
+  for(const b of BD)if(s.dmgB?.[b.id]&&s.b[b.id]&&afford(repCost(b)))A('repair',b.id);
+}
 const togT={};
 function convs(){const lack=lackSet();const CV=Object.assign({hearth:{in:{wood:1},out:{ember:1}}},CONV);for(const id in CV){if(!s.b[id])continue;if(T-(togT[id]||-1e9)<120)continue;const C=CV[id],need=Object.keys(C.out).some(k=>lack.has(k)),eats=Object.keys(C.in).some(k=>lack.has(k)),on=s.on[id]!==false;
   const should=need||!eats;if(should!==on){togT[id]=T;acts++;act('tog',id);wait(1)}}}
 /* головний цикл гравця */
-act('look');let lastNew=0,stuck=0,nEv=0;
+act('look');
 /* гравець заглядає в нові вкладки й підвкладки — це знімає позначки новизни */
 function looks(){s.nvU=s.nvU||{};for(const t in s.tabs)s.nvU[t]=1;if(s.tabs.hero)for(const k of['gear','bag','arms','grow','talents'])s.nvU[k]=1}
-while(T<LIMIT*60){looks();dialogs();if(s.cb)fight();hero();scan();buy();convs();
-  if(ev.length>nEv){nEv=ev.length}
+while(T<LIMIT*60){looks();dialogs();if(s.cb)fight();hero();repairProduction();buy();convs();
   if(!s.f.looked&&s.tot.ember>=10)A('look');
   let did=buy()||misc();if(!did&&(s.h.hp>=maxHP()*.8||!Object.keys(s.disc).length))did=explore();
   if(!did)did=gatherFor();
@@ -141,9 +146,9 @@ while(T<LIMIT*60){looks();dialogs();if(s.cb)fight();hero();scan();buy();convs();
   if(s.f.heartDone||s.chs.length>=10&&s.f.won&&!LOC.heart.spots.some(S=>locTodo('heart').length))if(s.chs.length>=10)break}
 scan();
 /* звіт */
-const maj=ev.filter(e=>e.major);maj.push({t:T,label:'(кінець симуляції)'});console.log('Профіль:',PROF,'· зіграно',mins(),'хв · дій',acts,'· розділів',s.chs.length,'· рівень',s.h.lvl,'· перемог',s.c.wins||0);
+const maj=ev.filter(e=>e.major);console.log('Профіль:',PROF,'· зіграно',mins(),'хв · дій',acts,'· розділів',s.chs.length,'· рівень',s.h.lvl,'· перемог',s.c.wins||0);
 /* м'які орієнтири, не пороги: ~10 хв на початку гри, ~20 хв далі (рішення автора) */
-const soft=t=>t<3600*3?10:20;let prev=0;const gaps=[];for(const e of maj){const g=(e.t-prev)/60;if(g>=soft(prev))gaps.push([prev/60,e.t/60,g,e.label]);prev=e.t}
+const soft=t=>t<3600*3?10:20;let prev=0;const gaps=[];for(const e of [...maj,{t:T,label:'(кінець симуляції)'}]){const g=(e.t-prev)/60;if(g>=soft(prev))gaps.push([prev/60,e.t/60,g,e.label]);prev=e.t}
 console.log('\\nВідкриття (хвилина → що):');for(const e of maj)console.log(String((e.t/60).toFixed(1)).padStart(6),' ',e.label);
 console.log('\\nПрогресія героя на кінці етапів (ціль рівня: I→4, II→9, III→14, IV→19, V→24; пули: характеристики 40, уміння 50, таланти 41):');
 for(const[n,g]of[['I',4],['II',9],['III',14],['IV',19],['V',24]]){const p=PROG[n];if(!p){console.log('  ',n,'— не дійшов');continue}console.log('  ',n.padEnd(3),String((p.t/60).toFixed(0)).padStart(4),'хв  рівень',String(p.lvl).padStart(2),'(ціль',g+')  характеристики',Math.round(p.at/40*100)+'%  уміння',Math.round(p.sk/50*100)+'%  таланти',Math.round(p.tl/41*100)+'%  досвід усього',p.xt)}
