@@ -1114,3 +1114,9 @@ body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .
 .zinovii-topic .act{gap:6px;flex-wrap:wrap}
 .zinovii-topic .act button{max-width:100%;white-space:normal;text-align:left}
 @media (max-width:560px){.zinovii-topic .act button{min-height:44px}}
+
+/* Ранній казан — частина вогнища, а не нова інтерактивна точка. */
+.early-pot{position:absolute;pointer-events:none;background-size:100% 100%;image-rendering:pixelated;z-index:4}
+.early-cooking{margin:.6rem 0}
+.early-cooking .row{flex-wrap:wrap}
+@media (max-width:560px){.early-cooking button{min-height:44px}}

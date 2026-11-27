@@ -160,6 +160,23 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     A(!await popup.locator('[data-a="martinLadle"]').count()&&await p.evaluate(()=>s.odd.mladle&&s.f.martinLadleStory),'показ черпака з картки зберігає предмет · '+width);
     await close.click();
 
+    // P4.6.3: вивчення й готування до слідів; звичайна порція, без мінігри.
+    await p.evaluate(()=>{
+      s.f.crab1=1;s.r.fish=18;s.r.wood=100;s.on.smoke=false;s.on.render=false;s.on.apoth=false;
+      s.lastNov=-100;kitTick();while(s.dlg.length)act('dlgok');s.lastNov=s.play;render();
+    });
+    A(await p.evaluate(()=>rcpKnown('ash')&&!s.tabs.kitchen),'риба в золі до кухні · '+width);
+    await npc.focus();await p.keyboard.press('Enter');
+    await popup.locator('[data-a="earlySoupLearn"]').click();
+    await p.locator('#dlg .dlgbg:not(.fo) [data-a="dlgok"]').click();
+    A(await p.evaluate(()=>rcpKnown('soup')&&!s.tabs.kitchen)&&!await popup.locator('[data-a="earlySoupLearn"]').count(),'ранній рецепт одноразово через картку · '+width);
+    await close.click();
+    A(await scene.locator('[data-sk="hearth"] .early-pot').count()===1,'видимий казан на вогнищі · '+width);
+    await scene.locator('[data-sk="hearth"]').click();
+    const earlySoup=p.locator('#popl .early-cooking [data-a="cookp"][data-i="soup"]');
+    await earlySoup.click();
+    A(await p.evaluate(()=>has('soup')&&!MG&&!s.tabs.kitchen),'звичайна юшка з вогнища · '+width);
+    await p.locator('#popl .bpx').click();
     await p.evaluate(()=>{
       Object.assign(s.localProgress.deck,{beamMoved:1,openHatch:1});
       s.f.tracks=1;s.r.fish=3;s.r.oil=0;

@@ -55,7 +55,34 @@ function addTastyDish(id,name){
 }
 for(const D of DISH){const n=IT[D.id].n;if(!D.ingredient)addTastyDish(D.id,'Смачна '+n.charAt(0).toLowerCase()+n.slice(1))}
 const rcpKnown=id=>!!(s.rcp||{})[id];
-function kitTick(){if(typeof MGH!=='undefined'&&!MGH.cook)MGH.cook=MGH_COOK;if(!s.f.tracks)return;if(!s.tabs.kitchen){if(!novCan())return;novMark();s.tabs.kitchen=1;s.ttNew=typeof s.ttNew==='object'&&s.ttNew?s.ttNew:{};s.ttNew.kitchen=1;if(s.tabs.tower)s.newTab.tower=1;dlg({k:'world',title:'Відкрилося: Кухня',body:'<p>У нижній залі, біля вогнища, Зиновій поставив казан і стіл.</p>'});tutOffer('kitchen')}s.rcp=s.rcp||{};
+// Раннє знання та місце готування не є відкриттям повної кухні.
+const earlyHearthHere=()=>s.tab==='home'&&!s.at&&!localCurrent()&&!!s.f.looked&&!!s.b.hearth&&!s.tabs.kitchen;
+const earlyCookHere=()=>earlyHearthHere()&&s.on.hearth!==false;
+const earlySoupReady=()=>earlyHearthHere()&&zinoviiPresent()&&!rcpKnown('soup');
+const earlyPotVisible=()=>!!(s.b.hearth&&zinoviiPresent()&&rcpKnown('soup')&&!s.tabs.kitchen);
+function earlySoupLearn(){
+  if(!earlySoupReady()||!localCanAct()||s.dlg.length)return;
+  s.rcp=s.rcp||{};s.rcp.soup=1;s.rcpNew=1;
+  dlg({k:'find',title:'Юшка Зиновія',img:{t:'icon',id:'soup'},body:`<p>${P('Зиновій')} ставить невеликий казан над жаром. ${Q('Три рибини й тріска під казан. Нехай тихо кипить.')}</p>`,gains:['Рецепт юшки']});
+  save();
+}
+function earlySoupButton(){
+  return earlySoupReady()?btn('Навчитися варити юшку','earlySoupLearn'):'';
+}
+function earlyCookingHTML(withToggle=true){
+  if(!earlyHearthHere())return '';
+  const L=DISH.filter(D=>['ash','soup'].includes(D.id)&&rcpKnown(D.id));
+  if(!L.length)return '';
+  const off=s.on.hearth===false;
+  return `<div class="early-cooking"><b>Їжа біля вогнища</b>${off?'<p class="m">Спершу розпали вогнище.</p>'+(withToggle?btn('Розпалити','tog','hearth'):''):''}<div class="rlist">${L.map(D=>`<div class="row"><span><b>${IT[D.id].n}</b><br><span class="m">${foodEffectsText(IT[D.id])}${D.id==='ash'?' · у бою з пояса за 1 ОД':' · лише поза боєм'}</span></span><span class="ccs">${costTxt(D.c)}</span>${btn('Приготувати','cookp',D.id,{ok:()=>earlyCookHere()&&localCanAct()&&!s.dlg.length&&dishOk(D)})}</div>`).join('')}</div></div>`;
+}
+function earlyAshTick(){
+  if(!earlyHearthHere()||s.f.tracks||!s.f.crab1||!s.f.rod||rcpKnown('ash')||!localCanAct()||s.dlg.length||(s.tutPending||[]).some(tutReady)||!novCan())return;
+  s.rcp=s.rcp||{};s.rcp.ash=1;s.rcpNew=1;novMark('recipe:ash');
+  dlg({k:'find',title:'Риба в золі',img:{t:'icon',id:'ash'},body:'<p>Ти згадуєш простий спосіб: загорнути рибу у вологе листя й покласти в жарини.</p>',gains:['Рецепт біля вогнища']});
+  save();
+}
+function kitTick(){if(typeof MGH!=='undefined'&&!MGH.cook)MGH.cook=MGH_COOK;if(!s.f.tracks&&!s.tabs.kitchen){earlyAshTick();return}if(!s.tabs.kitchen){if(!novCan())return;novMark();s.tabs.kitchen=1;s.ttNew=typeof s.ttNew==='object'&&s.ttNew?s.ttNew:{};s.ttNew.kitchen=1;if(s.tabs.tower)s.newTab.tower=1;dlg({k:'world',title:'Відкрилося: Кухня',body:'<p>У нижній залі, біля вогнища, Зиновій поставив казан і стіл.</p>'});tutOffer('kitchen')}s.rcp=s.rcp||{};
   for(const D of DISH)if(!D.ingredient&&!s.rcp[D.id]&&D.learn()){const first=!Object.keys(s.rcp).length;if(!first&&!novCan())return;s.rcp[D.id]=1;if(!first){novMark();dlg({k:'find',title:'Новий рецепт',img:{t:'icon',id:D.id},body:`<p><b>${IT[D.id].n}.</b> ${D.who} показує, як: ${D.how.charAt(0).toLowerCase()+D.how.slice(1)}</p>`,gains:['Рецепт на кухні']})}if(!noGap())return}}
 const atFishKitchen=()=>!s.at&&s.tabs.kitchen&&(s.tab==='kitchen'||s.tab==='tower'&&ttCur()==='kitchen');
 function fishRecipesReady(){
@@ -75,8 +102,10 @@ const dishOk=D=>rcpKnown(D.id)&&afford(D.c,D.it)&&(!D.prov||s.r.prov+D.prov<=cap
 function cookDone(id,q){const D=DISH.find(x=>x.id===id),n=q>=2?2:1,it=q>=3?id+'_t':id;giveI(it,n);s.c.cook=(s.c.cook||0)+1;
   say(q>=3?`${IT[it].n} — ${n} порції! Зиновій куштує й мовчки киває.`:q>=2?`${IT[id].n}: вийшло дві порції.`:`${IT[id].n}: готово.`,'build');kitTick();dirty=1}
 function cook(id,how){if(typeof MGH!=='undefined'&&!MGH.cook)MGH.cook=MGH_COOK;const D=DISH.find(x=>x.id===id);if(!D||!dishOk(D))return;
+  if(!localCanAct()||s.dlg.length)return;
+  if(!atFishKitchen()&&!(how==='plain'&&earlyCookHere()&&['ash','soup'].includes(id)))return;
   if(D.ingredient){
-    if(!atFishKitchen()||s.cb||s.raid||s.dlg.length)return;
+    if(!atFishKitchen())return;
     pay(D.c,D.it);
     if(D.prov){
       add('prov',D.prov);s.c.cook=(s.c.cook||0)+1;
@@ -85,7 +114,7 @@ function cook(id,how){if(typeof MGH!=='undefined'&&!MGH.cook)MGH.cook=MGH_COOK;c
     return;
   }
   pay(D.c);
-  if(how==='plain'){cookDone(id,0);return}
+  if(how==='plain'){cookDone(id,0);save();return}
   mgRun('cook',()=>mgCook(id),(res,skip)=>cookDone(id,skip?(skip==='auto'?(res>0?1:0):0):res))}
 /* міні-гра: тримати вогонь, щоб кипіло рівно */
 function mgCook(id){let heat=.35,inz=0,tot=0,gust=0;const lo=.55,hi=.8,T=10;

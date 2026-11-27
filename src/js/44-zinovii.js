@@ -42,7 +42,7 @@ function zinoviiFindButtons(){
 function zinoviiCardBody(){
   const {role}=MST.zinovii;
   const description=s.bdSeen?.smoke||s.b.smoke?MST.zinovii.d:'З «Мартина». Тепер живе біля маяка.';
-  const knowledge=(winchTopicReady()?btn('Показати механізм Зиновію','winchTalk'):'')+navTalkButton()+fishRecipeButtons();
+  const knowledge=(winchTopicReady()?btn('Показати механізм Зиновію','winchTalk'):'')+navTalkButton()+earlySoupButton()+fishRecipeButtons();
   const topics=zinoviiTopicGroup('Розмова',btn('Поговорити','zinoviiTalk'))+
     zinoviiTopicGroup('Знання',knowledge)+zinoviiTopicGroup('Знахідки',zinoviiFindButtons())+
     zinoviiTopicGroup('Допомога',holdOilHTML());

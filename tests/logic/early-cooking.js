@@ -1,0 +1,42 @@
+require('../harness.js')(String.raw`
+(()=>{
+let fails=0;const A=(ok,m)=>{if(!ok){fails++;console.log('FAIL',m)}};
+let raw;localStorage.getItem=()=>raw;localStorage.setItem=(k,v)=>{raw=v};
+const drain=()=>{while(s.dlg.length)act('dlgok')};
+function setup(){s=fresh();popB='';MG=null;s.tab='home';s.f.looked=1;s.f.rod=1;s.tabs.shore=1;s.tabs.tower=1;s.tabs.hero=1;s.b.hearth=1;s.r.fish=18;s.r.wood=40;s.r.ember=100;s.tutPending=[];s.lastAct=Date.now()}
+setup();
+kitTick();A(!rcpKnown('ash')&&!rcpKnown('soup')&&!s.tabs.kitchen,'до краба немає рецептів');
+act('earlySoupLearn');act('cookp','ash');A(s.r.fish===18&&!rcpKnown('soup'),'не можна готувати й вивчати без передумов');
+s.f.crab1=1;s.b.hearth=0;kitTick();A(!rcpKnown('ash'),'потрібне вогнище');
+s.b.hearth=1;act('tab','shore');kitTick();A(!rcpKnown('ash'),'раннє знання відкривається у дворі');
+act('tab','home');kitTick();A(rcpKnown('ash')&&!s.tabs.kitchen,'перша страва після краба');
+drain();kitTick();A(!s.dlg.length,'рецепт не дублюється');
+A(earlyCookingHTML().includes('data-i="ash"')&&!earlyCookingHTML().includes('data-i="soup"'),'видно тільки відому страву');
+s.on.hearth=false;act('cookp','ash');A(s.r.fish===18&&!has('ash'),'погашене вогнище');
+act('tog','hearth');act('cook','ash');A(s.r.fish===18&&!has('ash')&&!MG,'немає ранньої мінігри');
+act('tab','shore');act('cookp','ash');A(s.r.fish===18,'застаріла дія з берега');
+act('tab','home');act('cookp','ash');A(s.r.fish===15&&s.inv.ash===1&&beltHas('ash'),'одна порція за 3 риби й пояс');
+s.h.hp=1;act('use','ash');A(s.h.hp===Math.min(13,maxHP())&&!has('ash'),'12 HP без зміни ефекту');
+s.f.gullrack=1;s.shf='zinovii';act('tab','shore');act('shfgo','zinovii');drain();act('tab','home');
+A(earlySoupReady()&&!earlyPotVisible()&&!s.tabs.kitchen,'контекстне знання після порятунку');
+const xp0=s.h.xp,wood=s.r.wood,fish=s.r.fish;
+act('earlySoupLearn');drain();act('earlySoupLearn');
+A(rcpKnown('soup')&&earlyPotVisible()&&!s.dlg.length&&s.r.wood===wood&&s.r.fish===fish&&s.h.xp===xp0,'казан та знання без повторної оплати і XP');
+s.localProgress.deck={beamMoved:1,openHatch:1};s.r.oil=0;act('holdOil');A(s.r.oil===1&&s.r.fish===fish-1,'олія доступна без кухні');
+s.r.fish=2;act('cookp','soup');A(!has('soup')&&s.r.fish===2,'неповна оплата не списується');
+s.r.fish=9;s.r.wood=10;
+MG={};act('cookp','soup');MG=null;A(s.r.fish===9,'мінігра блокує дію');
+s.dlg=[{k:'story'}];s.bellHold=1;act('cookp','soup');A(s.r.fish===9,'відкладений діалог не обходить guard');s.dlg=[];s.bellHold=0;
+act('cookp','soup');A(s.r.fish===6&&s.r.wood===9&&s.inv.soup===1&&!beltHas('soup'),'звичайна юшка, не на поясі');
+s.h.hp=1;act('use','soup');A(activeRegen()?.rate===.2&&activeRegen()?.left===120,'ефект юшки незмінний');
+healingTick(60);A(Math.abs(s.h.hp-Math.min(13,maxHP()))<1e-8,'60 с дають до 12 HP');
+save();load();A(rcpKnown('ash')&&rcpKnown('soup')&&earlyPotVisible()&&!s.tabs.kitchen,'ранні знання й казан пережили reload');
+drain();s.f.rats=1;s.f.tracks=1;kitTick();drain();
+A(s.tabs.kitchen&&rcpKnown('ash')&&rcpKnown('soup')&&!earlyPotVisible()&&!earlyCookingHTML(),'після слідів казан у кухні без повторного навчання');
+const f=s.r.fish;s.r.wood=20;act('cookp','ash');A(s.r.fish===f,'стара дія двору не готує після переходу');
+act('tab','kitchen');s.r.fish=10;act('cookp','ash');A(s.r.fish===7&&has('ash'),'чинна кухня готує');
+setup();s.tabs.kitchen=1;s.rcp={ash:1,soup:1};giveI('ash_t',2);giveI('soup_t',1);save();load();drain();
+A(s.tabs.kitchen&&rcpKnown('ash')&&rcpKnown('soup')&&s.inv.ash_t===2&&s.inv.soup_t===1,'стара кухня і смачні порції не зникають');
+console.log('fails',fails);
+})();
+`);

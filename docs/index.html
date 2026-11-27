@@ -1128,6 +1128,12 @@ body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .
 .zinovii-topic .act{gap:6px;flex-wrap:wrap}
 .zinovii-topic .act button{max-width:100%;white-space:normal;text-align:left}
 @media (max-width:560px){.zinovii-topic .act button{min-height:44px}}
+
+/* Ранній казан — частина вогнища, а не нова інтерактивна точка. */
+.early-pot{position:absolute;pointer-events:none;background-size:100% 100%;image-rendering:pixelated;z-index:4}
+.early-cooking{margin:.6rem 0}
+.early-cooking .row{flex-wrap:wrap}
+@media (max-width:560px){.early-cooking button{min-height:44px}}
 </style>
 </head>
 <body>
@@ -5104,7 +5110,7 @@ Object.assign(SHF,{
     d:'Від самої води до маяка тягнуться сліди босих ніг.',once:1,
     ok:()=>!!s.f.rats&&Date.now()-(s.ratsT||0)>5*60000,
     go(){s.f.tracks=1;s.tracksT=Date.now();xp(10);if(typeof kitTick==='function')kitTick();
-      dlg({k:'story',title:'Сліди з моря',img:{t:'face',id:'zinovii'},body:`<p>Сліди босих ніг виходять із води, обходять маяк колом — і повертаються в море. Пісок у них холодний, мов зимовий.</p><p>Зиновій блідне. ${Q('Так було й на «Мартині». Спершу мокрі сліди на палубі. Потім — вони самі. Не підходь до них близько, хранителю: хто дасть себе схопити, того тягнуть у воду')}.</p><p>${Q('Як прийдуть — тобі знадобиться сила. Приноси рибу — зварю юшку')}.</p>`,gains:['Відкрилося: Кухня']})},
+      dlg({k:'story',title:'Сліди з моря',img:{t:'face',id:'zinovii'},body:`<p>Сліди босих ніг виходять із води, обходять маяк колом — і повертаються в море. Пісок у них холодний, мов зимовий.</p><p>Зиновій блідне. ${Q('Так було й на «Мартині». Спершу мокрі сліди на палубі. Потім — вони самі. Не підходь до них близько, хранителю: хто дасть себе схопити, того тягнуть у воду')}.</p><p>${Q('Як прийдуть — тобі знадобиться сила. Бережи припаси, хранителю')}.</p>`})},
     art(b){for(let k=0;k<6;k++){const x=3+k*4.4,y=17-k*2.2+(k%2?2:0);hiRect(b,x,y,3,4,(i,j,px,py)=>((px-x-1.5)/1.2)**2+((py-y-2)/1.8)**2<=1?'D':'')}}},
   seal:{n:'Тюлень на камені',npc:1,tip:'Натисни, щоб покласти йому риби (5).',pos:[194,49],
     d:'На мокрому камені вигрівається тюлень. Дивиться на тебе, на рибу — і знову на тебе.',once:1,gap:180,
@@ -5558,7 +5564,34 @@ function addTastyDish(id,name){
 }
 for(const D of DISH){const n=IT[D.id].n;if(!D.ingredient)addTastyDish(D.id,'Смачна '+n.charAt(0).toLowerCase()+n.slice(1))}
 const rcpKnown=id=>!!(s.rcp||{})[id];
-function kitTick(){if(typeof MGH!=='undefined'&&!MGH.cook)MGH.cook=MGH_COOK;if(!s.f.tracks)return;if(!s.tabs.kitchen){if(!novCan())return;novMark();s.tabs.kitchen=1;s.ttNew=typeof s.ttNew==='object'&&s.ttNew?s.ttNew:{};s.ttNew.kitchen=1;if(s.tabs.tower)s.newTab.tower=1;dlg({k:'world',title:'Відкрилося: Кухня',body:'<p>У нижній залі, біля вогнища, Зиновій поставив казан і стіл.</p>'});tutOffer('kitchen')}s.rcp=s.rcp||{};
+// Раннє знання та місце готування не є відкриттям повної кухні.
+const earlyHearthHere=()=>s.tab==='home'&&!s.at&&!localCurrent()&&!!s.f.looked&&!!s.b.hearth&&!s.tabs.kitchen;
+const earlyCookHere=()=>earlyHearthHere()&&s.on.hearth!==false;
+const earlySoupReady=()=>earlyHearthHere()&&zinoviiPresent()&&!rcpKnown('soup');
+const earlyPotVisible=()=>!!(s.b.hearth&&zinoviiPresent()&&rcpKnown('soup')&&!s.tabs.kitchen);
+function earlySoupLearn(){
+  if(!earlySoupReady()||!localCanAct()||s.dlg.length)return;
+  s.rcp=s.rcp||{};s.rcp.soup=1;s.rcpNew=1;
+  dlg({k:'find',title:'Юшка Зиновія',img:{t:'icon',id:'soup'},body:`<p>${P('Зиновій')} ставить невеликий казан над жаром. ${Q('Три рибини й тріска під казан. Нехай тихо кипить.')}</p>`,gains:['Рецепт юшки']});
+  save();
+}
+function earlySoupButton(){
+  return earlySoupReady()?btn('Навчитися варити юшку','earlySoupLearn'):'';
+}
+function earlyCookingHTML(withToggle=true){
+  if(!earlyHearthHere())return '';
+  const L=DISH.filter(D=>['ash','soup'].includes(D.id)&&rcpKnown(D.id));
+  if(!L.length)return '';
+  const off=s.on.hearth===false;
+  return `<div class="early-cooking"><b>Їжа біля вогнища</b>${off?'<p class="m">Спершу розпали вогнище.</p>'+(withToggle?btn('Розпалити','tog','hearth'):''):''}<div class="rlist">${L.map(D=>`<div class="row"><span><b>${IT[D.id].n}</b><br><span class="m">${foodEffectsText(IT[D.id])}${D.id==='ash'?' · у бою з пояса за 1 ОД':' · лише поза боєм'}</span></span><span class="ccs">${costTxt(D.c)}</span>${btn('Приготувати','cookp',D.id,{ok:()=>earlyCookHere()&&localCanAct()&&!s.dlg.length&&dishOk(D)})}</div>`).join('')}</div></div>`;
+}
+function earlyAshTick(){
+  if(!earlyHearthHere()||s.f.tracks||!s.f.crab1||!s.f.rod||rcpKnown('ash')||!localCanAct()||s.dlg.length||(s.tutPending||[]).some(tutReady)||!novCan())return;
+  s.rcp=s.rcp||{};s.rcp.ash=1;s.rcpNew=1;novMark('recipe:ash');
+  dlg({k:'find',title:'Риба в золі',img:{t:'icon',id:'ash'},body:'<p>Ти згадуєш простий спосіб: загорнути рибу у вологе листя й покласти в жарини.</p>',gains:['Рецепт біля вогнища']});
+  save();
+}
+function kitTick(){if(typeof MGH!=='undefined'&&!MGH.cook)MGH.cook=MGH_COOK;if(!s.f.tracks&&!s.tabs.kitchen){earlyAshTick();return}if(!s.tabs.kitchen){if(!novCan())return;novMark();s.tabs.kitchen=1;s.ttNew=typeof s.ttNew==='object'&&s.ttNew?s.ttNew:{};s.ttNew.kitchen=1;if(s.tabs.tower)s.newTab.tower=1;dlg({k:'world',title:'Відкрилося: Кухня',body:'<p>У нижній залі, біля вогнища, Зиновій поставив казан і стіл.</p>'});tutOffer('kitchen')}s.rcp=s.rcp||{};
   for(const D of DISH)if(!D.ingredient&&!s.rcp[D.id]&&D.learn()){const first=!Object.keys(s.rcp).length;if(!first&&!novCan())return;s.rcp[D.id]=1;if(!first){novMark();dlg({k:'find',title:'Новий рецепт',img:{t:'icon',id:D.id},body:`<p><b>${IT[D.id].n}.</b> ${D.who} показує, як: ${D.how.charAt(0).toLowerCase()+D.how.slice(1)}</p>`,gains:['Рецепт на кухні']})}if(!noGap())return}}
 const atFishKitchen=()=>!s.at&&s.tabs.kitchen&&(s.tab==='kitchen'||s.tab==='tower'&&ttCur()==='kitchen');
 function fishRecipesReady(){
@@ -5578,8 +5611,10 @@ const dishOk=D=>rcpKnown(D.id)&&afford(D.c,D.it)&&(!D.prov||s.r.prov+D.prov<=cap
 function cookDone(id,q){const D=DISH.find(x=>x.id===id),n=q>=2?2:1,it=q>=3?id+'_t':id;giveI(it,n);s.c.cook=(s.c.cook||0)+1;
   say(q>=3?`${IT[it].n} — ${n} порції! Зиновій куштує й мовчки киває.`:q>=2?`${IT[id].n}: вийшло дві порції.`:`${IT[id].n}: готово.`,'build');kitTick();dirty=1}
 function cook(id,how){if(typeof MGH!=='undefined'&&!MGH.cook)MGH.cook=MGH_COOK;const D=DISH.find(x=>x.id===id);if(!D||!dishOk(D))return;
+  if(!localCanAct()||s.dlg.length)return;
+  if(!atFishKitchen()&&!(how==='plain'&&earlyCookHere()&&['ash','soup'].includes(id)))return;
   if(D.ingredient){
-    if(!atFishKitchen()||s.cb||s.raid||s.dlg.length)return;
+    if(!atFishKitchen())return;
     pay(D.c,D.it);
     if(D.prov){
       add('prov',D.prov);s.c.cook=(s.c.cook||0)+1;
@@ -5588,7 +5623,7 @@ function cook(id,how){if(typeof MGH!=='undefined'&&!MGH.cook)MGH.cook=MGH_COOK;c
     return;
   }
   pay(D.c);
-  if(how==='plain'){cookDone(id,0);return}
+  if(how==='plain'){cookDone(id,0);save();return}
   mgRun('cook',()=>mgCook(id),(res,skip)=>cookDone(id,skip?(skip==='auto'?(res>0?1:0):0):res))}
 /* міні-гра: тримати вогонь, щоб кипіло рівно */
 function mgCook(id){let heat=.35,inz=0,tot=0,gust=0;const lo=.55,hi=.8,T=10;
@@ -5832,6 +5867,7 @@ function act0(a,i){
       s.oddFate[i]=1;gift.react();
     }
   }break;
+  case 'earlySoupLearn':earlySoupLearn();break;
   case 'zinoviiTalk':zinoviiTalk();break;
   case 'zinoviiAsk':zinoviiAsk(i);break;
   case 'martinLadle':if(i!=='card'||zinoviiCardContext()&&localCanAct()&&!s.dlg.length)martinLadleTalk(i==='find');break;
@@ -6108,6 +6144,7 @@ function rHome(){let h=`<div>`;
     if(n)h+=`<p class="m">Вогнище, рівень ${n}: дає +${2*n} жару/с і спалює ${fr(0.12*n)} плавника/с. Без плавника ледь тліє.</p><p class="m">${V(()=>reserveText('hearth'))}</p>${reserveButton('hearth')}`}
   if(s.tabs.tower)al+=btn('Нагору, до поверхів','tab','tower',{cls:'toggle'});if(s.tabs.shore)al+=btn('До берега','tab','shore',{cls:'toggle'});
   h+=`<details class="alist"><summary>Усі дії списком</summary><div>${al}</div></details></section>`;
+  const earlyFood=earlyCookingHTML();if(earlyFood)h+='<section>'+earlyFood+'</section>';
   if(thrOn())h+=rDefense();
   if(s.f.people)h+=rPeople();
   else if(zinoviiPresent())h+=`<section><h2>Люди маяка</h2>${zinoviiInlineCard()}</section>`;
@@ -6541,7 +6578,7 @@ function render(){
   paintingTide=!!tide&&!!paintedTide&&tide!==paintedTide&&lastView===view;
   const focused=document.activeElement;
   const action=focused?.dataset?.a;
-  const keepFocus=paintingTide||['mussels','hookWater','rakeSand','navLog'].includes(action)||action?.startsWith('zone')||action==='equip'&&localCurrent()==='deck'||focused?.closest?.('.shore-recovery,.zinovii-card,.zinovii-pop');
+  const keepFocus=paintingTide||['mussels','hookWater','rakeSand','navLog','cookp','earlySoupLearn'].includes(action)||action?.startsWith('zone')||action==='equip'&&localCurrent()==='deck'||focused?.closest?.('.shore-recovery,.zinovii-card,.zinovii-pop');
   const el=keepFocus?focused:null,root=el?.closest('#stage,#main,#popl,#tabs');
   paintedTide=tide;
   try{renderView();restoreTideFocus(el,root)}finally{tideRenderTime=null;paintingTide=false}
@@ -7028,7 +7065,7 @@ function bpopHTML(){const id=popB;if(!id)return'';let nm,lvl,d,btns='',extra='';
   if(id.startsWith('hr:'))return heroPopHTML(id);
   if(id.startsWith('fk:')||id.startsWith('tr:'))return villagePopHTML(id);
   if(id==='hearth'){const n=s.b.hearth||0,c=bCost(HEARTH);nm='Вогнище';lvl=n;d=`+${2*n} жару/с, спалює ${fr(0.12*n)} плавника/с.`;
-    btns=`${btn('Підкинути дров','bld','hearth',{ok:()=>afford(c),cls:'main'})}<span class="ccs">${costChips(c)}</span>${btn(s.on.hearth===false?'Розпалити':'Пригасити','tog','hearth',{cls:'toggle'})}${reserveButton('hearth')}`;extra+=`<p class="m">${reserveText('hearth')}</p>`}
+    btns=`${btn('Підкинути дров','bld','hearth',{ok:()=>afford(c),cls:'main'})}<span class="ccs">${costChips(c)}</span>${btn(s.on.hearth===false?'Розпалити':'Пригасити','tog','hearth',{cls:'toggle'})}${reserveButton('hearth')}`;extra+=`<p class="m">${reserveText('hearth')}</p>`+earlyCookingHTML(false)}
   else{const b=BD.find(x=>x.id===id);if(!b)return'';const n=s.b[id]||0,w=(s.wk||{})[id]||0,mx=b.max&&n>=b.max,dm=(s.dmgB||{})[id];nm=b.n;lvl=n;d=typeof b.d==='function'?b.d():b.d||'';
     if(dm){const rc=repCost(b);extra+=`<p class="foe">Мла зламала будівлю. Поки її не полагодиш, вона не працює.</p>`;btns+=`${btn('Полагодити','repair',id,{ok:()=>afford(rc),cls:'main'})}<span class="ccs">${costChips(rc)}</span>`}
     else{if(id==='pot')extra+=potTransferHTML();
@@ -7073,7 +7110,7 @@ function homeHS(){const W=YW,H=YH;let h='';const st=yardSt2();
     if(s.seen.wood)h+=ob('hearth0',ok?'bld':'','hearth',obURL('hearth3g',()=>hearthObj3({hearth:1,plan:1})),hx+4,hy,W,H,ok?'Скласти вогнище':'Місце для вогнища',ok?`<b>Скласти вогнище</b><br>Обкласти жарину камінням і підкинути дров: ${costTxt(c)}.<br>Вогнище горітиме саме й даватиме жар.`:`<b>Місце для вогнища</b><br>Тут можна скласти вогнище, коли буде ${costTxt(c)}.`,{pulse:ok?1:0,always:1,cls:'ghost'+(ok?' ready':'')})}
   else{const n=s.b.hearth,lit=s.on.hearth!==false,sp=obURL('hearth3b',()=>hearthObj3({hearth:1})),[,,hw,hh]=sp;
     const fl=lit?innerAt(10,-22,18,27,hw,hh,'flm'+(n>=4?' big':''),`background-image:url(${flameURL()})`):'';
-    h+=ob('hearth','bpop','hearth',sp,hx,hy,W,H,'Вогнище',`<b>Вогнище, рівень ${n}</b><br>Натисни, щоб підкинути дров чи пригасити.`,{inner:fl+(upT.hearth&&Date.now()-upT.hearth<1600?`<i class="upfx" aria-hidden="true"><b>Рівень ${n}</b></i>`:''),cls:popB==='hearth'?'sel':''})}
+    h+=ob('hearth','bpop','hearth',sp,hx,hy,W,H,'Вогнище',`<b>Вогнище, рівень ${n}</b><br>Натисни, щоб підкинути дров чи пригасити.`,{inner:fl+(earlyPotVisible()?innerAt(8,-19,16,14,hw,hh,'early-pot',`background-image:url(${pxURL('early-pot',pot3)})`):'')+(upT.hearth&&Date.now()-upT.hearth<1600?`<i class="upfx" aria-hidden="true"><b>Рівень ${n}</b></i>`:''),cls:popB==='hearth'?'sel':''})}
   if(s.tabs.shore)h+=ob('toshore','tab','shore',obURL('sign3',signObj3),196,196,W,H,'До берега','<b>Стежка до берега</b><br>Плавник, уламки й риба.',{pulse:1});
   return h+zinoviiYardHS(buildings,W,H)}
 function shoreHS(){const W=SW,H=SH,S=(x,y,w,h)=>PCT(x,y,w,h,W,H);let h=fogs(8,22)+mlaLayer(6,62)+fxCanvas('sh',W,H);
@@ -8441,7 +8478,7 @@ function zinoviiFindButtons(){
 function zinoviiCardBody(){
   const {role}=MST.zinovii;
   const description=s.bdSeen?.smoke||s.b.smoke?MST.zinovii.d:'З «Мартина». Тепер живе біля маяка.';
-  const knowledge=(winchTopicReady()?btn('Показати механізм Зиновію','winchTalk'):'')+navTalkButton()+fishRecipeButtons();
+  const knowledge=(winchTopicReady()?btn('Показати механізм Зиновію','winchTalk'):'')+navTalkButton()+earlySoupButton()+fishRecipeButtons();
   const topics=zinoviiTopicGroup('Розмова',btn('Поговорити','zinoviiTalk'))+
     zinoviiTopicGroup('Знання',knowledge)+zinoviiTopicGroup('Знахідки',zinoviiFindButtons())+
     zinoviiTopicGroup('Допомога',holdOilHTML());

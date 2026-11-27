@@ -71,6 +71,7 @@ function act0(a,i){
       s.oddFate[i]=1;gift.react();
     }
   }break;
+  case 'earlySoupLearn':earlySoupLearn();break;
   case 'zinoviiTalk':zinoviiTalk();break;
   case 'zinoviiAsk':zinoviiAsk(i);break;
   case 'martinLadle':if(i!=='card'||zinoviiCardContext()&&localCanAct()&&!s.dlg.length)martinLadleTalk(i==='find');break;
