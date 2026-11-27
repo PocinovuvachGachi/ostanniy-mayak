@@ -1008,6 +1008,7 @@ body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .
 .shelf-item p{overflow-wrap:anywhere}
 
 /* Багор на воді */
+.scn .ob.hook-water{transition:top .5s ease-out}
 .hook-float .obi,.hook-float .obo{animation:hook-drift 3s ease-in-out infinite}
 .hook-wake{position:absolute;left:15%;right:13%;top:75%;height:14%;border-bottom:2px solid #b3c5c4;border-radius:50%;opacity:.75;pointer-events:none}
 .hook-pull{position:absolute;inset:0;pointer-events:none;z-index:155}
@@ -1015,15 +1016,27 @@ body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .
 .hook-tool{animation:hook-tool .98s ease-in-out both}
 .hook-cargo{animation:hook-cargo .98s ease-in-out both}
 .hook-splash{border:2px solid #e3ebe6;border-left-style:dashed;border-right-style:dashed;border-radius:50%;animation:hook-splash .98s ease-out both}
+.hook-grit{background:radial-gradient(ellipse,#d2bd83 0 13%,transparent 18%) 0 0/25% 50%;animation:hook-grit .98s ease-out both}
+.hook-hard .hook-tool{animation-name:hook-tug}
+.hook-hard .hook-cargo{animation-name:hook-haul}
+.hook-reinforced .hook-tool{animation-name:hook-tool}
+.hook-limit .hook-tool{animation:hook-bend .78s ease-out both}
+.hook-limit .hook-splash,.hook-limit .hook-grit{animation-duration:.78s}
+@keyframes hook-tug{0%{translate:-62% 62%;opacity:0}25%,45%{translate:0 0;opacity:1}53%{translate:-18% 24%;rotate:-5deg}63%{translate:-12% 14%}90%{translate:-58% 78%;opacity:1}100%{translate:-62% 84%;opacity:0}}
+@keyframes hook-haul{0%,50%{transform:none;opacity:1}57%{transform:translate(-13%,30%) rotate(-3deg)}67%{transform:translate(-9%,22%) rotate(-2deg)}90%{transform:translate(-70%,220%) rotate(-11deg);opacity:1}100%{transform:translate(-75%,244%) rotate(-13deg);opacity:0}}
+@keyframes hook-bend{0%{translate:-65% 55%;opacity:0}25%{translate:0 0;opacity:1}45%,57%{rotate:6deg;translate:-8% 5%;opacity:1}100%{rotate:-8deg;translate:-65% 55%;opacity:0}}
+@keyframes hook-grit{0%,25%{opacity:0;transform:scale(.3)}65%{opacity:.9;transform:translate(-18%,38%)}100%{opacity:0;transform:translate(-45%,65%) scale(1.3)}}
 @keyframes hook-drift{50%{translate:0 -9%}}
 @keyframes hook-tool{0%{translate:-62% 62%;rotate:-10deg;opacity:0}25%,39%{translate:0 0;rotate:0deg;opacity:1}82%{translate:-58% 78%;opacity:1}100%{translate:-62% 84%;opacity:0}}
 @keyframes hook-cargo{0%,36%{transform:none;opacity:1}78%{transform:translate(-68%,220%) rotate(-11deg);opacity:1}100%{transform:translate(-75%,244%) rotate(-13deg);opacity:0}}
 @keyframes hook-splash{0%,25%{transform:scale(.4);opacity:0}41%{transform:scale(.95);opacity:1}100%{transform:scale(1.7);opacity:0}}
 @media (prefers-reduced-motion:reduce){
-  .hook-float .obi,.hook-float .obo,.hook-pull>*{animation:none}
+  .scn .ob.hook-water{transition:none}
+  .hook-float .obi,.hook-float .obo,.hook-pull .hook-tool,.hook-pull .hook-cargo,.hook-pull .hook-splash,.hook-pull .hook-grit{animation:none}
   .hook-tool{translate:-58% 78%}
   .hook-cargo{transform:translate(-68%,220%)}
-  .hook-splash{opacity:.75}
+  .hook-splash,.hook-grit{opacity:.75}
+  .hook-limit .hook-tool{translate:0 0;rotate:6deg}
 }
 
 /* Розчищення піску граблями */
@@ -1032,11 +1045,11 @@ body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .
 .rake-tool{animation:rake-tool .8s ease-in-out both}
 .rake-furrows{animation:rake-furrows .8s linear both}
 .rake-dust{animation:rake-dust .8s ease-out both}
-.rake-metal{animation:rake-metal .8s ease-out both}
+.rake-reward{animation:rake-reward .8s ease-out both}
 @keyframes rake-tool{0%{transform:translate(20%,-20%) rotate(10deg);opacity:0}20%{transform:none;opacity:1}68%{transform:translate(-18%,15%) rotate(-14deg);opacity:1}100%{transform:translate(-28%,-26%) rotate(-20deg);opacity:0}}
 @keyframes rake-furrows{0%,25%{clip-path:inset(0 0 0 100%)}70%,100%{clip-path:inset(0)}}
 @keyframes rake-dust{0%,30%{transform:scale(.7);opacity:0}54%{transform:translate(-10%,-15%);opacity:.9}100%{transform:translate(-30%,-65%) scale(1.15);opacity:0}}
-@keyframes rake-metal{0%,53%{transform:translateY(24%);opacity:0}73%{transform:translateY(-25%);opacity:1}100%{transform:none;opacity:1}}
+@keyframes rake-reward{0%,53%{transform:translateY(24%);opacity:0}73%{transform:translateY(-25%);opacity:1}100%{transform:none;opacity:1}}
 @media (prefers-reduced-motion:reduce){
   .rake-sweep img{animation:none}
   .rake-tool{transform:translate(-18%,10%) rotate(-12deg)}
@@ -3415,7 +3428,7 @@ function fresh(){return{
   healingV:1,r:Object.fromEntries(RES.map(k=>[k,0])),play:0,tideEpoch:null,reserveFree:{},novUsed:{},novLast:'',tutSeen:{},tutPending:[],eraT:[0],nv:{},nvU:{},mom:[{t:0,k:'start',n:'Пробудження',d:'Ти прокидаєшся в темряві з єдиною жариною в долонях.',img:null,mj:1,e:0}],on:{},fac:{rot:0,cape:0,sails:0,silent:-50},req:{},reqT:{},threat:0,def:{},dmgB:{},glSeen:{},fu:{},exp:[],beam:0,wf:{},mst:{},pop:0,popT:0,wk:{},bog:0,bogFail:0,ht:'gear',sig:0,pack:[],belt:[],wm:{},wup:{},dlg:[],raid:0,raidT:0,
   tot:{ember:0,wood:0,scrap:0,fish:0},
   seen:{ember:1},tabs:{home:1},tab:'home',newTab:{},
-  f:{},fishSpecies:{},hookWater:{gathers:0,pulls:0,wait:0,pending:null},rakeSand:{actions:0,searched:0,wait:0,pending:null},shfCyc:null,shfDeferred:{},musselCyc:null,c:{gather:0,fish:0,wins:0},cd:{},b:{},floors:{},rs:{},
+  f:{},fishSpecies:{},hookWater:{gathers:0,pulls:0,wait:0,pending:null},rakeSand:{actions:0,searched:0,lastId:0,wait:0,dry:null,wet:null,wetDeferred:false},shfCyc:null,shfDeferred:{},musselCyc:null,c:{gather:0,fish:0,wins:0},cd:{},b:{},floors:{},rs:{},
   h:{lvl:1,xp:0,hp:25,pts:0,sp:0,fp:0,a:{str:2,dex:2,con:2,per:2,int:2},k:{melee:0,mech:0,stealth:0,speech:0,craft:0},ft:{}},
   eq:{weapon:'',ranged:'',armor:'',light:'',charm:''},inv:{},
   pages:[],books:[],odd:{},oddRead:{},oddFate:{},shoreFindMiss:{},poolFindCyc:null,localZone:'',localProgress:{},met:{},seenE:{},kills:{},disc:{},done:{},visited:{},wrong:{},
@@ -3459,7 +3472,7 @@ const calm=()=>noGap()||(s.play||0)-(s.lastNov==null?-1e9:s.lastNov)>=NOVGAP;
 function unlock(t,quiet=false){if(!s.tabs[t]){s.tabs[t]=1;novMark();s.newTab[t]=1;if(SUBT[t]){s.newTab.tower=1;s.ttNew=typeof s.ttNew==='object'&&s.ttNew?s.ttNew:{};s.ttNew[t]=1}dirty=1;if(t==='hero'){if(s.h.xpb){const b=s.h.xpb;s.h.xpb=0;xp(b)}}const nm=(TABS.find(x=>x[0]===t)||[0,SUBT[t]||''])[1];if(t!=='shore'&&!quiet)dlg({k:'world',title:`Відкрито: ${nm}`,body:`<p>${TABV[t]||(TUT[t]?'':TABINFO[t])||''}${!TUT[t]&&TABV[t]&&TABINFO[t]?ih(TABINFO[t]):''}</p>`,gains:[SUBT[t]?`«${nm}» — у вкладці «Маяк».`:`Відкрилася вкладка «${nm}».`]});tutOffer(t)}}
 function page(n){if(!s.pages.includes(n)){s.pages.push(n);if(n===1)s.met.ostap=1;dlg({k:'story',title:n==='m'?'Записка Остапа без номера':`Записка Остапа, аркуш ${n}`,body:`<div class="note">${PG[n].replace(/ — О\.$/,'')}<span class="sig">— О.</span></div>`,gains:['Записку збережено в журналі.']});unlock('journal');dirty=1}}
 function book(id){if(!s.books.includes(id)){s.books.push(id);dirty=1}}
-function odd(id,pre){
+function odd(id,pre,{popup=true}={}){
   const item=OD[id];
   if(!item||s.odd[id])return;
   s.odd[id]=1;s.oddNew=(s.oddNew||0)+1;
@@ -3467,7 +3480,7 @@ function odd(id,pre){
   if(reward)xp(reward);
   const line=(pre?pre+' ':'')+`Дивина: ${I(item.n)}.`;
   say(reward?`${line} +${Math.round(reward*XPST[stageNo()])} досвіду.`:line,'find');
-  dlg({k:'find',odd:id,title:`Дивина: ${item.n}`,img:{t:'icon',id:ODI[id]},body:`<p>${pre?pre+' ':''}${item.d}</p>`,gains:reward?[`+${reward} досвіду`]:[],btns:item.btns?.()});
+  if(popup)dlg({k:'find',odd:id,title:`Дивина: ${item.n}`,img:{t:'icon',id:ODI[id]},body:`<p>${pre?pre+' ':''}${item.d}</p>`,gains:reward?[`+${reward} досвіду`]:[],btns:item.btns?.()});
 }
 function reveal(id,quiet=false){if(!s.disc[id]){s.disc[id]=1;dirty=1;const L=LOC[id];mom('disc',L.n,L.d,{t:'scene',id:id==='bay'?'bayHigh':id});if(!quiet)dlg({k:'world',title:`Нове місце: ${L.n}`,img:{t:'scene',id:id==='bay'?'bayHigh':id},body:`<p>${L.d}</p>`,gains:['Нове місце на мапі.',L.sea?'Туди можна дістатися лише човном, і вихід у море коштує провізію.':'',L.dark?'Там темно: візьми в руку ліхтар.':''].filter(Boolean)})}}
 function boat(){s.f.boat=1;reveal('reef')}
@@ -4113,18 +4126,35 @@ function fishBiteResolve(keep){
   say(`На гачку — уламки металу, обточені морем. +${R('scrap',amount)}.`,'find');
 }
 /* Малий плавучий предмет використовує місце події прибою, коли воно вільне. */
-const HOOK_LIMIT_PULLS=2,HOOK_FIRST_GATHERS=3,HOOK_WAIT_MIN=60,HOOK_WAIT_SPAN=60,HOOK_HEAVY_CHANCE=.20;
+const HOOK_LIMIT_PULLS=2,HOOK_FIRST_GATHERS=3,HOOK_HEAVY_CHANCE=.20;
 const HOOK_FLOAT={
-  plank:{n:'Дошка на воді',reward:()=>({wood:3+rnd(3)})},
-  tackle:{n:'Снасті на воді',reward:()=>({scrap:1+rnd(3)})},
-  bottle:{n:'Пляшка на воді',reward:()=>({scrap:2})},
+  plank:{n:'Дошка',reward:()=>({wood:3+rnd(3)})},
+  tackle:{n:'Снасті',reward:()=>({scrap:1+rnd(3)})},
+  bottle:{n:'Пляшка',reward:()=>({scrap:2})},
   box:{n:'Малий ящик',reward:()=>({wood:3,scrap:1})},
-  heavy:{n:'Ящик між камінням',reward:()=>({wood:4,scrap:3})}
+  heavy:{n:'Важкий ящик',reward:()=>({wood:4,scrap:3})}
 };
 const HOOK_LIGHT=['plank','tackle','bottle','box'];
+// Вужчі діапазони врівноважують довшу повну воду коротшим відпливом.
+const HOOK_WAIT={floating:{easy:[76,90],hard:[104,120]},tackle:{easy:[60,90],hard:[90,109]}};
 const hookWaterVisible=()=>atShore()&&s.f.hook&&!s.flot?s.hookWater.pending:null;
 const hookWaterLabel=o=>o.kind==='heavy'&&!s.f.hookUp?'Спробувати підчепити ящик':`Підтягнути багром · ${HOOK_FLOAT[o.kind].n.toLowerCase()}`;
 
+function hookWaterConditions(kind,phase=tideStage()){
+  if(!tideKnown()||(phase!=='low'&&phase!=='high'))return 'neutral';
+  return (phase==='low')===(kind==='tackle')?'easy':'hard';
+}
+function hookWaterHint(o,phase=tideStage()){
+  if(!tideKnown())return 'Натисни, щоб підчепити багром.';
+  const effort=hookWaterConditions(o.kind,phase);
+  if(effort==='neutral')return phase==='ebb'?'Вода відступає. Вантаж можна підчепити.':'Вода підступає. Вантаж можна підчепити.';
+  if(o.kind==='tackle')return effort==='easy'?'Снасті оголилися на камінні. Тепер їх легше підчепити.':'Хвилі крутять снасті й тягнуть їх під воду.';
+  return effort==='easy'?'Вода підхопила вантаж. Він легше піде за гаком.':'Вантаж сів на мокрий пісок. Доведеться потягнути дужче.';
+}
+function hookWaterWait(kind,effort){
+  const [min,max]=HOOK_WAIT[kind==='tackle'?'tackle':'floating'][effort]||[60,120];
+  return min+Math.round(Math.random()*(max-min));
+}
 function hookWaterTick(dt){
   // Великий крок годинника може бути поверненням із фонової вкладки.
   if(dt<=0||dt>1||!atShore()||!s.f.hook||s.cb||s.raid||s.dlg.length||s.tutPending.some(tutReady)||away())return;
@@ -4139,58 +4169,91 @@ function hookWaterTick(dt){
 }
 function hookWaterTake(id){
   const o=hookWaterVisible();
-  if(!o||String(o.id)!==String(id)||s.cb||s.raid||s.dlg.length)return;
+  if(!o||String(o.id)!==String(id)||s.cb||s.raid||s.dlg.length||hookPullFx?.o===o)return;
+  const time=tidePhase(),effort=hookWaterConditions(o.kind,tideStage(time));
   if(o.kind==='heavy'&&!s.f.hookUp){
     if(!s.f.hookLimitSeen){
       s.f.hookLimitSeen=1;
-      dlg({k:'info',title:'Жердина прогинається',body:'<p>Гак зачепив ящик, але жердина прогнулася. Ти послаблюєш натяг. Ящик міцно сидить між камінням.</p>'});
-      save();
-    }
+      dlg({k:'info',hookLimit:1,title:'Жердина прогинається',body:'<p>Гак зачепив ящик, але жердина прогнулася. Ти послаблюєш натяг, і ящик лишається на місці.</p>'});
+    }else say('Жердина прогинається. Ти послаблюєш натяг.','info');
+    save();
+    hookPullStart(o,time,effort,true);
     return;
   }
   const w=s.hookWater;
-  w.pending=null;w.pulls++;w.wait=HOOK_WAIT_MIN+Math.round(Math.random()*HOOK_WAIT_SPAN);
+  w.pending=null;w.pulls++;w.wait=hookWaterWait(o.kind,effort);
   for(const key in o.reward)add(key,o.reward[key]);
-  say(`Багор дістав вантаж із води. ${costTxt(o.reward)}.`,'find');
+  say(`Багор дістав вантаж. ${costTxt(o.reward)}.`,'find');
   if(w.pulls===1)tutRemember('hookWater');
-  hookPullStart(o);sfx('splash');
   dirty=1;save();
+  hookPullStart(o,time,effort,false);sfx(shoreTideLevel(time)>=.5?'rakeSand':'splash');
 }
-/* Пошук граблями прив’язаний до ділянки, яку можна оглянути один раз. */
+/* Дві ділянки ділять один інтервал активного берега. */
 const RAKE_FIRST_ACTIONS=3,RAKE_WAIT_MIN=60,RAKE_WAIT_SPAN=60,RAKE_WET_CHANCE=.5;
 const RAKE_SPOTS={
   dry:{name:'Оглянути сухий пісок',hint:'Під сухим піском проступає нерівність.'},
   wet:{name:'Оглянути вологий пісок',hint:'Між мокрим піском і камінням щось зачепилося.'}
 };
+const RAKE_WEIGHTS={dry:[.75,.95,1],wet:[.60,.80,.90]};
+const rakeSandWait=()=>RAKE_WAIT_MIN+Math.round(Math.random()*RAKE_WAIT_SPAN);
+function rakeSandMigrate(){
+  const sand=s.rakeSand;
+  const old=sand.pending;
+  if(old&&RAKE_SPOTS[old.kind])sand[old.kind]={id:old.id,kind:old.kind,reward:{scrap:old.scrap}};
+  delete sand.pending;
+  sand.lastId=Math.max(sand.lastId,sand.searched,sand.dry?.id||0,sand.wet?.id||0);
+  return !!old;
+}
 function rakeBeachAction(){
   if(atShore()&&has('rake'))s.rakeSand.actions=Math.min(RAKE_FIRST_ACTIONS,s.rakeSand.actions+1);
 }
 function rakeSandVisible(){
-  const spot=s.rakeSand.pending;
-  return atShore()&&has('rake')&&spot&&(spot.kind==='dry'||tideLow())?spot:null;
+  if(!atShore()||!has('rake'))return [];
+  const {dry,wet}=s.rakeSand;
+  return [dry,tideLow()?wet:null].filter(Boolean);
+}
+function rakeSandRoll(kind,first){
+  const scrap=()=>({reward:{scrap:1+rnd(2)}});
+  if(first)return scrap();
+  const roll=Math.random(),[metal,wood,coin]=RAKE_WEIGHTS[kind];
+  if(roll<metal)return scrap();
+  if(roll<wood)return s.seen.wood?{reward:{wood:1+rnd(3)}}:scrap();
+  if(roll<coin)return s.tabs.trade?{reward:{coin:1+rnd(2)}}:scrap();
+  const finds=[['amberbit','pool'],['seaglass','gather']]
+    .filter(([id,source])=>!s.odd[id]&&SHORE_FINDS[source].ready(id));
+  return finds.length?{...scrap(),odd:finds[rnd(finds.length)][0]}:scrap();
 }
 function rakeSandTick(dt,anotherEvent=false){
-  const sand=s.rakeSand;
-  if(atShore()&&rakeSandVisible()!==renderedRakeSand)dirty=1;
   // Пропускаємо довгі кроки годинника після сну або фонової вкладки.
   if(dt<=0||dt>1||!atShore()||!has('rake')||s.cb||s.raid||s.dlg.length||s.tutPending.some(tutReady)||away())return;
-  if(sand.pending||sand.actions<RAKE_FIRST_ACTIONS)return;
+  const sand=s.rakeSand,low=tideLow();
+  if(sand.wet&&!low&&!sand.wetDeferred){
+    sand.wetDeferred=true;
+    if(!sand.wait)sand.wait=rakeSandWait();
+    save();
+  }
+  if(sand.dry||sand.wet&&low||sand.actions<RAKE_FIRST_ACTIONS)return;
   sand.wait=Math.max(0,sand.wait-dt);
   if(sand.wait||anotherEvent||!novCan())return;
-  const kind=sand.searched&&tideLow()&&Math.random()<RAKE_WET_CHANCE?'wet':'dry';
-  sand.pending={id:sand.searched+1,kind,scrap:1+rnd(2)};
+  const first=sand.searched===0&&!sand.lastId;
+  const kind=!first&&low&&!sand.wet&&Math.random()<RAKE_WET_CHANCE?'wet':'dry';
+  sand[kind]={id:++sand.lastId,kind,...rakeSandRoll(kind,first)};
+  if(kind==='wet')sand.wetDeferred=false;
   dirty=1;save();
 }
 function rakeSandSearch(id){
-  const spot=rakeSandVisible();
-  if(!spot||String(spot.id)!==String(id)||s.cb||s.raid||s.dlg.length)return;
-  const sand=s.rakeSand;
-  sand.pending=null;sand.searched++;sand.wait=RAKE_WAIT_MIN+Math.round(Math.random()*RAKE_WAIT_SPAN);
-  add('scrap',spot.scrap);
-  say(`Між зубцями граблів лишився метал. ${costTxt({scrap:spot.scrap})}.`,'find');
+  const spot=rakeSandVisible().find(o=>String(o.id)===String(id));
+  if(!spot||s.cb||s.raid||s.dlg.length)return;
+  const sand=s.rakeSand,find=spot.odd&&!s.odd[spot.odd]?spot.odd:null;
+  sand[spot.kind]=null;sand.searched++;sand.wait=rakeSandWait();
+  if(find)odd(find,'Граблі відкрили знахідку під піском.',{popup:false});
+  else{
+    for(const [key,amount] of Object.entries(spot.reward))add(key,amount);
+    say(`Під піском знайшлося: ${costTxt(spot.reward)}.`,'find');
+  }
   if(sand.searched===1)tutRemember('rakeSand');
   dirty=1;save();
-  rakeSandStart(spot);sfx('rakeSand');
+  rakeSandStart(spot,find?ODI[find]:Object.keys(spot.reward)[0]);sfx('rakeSand');
 }
 /* ============ ПРИПЛИВ І БРІД (етап I) ============
    Перший відплив після трьох риболовель; далі власний цикл збереження ~15 хв, з них ~5 хв — відплив. На відпливі відкриваються
@@ -4225,6 +4288,7 @@ function tideLv(t=tidePhase()){
   return clamp(Math.min(t-TIDE_EBB_START,TIDE-t)/TIDE_EDGE,0,1);
 }
 const tideLow=(t=tidePhase())=>s.dbgTide?s.dbgTide==='low':tideKnown()&&t>=TIDE_WORK_START&&t<TIDE_WORK_END;
+const shoreTideLevel=t=>tideLow(t)?1:Math.min(.75,Math.round(tideLv(t)*4)/4);
 function tideLeft(t=tidePhase()){
   if(s.dbgTide)return s.dbgTide==='low'?TIDE_WORK_END-TIDE_WORK_START:TIDE_WORK_START;
   if(tideLow(t))return Math.max(0,TIDE_WORK_END-t);
@@ -4375,7 +4439,7 @@ function shfObj3(id){const b=pbuf(30,id==='gullrack'?9:22);if(SHF[id]&&SHF[id].a
   else{hiRect(b,10,2,10,20,(i,j,x,y)=>{const u=(x-15)/(y<8?2.4:4.5);if(Math.abs(u)>1)return;return y<8?(Math.hypot(x-15,y-5)<2.6?'6':''):y>17?'S':'5'});pset(b,14,5,'x');pset(b,16,5,'x');pline(b,0,20,30,20,'U')}
   return b}
 globalThis.shfObj3=HI(shfObj3);
-function shoreFightHS(W,H){const id=shfVisible();if(!id)return'';const F=SHF[id],pos=F.pos||{poolcrab:[112,66],gullrack:s.f.dryRack?[143,78]:[132,82],rats:[204,80],drown1:[96,60],zinovii:[204,54],horpyna:[204,54]}[id]||[110,70];
+function shoreFightHS(W,H){const id=shfVisible();if(!id)return'';const F=SHF[id],pos=F.pos||{poolcrab:[105,80],gullrack:s.f.dryRack?[143,78]:[132,82],rats:[206,96],drown1:[96,60],zinovii:[204,54],horpyna:[204,54]}[id]||[110,70];
   const tip=F.tip||(F.npc?'Натисни, щоб допомогти.':F.lowWater?'Натисни, щоб битися. Краби виходять на відпливі.':'Натисни, щоб битися. Можна й почекати: нікуди не дінуться.');
   return ob('shf:'+id,'shfgo',shfActionId(id),obURL('shf3:'+id,()=>shfObj3(id)),pos[0],pos[1],W,H,F.n,`<b>${F.n}</b><br>${F.d}<br><span class="m">${tip}</span>`,{pulse:1,always:1,cls:'bite',inner:'<i class="bang">!</i>'})}
 /* ============ КОЛЕКЦІЯ ХРАНИТЕЛЯ ============
@@ -4672,14 +4736,14 @@ Object.assign(SHF,{
     go(){s.f.tracks=1;s.tracksT=Date.now();xp(10);if(typeof kitTick==='function')kitTick();
       dlg({k:'story',title:'Сліди з моря',img:{t:'face',id:'zinovii'},body:`<p>Сліди босих ніг виходять із води, обходять маяк колом — і повертаються в море. Пісок у них холодний, мов зимовий.</p><p>Зиновій блідне. ${Q('Так було й на «Мартині». Спершу мокрі сліди на палубі. Потім — вони самі. Не підходь до них близько, хранителю: хто дасть себе схопити, того тягнуть у воду')}.</p><p>${Q('Як прийдуть — тобі знадобиться сила. Приноси рибу — зварю юшку')}.</p>`,gains:['Відкрилося: Кухня']})},
     art(b){for(let k=0;k<6;k++){const x=3+k*4.4,y=17-k*2.2+(k%2?2:0);hiRect(b,x,y,3,4,(i,j,px,py)=>((px-x-1.5)/1.2)**2+((py-y-2)/1.8)**2<=1?'D':'')}}},
-  seal:{n:'Тюлень на камені',npc:1,tip:'Натисни, щоб покласти йому риби (5).',pos:[226,46],
+  seal:{n:'Тюлень на камені',npc:1,tip:'Натисни, щоб покласти йому риби (5).',pos:[194,49],
     d:'На мокрому камені вигрівається тюлень. Дивиться на тебе, на рибу — і знову на тебе.',once:1,gap:180,
     lowWater:true,returnNextLow:true,ok:()=>!!s.f.horpyna,
     go(){if((s.r.fish||0)<5){say('Тюлень дивиться на порожні руки, пирхає й пірнає. Може, ще повернеться — з рибою було б легше.','world');s.shfT.seal=Date.now();return}
       s.r.fish-=5;s.f.seal=1;s.sealCyc=tideCyc();xp(10);
       dlg({k:'story',title:'Бурштин',img:{t:'scene',id:'shore'},body:`<p>Тюлень бере рибу з твоїх рук обережно, наче пес. Петрик сміється й одразу дає йому ім’я: <b>Бурштин</b> — за очі.</p><p>Горпина хитає головою: ${Q('Тюлені пам’ятають добро. Він тепер приходитиме, щойно вода спаде. І принесе щось — вони завжди щось приносять')}.</p>`,gains:['Бурштин приходить на відпливі']})},
     art:b=>sealArt(b,0)},
-  sealgift:{n:'Бурштин повернувся',npc:1,tip:'Натисни, щоб подивитися, що він приніс.',pos:[226,46],
+  sealgift:{n:'Бурштин повернувся',npc:1,tip:'Натисни, щоб подивитися, що він приніс.',pos:[194,49],
     d:'Тюлень лежить на камені, а перед ним — щось мокре й блискуче.',
     lowWater:true,returnNextLow:true,ok:()=>!!s.f.seal&&tideCyc()!==s.sealCyc,
     go(){s.sealCyc=tideCyc();s.c.seal=(s.c.seal||0)+1;add('fish',2);xp(4);
@@ -4721,7 +4785,7 @@ LOC.village.first=()=>dlg({k:'story',title:'Перший перехід',img:{t:
 function myronMeet(){s.f.reunion=1;trust('rot',10,'Мирон дякує за сестру');
   return `${P('Мирон')} кидає сіті, щойно бачить тебе. ${Q('Ти з маяка? То це ти тієї ночі відповів мені вогнем?')} Ти розповідаєш про пліт біля каміння, про Горпину й малого Петрика. Він довго мовчить, а тоді сміється й плаче водночас. ${Q('Живі… Перейду бродом на першому ж відпливі')}. Трохи згодом додає: ${Q('А тепер про діло. Щось у Затоці Мулу рве мої сіті. Убий ту тварюку — і я лишуся тобі винен удвічі')}.`}
 Object.assign(SHF,{
-  myronvisit:{n:'Мирон іде бродом',npc:1,tip:'Натисни, щоб привітатися.',pos:[52,60],gap:1500,
+  myronvisit:{n:'Мирон іде бродом',npc:1,tip:'Натисни, щоб привітатися.',pos:[56,54],gap:1500,
     d:'Бродом, тримаючись за поруччя, іде Мирон із кошиком на плечі.',lowWater:true,returnNextLow:true,ok:()=>!!s.f.reunion,
     go(){s.c.myron=(s.c.myron||0)+1;if(s.c.myron===1){xp(10);
         dlg({k:'story',title:'Брат і сестра',img:{t:'face',id:'myron'},body:`<p>Горпина біжить до броду босоніж. Мирон підхоплює Петрика, кружляє його над водою, а тоді довго тримає сестру за плечі й нічого не каже.</p><p>Увечері вони сидять біля вогнища. ${Q('Лишайся в мене на Причалі')}, — каже Мирон. Горпина дивиться на маяк, на Петрика, що вже біжить до води кликати Бурштина. ${Q('Ми тут удома. А ти приходь')}.</p>`,gains:['Мирон приходитиме в гості']});add('fish',8);return}
@@ -5675,7 +5739,7 @@ function rHome(){let h=`<div>`;
     h+=`</section>`}
   return h+`</div>`}
 function shoreImg(){
-  const time=tidePhase(),phase=tideStage(time),level=tideLow(time)?1:Math.min(.75,Math.round(tideLv(time)*4)/4);
+  const time=tidePhase(),phase=tideStage(time),level=shoreTideLevel(time);
   const sig=[phase,level,s.f.fordSeen?1:0,FORD.map(p=>s.ford?.[p.id]?1:0).join(''),Math.min(12,Math.ceil(s.r.wood/12)),s.seen.scrap?Math.min(6,Math.ceil(s.r.scrap/10)):0,s.seen.fish&&s.r.fish>=1?Math.min(5,Math.ceil(s.r.fish/8)):0,Math.min(3,s.b.pot||0),GR].join(':');
   return pimgA('s3:'+sig,()=>shoreBg3({ph:GR,phase,tide:level,fordSeen:s.f.fordSeen,ford:s.ford,wood:s.r.wood,scrapSeen:s.seen.scrap,scrap:s.r.scrap,fishSeen:s.seen.fish,fish:s.r.fish,pot:s.b.pot}),864,360,'scene','Берег',21,WATER3);
 }
@@ -5700,9 +5764,8 @@ function rShore(){let h=`<section><h2>Берег під маяком</h2><p>Мо
   if(event)al+=`<div class="act">${btn(SHF[event].n,'shfgo',shfActionId(event))}</div>`;
   al+=`<div class="act">${btn('До маяка','tab','home',{cls:'toggle'})}</div>`;
   const floating=hookWaterVisible();
-  const hookCard=floating?`<div class="act">${btn(hookWaterLabel(floating),'hookWater',String(floating.id))}</div>`:'';
-  const sand=rakeSandVisible();
-  const sandCard=sand?`<div class="act">${btn(RAKE_SPOTS[sand.kind].name,'rakeSand',String(sand.id))}</div>`:'';
+  const hookCard=floating?`<div class="act">${btn(hookWaterLabel(floating),'hookWater',String(floating.id))} <span class="m">${hookWaterHint(floating)}</span></div>`:'';
+  const sandCard=rakeSandVisible().map(spot=>`<div class="act">${btn(RAKE_SPOTS[spot.kind].name,'rakeSand',String(spot.id))}</div>`).join('');
   const catchCard=s.f.rod&&s.bite?`<div class="tdet"><b>${fishBiteLabel()}</b>${s.f.rodUp?`<p class="m">${FISH_SPOTS[bitePlace()].name}</p>`:''}${fishBiteControls()}</div>`:'';
   h+=`<details class="alist shore-alist"${shoreListOpen?' open':''}><summary>Усі дії списком</summary><div>${catchCard}${hookCard}${sandCard}${al}</div></details>`;
   if(s.flot){const FN={crate:'Ящик',barrel:'Бочка',cargo:'Розкиданий вантаж',bottle:'Пляшка з запискою',survivor:'Людина на уламку щогли'};h+=`<div class="tdet" id="sec-flot"><b>На березі: ${FN[s.flot.k]}</b>${fresh9('fl:'+s.flot.until)}<p class="m">Прибій щось викинув. Хвилі заберуть його за ${V(()=>s.flot?Math.max(0,Math.ceil((s.flot.until-Date.now())/1000)):0)} с.</p>${btn('Оглянути','flot','',{cls:'main'})}</div>`}
@@ -6049,7 +6112,7 @@ let paintedTide='',paintingTide=false;
 function tideViewKey(){
   if(s.cb)return '';
   const t=tidePhase(),low=Number(tideLow(t));
-  if(atShore())return `shore:${tideStage(t)}:${low?String(tideCyc()):'high'}`;
+  if(atShore())return `shore:${tideStage(t)}:${low?String(tideCyc()):'high'}:${hookWaterVisible()?shoreTideLevel(t):''}`;
   if(s.tab==='map'&&(['bay','shoal'].includes(s.at)||!s.at&&(s.disc.bay||s.disc.fort)))return `map:${s.at}:${low}`;
   return '';
 }
@@ -6067,7 +6130,8 @@ function restoreTideFocus(el,root){
     (closed?.querySelector('summary')||entry)?.focus();
     return;
   }
-  const fallback=root.id==='popl'?root.querySelector('.bpx'):root.id==='stage'?root.querySelector('[data-k="gather"]'):root.querySelector('summary');
+  const nextRake=el.dataset.a==='rakeSand'?root.querySelector('[data-a="rakeSand"]'):null;
+  const fallback=nextRake||(root.id==='popl'?root.querySelector('.bpx'):root.id==='stage'?root.querySelector('[data-k="gather"]'):root.querySelector('summary'));
   (match||fallback)?.focus({preventScroll:true});
 }
 function render(){
@@ -6076,7 +6140,8 @@ function render(){
   const tide=tideViewKey(),view=s.tab+'|'+(s.tab==='map'?s.at:'')+'|';
   paintingTide=!!tide&&!!paintedTide&&tide!==paintedTide&&lastView===view;
   const focused=document.activeElement;
-  const keepFocus=paintingTide||focused?.dataset?.a==='mussels'||focused?.dataset?.a?.startsWith('zone')||focused?.closest?.('.shore-recovery');
+  const action=focused?.dataset?.a;
+  const keepFocus=paintingTide||['mussels','hookWater','rakeSand'].includes(action)||action?.startsWith('zone')||focused?.closest?.('.shore-recovery');
   const el=keepFocus?focused:null,root=el?.closest('#stage,#main,#popl,#tabs');
   paintedTide=tide;
   try{renderView();restoreTideFocus(el,root)}finally{tideRenderTime=null;paintingTide=false}
@@ -6121,7 +6186,7 @@ function dlgImg(m){if(!m)return'';if(m.t==='scene')return sceneImg(m.id);if(m.t=
   const u=m.t==='ob'?obURL(m.k,globalThis[m.f])[0]:m.t==='face'?faceURL(m.id):m.t==='icon'?icoURL(m.id):m.t==='wico'?wIco(m.id):m.t==='spr'?sprURL(m.id):m.t==='hero'?heroURL(s.eq):'';return u?`<div class="dlgface">${pimg(u,96,96,'')}</div>`:''}
 let lastDlg='';
 const ROM=n=>['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'][n-1]||n;
-function rDlg(){const q=s.dlg||[];if(!q.length)s.bellHold=0;const d=s.bellHold&&q[0]&&q[0].k!=='fight'?null:q[0],el=$('dlg');if(!d){if(lastDlg){lastDlg='';const bg=!RM()&&el.querySelector&&el.querySelector('.dlgbg');if(bg){bg.classList.add('fo');setTimeout(()=>{if(!lastDlg)el.innerHTML=''},230)}else el.innerHTML=''}return}
+function rDlg(){const q=s.dlg||[];if(!q.length)s.bellHold=0;const d=s.bellHold&&q[0]&&q[0].k!=='fight'?null:q[0],el=$('dlg');if(!d||d.hookLimit&&atShore()&&hookPullFx?.blocked&&Date.now()<hookPullFx.until){if(lastDlg){lastDlg='';const bg=!RM()&&el.querySelector&&el.querySelector('.dlgbg');if(bg){bg.classList.add('fo');setTimeout(()=>{if(!lastDlg)el.innerHTML=''},230)}else el.innerHTML=''}return}
   const key=d.title+'|'+String(d.body||'').length+'|'+(d.btns||[]).length+'|'+(s.dlg.length>1);if(key===lastDlg){try{const q=el.querySelector('.dlgq');if(q)q.textContent=s.dlg.length>1?`Ще подій у черзі: ${s.dlg.length-1}`:''}catch(e){}return}const fi=!lastDlg&&!RM();lastDlg=key;sfx(d.chap||d.k==='lvl'?'chime':d.k==='fight'?'horn':'page');
   if(d.chap){el.innerHTML=`<div class="dlgbg chapbg${fi?' fi':''}"><div class="dlgbox chap" role="dialog" aria-modal="true" aria-labelledby="dlgt"><div class="chapno">Розділ ${ROM(d.no)} завершено</div><h2 id="dlgt">${d.sub}</h2><div class="orn" aria-hidden="true">✦ ✦ ✦</div>${dlgImg(d.img)}<div class="dlgbody">${d.body||''}</div><div class="act"><button type="button" class="main" data-a="dlgok" data-i="">Гортати далі</button>${s.dlg.length>1?'<button type="button" class="toggle" data-a="bellDefer" data-i="">Відкласти решту</button>':''}</div><p class="more dlgq">${s.dlg.length>1?`Ще подій у черзі: ${s.dlg.length-1}`:''}</p></div></div>`;
     glossify(el);try{const b=el.querySelector&&el.querySelector('button');if(b)b.focus()}catch(e){}return}
@@ -6348,14 +6413,30 @@ function heroPopHTML(id){const card=(nm,lv,body,act)=>`<div class="bpop" role="d
     return card(SLOT[sl],cur?'вдягнено':'порожньо',`${cur?`<div class="row"><span>${pimg(WT[cur]?wIco(cur):icoURL(cur),24,24)} <b>${nm(cur)}</b><br><span class="m">${itemShort(cur)}</span></span></div>`:'<p class="m">Тут поки нічого.</p>'}
       ${alt.length?`<p class="jh">Можна взяти</p><div class="rlist">${alt.map(k=>`<div class="row"><span>${pimg(WT[k]?wIco(k):icoURL(k),20,20)} ${nm(k)}</span>${btn('Взяти','equip',k)}</div>`).join('')}</div>`:''}`,cur&&!['weapon','ranged'].includes(sl)?btn('Зняти','unequip',sl,{cls:'toggle'}):'')}
   return''}
-/* Малий предмет лишається над лінією води і на відпливі. */
-const HOOK_WATER_X=125,HOOK_WATER_Y=30,HOOK_PULL_MS=980;
+/* Вантаж іде за крайкою води у вільній смузі між бродом і вудкою. */
+const HOOK_WATER_X=130,HOOK_PULL_MS=980,HOOK_LIMIT_MS=780;
+const hookWaterY=t=>55-16*shoreTideLevel(t);
 let hookPullFx=null;
 ICO.hookUp=['............','.......qq...','......q..q..','......p..7..','......q7q...','.....pa.....','....dp......','...de.......','..de........','.de.........','..c.........','............'];
 
-const hookFloatArt=HI(function(kind,freed=false){
+const hookBankArt=HI(function(){
+  const b=pbuf(23,11);
+  polyFill(b,[[0,2],[6,0],[13,2],[19,1],[22,5],[20,8],[14,10],[5,8]],(x,y)=>{
+    const shade=hh2(EXX,EXY);
+    pset(b,x,y,y>6?'M':shade<.12?'G':shade<.3?'D':y<3?'G':'F');
+  });
+  pline(b,3,5,10,7,'E');pline(b,12,5,20,4,'E');pset(b,17,8,'N');
+  return b;
+});
+
+const hookFloatArt=HI(function(kind,grounded=false,freed=false){
   const b=pbuf(26,19);
-  prect(b,1,15,23,2,'Q');prect(b,3,16,19,1,'U');prect(b,1,17,6,1,'T');prect(b,19,14,6,1,'U');
+  if(grounded){
+    polyFill(b,[[0,16],[4,12],[13,14],[19,12],[25,15],[24,18],[4,18]],(x,y)=>pset(b,x,y,y<16?'G':'E'));
+    pline(b,4,17,17,17,'M');pset(b,19,17,'N');pset(b,24,16,'M');
+  }else if(!freed){
+    prect(b,1,15,23,2,'Q');prect(b,3,16,19,1,'U');prect(b,1,17,6,1,'T');prect(b,19,14,6,1,'U');
+  }
   if(kind==='plank'){
     polyFill(b,[[2,12],[7,8],[23,7],[24,11],[18,14],[3,14]],(x,y)=>pset(b,x,y,y>11?'W':'e'));
     pline(b,3,11,22,8,'m');pline(b,7,12,19,10,'d');pset(b,9,12,'c');pset(b,19,11,'c');
@@ -6368,7 +6449,7 @@ const hookFloatArt=HI(function(kind,freed=false){
     pline(b,5,11,13,9,'6');prect(b,10,10,5,3,'b');pset(b,23,8,'e');pset(b,22,9,'d');
   }else{
     const heavy=kind==='heavy',x=heavy?4:6,y=heavy?3:7,w=heavy?18:14,h=heavy?12:8;
-    if(heavy&&!freed){polyFill(b,[[0,15],[3,8],[7,10],[9,17],[2,18]],(a,c)=>pset(b,a,c,c<12?'H':'F'));
+    if(heavy&&grounded&&!freed){polyFill(b,[[0,15],[3,8],[7,10],[9,17],[2,18]],(a,c)=>pset(b,a,c,c<12?'H':'F'));
       polyFill(b,[[19,16],[22,9],[25,12],[25,17]],(a,c)=>pset(b,a,c,c<13?'G':'E'))}
     prect(b,x,y,w,h,'W');prect(b,x,y,w,2,'Y');prect(b,x+1,y+3,w-2,1,'d');prect(b,x+1,y+h-2,w-2,1,'c');
     for(const k of[2,w-4]){prect(b,x+k,y,2,h,heavy?'9':'e');pset(b,x+k,y+2,heavy?'q':'m')}
@@ -6376,41 +6457,49 @@ const hookFloatArt=HI(function(kind,freed=false){
   }
   return b;
 });
-const hookPullToolArt=HI(function(up){
+const hookPullToolArt=HI(function(up,bent){
   const b=pbuf(32,41);
-  pline(b,23,11,1,39,'c');pline(b,24,11,2,39,'e');
+  if(bent){
+    pline(b,23,11,17,25,'c');pline(b,17,25,2,39,'c');
+    pline(b,24,11,18,25,'e');pline(b,18,25,3,39,'e');
+  }else{
+    pline(b,23,11,1,39,'c');pline(b,24,11,2,39,'e');
+  }
   if(up){pline(b,22,11,0,39,'d');prect(b,20,12,4,4,'a');pset(b,22,13,'q')}
   pline(b,24,12,27,8,up?'q':'9');pline(b,27,8,26,5,up?'q':'a');
   pline(b,26,5,23,4,up?'7':'p');pset(b,22,5,'q');
   return b;
 });
-function hookPullStart(o){
-  const effect={o,up:!!s.f.hookUp,until:Date.now()+HOOK_PULL_MS};
+function hookPullStart(o,time,effort,blocked){
+  const duration=blocked?HOOK_LIMIT_MS:HOOK_PULL_MS;
+  const effect={o,up:!!s.f.hookUp,blocked,effort,y:hookWaterY(time),grounded:shoreTideLevel(time)>=.5,until:Date.now()+duration};
   hookPullFx=effect;
   if(typeof setTimeout==='function')setTimeout(()=>{
     if(hookPullFx===effect){hookPullFx=null;dirty=1}
-  },HOOK_PULL_MS);
+  },duration);
 }
 function hookWaterHS(W,H){
-  const o=hookWaterVisible();
+  const o=hookWaterVisible(),t=tidePhase(),grounded=shoreTideLevel(t)>=.5;
+  const x=HOOK_WATER_X;
   let h='';
   if(o){
-    const tip=o.kind==='heavy'&&s.f.hookLimitSeen&&!s.f.hookUp
-      ?'Проста жердина прогинається під натягом. Ящик залишиться між камінням.'
-      :'Натисни, щоб підчепити багром.';
-    h+=ob('flot:hook:'+o.id,'hookWater',String(o.id),obURL('hookfloat:'+o.kind,()=>hookFloatArt(o.kind)),
-      HOOK_WATER_X,HOOK_WATER_Y,W,H,hookWaterLabel(o),`<b>${HOOK_FLOAT[o.kind].n}</b><br>${tip}`,
-      {cls:'hook-float',inner:'<i class="hook-wake" aria-hidden="true"></i>'});
+    const limit=o.kind==='heavy'&&s.f.hookLimitSeen&&!s.f.hookUp;
+    const tip=hookWaterHint(o)+(limit?'<br>Проста жердина прогинається під натягом.':'');
+    const cls=grounded?'hook-water hook-ground':'hook-water hook-float';
+    const y=hookWaterY(t);
+    if(grounded)h+=ob('hook-bank:'+o.id,'','',obURL('hook-bank',hookBankArt),x+2,y+14,W,H,'','',{z:55});
+    h+=ob('flot:hook:'+o.id,'hookWater',String(o.id),obURL('hookfloat:'+o.kind+':'+Number(grounded),()=>hookFloatArt(o.kind,grounded)),
+      x,y,W,H,hookWaterLabel(o),`<b>${HOOK_FLOAT[o.kind].n}</b><br>${tip}`,
+      {cls,inner:grounded?'':'<i class="hook-wake" aria-hidden="true"></i>'});
   }
   const fx=hookPullFx;
-  if(!fx||Date.now()>=fx.until)return h;
-  const tool=pxURL('hook-pull:'+Number(fx.up),()=>hookPullToolArt(fx.up));
-  const cargo=pxURL('hook-cargo:'+fx.o.kind,()=>hookFloatArt(fx.o.kind,true));
-  const p=(x,y,w,h)=>PCT(x,y,w,h,W,H);
-  return h+`<div class="hook-pull" data-sk="hook-pull:${fx.o.id}" data-sig="${fx.until}" aria-hidden="true">
-    <i class="hook-splash" style="${p(HOOK_WATER_X+3,HOOK_WATER_Y+8,22,9)}"></i>
-    <img class="hook-cargo" src="${cargo}" alt="" style="${p(HOOK_WATER_X,HOOK_WATER_Y,26,19)}">
-    <img class="hook-tool" src="${tool}" alt="" style="${p(HOOK_WATER_X-14,HOOK_WATER_Y+3,32,41)}">
+  if(!fx||Date.now()>=fx.until||s.flot)return h;
+  const y=fx.y,p=(a,b,w,z)=>PCT(a,b,w,z,W,H);
+  const tool=pxURL(`hook-pull:${Number(fx.up)}:${Number(fx.blocked)}`,()=>hookPullToolArt(fx.up,fx.blocked));
+  const cargo=fx.blocked?'':`<img class="hook-cargo" src="${pxURL('hook-cargo:'+fx.o.kind,()=>hookFloatArt(fx.o.kind,false,true))}" alt="" style="${p(x,y,26,19)}">`;
+  return h+`<div class="hook-pull hook-${fx.effort}${fx.blocked?' hook-limit':''}${fx.up?' hook-reinforced':''}" data-sk="hook-pull:${fx.o.id}" data-sig="${fx.until}" aria-hidden="true">
+    <i class="${fx.grounded?'hook-grit':'hook-splash'}" style="${p(x+3,y+8,22,9)}"></i>
+    ${cargo}<img class="hook-tool" src="${tool}" alt="" style="${p(x-14,y+3,32,41)}">
   </div>`;
 }
 /* ============ ЛІХТАРНЯ: дзеркала й промінь у картці поверху ============
@@ -6590,7 +6679,7 @@ function shoreHS(){const W=SW,H=SH,S=(x,y,w,h)=>PCT(x,y,w,h,W,H);let h=fogs(8,22
   h+=dryRackHS(W,H)+shoreFordHS(W,H)+shoreMusselHS(W,H)+shoreFightHS(W,H)+shoreRuneHS(W,H);
   if(s.flot)h+=ob('flot:'+s.flot.k,'flotmg','',obURL('flot3:'+s.flot.k,()=>flotObj3(s.flot.k)),126,78,W,H,'Оглянути знахідку','<b>Прибій щось викинув</b><br>Підчепи гаком, поки хвилі не забрали.',{pulse:1,always:1,idle:'i-bob'});
   h+=hookWaterHS(W,H)+rakeSandHS(W,H);
-  const[lu,lo,lw,lh]=obURL('log3',log3Buf),pul=!(s.hsU||{}).gather,zx=33,zy=60,zw=66,zh=33,rx=26,ry=19;
+  const[lu,lo,lw,lh]=obURL('log3',log3Buf),pul=!(s.hsU||{}).gather,zx=56,zy=70,zw=26,zh=23,rx=0,ry=9;
   const zcore=`class="hs zone${pul?' nw':''}" data-a="gather" data-i="" data-k="gather" data-cd="gather" data-cs="1" aria-label="Збирати плавник" ${TA('<b>Прибій</b><br>Хвилі підкочують плавник. Підбери, що винесло.')}><span class="dlw" style="left:${(rx/zw*100).toFixed(2)}%;top:${(ry/zh*100).toFixed(2)}%;width:${((lw+2*OP)/zw*100).toFixed(2)}%;height:${((lh+2*OP)/zh*100).toFixed(2)}%"><img class="obo" src="${lo}" alt=""><img class="obi" src="${lu}" alt="" style="left:${(OP*100/(lw+2*OP)).toFixed(2)}%;top:${(OP*100/(lh+2*OP)).toFixed(2)}%;width:${(lw/(lw+2*OP)*100).toFixed(2)}%;height:${(lh/(lh+2*OP)*100).toFixed(2)}%"><span class="gl" style="left:${(OP*100/(lw+2*OP)).toFixed(2)}%;top:${(OP*100/(lh+2*OP)).toFixed(2)}%;width:${(lw/(lw+2*OP)*100).toFixed(2)}%;height:${(lh/(lh+2*OP)*100).toFixed(2)}%;-webkit-mask-image:url(${lu});mask-image:url(${lu})"></span></span><span class="hsl">Збирати плавник</span>`;
   h+=`<button type="button" data-sk="gather" data-sig="${hsh(zcore)}" style="${S(zx,zy,zw,zh)};z-index:${10+zy+zh};--p:${pOf('gather').toFixed(3)}" ${zcore}</button>`;
   return h}
@@ -6603,7 +6692,11 @@ function patchStage(html){const st=$('stage');if(!st)return;if(!st.querySelector
     const om={};for(const c of[...old.children])if(c.dataset&&c.dataset.sk)om[c.dataset.sk]=c;const used=new Set();
     for(const c of[...nw.children]){const k=c.dataset&&c.dataset.sk,o=k&&om[k];
       if(o&&o.dataset.sig===c.dataset.sig){if(k==='bg'){const nh=c.querySelector('[data-h]'),oh=o.querySelector('[data-h]');if(nh&&oh)oh.dataset.h=nh.dataset.h}used.add(o)}
-      else if(o){o.replaceWith(c);used.add(c)}else{old.appendChild(c);used.add(c)}}
+      else if(o&&c.classList.contains('hook-water')){
+        for(const attr of c.attributes)if(o.getAttribute(attr.name)!==attr.value)o.setAttribute(attr.name,attr.value);
+        if(o.innerHTML!==c.innerHTML)o.innerHTML=c.innerHTML;
+        used.add(o);
+      }else if(o){o.replaceWith(c);used.add(c)}else{old.appendChild(c);used.add(c)}}
     for(const c of[...old.children])if(!used.has(c))c.remove()}catch(e){st.innerHTML=`<div class="scw">${html}</div>`}}
 function hsPop(el,e,r0){try{const out=[];for(const k in s.r){const d=(s.r[k]||0)-(r0[k]||0);if(d>0.001)out.push([k,d])}if(!out.length)return;
   const box=el.getBoundingClientRect(),x=box.left+box.width/2+scrollX,y=box.top+scrollY-4;
@@ -6993,7 +7086,7 @@ function shoreMusselHS(W,H){
 /* Сухий пісок нижче плавника, вологий — за уламком біля крайки води. */
 const RAKE_POS={dry:[56,98],wet:[263,82]};
 const RAKE_EFFECT_MS=800;
-let renderedRakeSand=null,rakeSandFx=null;
+const rakeSandFx={};
 
 const rakePatchArt=HI(function(wet,cleared=false){
   const b=pbuf(22,13),seed=wet?734:392;
@@ -7031,31 +7124,33 @@ const rakeDustArt=HI(function(wet){
   for(const[x,y]of[[2,8],[5,4],[7,7],[9,2],[13,5],[15,1],[17,8],[20,4]])pset(b,x,y,c);
   return b;
 });
-function rakeSandStart(spot){
-  const fx={spot,until:Date.now()+RAKE_EFFECT_MS};
-  rakeSandFx=fx;
+function rakeSandStart(spot,icon){
+  const kind=spot.kind,fx={spot,icon,until:Date.now()+RAKE_EFFECT_MS};
+  rakeSandFx[kind]=fx;
   if(typeof setTimeout==='function')setTimeout(()=>{
-    if(rakeSandFx===fx){rakeSandFx=null;dirty=1}
+    if(rakeSandFx[kind]===fx){delete rakeSandFx[kind];dirty=1}
   },RAKE_EFFECT_MS);
 }
 function rakeSandHS(W,H){
-  const spot=renderedRakeSand=rakeSandVisible();
   let h='';
-  if(spot){
+  for(const spot of rakeSandVisible()){
     const wet=spot.kind==='wet',[x,y]=RAKE_POS[spot.kind],info=RAKE_SPOTS[spot.kind];
-    h=ob('sand:'+spot.id,'rakeSand',String(spot.id),obURL('rake-sand:'+spot.kind,()=>rakePatchArt(wet)),
+    h+=ob('sand:'+spot.id,'rakeSand',String(spot.id),obURL('rake-sand:'+spot.kind,()=>rakePatchArt(wet)),
       x,y,W,H,info.name,`<b>${info.name}</b><br>${info.hint}`);
   }
-  const fx=rakeSandFx;
-  if(!fx||Date.now()>=fx.until||(fx.spot.kind==='wet'&&!tideLow()))return h;
-  const kind=fx.spot.kind,wet=kind==='wet',[x,y]=RAKE_POS[kind],p=(a,b,w,z)=>PCT(a,b,w,z,W,H);
-  const art=(cls,url,box)=>`<img class="${cls}" src="${url}" alt="" style="${box}">`;
-  return h+`<div class="rake-sweep" data-sk="sand-sweep:${fx.spot.id}" data-sig="${fx.until}" aria-hidden="true">
-    ${art('rake-furrows',pxURL('rake-furrows:'+kind,()=>rakePatchArt(wet,true)),p(x,y,22,13))}
-    ${art('rake-dust',pxURL('rake-dust:'+kind,()=>rakeDustArt(wet)),p(x,y-4,22,13))}
-    ${art('rake-tool',pxURL('rake-tool',rakeToolArt),p(x-3,y-12,26,24))}
-    ${art('rake-metal',icoURL('scrap'),p(x+8,y+1,10,10))}
-  </div>`;
+  for(const [kind,fx] of Object.entries(rakeSandFx)){
+    const wet=kind==='wet';
+    if(Date.now()>=fx.until||wet&&!tideLow())continue;
+    const [x,y]=RAKE_POS[kind],p=(a,b,w,z)=>PCT(a,b,w,z,W,H);
+    const art=(cls,url,box)=>`<img class="${cls}" src="${url}" alt="" style="${box}">`;
+    h+=`<div class="rake-sweep" data-sk="sand-sweep:${fx.spot.id}" data-sig="${fx.until}" aria-hidden="true">
+      ${art('rake-furrows',pxURL('rake-furrows:'+kind,()=>rakePatchArt(wet,true)),p(x,y,22,13))}
+      ${art('rake-dust',pxURL('rake-dust:'+kind,()=>rakeDustArt(wet)),p(x,y-4,22,13))}
+      ${art('rake-tool',pxURL('rake-tool',rakeToolArt),p(x-3,y-12,26,24))}
+      ${art('rake-reward',icoURL(fx.icon),p(x+8,y+1,10,10))}
+    </div>`;
+  }
+  return h;
 }
 /* ============ КІМНАТИ МАЯКА ЗБЛИЗЬКА: майстерня й кабінет ============
    Кожна кімната — жива сцена: речі на сцені відкривають картки з тими самими діями, що й списки нижче.
@@ -7787,6 +7882,7 @@ function save(){s.ts=Date.now();try{localStorage.setItem(KEY,JSON.stringify(s))}
 function load(){try{const raw=localStorage.getItem(KEY);if(!raw)return;const d=JSON.parse(raw),f=fresh();
   for(const k in d){if(f[k]&&typeof f[k]==='object'&&!Array.isArray(f[k])&&d[k]&&typeof d[k]==='object'&&!Array.isArray(d[k]))f[k]=Object.assign(f[k],d[k]);else f[k]=d[k]}
   s=f;if(s.cb&&!s.cb.u)s.cb=null;localSanitize();
+  const migratedSand=rakeSandMigrate();
   const olderHealing=d.healingV!==1;
   if(olderHealing){
     s.healingV=1;s.belt=(s.belt||[]).filter(beltItem);
@@ -7835,7 +7931,7 @@ function load(){try{const raw=localStorage.getItem(KEY);if(!raw)return;const d=J
   const now=Date.now(),off=clamp((now-(s.ts||now))/1000,0,7200);
   if(off>5){for(let i=0;i<20;i++)produce(off/20,false);if(off>60)say(`Поки тебе не було, вогнище горіло ${Math.round(off/60)} хв.`,'world')}
   const healed=!d.cb&&healingTick(off),migrated=migrateWarm(now);
-  if(olderHealing||healed||migrated||off>5)save();
+  if(migratedSand||olderHealing||healed||migrated||off>5)save();
   }catch(e){s=fresh()}}
 
 let tipEl=null,lpT=0,lpF=0;

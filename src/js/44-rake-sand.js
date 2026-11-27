@@ -1,7 +1,7 @@
 /* Сухий пісок нижче плавника, вологий — за уламком біля крайки води. */
 const RAKE_POS={dry:[56,98],wet:[263,82]};
 const RAKE_EFFECT_MS=800;
-let renderedRakeSand=null,rakeSandFx=null;
+const rakeSandFx={};
 
 const rakePatchArt=HI(function(wet,cleared=false){
   const b=pbuf(22,13),seed=wet?734:392;
@@ -39,29 +39,31 @@ const rakeDustArt=HI(function(wet){
   for(const[x,y]of[[2,8],[5,4],[7,7],[9,2],[13,5],[15,1],[17,8],[20,4]])pset(b,x,y,c);
   return b;
 });
-function rakeSandStart(spot){
-  const fx={spot,until:Date.now()+RAKE_EFFECT_MS};
-  rakeSandFx=fx;
+function rakeSandStart(spot,icon){
+  const kind=spot.kind,fx={spot,icon,until:Date.now()+RAKE_EFFECT_MS};
+  rakeSandFx[kind]=fx;
   if(typeof setTimeout==='function')setTimeout(()=>{
-    if(rakeSandFx===fx){rakeSandFx=null;dirty=1}
+    if(rakeSandFx[kind]===fx){delete rakeSandFx[kind];dirty=1}
   },RAKE_EFFECT_MS);
 }
 function rakeSandHS(W,H){
-  const spot=renderedRakeSand=rakeSandVisible();
   let h='';
-  if(spot){
+  for(const spot of rakeSandVisible()){
     const wet=spot.kind==='wet',[x,y]=RAKE_POS[spot.kind],info=RAKE_SPOTS[spot.kind];
-    h=ob('sand:'+spot.id,'rakeSand',String(spot.id),obURL('rake-sand:'+spot.kind,()=>rakePatchArt(wet)),
+    h+=ob('sand:'+spot.id,'rakeSand',String(spot.id),obURL('rake-sand:'+spot.kind,()=>rakePatchArt(wet)),
       x,y,W,H,info.name,`<b>${info.name}</b><br>${info.hint}`);
   }
-  const fx=rakeSandFx;
-  if(!fx||Date.now()>=fx.until||(fx.spot.kind==='wet'&&!tideLow()))return h;
-  const kind=fx.spot.kind,wet=kind==='wet',[x,y]=RAKE_POS[kind],p=(a,b,w,z)=>PCT(a,b,w,z,W,H);
-  const art=(cls,url,box)=>`<img class="${cls}" src="${url}" alt="" style="${box}">`;
-  return h+`<div class="rake-sweep" data-sk="sand-sweep:${fx.spot.id}" data-sig="${fx.until}" aria-hidden="true">
-    ${art('rake-furrows',pxURL('rake-furrows:'+kind,()=>rakePatchArt(wet,true)),p(x,y,22,13))}
-    ${art('rake-dust',pxURL('rake-dust:'+kind,()=>rakeDustArt(wet)),p(x,y-4,22,13))}
-    ${art('rake-tool',pxURL('rake-tool',rakeToolArt),p(x-3,y-12,26,24))}
-    ${art('rake-metal',icoURL('scrap'),p(x+8,y+1,10,10))}
-  </div>`;
+  for(const [kind,fx] of Object.entries(rakeSandFx)){
+    const wet=kind==='wet';
+    if(Date.now()>=fx.until||wet&&!tideLow())continue;
+    const [x,y]=RAKE_POS[kind],p=(a,b,w,z)=>PCT(a,b,w,z,W,H);
+    const art=(cls,url,box)=>`<img class="${cls}" src="${url}" alt="" style="${box}">`;
+    h+=`<div class="rake-sweep" data-sk="sand-sweep:${fx.spot.id}" data-sig="${fx.until}" aria-hidden="true">
+      ${art('rake-furrows',pxURL('rake-furrows:'+kind,()=>rakePatchArt(wet,true)),p(x,y,22,13))}
+      ${art('rake-dust',pxURL('rake-dust:'+kind,()=>rakeDustArt(wet)),p(x,y-4,22,13))}
+      ${art('rake-tool',pxURL('rake-tool',rakeToolArt),p(x-3,y-12,26,24))}
+      ${art('rake-reward',icoURL(fx.icon),p(x+8,y+1,10,10))}
+    </div>`;
+  }
+  return h;
 }

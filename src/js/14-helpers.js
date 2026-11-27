@@ -32,7 +32,7 @@ const calm=()=>noGap()||(s.play||0)-(s.lastNov==null?-1e9:s.lastNov)>=NOVGAP;
 function unlock(t,quiet=false){if(!s.tabs[t]){s.tabs[t]=1;novMark();s.newTab[t]=1;if(SUBT[t]){s.newTab.tower=1;s.ttNew=typeof s.ttNew==='object'&&s.ttNew?s.ttNew:{};s.ttNew[t]=1}dirty=1;if(t==='hero'){if(s.h.xpb){const b=s.h.xpb;s.h.xpb=0;xp(b)}}const nm=(TABS.find(x=>x[0]===t)||[0,SUBT[t]||''])[1];if(t!=='shore'&&!quiet)dlg({k:'world',title:`Відкрито: ${nm}`,body:`<p>${TABV[t]||(TUT[t]?'':TABINFO[t])||''}${!TUT[t]&&TABV[t]&&TABINFO[t]?ih(TABINFO[t]):''}</p>`,gains:[SUBT[t]?`«${nm}» — у вкладці «Маяк».`:`Відкрилася вкладка «${nm}».`]});tutOffer(t)}}
 function page(n){if(!s.pages.includes(n)){s.pages.push(n);if(n===1)s.met.ostap=1;dlg({k:'story',title:n==='m'?'Записка Остапа без номера':`Записка Остапа, аркуш ${n}`,body:`<div class="note">${PG[n].replace(/ — О\.$/,'')}<span class="sig">— О.</span></div>`,gains:['Записку збережено в журналі.']});unlock('journal');dirty=1}}
 function book(id){if(!s.books.includes(id)){s.books.push(id);dirty=1}}
-function odd(id,pre){
+function odd(id,pre,{popup=true}={}){
   const item=OD[id];
   if(!item||s.odd[id])return;
   s.odd[id]=1;s.oddNew=(s.oddNew||0)+1;
@@ -40,7 +40,7 @@ function odd(id,pre){
   if(reward)xp(reward);
   const line=(pre?pre+' ':'')+`Дивина: ${I(item.n)}.`;
   say(reward?`${line} +${Math.round(reward*XPST[stageNo()])} досвіду.`:line,'find');
-  dlg({k:'find',odd:id,title:`Дивина: ${item.n}`,img:{t:'icon',id:ODI[id]},body:`<p>${pre?pre+' ':''}${item.d}</p>`,gains:reward?[`+${reward} досвіду`]:[],btns:item.btns?.()});
+  if(popup)dlg({k:'find',odd:id,title:`Дивина: ${item.n}`,img:{t:'icon',id:ODI[id]},body:`<p>${pre?pre+' ':''}${item.d}</p>`,gains:reward?[`+${reward} досвіду`]:[],btns:item.btns?.()});
 }
 function reveal(id,quiet=false){if(!s.disc[id]){s.disc[id]=1;dirty=1;const L=LOC[id];mom('disc',L.n,L.d,{t:'scene',id:id==='bay'?'bayHigh':id});if(!quiet)dlg({k:'world',title:`Нове місце: ${L.n}`,img:{t:'scene',id:id==='bay'?'bayHigh':id},body:`<p>${L.d}</p>`,gains:['Нове місце на мапі.',L.sea?'Туди можна дістатися лише човном, і вихід у море коштує провізію.':'',L.dark?'Там темно: візьми в руку ліхтар.':''].filter(Boolean)})}}
 function boat(){s.f.boat=1;reveal('reef')}

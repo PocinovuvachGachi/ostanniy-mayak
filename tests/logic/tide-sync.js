@@ -83,12 +83,12 @@ now+=300000;load();A(!s.shf&&s.shfDeferred.sealgift&&s.c.seal===2,'стару п
 
 // Стан взаємодій до й після точної межі. Виклики імітують старі кнопки.
 shore();s.tideEpoch=now;s.f.tideSeen=1;s.f.fordSeen=1;s.f.rats=1;s.f.hook=1;s.r.wood=100;Math.random=()=>.99;
-giveI('rake');s.rakeSand.pending={id:1,kind:'wet',scrap:2};s.hookWater.pending={id:1,kind:'plank',reward:{wood:2}};
-goTo(859.9);A(rShore().includes('Оглянути калюжі')&&rShore().includes('Оглянути камінь на відпливі')&&rakeSandVisible()&&hookWaterVisible(),'усі чинні берегові дії на низькій воді');
+giveI('rake');s.rakeSand.lastId=1;s.rakeSand.wet={id:1,kind:'wet',reward:{scrap:2}};s.hookWater.pending={id:1,kind:'plank',reward:{wood:2}};
+goTo(859.9);A(rShore().includes('Оглянути калюжі')&&rShore().includes('Оглянути камінь на відпливі')&&rakeSandVisible().length&&hookWaterVisible(),'усі чинні берегові дії на низькій воді');
 goTo(860.4);act('rune','b');act('pool');act('ford','poles');act('rakeSand','1');
-A(!s.runes?.b&&!s.c.pool&&!fordN()&&s.rakeSand.pending?.id===1&&hookWaterVisible(),'приплив захищає дії та збережені об’єкти');
-A(!rShore().includes('Оглянути калюжі')&&!rShore().includes('Оглянути камінь на відпливі')&&!rakeSandVisible(),'той самий поріг у сцені й списку');
+A(!s.runes?.b&&!s.c.pool&&!fordN()&&s.rakeSand.wet?.id===1&&hookWaterVisible(),'приплив захищає дії та збережені об’єкти');
+A(!rShore().includes('Оглянути калюжі')&&!rShore().includes('Оглянути камінь на відпливі')&&!rakeSandVisible().length,'той самий поріг у сцені й списку');
 goTo(600,1);act('rune','b');act('pool');act('ford','poles');act('rakeSand','1');
-A(s.runes.b&&s.c.pool===1&&fordN()===1&&!s.rakeSand.pending&&hookWaterVisible(),'доступ повертається на наступному відпливі');
+A(s.runes.b&&s.c.pool===1&&fordN()===1&&!s.rakeSand.wet&&hookWaterVisible(),'доступ повертається на наступному відпливі');
 console.log('fails',fails)
 })()`);
