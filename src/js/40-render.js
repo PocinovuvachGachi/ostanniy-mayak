@@ -155,6 +155,7 @@ function rShore(){let h=`<section><h2>Берег під маяком</h2><p>Мо
   if(firstCrabWaiting()||s.f.rod&&s.h.hp<maxHP())h+=`<div class="tdet shore-recovery"><p class="m">Здоров’я ${V(()=>Math.ceil(s.h.hp)+' / '+maxHP())}.${firstCrabWaiting()?' Краб чекає біля уламків.':''}</p><div class="act">${rawFoodButtons()}${firstCrabWaiting()?btn(tutKnown('combat')?'Повернутися до краба':'Вийти проти краба','crabRetry'):''}</div></div>`;
   let al=`<div class="act">${btn('Збирати плавник','gather','',{cd:'gather',cs:1})}</div>`;
   if(s.f.wreck)al+=`<div class="act">${btn('Розбирати уламки човна','scrapw','',{cd:'scrapw',cs:2})}</div>`;
+  al+=localEntryButtons();
   if(shoreHookReady())al+=`<div class="act">${btn('Змайструвати багор','hook','',{ok:()=>afford(HOOKC)})}<span class="ccs">${costTxt(HOOKC)}</span></div>`;
   if(shoreRodReady()){const c=RC.find(r=>r.id==='rod').c;al+=`<div class="act">${btn('Змайструвати просту вудку','craft','rod',{ok:()=>afford(c)})}<span class="ccs">${costTxt(c)}</span></div>`}
   if(s.f.rod)al+=`<div class="act">${btn(s.f.rodUp?'Прибережна вода':'Рибалити','fishing','',{cd:'fishing',cs:3})}</div>`;
@@ -527,15 +528,26 @@ function restoreTideFocus(el,root){
   if(!root||el.isConnected||document.activeElement!==document.body)return;
   const match=el.tagName==='SUMMARY'?root.querySelector('summary'):[...root.querySelectorAll('[data-a]')].find(b=>!b.disabled&&
     (el.dataset.sk?b.dataset.sk===el.dataset.sk:b.dataset.a===el.dataset.a&&b.dataset.i===el.dataset.i));
+  if(el.dataset.a==='zoneEnter'){
+    root.querySelector('[data-a="zoneBack"]')?.focus();
+    return;
+  }
+  if(el.dataset.a==='zoneBack'){
+    const entry=[...root.querySelectorAll('[data-a="zoneEnter"]')].find(b=>b.dataset.i===el.dataset.i);
+    const closed=entry?.closest('details:not([open])');
+    (closed?.querySelector('summary')||entry)?.focus();
+    return;
+  }
   const fallback=root.id==='popl'?root.querySelector('.bpx'):root.id==='stage'?root.querySelector('[data-k="gather"]'):root.querySelector('summary');
   (match||fallback)?.focus({preventScroll:true});
 }
 function render(){
+  localSanitize();
   tideRenderTime=Date.now();
   const tide=tideViewKey(),view=s.tab+'|'+(s.tab==='map'?s.at:'')+'|';
   paintingTide=!!tide&&!!paintedTide&&tide!==paintedTide&&lastView===view;
   const focused=document.activeElement;
-  const keepFocus=paintingTide||focused?.dataset?.a==='mussels'||focused?.closest?.('.shore-recovery');
+  const keepFocus=paintingTide||focused?.dataset?.a==='mussels'||focused?.dataset?.a?.startsWith('zone')||focused?.closest?.('.shore-recovery');
   const el=keepFocus?focused:null,root=el?.closest('#stage,#main,#popl,#tabs');
   paintedTide=tide;
   try{renderView();restoreTideFocus(el,root)}finally{tideRenderTime=null;paintingTide=false}
@@ -551,13 +563,13 @@ function renderView(){B={};bn=0;
   else{
     h+='<div style="height:10px"></div>';
     if(SUBT[s.tab]){s.tt=s.tab;s.tab='tower'}if(!s.tabs[s.tab])s.tab='home';
-    h+=TR[s.tab]();
+    h+=localCurrent()?rLocalZone():TR[s.tab]();
     if(s.tab==='map')markSeen('map',s.at?'a:'+s.at+'.':'L:');else if(s.tab==='tower'&&ttCur()!=='cut')markSeen(ttCur());else if(s.tab!=='hero')markSeen(s.tab);if(s.newTab[s.tab])delete s.newTab[s.tab]}
   try{if(!texInit){texInit=1;const rs=document.documentElement.style;for(const k of['stone','sand','plank','board','paper','slate','ruled','roll']){const u=pxURL('tx:'+k,()=>texBuf(k));if(u)rs.setProperty('--tx-'+k,`url(${u})`)}}
     if(!texInit2){texInit2=1;const rs=document.documentElement.style;for(const k of['wood','drift','stone','paper','slate']){const u=pxURL('fr:'+k,()=>frameBuf(k));if(u)rs.setProperty('--fr-'+k,`url(${u})`)}}
     const th=s.cb?'th-home':['home','tower','work','kitchen','study','hero','folk','trade','chron','journal'].includes(s.tab)||s.tab==='map'?'th-home':s.tab==='shore'?'th-shore':'';document.body.classList.toggle('th-home',th==='th-home');document.body.classList.toggle('th-shore',th==='th-shore')}catch(e){}
-  hideTip();const mn=$('main');const vw0=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:s.tab==='tower'?s.tt||'':''),same0=vw0===lastView&&!s.cb,xs=same0?xSnap(mn):null,as0=same0?aSnap(mn):null;let tlx=null;try{const q=same0&&mn.querySelector('.chr-tl');if(q)tlx=q.scrollLeft>=q.scrollWidth-q.clientWidth-4?-1:q.scrollLeft}catch(e){}patchStage(s.cb?'':s.tab==='home'?homeScene():s.tab==='shore'?shoreScene():s.tab==='tower'?({work:workScene,kitchen:kitchenScene,study:studyScene}[ttCur()]||towerScene)():s.tab==='work'?workScene():s.tab==='study'?studyScene():s.tab==='map'?(s.at?locScene():mapScene()):s.tab==='hero'?heroScene():s.tab==='folk'?folkScene():s.tab==='trade'?tradeScene():'');zoomRun();mn.innerHTML=h;if(tlx!==null){try{const q=mn.querySelector('.chr-tl');if(q)q.scrollLeft=tlx<0?q.scrollWidth:tlx}catch(e){}}glossify(mn);rDlg();if(xs)xFade(mn,xs,1);if(as0)aMark(mn,as0);
-  const view=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:s.tab==='tower'?s.tt||'':'');const prevView=lastView;if(view!==lastView&&mn.classList&&!RM()){for(const e of[mn,$('stage')]){if(!e||!e.classList)continue;e.classList.remove('tin');void e.offsetWidth;e.classList.add('tin')}}lastView=view;
+  hideTip();const mn=$('main');const vw0=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:s.tab==='tower'?s.tt||'':'')+localViewSuffix(),same0=vw0===lastView&&!s.cb,xs=same0?xSnap(mn):null,as0=same0?aSnap(mn):null;let tlx=null;try{const q=same0&&mn.querySelector('.chr-tl');if(q)tlx=q.scrollLeft>=q.scrollWidth-q.clientWidth-4?-1:q.scrollLeft}catch(e){}patchStage(s.cb?'':localCurrent()?localZoneScene():s.tab==='home'?homeScene():s.tab==='shore'?shoreScene():s.tab==='tower'?({work:workScene,kitchen:kitchenScene,study:studyScene}[ttCur()]||towerScene)():s.tab==='work'?workScene():s.tab==='study'?studyScene():s.tab==='map'?(s.at?locScene():mapScene()):s.tab==='hero'?heroScene():s.tab==='folk'?folkScene():s.tab==='trade'?tradeScene():'');zoomRun();mn.innerHTML=h;if(tlx!==null){try{const q=mn.querySelector('.chr-tl');if(q)q.scrollLeft=tlx<0?q.scrollWidth:tlx}catch(e){}}glossify(mn);rDlg();if(xs)xFade(mn,xs,1);if(as0)aMark(mn,as0);
+  const view=s.cb?'cb':s.tab+'|'+(s.tab==='map'?s.at:'')+'|'+(s.tab==='hero'?s.ht:s.tab==='tower'?s.tt||'':'')+localViewSuffix();const prevView=lastView;if(view!==lastView&&mn.classList&&!RM()){for(const e of[mn,$('stage')]){if(!e||!e.classList)continue;e.classList.remove('tin');void e.offsetWidth;e.classList.add('tin')}}lastView=view;
   placePop();
   if(hlT){const tg=hlT;hlT=null;try{const el=document.getElementById(tg);if(el){el.scrollIntoView({block:'center',behavior:RM()?'auto':'smooth'});el.classList.remove('flash');void el.offsetWidth;el.classList.add('flash')}}catch(e){}}
   if(!s.cb&&s.tab==='chron'&&view!==prevView){try{const tl=mn.querySelector('.chr-tl');if(tl)tl.scrollLeft=tl.scrollWidth}catch(e){}}

@@ -3,7 +3,7 @@ const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const has=id=>(s.inv[id]||0)>0;
 const shards=()=>s.inv.shard||0;
-const atShore=()=>s.tab==='shore'&&!s.at;
+const atShore=()=>s.tab==='shore'&&!s.at&&!localCurrent();
 const wolf=()=>s.h.ft.wolf?1.5:1;
 const onCd=k=>(s.cd[k]||0)>Date.now();
 const setCd=(k,sec)=>{s.cd[k]=Date.now()+sec*1000};
@@ -162,7 +162,7 @@ function checks(shoreDt=0){const F=s.f,oldFlot=s.flot,oldShf=s.shf;tutTick(false
   raidCheck();tutTick();shoreFindTick();
   const newHook=hookWaterTick(shoreDt);
   rakeSandTick(shoreDt,newHook||!!(s.flot&&s.flot!==oldFlot)||!!(s.shf&&s.shf!==oldShf));
-  rodWaterTick();
+  rodWaterTick();localZoneTick();
 }
 
 

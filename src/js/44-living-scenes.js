@@ -131,6 +131,7 @@ function shoreHS(){const W=SW,H=SH,S=(x,y,w,h)=>PCT(x,y,w,h,W,H);let h=fogs(8,22
   if(s.ship)h+=ob('ship','hsgo','ship',obURL('ship3',shipObj3),168,0,W,H,'Торговий когг','<b>Торговий когг</b><br>Подивитися обміни.',{pulse:1,always:1,idle:'i-bob'});
   if(s.f.boat)h+=ob('pier','hsgo','pier',obURL('pier3'+((s.exp||[]).length?'o':''),()=>pierObj3({boatOut:!!(s.exp||[]).length})),231,48,W,H,'Пристань','<b>Пристань</b><br>Виходи в море й кораблі.');
   if(s.f.wreck)h+=ob('wreck','scrapw','',obURL('wreck3',wreckObj3),186,69,W,H,'Розбирати уламки','<b>Уламки човна</b><br>Цвяхи, скоби, обшивка: усе згодиться.'+(has('rake')?'<br>Граблі допомагають діставати дрібний брухт.':''),{pulse:1,cd:'scrapw',cs:2,inner:'<i class="spk"></i>'});
+  h+=localEntryHS(W,H);
   if(s.f.rod)h+=shoreRodHS(W,H);
   else if(shoreRodReady()){const c=RC.find(r=>r.id==='rod').c;h+=ob('rod','craft','rod',obURL('rod3',rodObj3),162,45,W,H,'Змайструвати просту вудку',`<b>Проста вудка</b><br>Жердина, линва й гачок.<br>Ціна: ${costTxt(c)}`,{pulse:1,always:1,ok:afford(c)})}
   h+=dryRackHS(W,H)+shoreFordHS(W,H)+shoreMusselHS(W,H)+shoreFightHS(W,H)+shoreRuneHS(W,H);

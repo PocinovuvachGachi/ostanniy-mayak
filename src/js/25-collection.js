@@ -38,26 +38,32 @@ function setCheck(id){const st=OD[id]&&OD[id].set;if(!st||(s.oset||{})[st])retur
   s.oset=s.oset||{};s.oset[st]=1;OSET[st].gain();dlg({k:'find',title:`Набір: ${OSET[st].n}`,img:{t:'icon',id:ODI[id]},body:`<p>Речі лягли на полицю поруч — і разом вони щось розповідають. Здається, ти став уважнішим до світу.</p>`,gains:[OSET[st].gt]});if(OSET[st].after)OSET[st].after()}
 // Придатна ручна дія дає одну спробу після сюжетних перевірок.
 const SHORE_FINDS={
-  gather:{items:{seaglass:.05,woodhorse:.03},ready:()=>s.b.hearth&&s.c.gather>18,step:.015,max:.17},
-  scrapw:{items:{oldhook:.05},ready:()=>s.f.rod&&s.c.fish>=3&&s.c.scrap>=4,step:.015,max:.17},
-  pool:{items:{amberbit:.12},ready:()=>s.f.tideSeen&&tideLow(),step:.04,max:.28}
+  gather:{items:{seaglass:.015,woodhorse:.008},ready:id=>s.b.hearth&&s.c.gather>=(id==='woodhorse'?95:24),step:.001,max:.055},
+  scrapw:{items:{oldhook:.018},ready:()=>s.f.rod&&s.c.fish>=6&&s.c.scrap>=18,step:.001,max:.055},
+  pool:{items:{amberbit:.035},ready:()=>s.f.tideSeen&&s.c.pool>=18&&poolFindReady(),step:.002,max:.065}
 };
+// Одна дивина, знайдена власноруч у калюжах, за морський цикл. Дарунки Бурштина окремі.
+const poolFindReady=()=>tideLow()&&(s.poolFindCyc==null||tideCyc()>s.poolFindCyc);
+function markPoolFind(){s.poolFindCyc=tideCyc();save()}
 let shoreFindPending=null;
 function queueShoreFind(source){
-  if(s.tab==='shore'&&!s.dlg.length&&!s.tutPending.some(tutReady))shoreFindPending={source,log:s.log[0]};
+  if(SHORE_FINDS[source]&&atShore()&&!s.dlg.length&&!s.tutPending.some(tutReady)){
+    shoreFindPending={source,log:s.log[0],cycle:source==='pool'?tideCyc():null};
+  }
 }
 function shoreFindTick(){
   const pending=shoreFindPending;
   shoreFindPending=null;
-  if(!pending||s.tab!=='shore'||s.cb||s.raid||s.dlg.length||s.tutPending.some(tutReady))return;
+  if(!pending||!atShore()||s.cb||s.raid||s.dlg.length||s.tutPending.some(tutReady))return;
   if(s.log[0]!==pending.log&&['story','find','fight'].includes(s.log[0]?.t))return;
   const source=pending.source,cfg=SHORE_FINDS[source];
+  if(source==='pool'&&pending.cycle!==tideCyc())return;
   const id=Object.keys(cfg.items).find(k=>!s.odd[k]);
-  if(!id||!cfg.ready())return;
+  if(!id||!cfg.ready(id))return;
   const base=cfg.items[id],misses=s.shoreFindMiss[source]||0;
   if(Math.random()<Math.min(cfg.max,base+misses*cfg.step)){
     s.shoreFindMiss[source]=0;
-    odd(id);save();
+    odd(id);if(source==='pool')markPoolFind();else save();
   }else s.shoreFindMiss[source]=Math.min(misses+1,Math.ceil((cfg.max-base)/cfg.step));
 }
 

@@ -10,8 +10,8 @@ function act0(a,i){
   if(a==='bellDefer'){s.bellHold=1;dirty=1;return}
   if(a==='bpop'){popB=popB===i?'':(i||'');if(popB==='cl:shelf')shelfSelected='';dirty=1;return}
   if(a==='hsgo'||a==='hsbd'){hlT=(a==='hsbd'?'bd-':'sec-')+i;dirty=1;return}
-  if(a==='novgo'){(s.dlg||[]).shift();if(!s.cb&&s.tabs.hero){s.tab='hero';s.ht=i}dirty=1;return}
-  if(a==='dlggo'){(s.dlg||[]).shift();if(!s.cb&&s.tabs[i])s.tab=i;dirty=1;return}
+  if(a==='novgo'){(s.dlg||[]).shift();if(!s.cb&&s.tabs.hero){s.localZone='';s.tab='hero';s.ht=i}dirty=1;return}
+  if(a==='dlggo'){(s.dlg||[]).shift();if(!s.cb&&s.tabs[i]){s.localZone='';s.tab=i}dirty=1;return}
   if(a==='evr'){(s.dlg||[]).shift();if(i==='keep'){trust('silent',15,'ти прихистив утікача');trust('rot',-10,'у Причалі незадоволені');if(s.f.people&&(s.pop||0)<2*(s.b.house||0)){s.pop++;say('Колишній Мовчун лишається біля маяка й обіцяє працювати.','world')}else{add('coin',10);say('Вранці він іде, лишивши кілька монет і подяку.','world')}}
     else if(i==='away'){trust('rot',3);say('Ти зачиняєш двері. Кроки віддаляються в туман.','world')}else{trust('rot',15,'ти видав Мовчуна');trust('silent',-15,'ти видав свого');add('coin',20)}dirty=1;return}
   if(a==='evf'){(s.dlg||[]).shift();if(i==='give'){const g=Math.min(30,Math.floor(s.r.prov));s.r.prov-=g;const n=Math.round(15*g/30);trust('rot',Math.max(2,n),'ти нагодував Причал');say(`Ти віддаєш ${R('prov',g)}. Ганна мовчки тисне тобі руку.`,'world')}else{trust('rot',-8,'ти відмовив голодним')}dirty=1;return}
@@ -24,10 +24,14 @@ function act0(a,i){
   if(a==='resetNo'){resetAsk=0;dirty=1;return}
   if(a==='resetYes'){s=fresh();resetAsk=0;save();dirty=1;return}
   if(s.cb)return;
+  if(a==='zoneEnter'){localEnter(i);return}
+  if(a==='zoneBack'){localBack(i);return}
+  if(a==='zoneAct'){localAct(i);return}
+  if(localCurrent()&&LOCAL_OUTDOOR_ACTIONS.has(a))return;
   const F=s.f;
   switch(a){
   case 'crabRetry':if(atShore()&&firstCrabWaiting()&&!s.raid&&!s.dlg.length){if(tutKnown('combat')||noGap())beginFirstCrab();else crabWarn()}break;
-  case 'tab':popB='';if(SUBT[i]){if(s.tabs[i]){zoomPrep(i);s.tab='tower';ttGo(i)}break}if(s.tabs[i]){zoomPrep(i);s.tab=i;delete s.newTab[i];snap9(i)}break;
+  case 'tab':popB='';if(s.tabs[i])s.localZone='';if(SUBT[i]){if(s.tabs[i]){zoomPrep(i);s.tab='tower';ttGo(i)}break}if(s.tabs[i]){zoomPrep(i);s.tab=i;delete s.newTab[i];snap9(i)}break;
   case 'chok':s.chSeen=s.chs.length;break;
   case 'jt':s.jt=i;break;
   case 'look':if(!F.looked&&s.tot.ember>=10){F.looked=1;unlock('shore');say('Ти в нижній залі маяка. Сходи вгору тонуть у темряві, крізь щілину дверей чути море. Жарині потрібне паливо. Відкрито: Берег.','story')}break;
@@ -128,7 +132,7 @@ function act0(a,i){
   case 'eat':eatOne('fish');break;
   case 'eatp':eatOne('prov');break;
   case 'scan':{const nx=scanTarget();if(nx&&s.r.ember>=scanCost()){s.r.ember-=scanCost();s.scans++;novMark();reveal(nx);say(SCANMSG[nx]+' Місце з’явилося на мапі.','world')}break}
-  case 'go':{const[ok,why]=canGo(i);if(!ok){say(why);break}snap9('map');if(LOC[i].sea){const pv=seaCost(LOC[i]);s.r.prov-=pv;say(`Ти виходиш у море. Витрачено ${R('prov',pv)}.`,'world')}s.at=i;s.tab='map';popB='';if(!s.visited[i]){s.visited[i]=1;xp(5);if(LOC[i].first)LOC[i].first()}wolfSniff(i);break}
+  case 'go':{const[ok,why]=canGo(i);if(!ok){say(why);break}s.localZone='';snap9('map');if(LOC[i].sea){const pv=seaCost(LOC[i]);s.r.prov-=pv;say(`Ти виходиш у море. Витрачено ${R('prov',pv)}.`,'world')}s.at=i;s.tab='map';popB='';if(!s.visited[i]){s.visited[i]=1;xp(5);if(LOC[i].first)LOC[i].first()}wolfSniff(i);break}
   case 'leave':s.at='';popB='';break;
   case 'la':doLA(i);break;
   case 'qf':doLA(i,1);break;
@@ -171,7 +175,7 @@ function act0(a,i){
   case 'qmg':s.quickMG=s.quickMG?0:1;break;
   case 'exp':{const X=EXP[i];if(!X||!s.f.boat||freeW()<X.crew||!afford(X.c)||(s.exp||[]).some(e=>e.id===i))break;pay(X.c);s.exp=s.exp||[];s.exp.push({id:i,until:Date.now()+X.t*1000,crew:X.crew});say(`${X.n}: команда відпливає від пристані.`,'world');break}
   case 'trade':{const sh=s.ship,o=sh&&sh.offers[+i];if(!o||sh.done.includes(+i)||!afford(o.give))break;pay(o.give);const sm=1+0.05*st('speech');for(const k in o.get)add(k,Math.round(o.get[k]*sm));trust('sails',2);sh.done.push(+i);say(`Обмін: віддано ${costTxt(o.give)}, отримано ${costTxt(o.get)}.`,'find');break}
-  case 'gogrow':s.tab='hero';s.ht='grow';snap9('hero');break;
+  case 'gogrow':s.localZone='';s.tab='hero';s.ht='grow';snap9('hero');break;
   case 'signal':if(s.floors.gallery&&!onCd('signal')&&s.r.ember>=sigCost()){s.r.ember-=sigCost();s.sig=(s.sig||0)+1;setCd('signal',120);
     const mu=s.rs.signals?1.5:1,g={coin:Math.round((10+Math.floor(Math.random()*20))*mu),scrap:Math.round((6+Math.floor(Math.random()*8))*mu),iron:Math.round((1+Math.floor(Math.random()*3))*mu),tar:Math.round((1+Math.floor(Math.random()*3))*mu),oil:Math.round((4+Math.floor(Math.random()*6))*mu),prov:2};for(const k in g)add(k,g[k]);
     let extra='';if(Math.random()<0.25){const x=['bomb','bandage','glass'][Math.floor(Math.random()*3)];giveI(x);extra=`, а ще ${I(IT[x].n)}`}
