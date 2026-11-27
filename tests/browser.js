@@ -171,7 +171,7 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await p.evaluate(()=>{
       s.f.gullrack=1;s.shf='zinovii';act('shfgo','zinovii');
       while(s.dlg.length)act('dlgok');
-      s.floors.work=1;s.tabs.tower=1;s.tabs.work=1;s.r.wood=40;s.r.scrap=25;
+      s.floors.work=1;s.tabs.tower=1;s.tabs.work=1;s.r.wood=40;s.r.scrap=36;
       render();save();
     });
     const tab=id=>p.locator('#tabs [data-a="tab"][data-i="'+id+'"]');
@@ -190,7 +190,7 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     const install=width===390?item('install'):inList('install');
     const pull=width===390?item('pull'):inList('pull');
     const detach=width===390?inList('detach'):item('detach');
-    const hatch=width===390?item('hatch'):inList('hatch');
+    const hatch=width===390?item('openHatch'):inList('openHatch');
     const beam=deck.locator('[data-sk="deck-beam"]');
     const beamBefore=await beam.getAttribute('style');
     await install.focus();await p.keyboard.press('Enter');
@@ -216,6 +216,66 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
       &&await beam.evaluate(e=>getComputedStyle(e).animationName==='none')&&await checkPoints(deck)
       &&await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'reload зберігає балку й доступність сцени · '+width);
     A(await p.locator('#main').innerText().then(t=>t.includes('люк і досі зачинений')),'люк лишається зачиненим · '+width);
+    const hold=p.locator('[data-scn="zone-hold"]');
+    const descend=scope=>scope.locator('[data-a="zoneEnter"][data-i="hold"]');
+    const currentList=p.locator('#main');
+    const mouth=width===390?item('dark'):inList('dark');
+    A(await hatch.count()===1&&!await descend(deck).count(),'зсунута балка ще не відкрила трюм · '+width);
+    await hatch.focus();await p.keyboard.press('Enter');
+    A(await mouth.evaluate(e=>e===document.activeElement)&&!await descend(deck).count()
+      &&await currentList.innerText().then(t=>!t.includes('пацюк')),'люк відкриває темряву й переводить фокус · '+width);
+    await p.reload();await deck.waitFor();
+    A(await mouth.count()===1&&!await hold.count(),'відкритий темний люк переживає reload · '+width);
+
+    if(width===390){
+      await p.evaluate(()=>{s.r.oil=0;s.r.fish=6;s.f.barrel=1;render()});
+      await tab('home').click();
+      const oil=currentList.locator('[data-a="holdOil"]');
+      for(let i=0;i<6;i++)await oil.click();
+      A(!await oil.count()&&await p.evaluate(()=>s.r.oil===6&&s.r.fish===0&&!s.tabs.kitchen),'з нуля до каганця через Зиновія, без кухні');
+      await tab('tower').click();
+      await currentList.locator('[data-a="tt"][data-i="work"]').click();
+      await currentList.locator('[data-a="craft"][data-i="lamp"]').click();
+      await tab('shore').click();await entry.click();
+      A(await p.evaluate(()=>has('lamp')&&s.eq.light==='lamp'&&s.r.oil===0),'каганець екіпірований у штатний слот, без запасу пального');
+    }else{
+      await p.evaluate(()=>{giveI('storm');s.eq.light='';render();save()});
+      const equip=currentList.locator('[data-a="equip"][data-i="storm"]');
+      await equip.focus();await p.keyboard.press('Enter');
+      A(await descend(currentList).evaluate(e=>e===document.activeElement)&&await p.evaluate(()=>!has('lamp')),
+        'наявний штормовий ліхтар, фокус на вході після екіпірування');
+    }
+    const down=width===390?descend(deck):descend(currentList);
+    await down.focus();await p.keyboard.press('Enter');
+    A(await hold.getAttribute('data-light')===(width===390?'lamp':'storm')&&await checkPoints(hold)
+      &&await hold.evaluate(e=>e.getBoundingClientRect().width<=innerWidth),
+      'джерело світла й незалежність точок трюму · '+width);
+    const lightSprite=hold.locator(width===390?'[data-sk="ltf"]':'[data-sk="ltw"]');
+    A(await lightSprite.evaluate(e=>e.complete&&e.naturalWidth>0&&(innerWidth>390||getComputedStyle(e).animationName==='none')),
+      'різні шари світла й зменшений рух · '+width);
+    const fight=hold.locator('[data-i="hold:rats"]');
+    const up=(width===390?hold:currentList).locator('[data-a="zoneBack"][data-i="hold"]');
+    A(await up.evaluate(e=>e===document.activeElement)&&await fight.count()===1&&await p.evaluate(()=>!s.cb),
+      'фокус на виході та добровільний вступ у бій · '+width);
+    await p.keyboard.press('Enter');
+    A(await down.evaluate(e=>e===document.activeElement),'фокус на люку після повернення на палубу · '+width);
+    await p.keyboard.press('Enter');
+    await p.reload();await hold.waitFor();
+    A(await fight.count()===1,'reload трюму не запускає бій · '+width);
+    await fight.focus();await p.keyboard.press('Enter');
+    A(await p.evaluate(()=>s.cb?.win==='S:rats'&&localCurrent()==='hold'),'бій починається з інтерактивної точки · '+width);
+    await p.evaluate(()=>{s.cb.intro=0;act('c_mv','-1,0');render()});
+    await p.locator('[data-a="c_flee"]').click();
+    await deck.waitFor();
+    A(await p.evaluate(()=>!s.f.rats&&!s.odd.logpage),'відступ без здобичі · '+width);
+    await down.click();await fight.click();
+    await p.evaluate(()=>{for(const enemy of s.cb.u)enemy.hp=0;win();render()});
+    const confirmVictory=p.locator('#dlg .dlgbg:not(.fo) [data-a="dlgok"]');
+    for(let n=0;n<5&&await confirmVictory.count();n++)await confirmVictory.click();
+    const barrels=hold.locator('[data-i="hold:barrels"]');
+    A(!await fight.count()&&await barrels.count()===1&&await checkPoints(hold)
+      &&await p.evaluate(()=>s.f.rats&&s.odd.logpage&&document.documentElement.scrollWidth<=innerWidth),
+      'після перемоги доступний очищений трюм та судновий журнал · '+width);
     await p.close();
   }
 
@@ -719,6 +779,7 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await stage.locator('[data-a="fishing"]').click();
     await spot.waitFor();
     await p.evaluate(()=>{s.shf='rats';render()});
+    A(!await stage.locator('[data-k="shf:rats"]').count(),'стара берегова точка пацюків прихована');
     A(await spot.getAttribute('aria-label')==='Оглянути сухий пісок'&&await unobstructed(),'суха ділянка на високій воді має власну зону');
     await spot.focus();await p.keyboard.press('Enter');
     A(await sweep.locator('.rake-tool').evaluate(e=>getComputedStyle(e).animationName)==='rake-tool'
@@ -814,7 +875,7 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     }),'калюжа та краби мають окремі точки на відпливі');
     A(await stage.evaluate(e=>{
       s.f.horpyna=1;s.f.reunion=1;s.ship={until:Date.now()+180000,offers:[],done:[]};
-      return ['rats','seal','sealgift','myronvisit'].every(id=>{
+      return ['tracks','seal','sealgift','myronvisit'].every(id=>{
         s.f.seal=id==='sealgift';s.sealCyc=-1;s.shf=id;s.shfCyc=SHF[id].lowWater?0:null;
         render();
         if(!e.querySelector('[data-k="shf:'+id+'"]'))return false;
@@ -824,7 +885,7 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
           return b.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));
         });
       });
-    }),'пацюки, тюлень і Мирон мають власні точки поруч із рештою дій');
+    }),'сліди, тюлень і Мирон мають власні точки поруч із рештою дій');
     A(changes.every(v=>v[2]==='1')&&changes[0][0]>changes[1][0]&&changes[1][0]>changes[2][0]&&changes[3][0]>changes[2][0]
       &&changes[0][1]!==changes[2][1],'той самий ID рухається і змінює спрайт за водою');
     await p.emulateMedia({reducedMotion:'reduce'});

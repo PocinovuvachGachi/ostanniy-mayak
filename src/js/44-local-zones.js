@@ -186,11 +186,11 @@ function localEntryHS(W,H){
 const DECK_HAUL_MS=950;
 function deckScenery(p){
   const moving=deckHaulAt&&Date.now()-deckHaulAt<DECK_HAUL_MS;
-  const beamPosition=p.beamMoved?[113,101]:[131,68];
+  const shifted=deckHatchFree(p),beamPosition=shifted?[113,101]:[131,68];
   const age=moving?Date.now()-deckHaulAt:0;
   const anim=moving?'--haul-age:-'+age+'ms;--haul-duration:'+DECK_HAUL_MS+'ms;':'';
   const layer=(key,art,x,y,w,h,cls='',z=125)=>`<img class="deck-prop ${cls}" data-sk="${key}" data-sig="${cls||key}" src="${pxURL(key,()=>HI(art)())}" style="${anim}${PCT(x,y,w,h,LZW,LZH)};z-index:${z}" alt="" aria-hidden="true">`;
-  let h=layer('deck-beam',deckBeamArt,...beamPosition,67,31,p.beamMoved?(moving?'deck-hauling':'deck-shifted'):'');
+  let h=layer('deck-beam',deckBeamArt,...beamPosition,67,31,shifted?(moving?'deck-hauling':'deck-shifted'):'');
   if(deckMounted()||moving)h+=layer('deck-rope',deckRopeArt,118,66,64,32,moving?'deck-unreeve':'',122);
   if(moving)h+=layer('deck-working',()=>deckMountArt(true,true),76,43,48,48,'deck-unreeve',103);
   if(p.winchTaken||s.portableWinch.restored)h+=layer('deck-empty-foot',deckWinchFootArt,219,48,56,40,'',91);
@@ -201,8 +201,10 @@ function localZoneScene(){
   if(!z)return '';
   const W=LZW,H=LZH,p=localState(id);
   let h='<span data-sk="bg" data-sig="bg" class="scbg">'+VH(()=>pimg(pxURL('zone:bg:'+id,()=>HI(z.background)()),960,450,'scene',z.title()))+'</span>';
-  if(id==='deck')h+=deckScenery(p);
-  h+=ob('zone:back:'+id,'zoneBack',id,obURL('zone:exit',()=>HI(localExitArt)()),26,96,W,H,z.parent?'Назад':'На берег','<b>Вихід</b>');
+  const inHold=id==='hold';
+  h+=inHold?martinHoldScenery():deckScenery(p);
+  const back=inHold?holdLadderArt:localExitArt;
+  h+=ob('zone:back:'+id,'zoneBack',id,obURL('zone:exit:'+id,()=>HI(back)()),26,inHold?37:96,W,H,localBackLabel(z),'<b>Вихід</b>');
   for(const [k,o] of Object.entries(z.objects||{})){
     if(o.ready&&!o.ready(p)||!o.art)continue;
     const seen=!!p[k],art=obURL('zone:obj:'+id+':'+k+':'+Number(seen),()=>HI(o.art)(seen));
@@ -210,5 +212,6 @@ function localZoneScene(){
     h+=ob('zone:'+id+':'+k,'zoneAct',id+':'+k,art,o.x,o.y,W,H,o.label,tip);
   }
   h+=localEntryHS(W,H);
-  return '<div class="scn" data-scn="zone-'+id+'" style="'+scnD()+'">'+h+'</div>';
+  const light=inHold?' data-light="'+holdLight()+'"':'';
+  return '<div class="scn" data-scn="zone-'+id+'"'+light+' style="'+scnD()+'">'+h+'</div>';
 }
