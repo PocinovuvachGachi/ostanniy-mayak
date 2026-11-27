@@ -36,7 +36,7 @@ let fishLessonLoadedAt=0;
 function tutTick(shoreLesson=true){
   if(noGap()||s.cb||s.raid||s.bellHold||away()||(s.dlg||[]).length)return;
   const id=(s.tutPending||[]).find(k=>tutReady(k)&&(k!=='tide'||!s.f.tideIntro||atShore())
-    &&(k!=='fishBite'||(shoreLesson&&s.tab==='shore'&&s.lastAct>fishLessonLoadedAt))
+    &&(k!=='fishBite'||(shoreLesson&&atShore()&&s.lastAct>fishLessonLoadedAt))
     &&(k!=='mussels'||(atShore()&&!musselFxActive())));
   if(!id)return;
   tutRemember(id);dlg(tutDialog(id));

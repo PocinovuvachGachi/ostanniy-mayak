@@ -7,7 +7,7 @@ const drain=()=>{while(s.dlg.length)act('dlgok')};
 const harvest=(id)=>{s.cd[id]=0;act(id);shoreFindTick()};
 const openShelf=()=>{act('tab','tower');act('bpop','cl:shelf')};
 const inspect=id=>act('shelfInspect',id);
-const pools=()=>{s.tideEpoch=Date.now()-600_000;s.f.tideSeen=1};
+const pools=(cycle=0)=>{s.tideEpoch=Date.now()-600_000-900_000*cycle;s.f.tideSeen=1};
 
 s=fresh();s.tab='shore';s.tabs.shore=1;s.tabs.tower=1;s.tabs.journal=1;
 let draws=0;Math.random=()=>{draws++;return 0};
@@ -27,36 +27,46 @@ s.tutPending=['rod'];s.f.rod=1;
 harvest('gather');
 A(!s.odd.seaglass&&!draws,'готовий урок має пріоритет');
 s.tutPending=[];
+while(s.c.gather<23){harvest('gather');drain()}
+A(!s.odd.seaglass,'морське скло не раніше 24-го збору');
 const before=s.h.xpb||0;
 harvest('gather');
 A(s.odd.seaglass&&!s.odd.woodhorse&&s.r.wood>=21&&(s.h.xpb||0)===before,'збір дає плавник і тільки одну знахідку без досвіду');
 A(s.dlg[0]?.gains.length===0,'у знахідки немає лічильника або XP');
 drain();
-Math.random=()=>0.04;harvest('gather');
-A(!s.odd.woodhorse&&s.shoreFindMiss.gather===1,'шанс коника починається з трьох відсотків');
+while(s.c.gather<94){harvest('gather');drain()}
+A(!s.odd.woodhorse,'коник не випадає одразу після скла');
+const beforeHorse=s.h.xpb||0;
+Math.random=()=>0.0085;harvest('gather');
+A(!s.odd.woodhorse&&s.shoreFindMiss.gather===1,'початковий шанс коника 0,8 відсотка');
 save();load();
 harvest('gather');drain();
 A(s.odd.woodhorse&&s.shoreFindMiss.gather===0,'невдала спроба зберігається і підвищує шанс');
 const beforePool=draws;Math.random=()=>{draws++;return 0};harvest('gather');
-A(draws===beforePool&&(s.h.xpb||0)===before,'після вичерпання пулу нема розіграшу й досвіду');
+A(draws===beforePool&&(s.h.xpb||0)===beforeHorse,'після вичерпання пулу нема розіграшу й досвіду');
 A(!OD.woodhorse.gift.ready(),'до зустрічі Петрик недоступний');
 openShelf();inspect('woodhorse');act('shelfGive','woodhorse');
 A(!s.oddFate.woodhorse&&!shelfPopHTML().includes('Подарувати Петрикові'),'до зустрічі коника можна лише оглядати');
 act('tab','shore');
-s.f.wreck=1;s.c.fish=2;
-for(let i=0;i<4;i++)harvest('scrapw');
-A(!s.odd.oldhook&&s.r.scrap===4&&onCd('scrapw'),'гак чекає трьох закидань, брухт і відновлення штатні');
-s.f.tideSeen=1;s.f.crab1=1;act('fishing');
+s.f.wreck=1;s.c.fish=5;
+for(let i=0;i<17;i++)harvest('scrapw');
+A(!s.odd.oldhook&&s.r.scrap===17&&onCd('scrapw'),'гак чекає шести закидань та 18 розборів, брухт і відновлення штатні');
+s.f.tideSeen=1;s.f.crab1=1;act('fishing');drain();
 harvest('scrapw');
-A(s.odd.oldhook&&s.c.fish===3&&s.r.scrap===5,'гачок після освоєння вудки видається поряд із брухтом');
+A(s.odd.oldhook&&s.c.fish===6&&s.r.scrap===18,'гачок після освоєння вудки видається поряд із брухтом');
 drain();
 const fishBefore=s.r.fish;
 harvest('pool');A(s.r.fish===fishBefore&&!s.odd.amberbit,'калюжі під водою не дають знахідок');
-pools();
+pools();harvest('pool');drain();
 for(let i=0;i<3;i++){harvest('pool');drain()}
-A(s.oset.shells&&s.h.pts===1&&!s.odd.amberbit&&s.r.fish===fishBefore+6,'мушлі мають пріоритет, їхня нагорода й риба збережені');
-harvest('pool');
-A(s.odd.amberbit&&onCd('pool')&&s.r.fish===fishBefore+8,'після мушель придатний огляд може дати бурштин');
+A(Object.keys(s.odd).filter(k=>OD[k]?.set==='shells').length===1&&!s.oset.shells,'не більше однієї мушлі за відплив');
+save();load();harvest('pool');drain();
+A(Object.keys(s.odd).filter(k=>OD[k]?.set==='shells').length===1,'reload не скидає ліміт циклу');
+pools(1);harvest('pool');drain();pools(2);harvest('pool');drain();
+A(s.oset.shells&&s.h.pts===1&&!s.odd.amberbit&&s.r.fish>fishBefore,'мушлі мають пріоритет, їхня нагорода й риба збережені');
+while(s.c.pool<17){harvest('pool');drain()}
+pools(3);harvest('pool');
+A(s.odd.amberbit&&onCd('pool'),'після освоєння калюж і наступного циклу може трапитися бурштин');
 drain();
 s.dlg=[];s.f.horpyna=0;s.shf='horpyna';act('shfgo');drain();
 openShelf();act('shelfGive','seaglass');inspect('woodhorse');
@@ -93,7 +103,7 @@ inspect('logpage');A(shelfPopHTML().includes(MARTIN_LOG_LABEL),'сторінку
 act('martinLog');A(s.dlg[0]?.body.includes('Пам’ятаєш сліди'),'ретроспективна репліка про сторінку');drain();act('martinLog');
 A(!s.dlg.length&&s.h.fp===fp&&s.h.xpb===xp0&&s.tracksT===tracksT&&s.ratsT===ratsT,'пізні розмови одноразові й не повторюють нагороди та відкриття');
 act('tab','shore');s.cd.gather=0;
-while(s.c.gather<=18){harvest('gather');drain()}
+while(s.c.gather<24){harvest('gather');drain()}
 A(s.odd.seaglass,'після повернення з Причалу нова берегова знахідка ще доступна');
 console.log('fails',fails)
 `);

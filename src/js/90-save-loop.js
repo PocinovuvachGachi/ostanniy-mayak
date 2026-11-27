@@ -2,7 +2,7 @@
 function save(){s.ts=Date.now();try{localStorage.setItem(KEY,JSON.stringify(s))}catch(e){}}
 function load(){try{const raw=localStorage.getItem(KEY);if(!raw)return;const d=JSON.parse(raw),f=fresh();
   for(const k in d){if(f[k]&&typeof f[k]==='object'&&!Array.isArray(f[k])&&d[k]&&typeof d[k]==='object'&&!Array.isArray(d[k]))f[k]=Object.assign(f[k],d[k]);else f[k]=d[k]}
-  s=f;if(s.cb&&!s.cb.u)s.cb=null;
+  s=f;if(s.cb&&!s.cb.u)s.cb=null;localSanitize();
   const olderHealing=d.healingV!==1;
   if(olderHealing){
     s.healingV=1;s.belt=(s.belt||[]).filter(beltItem);

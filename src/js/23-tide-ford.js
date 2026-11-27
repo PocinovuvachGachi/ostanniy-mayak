@@ -62,7 +62,7 @@ function fordPart(id){const P=FORD.find(p=>p.id===id);if(!P||!s.f.fordSeen||(s.f
   else say(`${P.n}: готово. Брід стає надійнішим.`,'build');return true}
 /* Калюжі на відпливі */
 function poolPick(){if(!tideLow()||onCd('pool'))return;setCd('pool',4);s.c.pool=(s.c.pool||0)+1;const n=1+(Math.random()<.4?1:0);add('fish',n);
-  if(Math.random()<((s.mst||{}).horpyna?.14:.07)&&collFind('pool'))return;
+  if(poolFindReady()&&Math.random()<((s.mst||{}).horpyna?.07:.035)&&collFind('pool')){markPoolFind();return}
   queueShoreFind('pool');
 }
 /* Об'єкти берега: калюжа між камінням і кілок біля броду */

@@ -6,7 +6,7 @@ function fresh(){return{
   f:{},fishSpecies:{},hookWater:{gathers:0,pulls:0,wait:0,pending:null},rakeSand:{actions:0,searched:0,wait:0,pending:null},shfCyc:null,shfDeferred:{},musselCyc:null,c:{gather:0,fish:0,wins:0},cd:{},b:{},floors:{},rs:{},
   h:{lvl:1,xp:0,hp:25,pts:0,sp:0,fp:0,a:{str:2,dex:2,con:2,per:2,int:2},k:{melee:0,mech:0,stealth:0,speech:0,craft:0},ft:{}},
   eq:{weapon:'',ranged:'',armor:'',light:'',charm:''},inv:{},
-  pages:[],books:[],odd:{},oddRead:{},oddFate:{},shoreFindMiss:{},met:{},seenE:{},kills:{},disc:{},done:{},visited:{},wrong:{},
+  pages:[],books:[],odd:{},oddRead:{},oddFate:{},shoreFindMiss:{},poolFindCyc:null,localZone:'',localProgress:{},met:{},seenE:{},kills:{},disc:{},done:{},visited:{},wrong:{},
   chs:[],chv:2,bts:{},seenK:{},seenI:{},chSeen:0,at:'',cb:null,bell:[],bellFail:0,scans:0,jt:'goals',
   chest:[0,0,0],chestFail:0,stones:[0,1,3],stoneFail:0,mirrors:{A:'/',B:'/',C:'\\',D:'\\'},
   log:[{m:'Темрява. У долонях тліє жарина з великого вогню маяка.',t:'story'}],ts:Date.now(),t:0

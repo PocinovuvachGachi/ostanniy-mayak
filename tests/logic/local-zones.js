@@ -1,0 +1,22 @@
+require('../harness.js')(`
+let fails=0;const A=(c,m)=>{if(!c){fails++;console.log('FAIL',m)}};
+let raw;localStorage.setItem=(k,v)=>{raw=v};localStorage.getItem=()=>raw;
+s=fresh();s.tabs.shore=1;s.tab='shore';s.f.wreck=1;s.f.rod=1;s.c.scrap=11;
+localZoneTick();A(!s.f.deckSeen&&!localEnter('deck'),'до порогу палуба недоступна');
+s.c.scrap=12;s.dlg=[{title:'story'}];localZoneTick();A(!s.f.deckSeen,'сюжет має пріоритет');
+s.dlg=[];localZoneTick();A(s.f.deckSeen&&localEntries().includes('deck'),'доступ після освоєння зовнішніх уламків');
+act('zoneEnter','deck');A(localCurrent()==='deck'&&!atShore()&&s.localProgress.deck.visited,'вхід у локальну зону');
+const n=s.c.scrap;act('scrapw');act('gather');A(s.c.scrap===n&&!s.c.gather,'застарілі дії берега не працюють усередині');
+act('zoneAct','unknown:planks');A(!s.localProgress.deck.planks,'чужий ID не діє');
+act('zoneAct','deck:planks');A(s.localProgress.deck.planks&&rLocalZone().includes('шаром солі'),'огляд зберігається');
+save();load();A(localCurrent()==='deck'&&s.localProgress.deck.planks,'reload відновлює сцену та огляд');
+act('zoneBack','wrong');A(localCurrent()==='deck','застарілий вихід не діє');
+act('zoneBack','deck');A(atShore()&&s.localProgress.deck.planks,'вільний вихід без втрати прогресу');
+act('zoneEnter','deck');act('tab','home');A(!s.localZone&&s.tab==='home','вкладка закриває локальний перегляд');
+act('zoneEnter','deck');A(!s.localZone,'не можна ввійти з іншої вкладки');
+act('tab','shore');act('zoneEnter','deck');A(s.localProgress.deck.planks,'повернення без повторної винагороди');
+s.localZone='unknown';save();load();A(!s.localZone&&s.localProgress.deck.planks,'невідомий ID безпечно повертає назовні');
+const old=JSON.parse(raw);delete old.localZone;delete old.localProgress;delete old.poolFindCyc;raw=JSON.stringify(old);load();
+A(s.localZone===''&&s.localProgress&&s.poolFindCyc===null,'старе збереження має безпечні defaults');
+console.log('fails',fails);
+`);
