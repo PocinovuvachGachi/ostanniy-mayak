@@ -116,6 +116,8 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     const shore=p.locator('.scn.sh'),deck=p.locator('[data-scn="zone-deck"]');
     const entry=shore.locator('[data-a="zoneEnter"][data-i="deck"]');
     const checkPoints=scene=>scene.evaluate(e=>{
+      // Після дії зі списку повертаємо в кадр усю сцену, нижче закріпленої панелі ресурсів.
+      e.scrollIntoView({block:'center',inline:'nearest'});
       const buttons=[...e.querySelectorAll('button[data-a]')];
       return buttons.every(b=>{
         b.scrollIntoView({block:'nearest',inline:'center'});
