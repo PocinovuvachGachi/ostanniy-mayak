@@ -70,8 +70,8 @@ A(shows(rKitchen(),'fishRecipe')&&shows(bpopHTML(),'fishRecipe'),'чинний �
 act('fishRecipe','bakedflounder');closeDialogs();act('fishRecipe','bakedflounder');
 A(rcpKnown('bakedflounder')&&!s.dlg.length&&!shows(bpopHTML(),'fishRecipe'),'навчання рецепта лишилося одноразовим');
 s.f.rats=1;s.localProgress.hold={navDoor:1};s.odd={logpage:1,mladle:1};
-A(shows(bpopHTML(),'navTalk')&&!shows(bpopHTML(),'martinLog')&&!shows(bpopHTML(),'martinLadle'),
-  'підказка відсіку в картці, показ знахідок лишається на полиці');
+A(shows(bpopHTML(),'navTalk')&&shows(bpopHTML(),'martinLog')&&shows(bpopHTML(),'martinLadle'),
+  'підказка і показ знайдених предметів доступні через картку');
 const beforeHint=stats();
 act('navTalk');closeDialogs();act('navTalk');closeDialogs();
 A(s.localProgress.hold.navTalk&&stats()===beforeHint,'повторна підказка відсіку не дає ресурсів чи досвіду');
@@ -99,6 +99,38 @@ for(const pose of ['rest','smoke','kitchen']){
   const frames=Array.from({length:4},(_,i)=>zinoviiFrame(pose,i).p.join(''));
   A(new Set(frames).size===4&&frames.every(f=>f.includes('M')),'чотири різні кадри · '+pose);
 }
+// P4.6.2: спільні контекстні категорії та дерево без нового прогресу.
+setup();rescue();act('tab','home');openCard();
+A(shows(bpopHTML(),'zinoviiTalk')&&!bpopHTML().includes('<h3>Знахідки</h3>')&&!bpopHTML().includes('<h3>Знання</h3>')&&!bpopHTML().includes('<h3>Допомога</h3>'),'після порятунку немає невідкритих категорій');
+const beforeTalk=stats();
+act('zinoviiAsk','martin');A(!s.dlg.length,'застаріла відповідь без розмови відхилена');
+act('zinoviiTalk');A(s.dlg[0]?.zinoviiConversation==='menu'&&!s.dlg[0].btns.some(b=>b[2]==='kitchen'),'теми лише за наявними умовами');
+act('zinoviiAsk','kitchen');A(s.dlg[0]?.zinoviiConversation==='menu','невідкрита тема відхилена');
+act('zinoviiAsk','martin');A(s.dlg[0]?.zinoviiConversation==='martin','гілка розмови');
+act('zinoviiAsk','martin');A(s.dlg[0]?.zinoviiConversation==='martin','повторний застарілий вибір не перемикає гілку');
+act('zinoviiAsk','back');A(s.dlg[0]?.zinoviiConversation==='menu','повернення до тем');
+act('dlgok');A(!s.dlg.length&&stats()===beforeTalk,'розмова не дає XP, ресурсів чи нових прапорців');
+act('zinoviiTalk');act('zinoviiAsk','martin');save();load();
+A(s.dlg[0]?.zinoviiConversation==='martin','зберігається відкрита відповідь');
+act('zinoviiAsk','back');A(s.dlg[0]?.zinoviiConversation==='menu','повернення до тем після reload');closeDialogs();
+s.f.flounderCaught=1;act('fishRecipe','bakedflounder');
+A(!rcpKnown('bakedflounder')&&!s.dlg.length,'картка не відкриває рецепт до кухні');
+s.f.tracks=1;kitTick();closeDialogs();act('tab','home');openCard();
+A(shows(rHome(),'fishRecipe')&&shows(bpopHTML(),'fishRecipe'),'після кухні рецепт доступний біля вогнища');
+MG={};act('fishRecipe','bakedflounder');MG=null;A(!rcpKnown('bakedflounder'),'мінігра блокує навчання');
+act('fishRecipe','bakedflounder');closeDialogs();
+act('tab','kitchen');openCard();act('fishRecipe','bakedflounder');
+A(rcpKnown('bakedflounder')&&!s.dlg.length&&!shows(bpopHTML(),'fishRecipe'),'навчання з двору не дублюється на кухні');
+s.odd.mladle=1;s.odd.logpage=1;
+A(shows(bpopHTML(),'martinLadle')&&shows(bpopHTML(),'martinLog'),'знайдені речі доступні в спільній картці');
+s.dlg=[{k:'story'}];s.bellHold=1;act('martinLadle','card');A(!s.f.martinLadleStory,'відкладений дзвінок не запускає нову особисту розмову');
+s.dlg=[];s.bellHold=0;act('martinLadle','card');closeDialogs();
+act('martinLog','card');closeDialogs();
+A(s.f.martinLadleStory&&s.f.martinLogStory&&s.oddRead.logpage&&s.odd.mladle&&s.odd.logpage&&!shows(bpopHTML(),'martinLadle')&&!shows(bpopHTML(),'martinLog'),'показ не вилучає предмети й не повторюється');
+act('tab','tower');act('tt','cut');act('bpop','cl:shelf');act('shelfInspect','mladle');act('martinLadle');
+A(!s.dlg.length,'після картки полиця не повторює вже прочитану історію');
+act('tab','shore');act('zoneEnter','deck');s.f.martinLadleStory=0;act('martinLadle','card');act('zinoviiTalk');
+A(!s.f.martinLadleStory&&!s.dlg.length,'застарілі дії з картки не обходять контекст трюму');
 console.log('fails',fails);
 })();
 `);

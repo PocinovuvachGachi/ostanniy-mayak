@@ -141,6 +141,25 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await close.click();
     A(await npc.evaluate(e=>e===document.activeElement),'кнопка закриття повертає фокус · '+width);
 
+    await npc.focus();await p.keyboard.press('Enter');
+    await popup.locator('[data-a="zinoviiTalk"]').click();
+    const topic=p.locator('#dlg .dlgbg:not(.fo) [data-a="zinoviiAsk"][data-i="martin"]');
+    await topic.waitFor();
+    A(await topic.evaluate(el=>el===document.activeElement)&&!await p.locator('#dlg [data-i="kitchen"]').count(),
+      'розмова фокусує першу доступну тему без передчасної кухні · '+width);
+    await topic.click();
+    await p.locator('#dlg .dlgbg:not(.fo) [data-a="zinoviiAsk"][data-i="back"]').click();
+    A(await topic.count()===1,'повернення з відповіді до тем · '+width);
+    await p.locator('#dlg .dlgbg:not(.fo) [data-a="dlgok"]').click();
+    A(await close.evaluate(e=>e===document.activeElement),'після дерева фокус повертається у картку · '+width);
+    await close.click();
+    await p.evaluate(()=>{s.odd.mladle=1;s.odd.logpage=1;render()});
+    await npc.focus();await p.keyboard.press('Enter');
+    await popup.locator('[data-a="martinLadle"][data-i="card"]').click();
+    await p.locator('#dlg .dlgbg:not(.fo) [data-a="dlgok"]').click();
+    A(!await popup.locator('[data-a="martinLadle"]').count()&&await p.evaluate(()=>s.odd.mladle&&s.f.martinLadleStory),'показ черпака з картки зберігає предмет · '+width);
+    await close.click();
+
     await p.evaluate(()=>{
       Object.assign(s.localProgress.deck,{beamMoved:1,openHatch:1});
       s.f.tracks=1;s.r.fish=3;s.r.oil=0;

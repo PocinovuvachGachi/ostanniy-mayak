@@ -71,8 +71,10 @@ function act0(a,i){
       s.oddFate[i]=1;gift.react();
     }
   }break;
-  case 'martinLadle':martinLadleTalk(i==='find');break;
-  case 'martinLog':martinLogTalk(i==='find');break;
+  case 'zinoviiTalk':zinoviiTalk();break;
+  case 'zinoviiAsk':zinoviiAsk(i);break;
+  case 'martinLadle':if(i!=='card'||zinoviiCardContext()&&localCanAct()&&!s.dlg.length)martinLadleTalk(i==='find');break;
+  case 'martinLog':if(i!=='card'||zinoviiCardContext()&&localCanAct()&&!s.dlg.length)martinLogTalk(i==='find');break;
   case 'navLog':navLog();break;
   case 'navTalk':navTalk();break;
   case 'winchTalk':winchTalk();break;
