@@ -59,7 +59,7 @@ const fishBefore=s.r.fish;
 harvest('pool');A(s.r.fish===fishBefore&&!s.odd.amberbit,'калюжі під водою не дають знахідок');
 pools();harvest('pool');drain();
 for(let i=0;i<3;i++){harvest('pool');drain()}
-A(Object.keys(s.odd).filter(k=>OD[k]?.set==='shells').length===1&&!s.oset.shells,'не більше однієї мушлі за відплив');
+A(Object.keys(s.odd).filter(k=>OD[k]?.set==='shells').length===1&&!s.oset?.shells,'не більше однієї мушлі за відплив');
 save();load();harvest('pool');drain();
 A(Object.keys(s.odd).filter(k=>OD[k]?.set==='shells').length===1,'reload не скидає ліміт циклу');
 pools(1);harvest('pool');drain();pools(2);harvest('pool');drain();

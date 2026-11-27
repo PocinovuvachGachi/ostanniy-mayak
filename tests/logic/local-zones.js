@@ -6,7 +6,7 @@ localZoneTick();A(!s.f.deckSeen&&!localEnter('deck'),'до порогу палу
 s.c.scrap=12;s.dlg=[{title:'story'}];localZoneTick();A(!s.f.deckSeen,'сюжет має пріоритет');
 s.dlg=[];localZoneTick();A(s.f.deckSeen&&localEntries().includes('deck'),'доступ після освоєння зовнішніх уламків');
 act('zoneEnter','deck');A(localCurrent()==='deck'&&!atShore()&&s.localProgress.deck.visited,'вхід у локальну зону');
-const n=s.c.scrap;act('scrapw');act('gather');A(s.c.scrap===n&&!s.c.gather,'застарілі дії берега не працюють усередині');
+const n=s.c.scrap;s.bite={kind:'fish',amount:2};act('scrapw');act('gather');act('bigfish');act('fishRelease');A(s.c.scrap===n&&!s.c.gather&&s.bite,'застарілі дії берега не працюють усередині');
 act('zoneAct','unknown:planks');A(!s.localProgress.deck.planks,'чужий ID не діє');
 act('zoneAct','deck:planks');A(s.localProgress.deck.planks&&rLocalZone().includes('шаром солі'),'огляд зберігається');
 save();load();A(localCurrent()==='deck'&&s.localProgress.deck.planks,'reload відновлює сцену та огляд');

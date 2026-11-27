@@ -1,7 +1,7 @@
 
 /* Локальні зони: контекст батьківської вкладки/місця, реєстр, збережені результати.
    Дочірня зона не є точкою глобальної мапи. Ідентифікатори дій містять ID зони. */
-const LOCAL_OUTDOOR_ACTIONS=new Set(['gather','scrapw','hook','hookWater','rakeSand','fishing','pool','mussels','ford','shfgo','rune','crabRetry','drybuild','dryload','drytake','rodReach','fishBite','bite','flot','flotmg','exp','trade']);
+const LOCAL_OUTDOOR_ACTIONS=new Set(['gather','scrapw','hook','hookWater','rakeSand','fishing','pool','mussels','ford','shfgo','rune','crabRetry','drybuild','dryload','drytake','rodReach','bigfish','fishRelease','flot','flotmg','exp','trade']);
 const LOCAL_ZONES={
   deck:{tab:'shore',at:'',parent:'',title:()=>s.f.zinovii?'Палуба «Мартина»':'Палуба уламка',
     entry:'Піднятися на палубу',ready:()=>!!s.f.deckSeen,
@@ -40,7 +40,7 @@ function localAct(key){
   if(!Object.prototype.hasOwnProperty.call(z.objects||{},k))return false;
   const o=z.objects[k];if(o.ready&&!o.ready())return false;
   const p=localState(id);
-  if(!p[k]){p[k]=1;if(o.run)o.run(p);dirty=1;save()}
+  if(!p[k]){p[k]=1;if(o.run)o.run(p);else if(o.text)say(o.text,'world');dirty=1;save()}
   return true;
 }
 function localZoneTick(){

@@ -50,6 +50,35 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await p.close();
   }
 
+  // Локальна зона: ті самі дії сцени й списку; вихід, клавіатура, reload.
+  {
+    const p = await page(390, 844);
+    await p.emulateMedia({ reducedMotion: 'reduce' });
+    await p.evaluate(() => {
+      s.tabs.shore=1;s.tab='shore';s.b.hearth=1;s.f.looked=1;s.f.wreck=1;s.f.rod=1;
+      s.f.crab1=1;s.f.tideSeen=1;s.tideEpoch=Date.now();s.f.fishBiteSeen=1;s.c.scrap=11;
+      s.dlg=[];s.tutPending=[];s.lastNov=-100;render();
+    });
+    A(await p.locator('#stage [data-a="zoneEnter"]').count()===0,'палуба ще прихована');
+    await p.evaluate(()=>{s.c.scrap=12;localZoneTick();render()});
+    const entry=p.locator('#stage [data-a="zoneEnter"][data-i="deck"]');
+    await entry.waitFor();await entry.scrollIntoViewIfNeeded();await entry.click();
+    A(await p.locator('#stage [data-scn="zone-deck"]').count()===1,'вхід зі сцени');
+    A(await p.locator('#stage [data-a="gather"]').count()===0,'зовнішні дії не дублюються всередині');
+    const inspect=p.locator('#stage [data-a="zoneAct"][data-i="deck:planks"]');
+    await inspect.scrollIntoViewIfNeeded();await inspect.focus();await inspect.press('Enter');
+    A(await p.evaluate(()=>!!s.localProgress.deck.planks),'огляд з клавіатури');
+    await p.reload();
+    A(await p.locator('#stage [data-scn="zone-deck"]').count()===1&&await p.evaluate(()=>s.localProgress.deck.planks),'сцена та огляд після reload');
+    A(await p.evaluate(()=>document.documentElement.scrollWidth<=390),'локальна сцена вміщається на телефоні');
+    await p.locator('#main [data-a="zoneBack"]').click();
+    A(await p.evaluate(()=>atShore()&&s.localProgress.deck.planks),'вихід списком без втрати прогресу');
+    await p.locator('#main .shore-alist summary').click();
+    await p.locator('#main [data-a="zoneEnter"][data-i="deck"]').click();
+    A(await p.evaluate(()=>localCurrent()==='deck'&&s.localProgress.deck.planks),'повернення списком');
+    await p.close();
+  }
+
   // Сушарня: від останньої риболовлі до збирання партії після повернення.
   {
     const p = await page(390, 844);
