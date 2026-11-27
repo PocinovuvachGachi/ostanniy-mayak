@@ -537,6 +537,12 @@ function restoreTideFocus(el,root){
     (closed?.querySelector('summary')||entry)?.focus();
     return;
   }
+  if(el.dataset.a==='zoneAct'&&!match){
+    const id=localCurrent(),key=el.dataset.i.slice(id.length+1),next=localDef(id)?.objects?.[key]?.next;
+    const nextAction=next&&root.querySelector(`[data-a="zoneAct"][data-i="${id}:${next}"]`);
+    (nextAction||root.querySelector('[data-a="zoneBack"]'))?.focus();
+    return;
+  }
   const nextRake=el.dataset.a==='rakeSand'?root.querySelector('[data-a="rakeSand"]'):null;
   const fallback=nextRake||(root.id==='popl'?root.querySelector('.bpx'):root.id==='stage'?root.querySelector('[data-k="gather"]'):root.querySelector('summary'));
   (match||fallback)?.focus({preventScroll:true});

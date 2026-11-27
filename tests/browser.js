@@ -94,6 +94,80 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await p.close();
   }
 
+  // Наповнена палуба: доступні центри, видимі результати та збереження.
+  for(const width of [390,1280]){
+    const p=await page(width,900);
+    if(width===390)await p.emulateMedia({reducedMotion:'reduce'});
+    await p.evaluate(()=>{
+      Math.random=()=>.99;
+      s.tab='shore';s.tabs.shore=1;
+      Object.assign(s.f,{looked:1,wreck:1,deckSeen:1,hook:1,hookPlan:1,rod:1,rodUp:1,crab1:1,tideSeen:1,boat:1});
+      s.b.hearth=1;s.tideEpoch=Date.now()-620000;s.lastNov=s.play;
+      s.c.scrap=12;s.localProgress.deck={visited:1,planks:1};
+      s.ship={until:Date.now()+180000,offers:[],done:[]};
+      s.hookWater.pending={id:1,kind:'plank',reward:{wood:4}};
+      giveI('rake');s.rakeSand.lastId=2;s.rakeSand.dry={id:2,kind:'dry',reward:{wood:2}};
+      s.rakeSand.wet={id:1,kind:'wet',reward:{scrap:2}};
+      s.bts=Object.fromEntries(CH.flatMap(ch=>ch.beats.map(beat=>[beat[0],1])));
+      s.chs=CH.map(ch=>ch.id);s.tutSeen.tide=1;s.f.fishBiteSeen=1;
+      s.bdSeen=Object.fromEntries(BD.map(b=>[b.id,1]));s.rcSeen=Object.fromEntries(RC.map(rc=>[rc.id,1]));
+      render();
+    });
+    const shore=p.locator('.scn.sh'),deck=p.locator('[data-scn="zone-deck"]');
+    const entry=shore.locator('[data-a="zoneEnter"][data-i="deck"]');
+    const checkPoints=scene=>scene.evaluate(e=>{
+      const buttons=[...e.querySelectorAll('button[data-a]')];
+      return buttons.every(b=>{
+        b.scrollIntoView({block:'nearest',inline:'center'});
+        const r=b.getBoundingClientRect(),frame=e.getBoundingClientRect();
+        return r.left>=frame.left&&r.right<=frame.right
+          &&b.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));
+      });
+    });
+    A(await checkPoints(shore),'палуба, когг, вудки, граблі, багор і мідії доступні на березі · '+width);
+    await entry.click();
+    const item=id=>deck.locator('[data-i="deck:'+id+'"]');
+    const inList=id=>p.locator('#main [data-i="deck:'+id+'"]');
+    const art=loc=>loc.locator('.obi').getAttribute('src');
+    const back=deck.locator('[data-a="zoneBack"]');
+    A(await checkPoints(deck)&&await deck.locator('button[data-a]').count()===5,'чотири об’єкти й вихід мають власні центри · '+width);
+    A(await p.locator('#main').innerText().then(t=>!t.includes('Забрати')&&!t.includes('Мартин')&&!t.includes('трюм')),
+      'до огляду приховані назва й дія підбору · '+width);
+    const oldHatch=await art(item('hatch')),oldMount=await art(item('mount')),oldWinch=await art(item('winch'));
+    await item('hatch').focus();await p.keyboard.press('Enter');
+    A(oldHatch!==await art(item('hatch'))&&await item('hatch').evaluate(e=>e===document.activeElement)
+      &&(await p.locator('#main').innerText()).includes('важка балка'),'балка, стан люка і фокус після огляду · '+width);
+    await inList('mount').click();
+    A(oldMount!==await art(item('mount')),'огляд зі списку змінює спрайт основи щогли · '+width);
+    if(width===390){
+      await item('winch').focus();await p.keyboard.press('Enter');
+      A(await item('winchTaken').evaluate(e=>e===document.activeElement&&getComputedStyle(e).animationName==='none'),
+        'фокус переходить до підбору у режимі зменшеного руху');
+    }else{
+      await inList('winch').focus();await p.keyboard.press('Enter');
+      A(await inList('winchTaken').evaluate(e=>e===document.activeElement),'фокус переходить до підбору у списку');
+    }
+    A(!await item('winch').count()&&oldWinch!==await art(item('winchTaken'))&&await checkPoints(deck),'спрайт після огляду й незалежність точок · '+width);
+    await p.reload();await deck.waitFor();
+    A(await item('winchTaken').count()===1&&oldHatch!==await art(item('hatch')),'reload між оглядом і підбором · '+width);
+    const pickup=width===390?item('winchTaken'):inList('winchTaken');
+    const focusedBack=width===390?back:p.locator('#main [data-a="zoneBack"]');
+    await pickup.focus();await p.keyboard.press('Enter');
+    A(!await item('winchTaken').count()&&!await inList('winchTaken').count()&&await focusedBack.evaluate(e=>e===document.activeElement)
+      &&(await p.locator('#main').innerText()).includes('порожніми отворами'),'механізм зникає, лишається основа й доступний фокус · '+width);
+    A(await checkPoints(deck)&&await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'точки після підбору лишаються доступними · '+width);
+    await p.reload();await deck.waitFor();
+    await back.focus();await p.keyboard.press('Enter');
+    A(await entry.evaluate(e=>e===document.activeElement)&&await shore.locator('[data-a="mussels"]').count()===1,
+      'після reload і виходу берег знову доступний · '+width);
+    await p.evaluate(()=>{s.tideEpoch=Date.now()-120000});
+    await shore.and(p.locator('[data-tide="high"]')).waitFor();
+    await entry.click();
+    A(!await item('winchTaken').count()&&await p.evaluate(()=>s.localProgress.deck.winchTaken&&s.localProgress.deck.planks),
+      'за повної води механізм не повертається, старий огляд лишається · '+width);
+    await p.close();
+  }
+
   // Сушарня: від останньої риболовлі до збирання партії після повернення.
   {
     const p = await page(390, 844);
