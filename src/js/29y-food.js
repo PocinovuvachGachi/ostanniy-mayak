@@ -59,12 +59,12 @@ function kitTick(){if(typeof MGH!=='undefined'&&!MGH.cook)MGH.cook=MGH_COOK;if(!
   for(const D of DISH)if(!D.ingredient&&!s.rcp[D.id]&&D.learn()){const first=!Object.keys(s.rcp).length;if(!first&&!novCan())return;s.rcp[D.id]=1;if(!first){novMark();dlg({k:'find',title:'Новий рецепт',img:{t:'icon',id:D.id},body:`<p><b>${IT[D.id].n}.</b> ${D.who} показує, як: ${D.how.charAt(0).toLowerCase()+D.how.slice(1)}</p>`,gains:['Рецепт на кухні']})}if(!noGap())return}}
 const atFishKitchen=()=>!s.at&&s.tabs.kitchen&&(s.tab==='kitchen'||s.tab==='tower'&&ttCur()==='kitchen');
 function fishRecipesReady(){
-  if(!atFishKitchen()||!(s.f.zinovii||s.mst.zinovii))return [];
+  if(!s.tabs.kitchen||!zinoviiPresent()||(!atFishKitchen()&&!zinoviiCardContext()))return [];
   return DISH.filter(D=>D.ingredient&&(D.learn?D.learn():s.f[D.ingredient+'Caught'])&&!rcpKnown(D.id));
 }
 function learnFishRecipe(id){
   const D=fishRecipesReady().find(d=>d.id===id);
-  if(!D||s.cb||s.raid||s.dlg.length)return;
+  if(!D||!localCanAct()||s.dlg.length)return;
   s.rcp=s.rcp||{};s.rcp[id]=1;s.rcpNew=1;
   dlg({k:'find',title:IT[id].n,img:{t:'icon',id},body:`<p>${P('Зиновій')} поправляє жарини й показує, де полум’я стихає. ${Q(D.how)}</p>`,gains:['Рецепт у книзі на кухні']});
 }

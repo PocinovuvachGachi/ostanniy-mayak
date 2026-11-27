@@ -4,12 +4,50 @@ const zinoviiPresent=()=>!!(s.f.zinovii||s.mst.zinovii);
 const zinoviiCardContext=()=>zinoviiPresent()&&(s.tab==='home'&&s.f.looked&&!s.at||atFishKitchen());
 const zinoviiInteractionHere=()=>s.tab==='home'||popB===ZINOVII_CARD&&zinoviiPresent()&&atFishKitchen();
 
+// Теми виводяться тільки за чинними передумовами, не зберігають нових лічильників.
+function zinoviiConversationTopics(){
+  const topics=[{id:'martin',label:'Про «Мартин»',text:'Ми йшли на маяк, а вогню не було видно. Ту ніч не забудеш.'}];
+  if(s.bdSeen?.smoke||s.b.smoke)topics.push({id:'smoke',label:'Про коптильню',text:'Рибу треба берегти. Добре підібрані тріски, тихий дим — і припаси не переведуться так швидко.'});
+  if(s.tabs.kitchen)topics.push({id:'kitchen',label:'Про казан',text:'Казан не любить поспіху. Підкидай тріски, коли вогонь стихає. За рівним кипінням легше встежити.'});
+  return topics;
+}
+function zinoviiConversationMenu(){
+  return {k:'story',zinoviiConversation:'menu',title:'Розмова із Зиновієм',img:{t:'face',id:'zinovii'},
+    body:`<p>${P('Зиновій')} відкладає свою справу. ${Q('Ну що, хранителю?')}</p>`,
+    btns:[...zinoviiConversationTopics().map(t=>[t.label,'zinoviiAsk',t.id]),['Закінчити розмову','dlgok']]};
+}
+function zinoviiTalk(){
+  if(!zinoviiCardContext()||!localCanAct()||s.dlg.length)return;
+  dlg(zinoviiConversationMenu());save();
+}
+function zinoviiAsk(id){
+  const d=s.dlg[0];
+  if(!zinoviiCardContext()||s.cb||s.raid||MG||s.bellHold||!d?.zinoviiConversation)return;
+  if(!d.btns?.some(b=>b[1]==='zinoviiAsk'&&b[2]===id))return;
+  if(id==='back'&&d.zinoviiConversation!=='menu')s.dlg[0]=zinoviiConversationMenu();
+  else{
+    if(d.zinoviiConversation!=='menu')return;
+    const topic=zinoviiConversationTopics().find(t=>t.id===id);if(!topic)return;
+    s.dlg[0]={k:'story',zinoviiConversation:topic.id,title:topic.label,img:{t:'face',id:'zinovii'},
+      body:`<p>${Q(topic.text)}</p>`,
+      btns:[['Ще запитання','zinoviiAsk','back'],['Закінчити розмову','dlgok']]};
+  }
+  dirty=1;save();
+}
+const zinoviiTopicGroup=(title,html)=>html?`<div class="zinovii-topic"><h3>${title}</h3><div class="act zinovii-topics">${html}</div></div>`:'';
+function zinoviiFindButtons(){
+  return (martinLadleReady()?btn(MARTIN_LADLE_LABEL,'martinLadle','card'):'')+
+    (martinLogReady()?btn(MARTIN_LOG_LABEL,'martinLog','card'):'');
+}
 function zinoviiCardBody(){
   const {role}=MST.zinovii;
   const description=s.bdSeen?.smoke||s.b.smoke?MST.zinovii.d:'З «Мартина». Тепер живе біля маяка.';
-  const topics=(winchTopicReady()?btn('Показати механізм Зиновію','winchTalk'):'')+holdOilHTML()+navTalkButton()+fishRecipeButtons();
+  const knowledge=(winchTopicReady()?btn('Показати механізм Зиновію','winchTalk'):'')+navTalkButton()+fishRecipeButtons();
+  const topics=zinoviiTopicGroup('Розмова',btn('Поговорити','zinoviiTalk'))+
+    zinoviiTopicGroup('Знання',knowledge)+zinoviiTopicGroup('Знахідки',zinoviiFindButtons())+
+    zinoviiTopicGroup('Допомога',holdOilHTML());
   return `<div class="pcard zinovii-profile">${pimg(faceURL('zinovii'),48,48,'','')}<div><span class="role">${role}</span><span class="m">${description}</span></div></div>`+
-    (topics?`<div class="act zinovii-topics">${topics}</div>`:'');
+    topics;
 }
 
 function zinoviiPopHTML(){

@@ -1107,3 +1107,10 @@ body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .
   52%,72%{background-position:33.3333% 0}
   60%{background-position:66.6667% 0}
 }
+
+/* Контекстні групи в спільній картці мешканця. */
+.zinovii-topic{margin-top:.55rem;padding-top:.5rem;border-top:1px solid var(--rule)}
+.zinovii-topic h3{font-size:.9rem;margin:0 0 .35rem}
+.zinovii-topic .act{gap:6px;flex-wrap:wrap}
+.zinovii-topic .act button{max-width:100%;white-space:normal;text-align:left}
+@media (max-width:560px){.zinovii-topic .act button{min-height:44px}}
