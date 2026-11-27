@@ -270,9 +270,8 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     A(await p.evaluate(()=>!s.f.rats&&!s.odd.logpage),'відступ без здобичі · '+width);
     await down.click();await fight.click();
     await p.evaluate(()=>{for(const enemy of s.cb.u)enemy.hp=0;win();render()});
-    for(let n=0;await p.locator('#dlg [data-a="dlgok"]').count()&&n<5;n++){
-      await p.locator('#dlg [data-a="dlgok"]').click();
-    }
+    const confirmVictory=p.locator('#dlg .dlgbg:not(.fo) [data-a="dlgok"]');
+    for(let n=0;n<5&&await confirmVictory.count();n++)await confirmVictory.click();
     const barrels=hold.locator('[data-i="hold:barrels"]');
     A(!await fight.count()&&await barrels.count()===1&&await checkPoints(hold)
       &&await p.evaluate(()=>s.f.rats&&s.odd.logpage&&document.documentElement.scrollWidth<=innerWidth),
