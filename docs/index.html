@@ -313,7 +313,7 @@ button.ib .ibx{font:600 14px/1 var(--serif);color:#e3ebe6;white-space:nowrap}
 .scn{isolation:isolate}
 .scw{margin:0 0 12px}.scw .scn{margin:0}
 @media (max-width:560px){.scw{overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;margin-left:-6px;margin-right:-6px}.scw .scn{min-width:680px}#main section .scw{margin-left:-10px;margin-right:-10px}#main section .scw .scn{margin:0}}
-@media (max-width:560px){.scw .scn:is([data-scn="zone-deck"],[data-scn="zone-hold"]){min-width:0}}
+@media (max-width:560px){.scw .scn[data-scn^="zone-"]{min-width:0}}
 .scn .yard,.scn .scene{max-width:none!important;width:100%;height:auto}
 .scn .yard,.scn .scene{margin:0;display:block;border:0}
 .scn{border:3px solid #0b1418;box-shadow:0 0 0 2px var(--rule)}
@@ -1097,7 +1097,10 @@ body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .
 .pot-transfer p{margin:.2rem 0}
 
 /* Усередині трюму відблиски залежать від спорядженого світла. */
-.scn[data-scn="zone-hold"]{--night:1}
+.scn[data-light]{--night:1}
+
+.nav-reverse{border-top:1px solid var(--rule);padding-top:.55rem}
+@media (max-width:560px){#main [data-i^="hold:ring"],#main [data-i="hold:navTry"]{min-height:44px}}
 </style>
 </head>
 <body>
@@ -1213,6 +1216,7 @@ jacket:['............','..dd....dd..','.dddd..dddd.','dddddeeddddd','dd.dddddd.d
 mail:['............','..pp....pp..','.pppp..pppp.','pqpqpqpqpqpq','pp.qpqpqp.pp','pp.pqpqpq.pp','pp.qpqpqp.pp','...pqpqpq...','...qpqpqp...','...pqpqpq...','...pppppp...','............'],
 winchRestore:['............','.......qq...','...pp...p...','..p99p.p....','..qXWWq.....','..pYWXpp....','..pWWXpp....','..p99p.p....','...pp..p....','..ccccccc...','............','............'],
 lamp:['............','......g.....','.....ghg....','.....gfg....','......f.....','....9999....','...9aaaa9...','..9aaaaaa9..','..99999999..','...999999...','............','............'],
+sextant:['............','.....g......','.....e......','....d.e.....','....d..e....','...d....e...','...d.....e..','..e.....gd..','..g...egc...','...gggd.....','............','............'],
 storm:['.....99.....','....9..9....','...999999...','...9.gg.9...','...9ghhg9...','...9ghhg9...','...9gffg9...','...9.ff.9...','...999999...','....9999....','............','............'],
 shell:['............','....7777....','...766667...','..76555667..','..7653.567..','..765..567..','..76555567..','..766666677.','...7777777..','.......77...','............','............'],
 amulet:['..9......9..','...9....9...','....9..9....','.....99.....','....ffff....','...fgggf....','...fghgf....','...fgggf....','....ffff....','............','............','............'],
@@ -4136,7 +4140,9 @@ function gainsOf(sn){const g=[];const dx=Math.round(totXP()-sn.xp);if(dx>0)g.pus
   for(const k in s.inv){const d=(s.inv[k]||0)-(sn.inv[k]||0);if(d>0&&IT[k])g.push(`+${I(IT[k].n)}${d>1?' × '+d:''}`)}return g}
 function findA(id){const[l,sp,a]=id.split('.');return LOC[l].spots.find(x=>x.id===sp).acts.find(x=>x.id===a)}
 function findS(id){const[l,sp]=id.split('.');return LOC[l].spots.find(x=>x.id===sp)}
-const seaCost=L=>Math.max(1,SEAFOOD*(L.sea||0)-(fac('cape')>=80?1:0));
+const sextantDiscount=L=>L.sea===2&&has('sextant');
+const seaCost=L=>Math.max(1,SEAFOOD*(L.sea||0)-(fac('cape')>=80?1:0)-(sextantDiscount(L)?1:0));
+const seaPlanText=L=>`Вихід у море: ${R('prov',seaCost(L))}.`+(sextantDiscount(L)?' Секстант заощаджує 1 провізію.':'');
 function canGo(id){const L=LOC[id];if(!s.tabs.map)return[false,'Спершу треба дістатися великого острова.'];if(id==='fort'&&!s.f.reefmap&&!s.floors.study)return[false,'Острів Хибних Вогнів оточують рифи. Без лоцманської карти туди не пройти — така мала бути в Остапа, у його кабінеті.'];if(id==='fort'&&!tideLow()&&!s.f.ostap)return[false,'Прохід між рифами відкривається лише на відпливі. '+tideTxt()];if(L.sea===2&&!s.f.schooner)return[false,'Так далеко на північ дійде лише шхуна.'];if(L.sea===2&&s.r.prov<seaCost(L))return[false,`Для походу на шхуні потрібно ${seaCost(L)} провізії.`];if(L.sea&&!s.f.boat)return[false,'Туди можна дістатися лише човном.'];if(L.sea&&s.r.prov<seaCost(L))return[false,`Для виходу в море потрібно ${seaCost(L)} провізії.`];if(L.dark&&!s.eq.light)return[false,'Там темно. Візьми в руку ліхтар.'];return[true,'']}
 function laOk(id){const A=findA(id),S=findS(id);if(!A||!S)return false;
   if(S.show&&!S.show())return false;if(A.show&&!A.show())return false;if(A.once&&s.done[id])return false;
@@ -4666,7 +4672,7 @@ function shelfPopHTML(){
     const read=unread?btn('Прочитати','shelfRead',id):'';
     content=`<div class="shelf-item">${pimg(icoURL(shelfIcon(id)),56,56,'','')}
       <div><h3>${item.n}</h3><p>${fate||(unread?'Можна розгорнути й прочитати.':item.d)}</p></div></div>
-      <div class="act">${read}${show}${give}${btn('До полиці','shelfInspect','',{cls:'toggle'})}</div>`;
+      <div class="act">${read}${show}${give}${btn('До полиці','shelfInspect','',{cls:'toggle'})}</div>${id==='logpage'?navLogHTML():''}`;
   }else{
     const sets=Object.keys(OSET).filter(st=>got.some(k=>OD[k].set===st));
     const tiles=got.map(k=>`<button type="button" class="shelf-slot" data-a="shelfInspect" data-i="${k}">
@@ -4712,11 +4718,12 @@ const LOCAL_ZONES={
       planks:{label:'Оглянути обшивку',text:'Під шаром солі видно товсті дошки й зігнуті залізні скоби. Цей корпус більший за човни, розбиті в прибої.',
         x:213,y:104,art:seen=>localPlanksArt(seen)}
     },
-    background:()=>localDeckBg(),entryArt:()=>localWreckArt(),entryX:237,entryY:16},
+    background:()=>localDeckBg(),scenery:deckScenery,extra:holdDeckHint,entryArt:()=>localWreckArt(),entryX:237,entryY:16},
   hold:{tab:'shore',at:'',parent:'deck',title:()=>s.f.zinovii?'Трюм «Мартина»':'Трюм уламка',
     entry:'Спуститися в трюм',ready:martinHoldReady,entryArt:()=>deckOpenArt(),entryX:131,entryY:68,backLabel:'На палубу',
     desc:()=>s.f.rats?'У трюмі тихо. Крізь дошки чути лише воду.':'Під важкими шпангоутами пахне мокрим деревом. У світлі біля бочок ворушаться пацюки.',
-    background:()=>martinHoldBg(),
+    background:()=>martinHoldBg(),scenery:martinHoldScenery,exitArt:()=>holdLadderArt(),exitY:37,lit:1,
+    extra:p=>navLockReady(p)&&p.navStuck?'<p class="m" role="status">'+NAV_STUCK+'</p>':'',
     objects:{
       rats:{label:'Стати до бою з пацюками',ready:martinRatsReady,x:197,y:85,art:()=>holdRatsArt(),run:()=>startFight('rats',MARTIN_RATS_WIN)},
       quickRats:{label:'Швидкий бій із пацюками',ready:()=>martinRatsReady()&&quickOk('rats'),run:()=>quickFight('rats',MARTIN_RATS_WIN)},
@@ -4724,18 +4731,39 @@ const LOCAL_ZONES={
         text:'Обручі проїла сіль. На дні бочок осіла тільки волога потерть.'},
       ribs:{label:'Оглянути шпангоут',x:104,y:32,art:seen=>holdRibArt(seen),
         text:'Між кривим ребром і обшивкою застрягла нитка старої паклі. Вода ще не пройшла крізь шов.'}
+,
+      navDoor:{label:'Оглянути зачинені двері',ready:p=>s.f.rats&&!p.navDoor&&!p.navOpen,
+        x:258,y:11,art:()=>navigatorDoorArt(),next:'navMarks',text:'У засувці видно три кільця. Борозни забила сіль.',obsReady:p=>!p.navMarks,run:seeNavigatorDoor},
+      navMarks:{label:'Роздивитися кільця',ready:p=>navDoorSeen()&&!p.navMarks&&holdLight()==='storm'&&!p.navOpen,
+        x:258,y:11,art:()=>navigatorDoorArt(true),next:'ring1',
+        text:()=>NAV_MARKS,obsReady:p=>navLockReady(p),
+        run(p){p.navMarks=1;say(NAV_MARKS,'world')}},
+      ring1:navigatorRing(0,151),
+      ring2:navigatorRing(1,192),
+      ring3:navigatorRing(2,233),
+      navTry:{label:'Перевірити засувку',ready:p=>navLockReady(p),run:tryNavigatorLock,
+        x:274,y:26,artKey:p=>Number(!!p.navStuck),art:(_,p)=>navigatorLatchArt(!!p.navStuck),entry:'navigator'}
+    }},
+  navigator:{tab:'shore',at:'',parent:'hold',title:()=>NAV_TITLE,entry:'Увійти до відсіку',
+    ready:navOpenForEntry,entryArt:()=>navigatorDoorArt(true,true),entryX:258,entryY:11,lit:1,
+    backLabel:'До трюму',exitArt:()=>navigatorDoorArt(true,true),exitY:19,
+    desc:'Низькі балки сходяться над вузьким столом. Від сирості дерево взялося дрібними тріщинами.',
+    background:()=>navigatorRoomBg(),scenery:navigatorRoomScenery,
+    objects:{
+      navCache:{label:'Оглянути штурманську скриньку',ready:p=>!p.navCache,x:177,y:73,art:()=>navigatorChestArt(false),
+        run:navigatorCache,text:'Чохол і запис уже з тобою. Кришка скриньки відкинута.'},
+      table:{label:'Оглянути стіл',x:100,y:60,art:seen=>navigatorTableArt(seen),
+        text:'Край стільниці вкритий дрібними зарубками. Одна ніжка підперта тріскою, щоб стіл не хитався.'}
     }}
 };
+
 const localDef=id=>Object.prototype.hasOwnProperty.call(LOCAL_ZONES,id)?LOCAL_ZONES[id]:null;
 function localContext(id){const z=localDef(id);return !!(z&&s.tabs[z.tab]&&s.tab===z.tab&&(s.at||'')===z.at&&z.ready()&&(!z.parent||localContext(z.parent)))}
 const localCurrent=()=>localContext(s.localZone)?s.localZone:'';
 function localSanitize(){
   if(!s.localProgress||typeof s.localProgress!=='object'||Array.isArray(s.localProgress))s.localProgress={};
   if(typeof s.localZone!=='string'){s.localZone='';return}
-  if(!localCurrent()){
-    const parent=localDef(s.localZone)?.parent;
-    s.localZone=parent&&localContext(parent)?parent:'';
-  }
+  while(s.localZone&&!localCurrent())s.localZone=localDef(s.localZone)?.parent||'';
 }
 function localState(id){
   if(!localDef(id))return null;
@@ -4800,6 +4828,7 @@ function restoreWinch(){
   save();
 }
 const localBackLabel=z=>z.backLabel||(z.parent?'Назад':'На берег');
+const localLabel=(o,p)=>typeof o.label==='function'?o.label(p):o.label;
 const localObservation=(o,p)=>typeof o.text==='function'?o.text(p):o.text;
 function localZoneTick(){
   if(!atShore()||s.f.deckSeen||!s.f.wreck||!s.f.rod||(s.c.scrap||0)<12||!localCanAct()||s.dlg.length||s.tutPending.some(tutReady)||!novCan())return;
@@ -4814,11 +4843,11 @@ function rLocalZone(){
   const desc=typeof z.desc==='function'?z.desc():z.desc;
   let h='<section><h2>'+z.title()+'</h2><p>'+desc+'</p><div class="act">'+btn(localBackLabel(z),'zoneBack',id,{cls:'toggle'})+'</div>';
   for(const [k,o] of Object.entries(z.objects||{})){
-    const action=!o.ready||o.ready(p)?btn(o.label,'zoneAct',id+':'+k):'';
+    const action=!o.ready||o.ready(p)?btn(localLabel(o,p),'zoneAct',id+':'+k):'';
     const observation=p[k]&&o.text&&(!o.obsReady||o.obsReady(p))?'<p class="m">'+localObservation(o,p)+'</p>':'';
     if(action||observation)h+='<div class="tdet">'+action+observation+'</div>';
   }
-  return h+(id==='deck'?holdDeckHint(p):'')+localEntryButtons()+'</section>';
+  return h+(z.extra?.(p)||'')+localEntryButtons()+'</section>';
 }
 /* Огляд темряви, переносне світло та спільний фінал нового й старого бою. */
 const MARTIN_RATS_WIN='S:rats', MARTIN_RATS_NAME='Пацюки в трюмі';
@@ -4863,6 +4892,75 @@ function migrateMartinHold(){
   if(s.f.rats&&!s.f.deckSeen){s.f.deckSeen=1;changed=true}
   if(s.f.rats&&s.cb?.win===MARTIN_RATS_WIN){s.cb=null;changed=true}
   return changed;
+}
+/* Необов’язкова загадка «Мартина». Підказки відкривають текст, а не умови засувки. */
+const NAV_SYMBOLS=['Якір','Хвиля','Зірка','Маяк'];
+const NAV_SOLUTION=[0,2,3];
+const NAV_REVERSE='Спершу те, що тримає судно. Далі те, що веде вночі. Насамкінець — вогонь, до якого повертаємось.';
+const NAV_MARKS='Ліворуч від кілець вирізано коротку риску. Від неї читають позначки.';
+const NAV_STUCK='Засувка впирається. Кільця лишилися на місці.';
+const NAV_TITLE='Штурманський відсік';
+IT.sextant={n:'Штурманський секстант',ic:'⌁',d:'Далекі особисті морські походи коштують на 1 провізію менше.'};
+OD.navnote={doc:1,xp:0,n:'Запис штурмана',d:'«Під вечір за кормою йшло мале судно. Назви не розібрали. Лише біла риска на кормі, та й та виднілася, коли судно лягло на бік. Двічі підняли ліхтар. Відповіді не було».'};
+ODI.navnote='lore';
+
+const navDoorSeen=()=>!!(s.f.rats&&s.localProgress.hold?.navDoor);
+const navDoorOpen=()=>!!(s.f.rats&&s.localProgress.hold?.navOpen);
+const navLockReady=p=>!!(s.f.rats&&p.navDoor&&p.navMarks&&!p.navOpen&&holdLight()==='storm');
+function navOpenForEntry(){return navDoorOpen()&&!!holdLight()}
+const navLogReady=()=>navDoorSeen()&&!!s.odd.logpage;
+const navTalkReady=()=>navDoorSeen()&&!!(s.f.zinovii||s.met.zinovii||s.mst.zinovii);
+const navRings=p=>[0,1,2].map(i=>{const v=p.navRings?.[i];return Number.isInteger(v)&&v>=0&&v<NAV_SYMBOLS.length?v:1});
+
+function seeNavigatorDoor(p){
+  p.navDoor=1;
+  say('У дверях туго сидить засувка з трьома кільцями. Борозни забила сіль.','world');
+  // Давні збереження могли отримати перемогу до появи цього гарантованого документа.
+  if(!s.odd.logpage){
+    s.odd.logpage=1;s.oddNew=(s.oddNew||0)+1;
+    say('Біля дверей між дошками затисло сторінку суднового журналу.','find');
+  }
+}
+function navigatorRing(i,x){
+  return {label:p=>`Кільце ${i+1}: ${NAV_SYMBOLS[navRings(p)[i]]}`,ready:p=>navLockReady(p),x,y:27,
+    artKey:p=>navRings(p)[i],art:(_,p)=>navigatorRingArt(navRings(p)[i]),
+    run(p){const rings=navRings(p);rings[i]=(rings[i]+1)%NAV_SYMBOLS.length;p.navRings=rings;delete p.navStuck}};
+}
+function tryNavigatorLock(p){
+  if(navRings(p).every((v,i)=>v===NAV_SOLUTION[i])){
+    p.navOpen=1;delete p.navStuck;
+    say('Засувка ковзнула в паз, і двері піддалися.','world');
+  }else{
+    p.navStuck=1;
+    say(NAV_STUCK,'world');
+  }
+}
+function navLogHTML(){
+  if(!navLogReady())return '';
+  return s.localProgress.hold.navLog?'<p class="nav-reverse" tabindex="-1"><b>На звороті</b><br>'+Q(NAV_REVERSE)+'</p>':
+    btn('Оглянути зворот сторінки','navLog');
+}
+function navLog(){
+  const reading=s.tab==='journal'&&s.jt==='documents'||popB==='cl:shelf'&&shelfSelected==='logpage';
+  if(!reading||!localCanAct()||s.dlg.length||!navLogReady()||s.localProgress.hold.navLog)return;
+  s.localProgress.hold.navLog=1;readOddDocument('logpage');dirty=1;save();
+}
+function navTalkButton(){
+  return navTalkReady()?btn('Запитати Зиновія про позначки','navTalk'):'';
+}
+function navTalk(){
+  if(s.tab!=='home'||s.at||!localCanAct()||s.dlg.length||!navTalkReady())return;
+  dlg({k:'story',title:'Позначки на кільцях',img:{t:'face',id:'zinovii'},
+    body:`<p>${P('Зиновій')} згадує засувку під палубою. ${Q('Такі самі знаки штурман ставив на дощечках для вахти. Якорем мітив стоянку, хвилею — воду, зіркою — нічний курс. А маяком — вогонь, до якого ми верталися')}.</p>`});
+  s.localProgress.hold.navTalk=1;save();
+}
+function navigatorCache(p){
+  p.navCache=1;
+  if(!has('sextant'))giveI('sextant');
+  odd('navnote','',{popup:false});
+  dlg({k:'find',odd:'navnote',title:'Знахідки штурмана',img:{t:'icon',id:'sextant'},
+    body:`<p>У полотняному чохлі лежить латунний секстант, а під ним складено аркуш.</p><p>${OD.navnote.d}</p>`,
+    gains:[IT.sextant.d,'Запис штурмана можна перечитати на полиці.']});
 }
 /* ============ ЕТАП I: ІНСТРУМЕНТИ Й ПЕРШИЙ СЕКРЕТ ============
    Граблі — перший інструмент, що змінює берег: уламок віддає більше брухту.
@@ -5703,6 +5801,8 @@ function act0(a,i){
   }break;
   case 'martinLadle':martinLadleTalk(i==='find');break;
   case 'martinLog':martinLogTalk(i==='find');break;
+  case 'navLog':navLog();break;
+  case 'navTalk':navTalk();break;
   case 'winchTalk':winchTalk();break;
   case 'holdOil':holdOil();break;
   case 'scrapw':if(F.wreck&&!onCd('scrapw')){
@@ -5956,7 +6056,7 @@ function rDefense(){let h=`<section><h2>Оборона маяка${ih(`Мла з
 function rPeople(){const cap=2*(s.b.house||0),pop=s.pop||0,ms=Object.keys(MST).filter(m=>s.mst[m]);
   let h=`<section><h2>Люди маяка</h2><p>Поселенців <b>${pop}</b> з ${cap} місць у хатах; вільних рук ${V(()=>Math.max(0,freeW()))}. Майстрів: ${ms.length}. Усі разом їдять ${fr(0.02*people())} провізії/с.</p>`;
   h+=`<p class="m">${VH(()=>s.r.prov<1&&people()?'<b class="foe">Комора порожня: люди голодні й працюють гірше.</b> ':'')}${pop<cap?(s.r.prov>=5?`Наступний поселенець прийде за ${V(()=>s.popT?Math.max(0,Math.ceil((s.popT-Date.now())/1000)):60)} с.`:'Поселенці не прийдуть, поки в коморі немає 5 провізії.'):'Щоб прийшли нові поселенці, збудуй ще хату.'} Вільні поселенці збирають плавник.</p>`;
-  if(ms.length)h+=`<div class="cards">${ms.map(m=>`<div class="card pcard">${pimg(faceURL(m),48,48,'',MST[m].n)}<div><b class="npc">${MST[m].n}</b><span class="role">${MST[m].role}</span><span class="m">${MST[m].d}</span>${m==='zinovii'?(winchTopicReady()?btn('Показати механізм Зиновію','winchTalk'):'')+holdOilHTML():''}</div></div>`).join('')}</div>`;
+  if(ms.length)h+=`<div class="cards">${ms.map(m=>`<div class="card pcard">${pimg(faceURL(m),48,48,'',MST[m].n)}<div><b class="npc">${MST[m].n}</b><span class="role">${MST[m].role}</span><span class="m">${MST[m].d}</span>${m==='zinovii'?(winchTopicReady()?btn('Показати механізм Зиновію','winchTalk'):'')+holdOilHTML()+navTalkButton():''}</div></div>`).join('')}</div>`;
   return h+`</section>`}
 const scnD=()=>`--d:-${((Date.now()/1000)%30).toFixed(2)}s;--d2:-${((Date.now()/1000)%180).toFixed(2)}s`;
 function homeScene(){return`<div class="scn yd" data-scn="yd" style="${scnD()}"><span data-sk="bg" data-sig="bg" class="scbg">${VH(yardBgImg)}</span>${homeHS()}</div>`}
@@ -5973,6 +6073,7 @@ function rHome(){let h=`<div>`;
   h+=`<details class="alist"><summary>Усі дії списком</summary><div>${al}</div></details></section>`;
   if(thrOn())h+=rDefense();
   if(s.f.people)h+=rPeople();
+  if((!s.f.people||!s.mst.zinovii)&&navTalkReady())h+='<section><div class="act">'+navTalkButton()+'</div></section>';
   const vis=BD.filter(b=>b.show());
   if(vis.length){h+=`<section class="ledger"><details class="ledg"${s.ldOpen?' open':''}><summary><span class="lgt">Книга обліку</span><span class="m"> · усі будівлі одним списком</span></summary><h2 class="sr">Господарство${ih(`Цехи автоматично бережуть резерв сировини. Дозволь витрачати резерв для окремого цеху або вимкни цех зовсім.${s.f.people?' Робітник додає будівлі пів рівня, а майстер у своїй будівлі подвоює все.':''}`)}</h2>`;
     for(const b of vis){const n=s.b[b.id]||0,w=(s.wk||{})[b.id]||0,mx=b.max&&n>=b.max;
@@ -6182,11 +6283,11 @@ function rMapList(){const u=0;
 
   if(scanTarget())h+=`<div class="row"><div><b>Далекогляд</b><br><span class="m">Пробити млу й знайти нове місце.</span></div>${btn(`Оглянути обрій (${R('ember',fmt(scanCost()))})`,'scan','',{ok:()=>s.r.ember>=scanCost()})}</div>`;
   h+=`<div class="row"><div><b>Сигнальне вогнище</b><br><span class="m">Великий вогонь на оглядовій кличе кораблі, що минають шхери. Вони скидають вантаж. Раз на дві хвилини.</span></div>${btn(`Запалити (${R('ember',fmt(sigCost()))})`,'signal','',{ok:()=>s.r.ember>=sigCost(),cd:'signal',cs:120})}</div>`;
-  h+=`</section><section><h2>Відомі місця</h2>${s.f.boat?`<p class="m">Вихід у море коштує ${R('prov',SEAFOOD)}${s.f.schooner?`, похід на шхуні — ${R('prov',SEAFOOD*2)}`:''}.</p>`:''}<div class="lcards">`;
+  h+=`</section><section><h2>Відомі місця</h2><div class="lcards">`;
   for(const id in LOC)if(s.disc[id]){const L=LOC[id],[ok,why]=canGo(id);
     const sk=(s.seenK||{}).map||{},newA=tabKeys('map').some(k=>k.indexOf('a:'+id+'.')===0&&!sk[k]);
     const tags=[s.visited[id]?'<span class="chip">відвідано</span>':'<span class="chip new">нове</span>',s.visited[id]&&newA?'<span class="chip new">нові справи</span>':'',L.sea===2?'<span class="chip">шхуна</span>':L.sea?'<span class="chip">море</span>':'',L.dark?'<span class="chip">темрява</span>':''].join('');
-    h+=`<div class="lcard">${pimg(sceneURL(LSC(id)),192,80,'thumb')}<div class="lbody"><b class="pl">${L.n}</b><div class="chips">${tags}</div><span class="m">${id==='fort'?V(()=>canGo(id)[1]||L.d):why||L.d}</span>${btn('Вирушити','go',id,{ok:()=>canGo(id)[0]})}</div></div>`}
+    h+=`<div class="lcard">${pimg(sceneURL(LSC(id)),192,80,'thumb')}<div class="lbody"><b class="pl">${L.n}</b><div class="chips">${tags}</div><span class="m">${id==='fort'?V(()=>canGo(id)[1]||L.d):why||L.d}</span>${L.sea&&s.f.boat?`<p class="m">${seaPlanText(L)}</p>`:''}${btn('Вирушити','go',id,{ok:()=>canGo(id)[0]})}</div></div>`}
   return h+`</div></section>`}
 function rBells(){let h=BELLS.map((b,i)=>`<div class="act">${btn(b[0],'bell',i)}<span class="m">${b[1]}</span></div>`).join('');
   h+=`<p class="m">Пролунало: ${s.bell.length?s.bell.map(i=>BELLS[i][0].split(' ')[0].toLowerCase()).join(', '):'поки тиша'}.</p>`;
@@ -6236,7 +6337,7 @@ function rJournal(){const documents=oddDocumentIds(),kills=Object.values(s.kills
   if(s.jt==='foes')h+=`<div class="cards">${Object.keys(EN).filter(k=>s.seenE[k]&&!EN[k].obj&&!EN[k].ally).map(k=>{const e=EN[k];return`<div class="card"><div class="pcard">${pimg(sprURL(k),64,64,'',e.n)}<div><b class="foe">${e.n}</b><span class="m">${e.d}</span></div></div>
     <div class="stats"><span>здоров’я<b>${e.hp}</b></span><span>броня<b>${e.arm}</b></span><span>ухилення<b>${e.eva}%</b></span><span>хід<b>${e.mv}${e.fly?' лет':''}${e.swim?' вода':''}</b></span></div>
     <div>${e.p.map(x=>`<span class="habit">${x[2].toLowerCase()}${x[1]&&x[0]!=='heal'?' '+x[1]:''}</span>`).join('')}</div><p class="m" style="margin:6px 0 0">Переможено: ${s.kills[k]||0}</p></div>`}).join('')}</div>`;
-  if(s.jt==='documents')h+=`<div class="notes">${documents.map(id=>`<article class="note"><h3>${OD[id].n}</h3><p>${OD[id].d}</p></article>`).join('')}</div>`;
+  if(s.jt==='documents')h+=`<div class="notes">${documents.map(id=>`<article class="note"><h3>${OD[id].n}</h3><p>${OD[id].d}</p>${id==='logpage'?navLogHTML():''}</article>`).join('')}</div>`;
   if(s.jt==='gloss')h+=`<p class="m ink">Старі морські слова, які трапляються в записах. У тексті вони підкреслені пунктиром: наведи курсор або торкнися, щоб побачити пояснення.</p><dl class="gloss">${GLOS.filter(g=>(s.glSeen||{})[g[0]]).map(g=>`<dt><b>${g[1]}</b></dt><dd class="ink">${g[2].charAt(0).toUpperCase()+g[2].slice(1)}</dd>`).join('')}</dl>`;
   if(s.jt==='help')h+='<p class="m">Пояснення вже відкритих механік.</p>'+tutListHTML();
   if(s.jt==='log')h+=`<ul class="logl">${s.log.slice(0,40).map(x=>{x=logOf(x);return`<li><span class="tag t-${x.t}">${TAGN[x.t]}</span><span class="ev-text">${x.m}</span><time>${ago(x.at)}</time></li>`}).join('')}</ul>`;
@@ -6367,6 +6468,7 @@ function restoreTideFocus(el,root){
   if(!root||el.isConnected||document.activeElement!==document.body)return;
   const match=el.tagName==='SUMMARY'?root.querySelector('summary'):[...root.querySelectorAll('[data-a]')].find(b=>!b.disabled&&
     (el.dataset.sk?b.dataset.sk===el.dataset.sk:b.dataset.a===el.dataset.a&&b.dataset.i===el.dataset.i));
+  if(el.dataset.a==='navLog'){root.querySelector('.nav-reverse')?.focus();return}
   if(el.dataset.a==='zoneEnter'){
     root.querySelector('[data-a="zoneBack"]')?.focus();
     return;
@@ -6400,7 +6502,7 @@ function render(){
   paintingTide=!!tide&&!!paintedTide&&tide!==paintedTide&&lastView===view;
   const focused=document.activeElement;
   const action=focused?.dataset?.a;
-  const keepFocus=paintingTide||['mussels','hookWater','rakeSand'].includes(action)||action?.startsWith('zone')||action==='equip'&&localCurrent()==='deck'||focused?.closest?.('.shore-recovery');
+  const keepFocus=paintingTide||['mussels','hookWater','rakeSand','navLog'].includes(action)||action?.startsWith('zone')||action==='equip'&&localCurrent()==='deck'||focused?.closest?.('.shore-recovery');
   const el=keepFocus?focused:null,root=el?.closest('#stage,#main,#popl,#tabs');
   paintedTide=tide;
   try{renderView();restoreTideFocus(el,root)}finally{tideRenderTime=null;paintingTide=false}
@@ -7390,18 +7492,17 @@ function localZoneScene(){
   if(!z)return '';
   const W=LZW,H=LZH,p=localState(id);
   let h='<span data-sk="bg" data-sig="bg" class="scbg">'+VH(()=>pimg(pxURL('zone:bg:'+id,()=>HI(z.background)()),960,450,'scene',z.title()))+'</span>';
-  const inHold=id==='hold';
-  h+=inHold?martinHoldScenery():deckScenery(p);
-  const back=inHold?holdLadderArt:localExitArt;
-  h+=ob('zone:back:'+id,'zoneBack',id,obURL('zone:exit:'+id,()=>HI(back)()),26,inHold?37:96,W,H,localBackLabel(z),'<b>Вихід</b>');
+  h+=z.scenery?.(p)||'';
+  h+=ob('zone:back:'+id,'zoneBack',id,obURL('zone:exit:'+id,()=>HI(z.exitArt||localExitArt)()),26,z.exitY??96,W,H,localBackLabel(z),'<b>Вихід</b>');
   for(const [k,o] of Object.entries(z.objects||{})){
     if(o.ready&&!o.ready(p)||!o.art)continue;
-    const seen=!!p[k],art=obURL('zone:obj:'+id+':'+k+':'+Number(seen),()=>HI(o.art)(seen));
-    const tip='<b>'+o.label+'</b>'+(seen&&o.text?'<br>'+localObservation(o,p):'');
-    h+=ob('zone:'+id+':'+k,'zoneAct',id+':'+k,art,o.x,o.y,W,H,o.label,tip);
+    const seen=!!p[k],key=o.artKey?.(p)??Number(seen);
+    const art=obURL('zone:obj:'+id+':'+k+':'+key,()=>HI(o.art)(seen,p)),label=localLabel(o,p);
+    const tip='<b>'+label+'</b>'+(seen&&o.text?'<br>'+localObservation(o,p):'');
+    h+=ob('zone:'+id+':'+k,'zoneAct',id+':'+k,art,o.x,o.y,W,H,label,tip);
   }
   h+=localEntryHS(W,H);
-  const light=inHold?' data-light="'+holdLight()+'"':'';
+  const light=z.lit?' data-light="'+holdLight()+'"':'';
   return '<div class="scn" data-scn="zone-'+id+'"'+light+' style="'+scnD()+'">'+h+'</div>';
 }
 /* ============ МАПА: морська карта на пергаменті ============
@@ -7455,7 +7556,7 @@ function mapPopHTML(id){const card=(nm,lv,body,act)=>`<div class="bpop" role="di
     if(s.floors.gallery)b+=`<div class="row"><span><b>Сигнальне вогнище</b><br><span class="m">Великий вогонь кличе кораблі, що минають шхери. Вони скидають вантаж. Раз на дві хвилини.</span></span>${btn('Запалити','signal','',{ok:()=>s.r.ember>=sigCost(),cd:'signal',cs:120})}<span class="ccs">${R('ember',fmt(sigCost()))}</span></div>`;
     if(!b)b='<p class="hand">Звідси видно лише найближчі береги. Вище, з оглядової, було б видно далі.</p>';return card('Маяк','',`<div class="rlist">${b}</div>`,a)}
   const L=LOC[k];if(!L||!s.disc[k])return'';const[ok,why]=canGo(k);const tags=[s.visited[k]?'відвідано':'нове',L.sea===2?'шхуна':L.sea?'море':'',L.dark?'темрява':''].filter(Boolean).map(t=>`<span class="chip">${t}</span>`).join(' ');
-  return card(L.n,'',`${pimg(pxURL('lc3:'+lcSig(k)+':'+GR,()=>lkBg3(k)),264,147,'thumb')}<div class="chips">${tags}</div><p class="m">${k==='fort'?V(()=>canGo(k)[1]||L.d):why||L.d}</p>${L.sea&&s.f.boat?`<p class="m">Вихід у море: ${R('prov',seaCost(L))}.</p>`:''}`,btn('Вирушити','go',k,{ok:()=>canGo(k)[0],cls:'main'}))}
+  return card(L.n,'',`${pimg(pxURL('lc3:'+lcSig(k)+':'+GR,()=>lkBg3(k)),264,147,'thumb')}<div class="chips">${tags}</div><p class="m">${k==='fort'?V(()=>canGo(k)[1]||L.d):why||L.d}</p>${L.sea&&s.f.boat?`<p class="m">${seaPlanText(L)}</p>`:''}`,btn('Вирушити','go',k,{ok:()=>canGo(k)[0],cls:'main'}))}
 /* Трюм «Мартина». Геометрія однакова під обома переносними джерелами світла. */
 function deckOpenArt(){
   const b=pbuf(67,45);
@@ -7553,7 +7654,128 @@ function martinHoldScenery(){
     ?{x:97,y:78,r:230,e:.54,c:[192,216,209],a:.8,n:4}
     :{x:104,y:91,r:146,e:.62,c:WARM,a:.76,n:4};
   h+=lightLayers(W,H,{fire:storm?[]:[glow],win:storm?[glow]:[]});
-  return h;
+  return h+navigatorHoldScenery(localState('hold'));
+}
+/* Латунь, темне дерево й чотири піктограми засувки. */
+function navigatorDoorArt(marked=false,open=false){
+  const b=pbuf(51,60);
+  ppoly(b,[[2,10],[46,1],[49,53],[5,58]],'8');
+  ppoly(b,[[5,12],[42,5],[43,50],[8,55]],open?'0':'c');
+  for(let x=10;x<43;x+=8)pline(b,x,14,x+1,51,open?'0':'d');
+  pline(b,5,12,8,55,'a');pline(b,6,11,43,4,'d');
+  if(open){
+    ppoly(b,[[35,8],[49,2],[49,50],[36,56]],'d');
+    pline(b,36,11,37,53,'e');
+    pline(b,12,50,34,48,'9');
+  }else{
+    pline(b,8,23,42,17,'9');pline(b,8,43,43,36,'9');
+    ppoly(b,[[13,28],[35,24],[38,34],[14,38]],marked?'e':'9');
+    for(const x of [19,25,31])prect(b,x,29,3,4,marked?'g':'a');
+  }
+  return b;
+}
+function navigatorSymbol(b,index,x,y){
+  const c='h';
+  if(index===0){ // Якір
+    prect(b,x+7,y,3,3,c);pline(b,x+8,y+3,x+8,y+15,c);pline(b,x+4,y+5,x+12,y+5,c);
+    pline(b,x+1,y+10,x+4,y+14,c);pline(b,x+4,y+14,x+12,y+14,c);pline(b,x+12,y+14,x+15,y+10,c);
+  }else if(index===1){ // Хвиля
+    for(const dy of [1,8]){
+      pline(b,x,y+dy+6,x+5,y+dy+2,c);pline(b,x+5,y+dy+2,x+12,y+dy+4,c);
+      pline(b,x+12,y+dy+4,x+16,y+dy+1,c);
+    }
+  }else if(index===2){ // Зірка
+    ppoly(b,[[x+8,y],[x+10,y+6],[x+16,y+8],[x+10,y+10],[x+8,y+16],[x+6,y+10],[x,y+8],[x+6,y+6]],c);
+  }else{ // Маяк
+    ppoly(b,[[x+5,y+16],[x+6,y+6],[x+4,y+5],[x+8,y+1],[x+12,y+5],[x+10,y+6],[x+12,y+16]],c);
+    prect(b,x+8,y+6,2,3,'c');pline(b,x+12,y+6,x+16,y+4,c);pline(b,x+1,y+4,x+4,y+6,c);
+  }
+}
+function navigatorRingArt(index){
+  const b=pbuf(37,36);
+  polyFill(b,[[10,2],[26,2],[34,10],[34,26],[26,33],[10,33],[3,26],[3,10]],(x,y)=>pset(b,x,y,y<18?'a':'8'));
+  ppoly(b,[[11,5],[25,5],[31,11],[31,24],[25,30],[11,30],[6,24],[6,11]],'d');
+  ppoly(b,[[12,8],[24,8],[28,12],[28,23],[24,27],[12,27],[9,23],[9,12]],'c');
+  navigatorSymbol(b,index,10,10);
+  return b;
+}
+function navigatorLatchArt(stuck){
+  const b=pbuf(34,38);
+  ppoly(b,[[5,6],[29,6],[30,30],[8,33],[4,26]],'9');
+  prect(b,9,11,16,13,'c');prect(b,10,12,14,2,'e');
+  pline(b,11,24,25,stuck?15:21,stuck?'n':'g');
+  prect(b,22,stuck?14:20,5,5,'a');
+  return b;
+}
+function navigatorLockPlate(){
+  const b=pbuf(175,51);
+  ppoly(b,[[1,4],[171,4],[174,44],[0,50]],'8');
+  ppoly(b,[[4,7],[167,7],[168,41],[4,44]],'c');
+  pline(b,4,8,168,8,'a');pline(b,5,43,169,40,'d');
+  prect(b,8,17,2,15,'h'); // Початок читання кілець.
+  for(const x of [5,165]){pset(b,x,12,'e');pset(b,x,37,'e')}
+  return b;
+}
+function navigatorHoldScenery(p){
+  const W=LZW,H=LZH;
+  if(navLockReady(p))return ob('navigator:plate','','',obURL('nav:plate',()=>HI(navigatorLockPlate)()),134,20,W,H,'','',{z:10});
+  if(navDoorSeen()&&holdLight()!=='storm'&&!p.navOpen)return ob('navigator:closed','','',obURL('nav:closed',()=>HI(navigatorDoorArt)()),258,11,W,H,'','');
+  return '';
+}
+
+function navigatorRoomBg(){
+  const b=pbuf(LZW,LZH,'0'),R=rng(217);
+  ppoly(b,[[12,12],[299,3],[311,91],[0,103]],'8');
+  ppoly(b,[[0,103],[311,91],[320,150],[0,150]],'c');
+  for(let y=28;y<102;y+=9){
+    pline(b,8,y,306,y-7,'0');pline(b,9,y+2,306,y-5,'9');
+  }
+  for(let x=-34;x<360;x+=31)pline(b,165+(x-165)*.67,96,x,150,'d');
+  for(let i=0;i<850;i++){
+    const x=Math.floor(R()*320),y=Math.floor(R()*150),under=pget(b,x,y);
+    if(under==='8'||under==='c')prect(b,x,y,1+(R()<.25?2:0),1,under==='8'?'9':'8');
+  }
+  for(const [x,y] of [[9,17],[85,13],[235,6],[298,0]]){
+    ppoly(b,[[x,y],[x+12,y],[x+14,y+93],[x+3,y+98]],'0');
+    pline(b,x+8,y+1,x+10,y+88,'c');pline(b,x+9,y+9,x+12,y+89,'d');
+  }
+  ppoly(b,[[0,1],[320,0],[320,13],[134,26],[0,16]],'0');
+  pline(b,0,14,134,25,'9');pline(b,134,25,319,12,'9');
+  ppoly(b,[[201,34],[238,29],[243,37],[204,43]],'c');
+  pline(b,204,43,243,37,'d');
+  return b;
+}
+function navigatorTableArt(seen){
+  const b=pbuf(61,53);
+  ppoly(b,[[3,11],[47,4],[60,12],[16,22]],'d');
+  ppoly(b,[[16,22],[60,12],[60,20],[16,29]],'c');
+  pline(b,8,13,47,6,'e');pline(b,19,22,56,14,'a');
+  for(const [x,y] of [[12,24],[46,20]]){
+    ppoly(b,[[x,y],[x+6,y],[x+5,y+25],[x,y+27]],'8');
+    pline(b,x+2,y,x+1,y+22,'d');
+  }
+  for(let x=24;x<52;x+=5)pset(b,x,21-(x-24)/4,seen?'a':'9');
+  return b;
+}
+function navigatorChestArt(open){
+  const b=pbuf(52,44);
+  ppoly(b,[[2,22],[37,15],[50,23],[50,35],[13,43],[3,38]],'8');
+  ppoly(b,[[4,22],[36,16],[48,23],[14,31]],open?'0':'d');
+  ppoly(b,[[14,31],[48,23],[48,33],[14,41]],'c');
+  for(const x of [20,37])pline(b,x,29-(x-20)/5,x,38-(x-20)/5,'a');
+  if(open){
+    ppoly(b,[[4,23],[5,11],[36,3],[36,16]],'c');pline(b,6,11,35,4,'e');
+    pline(b,8,24,35,18,'9');
+  }else{
+    pline(b,7,24,36,18,'e');prect(b,27,29,6,4,'9');pset(b,29,30,'g');
+  }
+  return b;
+}
+function navigatorRoomScenery(p){
+  const W=LZW,H=LZH,storm=holdLight()==='storm';
+  const chest=p.navCache?ob('nav:empty','','',obURL('nav:empty',()=>HI(navigatorChestArt)(true)),177,73,W,H,'',''):'';
+  const glow=storm?{x:114,y:71,r:219,e:.6,c:[192,216,209],n:4}:{x:110,y:84,r:155,e:.63,c:WARM,n:4};
+  return chest+lightLayers(W,H,{fire:storm?[]:[glow],win:storm?[glow]:[]});
 }
 /* Об’єкт на камені та предмет у торбі походять із PR #67 (Vitaliy Sazoniuk і Codex). */
 IT.mussel={n:'Мідії',ic:'()',use:'heal',v:6,d:'Відновлюють 6 здоров’я. У бою з пояса за 1 ОД.'};

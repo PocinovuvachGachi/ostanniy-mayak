@@ -276,6 +276,68 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     A(!await fight.count()&&await barrels.count()===1&&await checkPoints(hold)
       &&await p.evaluate(()=>s.f.rats&&s.odd.logpage&&document.documentElement.scrollWidth<=innerWidth),
       'після перемоги доступний очищений трюм та судновий журнал · '+width);
+    const door=hold.locator('[data-i="hold:navDoor"]');
+    const marks=hold.locator('[data-i="hold:navMarks"]');
+    const rings=hold.locator('[data-i^="hold:ring"]');
+    A(await door.count()===1&&!await rings.count()&&!await currentList.innerText().then(t=>/секстант|штурманський відсік/i.test(t)),
+      'після бою видно лише двері · '+width);
+    await door.focus();await p.keyboard.press('Enter');
+    if(width===390)A(!await marks.count(),'каганець показує двері, але не підсвічує мітки');
+    await p.evaluate(()=>{s.tabs.journal=1;render();save()});
+    const logHint=async()=>{
+      await tab('journal').click();
+      await currentList.locator('[data-a="jt"][data-i="documents"]').click();
+      const flip=currentList.locator('[data-a="navLog"]');
+      await flip.focus();await p.keyboard.press('Enter');
+      A(await currentList.locator('.nav-reverse').evaluate(e=>e===document.activeElement&&e.textContent.includes('те, що тримає судно')),
+        'зворот доступний у прочитаному журналі з клавіатури · '+width);
+    };
+    const talkHint=async()=>{
+      await tab('home').click();
+      await currentList.locator('[data-a="navTalk"]').click();
+      A(await p.locator('#dlg').innerText().then(t=>t.includes('Зірк')||t.includes('зіркою')),
+        'Зиновій пояснює позначки · '+width);
+      await p.locator('#dlg .dlgbg:not(.fo) [data-a="dlgok"]').click();
+    };
+    if(width===390){await logHint();await talkHint()}else{await talkHint();await logHint()}
+    await p.evaluate(()=>{if(!has('storm'))giveI('storm');act('equip','storm');render()});
+    await tab('shore').click();await entry.click();await down.click();
+    await marks.focus();await p.keyboard.press('Enter');
+    const ring1=rings.first();
+    A(await ring1.evaluate(e=>e===document.activeElement)&&await rings.count()===3&&await checkPoints(hold),
+      'риска, три кільця й доступні сценічні точки · '+width);
+    const lock=hold.locator('[data-i="hold:navTry"]');
+    await lock.click();
+    A(await currentList.locator('[role="status"]').innerText().then(t=>t.includes('Кільця лишилися')),
+      'хибна відповідь дає підказку без скидання · '+width);
+    const beforeRing=await art(ring1);
+    await ring1.focus();await p.keyboard.press('Enter');
+    A(await ring1.getAttribute('aria-label')==='Кільце 1: Зірка'&&beforeRing!==await art(ring1)
+      &&await ring1.evaluate(e=>e===document.activeElement&&(innerWidth>390||getComputedStyle(e).animationName==='none')),
+      'поворот змінює піктограму й назву та лишає фокус · '+width);
+    await p.reload();await hold.waitFor();
+    A(await ring1.getAttribute('aria-label')==='Кільце 1: Зірка'&&!await currentList.locator('[role="status"]').count(),
+      'позиція кільця зберігається після reload · '+width);
+    const lockScope=width===390?currentList:hold;
+    const ring=id=>lockScope.locator('[data-i="hold:'+id+'"]');
+    await ring('ring1').click();await ring('ring1').click();await ring('ring2').click();
+    await ring('ring3').click();await ring('ring3').click();
+    const tryLock=ring('navTry'),goNav=lockScope.locator('[data-a="zoneEnter"][data-i="navigator"]');
+    await tryLock.focus();await p.keyboard.press('Enter');
+    A(await goNav.evaluate(e=>e===document.activeElement)&&!await rings.count(),'відкрита засувка переводить фокус на вхід · '+width);
+    await p.keyboard.press('Enter');
+    const nav=p.locator('[data-scn="zone-navigator"]');
+    const cache=nav.locator('[data-i="navigator:navCache"]');
+    A(await checkPoints(nav)&&await nav.evaluate(e=>e.getBoundingClientRect().width<=innerWidth),
+      'відсік цілком у кадрі, точки доступні · '+width);
+    await cache.focus();await p.keyboard.press('Enter');
+    A(await p.evaluate(()=>s.odd.navnote&&s.inv.sextant===1)&&!await cache.count(),'забрано секстант і документ · '+width);
+    const reward=p.locator('#dlg .dlgbg:not(.fo) [data-a="dlgok"]');
+    if(await reward.count())await reward.click();
+    await p.reload();await nav.waitFor();
+    A(!await cache.count()&&await p.evaluate(()=>s.odd.navnote&&s.inv.sextant===1),'нагорода одноразова після reload · '+width);
+    await p.evaluate(()=>{act('unequip','light');render();save()});
+    A(await deck.count()===1&&!await nav.count(),'втрата світла піднімає з відсіку на палубу · '+width);
     await p.close();
   }
 

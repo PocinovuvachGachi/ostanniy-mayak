@@ -201,17 +201,16 @@ function localZoneScene(){
   if(!z)return '';
   const W=LZW,H=LZH,p=localState(id);
   let h='<span data-sk="bg" data-sig="bg" class="scbg">'+VH(()=>pimg(pxURL('zone:bg:'+id,()=>HI(z.background)()),960,450,'scene',z.title()))+'</span>';
-  const inHold=id==='hold';
-  h+=inHold?martinHoldScenery():deckScenery(p);
-  const back=inHold?holdLadderArt:localExitArt;
-  h+=ob('zone:back:'+id,'zoneBack',id,obURL('zone:exit:'+id,()=>HI(back)()),26,inHold?37:96,W,H,localBackLabel(z),'<b>Вихід</b>');
+  h+=z.scenery?.(p)||'';
+  h+=ob('zone:back:'+id,'zoneBack',id,obURL('zone:exit:'+id,()=>HI(z.exitArt||localExitArt)()),26,z.exitY??96,W,H,localBackLabel(z),'<b>Вихід</b>');
   for(const [k,o] of Object.entries(z.objects||{})){
     if(o.ready&&!o.ready(p)||!o.art)continue;
-    const seen=!!p[k],art=obURL('zone:obj:'+id+':'+k+':'+Number(seen),()=>HI(o.art)(seen));
-    const tip='<b>'+o.label+'</b>'+(seen&&o.text?'<br>'+localObservation(o,p):'');
-    h+=ob('zone:'+id+':'+k,'zoneAct',id+':'+k,art,o.x,o.y,W,H,o.label,tip);
+    const seen=!!p[k],key=o.artKey?.(p)??Number(seen);
+    const art=obURL('zone:obj:'+id+':'+k+':'+key,()=>HI(o.art)(seen,p)),label=localLabel(o,p);
+    const tip='<b>'+label+'</b>'+(seen&&o.text?'<br>'+localObservation(o,p):'');
+    h+=ob('zone:'+id+':'+k,'zoneAct',id+':'+k,art,o.x,o.y,W,H,label,tip);
   }
   h+=localEntryHS(W,H);
-  const light=inHold?' data-light="'+holdLight()+'"':'';
+  const light=z.lit?' data-light="'+holdLight()+'"':'';
   return '<div class="scn" data-scn="zone-'+id+'"'+light+' style="'+scnD()+'">'+h+'</div>';
 }

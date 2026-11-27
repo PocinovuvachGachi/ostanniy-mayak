@@ -108,7 +108,7 @@ function shelfPopHTML(){
     const read=unread?btn('Прочитати','shelfRead',id):'';
     content=`<div class="shelf-item">${pimg(icoURL(shelfIcon(id)),56,56,'','')}
       <div><h3>${item.n}</h3><p>${fate||(unread?'Можна розгорнути й прочитати.':item.d)}</p></div></div>
-      <div class="act">${read}${show}${give}${btn('До полиці','shelfInspect','',{cls:'toggle'})}</div>`;
+      <div class="act">${read}${show}${give}${btn('До полиці','shelfInspect','',{cls:'toggle'})}</div>${id==='logpage'?navLogHTML():''}`;
   }else{
     const sets=Object.keys(OSET).filter(st=>got.some(k=>OD[k].set===st));
     const tiles=got.map(k=>`<button type="button" class="shelf-slot" data-a="shelfInspect" data-i="${k}">

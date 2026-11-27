@@ -34,11 +34,12 @@ const LOCAL_ZONES={
       planks:{label:'Оглянути обшивку',text:'Під шаром солі видно товсті дошки й зігнуті залізні скоби. Цей корпус більший за човни, розбиті в прибої.',
         x:213,y:104,art:seen=>localPlanksArt(seen)}
     },
-    background:()=>localDeckBg(),entryArt:()=>localWreckArt(),entryX:237,entryY:16},
+    background:()=>localDeckBg(),scenery:deckScenery,extra:holdDeckHint,entryArt:()=>localWreckArt(),entryX:237,entryY:16},
   hold:{tab:'shore',at:'',parent:'deck',title:()=>s.f.zinovii?'Трюм «Мартина»':'Трюм уламка',
     entry:'Спуститися в трюм',ready:martinHoldReady,entryArt:()=>deckOpenArt(),entryX:131,entryY:68,backLabel:'На палубу',
     desc:()=>s.f.rats?'У трюмі тихо. Крізь дошки чути лише воду.':'Під важкими шпангоутами пахне мокрим деревом. У світлі біля бочок ворушаться пацюки.',
-    background:()=>martinHoldBg(),
+    background:()=>martinHoldBg(),scenery:martinHoldScenery,exitArt:()=>holdLadderArt(),exitY:37,lit:1,
+    extra:p=>navLockReady(p)&&p.navStuck?'<p class="m" role="status">'+NAV_STUCK+'</p>':'',
     objects:{
       rats:{label:'Стати до бою з пацюками',ready:martinRatsReady,x:197,y:85,art:()=>holdRatsArt(),run:()=>startFight('rats',MARTIN_RATS_WIN)},
       quickRats:{label:'Швидкий бій із пацюками',ready:()=>martinRatsReady()&&quickOk('rats'),run:()=>quickFight('rats',MARTIN_RATS_WIN)},
@@ -46,18 +47,39 @@ const LOCAL_ZONES={
         text:'Обручі проїла сіль. На дні бочок осіла тільки волога потерть.'},
       ribs:{label:'Оглянути шпангоут',x:104,y:32,art:seen=>holdRibArt(seen),
         text:'Між кривим ребром і обшивкою застрягла нитка старої паклі. Вода ще не пройшла крізь шов.'}
+,
+      navDoor:{label:'Оглянути зачинені двері',ready:p=>s.f.rats&&!p.navDoor&&!p.navOpen,
+        x:258,y:11,art:()=>navigatorDoorArt(),next:'navMarks',text:'У засувці видно три кільця. Борозни забила сіль.',obsReady:p=>!p.navMarks,run:seeNavigatorDoor},
+      navMarks:{label:'Роздивитися кільця',ready:p=>navDoorSeen()&&!p.navMarks&&holdLight()==='storm'&&!p.navOpen,
+        x:258,y:11,art:()=>navigatorDoorArt(true),next:'ring1',
+        text:()=>NAV_MARKS,obsReady:p=>navLockReady(p),
+        run(p){p.navMarks=1;say(NAV_MARKS,'world')}},
+      ring1:navigatorRing(0,151),
+      ring2:navigatorRing(1,192),
+      ring3:navigatorRing(2,233),
+      navTry:{label:'Перевірити засувку',ready:p=>navLockReady(p),run:tryNavigatorLock,
+        x:274,y:26,artKey:p=>Number(!!p.navStuck),art:(_,p)=>navigatorLatchArt(!!p.navStuck),entry:'navigator'}
+    }},
+  navigator:{tab:'shore',at:'',parent:'hold',title:()=>NAV_TITLE,entry:'Увійти до відсіку',
+    ready:navOpenForEntry,entryArt:()=>navigatorDoorArt(true,true),entryX:258,entryY:11,lit:1,
+    backLabel:'До трюму',exitArt:()=>navigatorDoorArt(true,true),exitY:19,
+    desc:'Низькі балки сходяться над вузьким столом. Від сирості дерево взялося дрібними тріщинами.',
+    background:()=>navigatorRoomBg(),scenery:navigatorRoomScenery,
+    objects:{
+      navCache:{label:'Оглянути штурманську скриньку',ready:p=>!p.navCache,x:177,y:73,art:()=>navigatorChestArt(false),
+        run:navigatorCache,text:'Чохол і запис уже з тобою. Кришка скриньки відкинута.'},
+      table:{label:'Оглянути стіл',x:100,y:60,art:seen=>navigatorTableArt(seen),
+        text:'Край стільниці вкритий дрібними зарубками. Одна ніжка підперта тріскою, щоб стіл не хитався.'}
     }}
 };
+
 const localDef=id=>Object.prototype.hasOwnProperty.call(LOCAL_ZONES,id)?LOCAL_ZONES[id]:null;
 function localContext(id){const z=localDef(id);return !!(z&&s.tabs[z.tab]&&s.tab===z.tab&&(s.at||'')===z.at&&z.ready()&&(!z.parent||localContext(z.parent)))}
 const localCurrent=()=>localContext(s.localZone)?s.localZone:'';
 function localSanitize(){
   if(!s.localProgress||typeof s.localProgress!=='object'||Array.isArray(s.localProgress))s.localProgress={};
   if(typeof s.localZone!=='string'){s.localZone='';return}
-  if(!localCurrent()){
-    const parent=localDef(s.localZone)?.parent;
-    s.localZone=parent&&localContext(parent)?parent:'';
-  }
+  while(s.localZone&&!localCurrent())s.localZone=localDef(s.localZone)?.parent||'';
 }
 function localState(id){
   if(!localDef(id))return null;
@@ -122,6 +144,7 @@ function restoreWinch(){
   save();
 }
 const localBackLabel=z=>z.backLabel||(z.parent?'Назад':'На берег');
+const localLabel=(o,p)=>typeof o.label==='function'?o.label(p):o.label;
 const localObservation=(o,p)=>typeof o.text==='function'?o.text(p):o.text;
 function localZoneTick(){
   if(!atShore()||s.f.deckSeen||!s.f.wreck||!s.f.rod||(s.c.scrap||0)<12||!localCanAct()||s.dlg.length||s.tutPending.some(tutReady)||!novCan())return;
@@ -136,9 +159,9 @@ function rLocalZone(){
   const desc=typeof z.desc==='function'?z.desc():z.desc;
   let h='<section><h2>'+z.title()+'</h2><p>'+desc+'</p><div class="act">'+btn(localBackLabel(z),'zoneBack',id,{cls:'toggle'})+'</div>';
   for(const [k,o] of Object.entries(z.objects||{})){
-    const action=!o.ready||o.ready(p)?btn(o.label,'zoneAct',id+':'+k):'';
+    const action=!o.ready||o.ready(p)?btn(localLabel(o,p),'zoneAct',id+':'+k):'';
     const observation=p[k]&&o.text&&(!o.obsReady||o.obsReady(p))?'<p class="m">'+localObservation(o,p)+'</p>':'';
     if(action||observation)h+='<div class="tdet">'+action+observation+'</div>';
   }
-  return h+(id==='deck'?holdDeckHint(p):'')+localEntryButtons()+'</section>';
+  return h+(z.extra?.(p)||'')+localEntryButtons()+'</section>';
 }
