@@ -87,7 +87,7 @@ function bpopHTML(){const id=popB;if(!id)return'';let nm,lvl,d,btns='',extra='';
   if(id.startsWith('hr:'))return heroPopHTML(id);
   if(id.startsWith('fk:')||id.startsWith('tr:'))return villagePopHTML(id);
   if(id==='hearth'){const n=s.b.hearth||0,c=bCost(HEARTH);nm='Вогнище';lvl=n;d=`+${2*n} жару/с, спалює ${fr(0.12*n)} плавника/с.`;
-    btns=`${btn('Підкинути дров','bld','hearth',{ok:()=>afford(c),cls:'main'})}<span class="ccs">${costChips(c)}</span>${btn(s.on.hearth===false?'Розпалити':'Пригасити','tog','hearth',{cls:'toggle'})}${reserveButton('hearth')}`;extra+=`<p class="m">${reserveText('hearth')}</p>`}
+    btns=`${btn('Підкинути дров','bld','hearth',{ok:()=>afford(c),cls:'main'})}<span class="ccs">${costChips(c)}</span>${btn(s.on.hearth===false?'Розпалити':'Пригасити','tog','hearth',{cls:'toggle'})}${reserveButton('hearth')}`;extra+=`<p class="m">${reserveText('hearth')}</p>`+earlyCookingHTML(false)}
   else{const b=BD.find(x=>x.id===id);if(!b)return'';const n=s.b[id]||0,w=(s.wk||{})[id]||0,mx=b.max&&n>=b.max,dm=(s.dmgB||{})[id];nm=b.n;lvl=n;d=typeof b.d==='function'?b.d():b.d||'';
     if(dm){const rc=repCost(b);extra+=`<p class="foe">Мла зламала будівлю. Поки її не полагодиш, вона не працює.</p>`;btns+=`${btn('Полагодити','repair',id,{ok:()=>afford(rc),cls:'main'})}<span class="ccs">${costChips(rc)}</span>`}
     else{if(id==='pot')extra+=potTransferHTML();
@@ -132,7 +132,7 @@ function homeHS(){const W=YW,H=YH;let h='';const st=yardSt2();
     if(s.seen.wood)h+=ob('hearth0',ok?'bld':'','hearth',obURL('hearth3g',()=>hearthObj3({hearth:1,plan:1})),hx+4,hy,W,H,ok?'Скласти вогнище':'Місце для вогнища',ok?`<b>Скласти вогнище</b><br>Обкласти жарину камінням і підкинути дров: ${costTxt(c)}.<br>Вогнище горітиме саме й даватиме жар.`:`<b>Місце для вогнища</b><br>Тут можна скласти вогнище, коли буде ${costTxt(c)}.`,{pulse:ok?1:0,always:1,cls:'ghost'+(ok?' ready':'')})}
   else{const n=s.b.hearth,lit=s.on.hearth!==false,sp=obURL('hearth3b',()=>hearthObj3({hearth:1})),[,,hw,hh]=sp;
     const fl=lit?innerAt(10,-22,18,27,hw,hh,'flm'+(n>=4?' big':''),`background-image:url(${flameURL()})`):'';
-    h+=ob('hearth','bpop','hearth',sp,hx,hy,W,H,'Вогнище',`<b>Вогнище, рівень ${n}</b><br>Натисни, щоб підкинути дров чи пригасити.`,{inner:fl+(upT.hearth&&Date.now()-upT.hearth<1600?`<i class="upfx" aria-hidden="true"><b>Рівень ${n}</b></i>`:''),cls:popB==='hearth'?'sel':''})}
+    h+=ob('hearth','bpop','hearth',sp,hx,hy,W,H,'Вогнище',`<b>Вогнище, рівень ${n}</b><br>Натисни, щоб підкинути дров чи пригасити.`,{inner:fl+(earlyPotVisible()?innerAt(8,-19,16,14,hw,hh,'early-pot',`background-image:url(${pxURL('early-pot',pot3)})`):'')+(upT.hearth&&Date.now()-upT.hearth<1600?`<i class="upfx" aria-hidden="true"><b>Рівень ${n}</b></i>`:''),cls:popB==='hearth'?'sel':''})}
   if(s.tabs.shore)h+=ob('toshore','tab','shore',obURL('sign3',signObj3),196,196,W,H,'До берега','<b>Стежка до берега</b><br>Плавник, уламки й риба.',{pulse:1});
   return h+zinoviiYardHS(buildings,W,H)}
 function shoreHS(){const W=SW,H=SH,S=(x,y,w,h)=>PCT(x,y,w,h,W,H);let h=fogs(8,22)+mlaLayer(6,62)+fxCanvas('sh',W,H);

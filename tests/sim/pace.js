@@ -184,7 +184,11 @@ function misc(){let d=0;
   }
   if(s.wolf&&wTrainOn()){for(const N of WTR)if(!wHas(N.id)&&(!N.need||wHas(N.need))&&(s.wolf.tp||0)>=N.c){A('wlearn',N.id,1);d=1}if(!onCd('wlesson')){A('wlesson','',8);d=1}}
   if(s.wolf){if(!s.wolf.name)A('wname','Сірко',1);if(!wolfSated()&&afford(wolfFood())){A('wfeed','',1);d=1}}
-  if(s.tabs.kitchen&&s.h.hp<maxHP()*.6)for(const D of DISH)if(rcpKnown(D.id)&&afford(D.c)&&(s.r.fish>20)){A('cookp',D.id,1);d=1;break}
+  // Готування тепер потребує реального місця; не рахувати недоступну дію.
+  if(s.tabs.kitchen&&!s.at&&!localCurrent()&&!s.dlg.length&&s.h.hp<maxHP()*.6){
+    const D=DISH.find(D=>dishOk(D)&&s.r.fish>20);
+    if(D){const prev=s.tab;act('tab','kitchen');if(atFishKitchen()){A('cookp',D.id,1);d=1}act('tab',prev)}
+  }
   if(scanTarget()&&s.r.ember>=scanCost()){A('scan');d=1}
   for(const f in s.req||{}){if(afford(s.req[f].give)){A('freq',f);d=1}}
   if(s.tabs.trade)for(const it of SHOP){if((it.show&&!it.show())||s.bought&&s.bought[it.id])continue;const p=price(it.p);if(IT[it.id]&&has(it.id))continue;if(s.r.coin>=p*(MARTIN&&it.id==='glass'?1:1.5)){A('buy',it.id);s.bought=s.bought||{};s.bought[it.id]=1;d=1}}

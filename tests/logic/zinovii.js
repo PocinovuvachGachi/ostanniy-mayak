@@ -101,7 +101,7 @@ for(const pose of ['rest','smoke','kitchen']){
 }
 // P4.6.2: спільні контекстні категорії та дерево без нового прогресу.
 setup();rescue();act('tab','home');openCard();
-A(shows(bpopHTML(),'zinoviiTalk')&&!bpopHTML().includes('<h3>Знахідки</h3>')&&!bpopHTML().includes('<h3>Знання</h3>')&&!bpopHTML().includes('<h3>Допомога</h3>'),'після порятунку немає невідкритих категорій');
+A(shows(bpopHTML(),'zinoviiTalk')&&shows(bpopHTML(),'earlySoupLearn')&&!bpopHTML().includes('<h3>Знахідки</h3>')&&!bpopHTML().includes('<h3>Допомога</h3>'),'після порятунку є знання про юшку, немає невідкритих категорій');
 const beforeTalk=stats();
 act('zinoviiAsk','martin');A(!s.dlg.length,'застаріла відповідь без розмови відхилена');
 act('zinoviiTalk');A(s.dlg[0]?.zinoviiConversation==='menu'&&!s.dlg[0].btns.some(b=>b[2]==='kitchen'),'теми лише за наявними умовами');

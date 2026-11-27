@@ -133,6 +133,7 @@ function rHome(){let h=`<div>`;
     if(n)h+=`<p class="m">Вогнище, рівень ${n}: дає +${2*n} жару/с і спалює ${fr(0.12*n)} плавника/с. Без плавника ледь тліє.</p><p class="m">${V(()=>reserveText('hearth'))}</p>${reserveButton('hearth')}`}
   if(s.tabs.tower)al+=btn('Нагору, до поверхів','tab','tower',{cls:'toggle'});if(s.tabs.shore)al+=btn('До берега','tab','shore',{cls:'toggle'});
   h+=`<details class="alist"><summary>Усі дії списком</summary><div>${al}</div></details></section>`;
+  const earlyFood=earlyCookingHTML();if(earlyFood)h+='<section>'+earlyFood+'</section>';
   if(thrOn())h+=rDefense();
   if(s.f.people)h+=rPeople();
   else if(zinoviiPresent())h+=`<section><h2>Люди маяка</h2>${zinoviiInlineCard()}</section>`;
@@ -566,7 +567,7 @@ function render(){
   paintingTide=!!tide&&!!paintedTide&&tide!==paintedTide&&lastView===view;
   const focused=document.activeElement;
   const action=focused?.dataset?.a;
-  const keepFocus=paintingTide||['mussels','hookWater','rakeSand','navLog'].includes(action)||action?.startsWith('zone')||action==='equip'&&localCurrent()==='deck'||focused?.closest?.('.shore-recovery,.zinovii-card,.zinovii-pop');
+  const keepFocus=paintingTide||['mussels','hookWater','rakeSand','navLog','cookp','earlySoupLearn'].includes(action)||action?.startsWith('zone')||action==='equip'&&localCurrent()==='deck'||focused?.closest?.('.shore-recovery,.zinovii-card,.zinovii-pop');
   const el=keepFocus?focused:null,root=el?.closest('#stage,#main,#popl,#tabs');
   paintedTide=tide;
   try{renderView();restoreTideFocus(el,root)}finally{tideRenderTime=null;paintingTide=false}
