@@ -116,7 +116,7 @@ function rDefense(){let h=`<section><h2>Оборона маяка${ih(`Мла з
 function rPeople(){const cap=2*(s.b.house||0),pop=s.pop||0,ms=Object.keys(MST).filter(m=>s.mst[m]);
   let h=`<section><h2>Люди маяка</h2><p>Поселенців <b>${pop}</b> з ${cap} місць у хатах; вільних рук ${V(()=>Math.max(0,freeW()))}. Майстрів: ${ms.length}. Усі разом їдять ${fr(0.02*people())} провізії/с.</p>`;
   h+=`<p class="m">${VH(()=>s.r.prov<1&&people()?'<b class="foe">Комора порожня: люди голодні й працюють гірше.</b> ':'')}${pop<cap?(s.r.prov>=5?`Наступний поселенець прийде за ${V(()=>s.popT?Math.max(0,Math.ceil((s.popT-Date.now())/1000)):60)} с.`:'Поселенці не прийдуть, поки в коморі немає 5 провізії.'):'Щоб прийшли нові поселенці, збудуй ще хату.'} Вільні поселенці збирають плавник.</p>`;
-  if(ms.length)h+=`<div class="cards">${ms.map(m=>`<div class="card pcard">${pimg(faceURL(m),48,48,'',MST[m].n)}<div><b class="npc">${MST[m].n}</b><span class="role">${MST[m].role}</span><span class="m">${MST[m].d}</span>${m==='zinovii'&&winchTopicReady()?btn('Показати механізм Зиновію','winchTalk'):''}</div></div>`).join('')}</div>`;
+  if(ms.length)h+=`<div class="cards">${ms.map(m=>`<div class="card pcard">${pimg(faceURL(m),48,48,'',MST[m].n)}<div><b class="npc">${MST[m].n}</b><span class="role">${MST[m].role}</span><span class="m">${MST[m].d}</span>${m==='zinovii'?(winchTopicReady()?btn('Показати механізм Зиновію','winchTalk'):'')+holdOilHTML():''}</div></div>`).join('')}</div>`;
   return h+`</section>`}
 const scnD=()=>`--d:-${((Date.now()/1000)%30).toFixed(2)}s;--d2:-${((Date.now()/1000)%180).toFixed(2)}s`;
 function homeScene(){return`<div class="scn yd" data-scn="yd" style="${scnD()}"><span data-sk="bg" data-sig="bg" class="scbg">${VH(yardBgImg)}</span>${homeHS()}</div>`}
@@ -505,7 +505,7 @@ const inR=u0&&inReach(u0),cv=u0?cover(c,c.hx,c.hy,u0.x,u0.y):0;
   G.push(['Герой',gh]);
   const ex=tileAt(c.a,c.hx,c.hy)==='E';
   const thr=cbThreat(c);let gt=ib('c_end','',{ic:'a_end',ok:!c.over,cls:'endt',txt:'Кінець ходу',lab:'Завершити хід',tip:tip('Завершити хід',0,['Вороги роблять те, що задумали, а тоді в тебе знову повні очки дії.',thr?`Якщо всі влучать: до −${thr} здоров’я${thr>=s.h.hp?' — <b>цього досить, щоб тебе здолати</b>':''}.`:''],'')});
-  gt+=ib('c_flee','',{ic:'a_flee',ok:!c.boss&&ex,lab:'Втекти',tip:tip('Втекти з бою',0,[c.win==='raid'?'Нападники розтягнуть частину припасів.':'Повернешся до маяка без здобичі.'],c.boss?'З цього бою не втекти.':!ex?'Стань на клітинку виходу: стрілка на лівому краю поля.':'')});
+  gt+=ib('c_flee','',{ic:'a_flee',ok:!c.boss&&ex,lab:'Втекти',tip:tip('Втекти з бою',0,[c.win==='raid'?'Нападники розтягнуть частину припасів.':c.win===MARTIN_RATS_WIN&&s.localZone==='hold'?'Повернешся на палубу.':'Повернешся до маяка без здобичі.'],c.boss?'З цього бою не втекти.':!ex?'Стань на клітинку виходу: стрілка на лівому краю поля.':'')});
   gt+=ib('c_leg','',{ic:'a_leg',ok:true,on:!!s.legOpen,lab:'Як читати поле бою',tip:tip('Як читати поле бою',0,[s.legOpen?'Сховати пояснення під полем.':'Показати під полем, що означають лінії, щити й клітинки.'],'')});
   G.push(['Хід',gt]);
   let BAR=`<div class="abar" role="toolbar" aria-label="Дії в бою">${G.filter(g=>g[1]).map(g=>`<div class="ag"><span class="agl">${g[0]}</span><div class="agi">${g[1]}</div></div>`).join('')}</div>`;
@@ -537,10 +537,16 @@ function restoreTideFocus(el,root){
     (closed?.querySelector('summary')||entry)?.focus();
     return;
   }
+  if(el.dataset.a==='equip'&&localCurrent()==='deck'){
+    (root.querySelector('[data-a="zoneEnter"][data-i="hold"]')||match)?.focus();
+    return;
+  }
   if(el.dataset.a==='zoneAct'&&!match){
     const id=localCurrent(),key=el.dataset.i.slice(id.length+1),next=localDef(id)?.objects?.[key]?.next;
+    const to=localDef(id)?.objects?.[key]?.entry;
+    const entry=to&&root.querySelector(`[data-a="zoneEnter"][data-i="${to}"]`);
     const nextAction=next&&root.querySelector(`[data-a="zoneAct"][data-i="${id}:${next}"]`);
-    (nextAction||root.querySelector('[data-a="zoneBack"]'))?.focus();
+    (entry||nextAction||root.querySelector('[data-a="zoneBack"]'))?.focus();
     return;
   }
   const nextRake=el.dataset.a==='rakeSand'?root.querySelector('[data-a="rakeSand"]'):null;
@@ -554,7 +560,7 @@ function render(){
   paintingTide=!!tide&&!!paintedTide&&tide!==paintedTide&&lastView===view;
   const focused=document.activeElement;
   const action=focused?.dataset?.a;
-  const keepFocus=paintingTide||['mussels','hookWater','rakeSand'].includes(action)||action?.startsWith('zone')||focused?.closest?.('.shore-recovery');
+  const keepFocus=paintingTide||['mussels','hookWater','rakeSand'].includes(action)||action?.startsWith('zone')||action==='equip'&&localCurrent()==='deck'||focused?.closest?.('.shore-recovery');
   const el=keepFocus?focused:null,root=el?.closest('#stage,#main,#popl,#tabs');
   paintedTide=tide;
   try{renderView();restoreTideFocus(el,root)}finally{tideRenderTime=null;paintingTide=false}

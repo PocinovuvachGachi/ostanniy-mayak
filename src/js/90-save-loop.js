@@ -2,7 +2,9 @@
 function save(){s.ts=Date.now();try{localStorage.setItem(KEY,JSON.stringify(s))}catch(e){}}
 function load(){try{const raw=localStorage.getItem(KEY);if(!raw)return;const d=JSON.parse(raw),f=fresh();
   for(const k in d){if(f[k]&&typeof f[k]==='object'&&!Array.isArray(f[k])&&d[k]&&typeof d[k]==='object'&&!Array.isArray(d[k]))f[k]=Object.assign(f[k],d[k]);else f[k]=d[k]}
-  s=f;if(s.cb&&!s.cb.u)s.cb=null;localSanitize();
+  s=f;if(s.cb&&!s.cb.u)s.cb=null;
+  const migratedHold=migrateMartinHold();
+  localSanitize();
   portableWinchSanitize();
   sanitizePotTransfer();
   const migratedWinch=migrateWinch(d.winchMigrationV);
@@ -49,13 +51,14 @@ function load(){try{const raw=localStorage.getItem(KEY);if(!raw)return;const d=J
   if(!d.seenI){s.seenI={};for(const k in s.inv)s.seenI[k]=1}
   if(!d.nv&&s.tabs.hero&&!s.h.bg)s.h.bg='old';delete s.tabs.talents;if(s.tab==='talents'){s.tab='hero';s.ht='talents'}
   if(s.cb){if(!s.cb.map)s.cb.map=ARENA[s.cb.a].slice();setGrid(s.cb)}
-  if(s.cb&&s.cb.over){const k=s.cb.over;s.cb.over=0;if(k==='lose')lose();else win()}
+  const resolvedRats=s.cb?.win===MARTIN_RATS_WIN&&!!s.cb.over;
+  if(s.cb&&s.cb.over){const k=s.cb.over;s.cb.over=0;if(k==='lose')lose(false);else win(false)}
   if(d.wup&&!d.wf){for(const k in d.wup)if(d.wup[k]>=1&&WF[k])s.wf[k]=1}delete s.wup;
   if(s.cb&&s.cb.win==='raid')s.cb=null;s.raid=0;s.log=s.log.map(logOf);if(s.eq.ranged===undefined)s.eq.ranged='';
   const now=Date.now(),off=clamp((now-(s.ts||now))/1000,0,7200);
   if(off>5){for(let i=0;i<20;i++)produce(off/20,false);if(off>60)say(`Поки тебе не було, вогнище горіло ${Math.round(off/60)} хв.`,'world')}
   const healed=!d.cb&&healingTick(off),migrated=migrateWarm(now);
-  if(migratedWinch||migratedSand||olderHealing||healed||migrated||off>5)save();
+  if(migratedHold||resolvedRats||migratedWinch||migratedSand||olderHealing||healed||migrated||off>5)save();
   }catch(e){s=fresh()}}
 
 let tipEl=null,lpT=0,lpF=0;

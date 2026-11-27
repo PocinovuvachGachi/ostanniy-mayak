@@ -299,7 +299,7 @@ button.ib .ibx{font:600 14px/1 var(--serif);color:#e3ebe6;white-space:nowrap}
 .scn{isolation:isolate}
 .scw{margin:0 0 12px}.scw .scn{margin:0}
 @media (max-width:560px){.scw{overflow-x:auto;overflow-y:hidden;scrollbar-width:thin;margin-left:-6px;margin-right:-6px}.scw .scn{min-width:680px}#main section .scw{margin-left:-10px;margin-right:-10px}#main section .scw .scn{margin:0}}
-@media (max-width:560px){.scw .scn[data-scn="zone-deck"]{min-width:0}}
+@media (max-width:560px){.scw .scn:is([data-scn="zone-deck"],[data-scn="zone-hold"]){min-width:0}}
 .scn .yard,.scn .scene{max-width:none!important;width:100%;height:auto}
 .scn .yard,.scn .scene{margin:0;display:block;border:0}
 .scn{border:3px solid #0b1418;box-shadow:0 0 0 2px var(--rule)}
@@ -1081,3 +1081,6 @@ body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .
 }
 .pot-transfer{margin-block:.45rem}
 .pot-transfer p{margin:.2rem 0}
+
+/* Усередині трюму відблиски залежать від спорядженого світла. */
+.scn[data-scn="zone-hold"]{--night:1}

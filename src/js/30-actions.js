@@ -71,6 +71,7 @@ function act0(a,i){
   case 'martinLadle':martinLadleTalk(i==='find');break;
   case 'martinLog':martinLogTalk(i==='find');break;
   case 'winchTalk':winchTalk();break;
+  case 'holdOil':holdOil();break;
   case 'scrapw':if(F.wreck&&!onCd('scrapw')){
     setCd('scrapw',2);s.c.scrap=(s.c.scrap||0)+1;
     add('scrap',1+(s.rs.metal?1:0)+(s.h.ft.thrifty?1:0)+(has('rake')?1:0));
@@ -94,7 +95,7 @@ function act0(a,i){
     dlg({k:'story',title:`Відновлено: ${f.n}`,img:{t:'yard'},body:`<p>${f.d}</p>`,gains:[{work:'Майстерня відновлена',gallery:'З оглядової видно брід за протокою',study:'Відкрилися: дослідження, книги й скриня Остапа',lantern:'Відкрилося: налаштування дзеркал, щоб запалити маяк'}[i]]});
     break}
   case 'mirror':if(s.floors.lantern&&!F.won&&s.mirrors[i]){s.mirrors[i]=s.mirrors[i]==='/'?'\\':'/';if(beam().out){F.won=1;dlg({k:'story',title:'Маяк горить',img:{t:'yard'},body:'<p>Промінь пробиває вікно ліхтарні й лягає на воду. Великий вогонь маяка горить над шхерами, а Мла відступає.</p><p>Але це ще не кінець. Наступного ранку до Гнилого Причалу заходить чужий корабель.</p>',gains:['Кораблі платять мито: +2 монети щосекунди','У гавані Гнилого Причалу чекає капітанка: друга дія','Набіги Мли тривають, тож хранитель потрібен і далі']});say('Промінь пробиває вікно ліхтарні й лягає на воду. Великий вогонь маяка горить над шхерами!','story')}}break;
-  case 'craft':{const rc=RC.find(x=>x.id===i);if((i==='hookUp'||i==='rodUp'||i==='winchRestore')&&!atWorkshop())break;if(i==='winchRestore'&&!localCanAct())break;if(!rc||(i==='rod'?!shoreRodReady():!rcVisible(rc)))break;const c=i==='rod'?rc.c:rcCost(rc);
+  case 'craft':{const rc=RC.find(x=>x.id===i);if((i==='hookUp'||i==='rodUp'||i==='winchRestore')&&!atWorkshop())break;if(i==='winchRestore'&&!localCanAct())break;if(i==='lamp'&&holdDarkSeen()&&!legacyLampPlan()&&(!atWorkshop()||!localCanAct()))break;if(!rc||(i==='rod'?!shoreRodReady():!rcVisible(rc)))break;const c=i==='rod'?rc.c:rcCost(rc);
     if((rc.craft||0)>st('craft')||!afford(c,rc.it))break;pay(c,rc.it);novUse('r:'+i);if(i!=='rod')s.f.craft1=1;
     if(rc.id==='winchRestore'){restoreWinch();break}
     if(rc.id==='rodUp'){
@@ -191,6 +192,7 @@ function dismVal(id){const rc=RC.find(r=>r.out===id);let c={};if(rc){for(const k
 function canDism(id){const it=IT[id];if(!it||!it.slot||!has(id))return false;const eqd=(s.eq[it.slot]===id||packHas(id))?1:0;return s.inv[id]>eqd}
 let RCOPEN=0;
 function rcVisible(rc){if(rc.id==='rod')return false;
+  if(rc.id==='lamp'&&!legacyLampPlan()&&holdOwnedLight())return false;
   if(rc.id==='winchRestore')return !!winchRestoreReady();
   if(rc.id==='rodUp')return !!(s.floors.work&&s.f.rod&&s.f.rodLimitSeen&&!s.f.rodUp&&(RCOPEN||s.rcSeen?.rodUp));
   if(rc.id==='hookUp')return !!(s.floors.work&&s.f.hook&&s.f.hookLimitSeen&&!s.f.hookUp&&(RCOPEN||s.rcSeen?.hookUp));

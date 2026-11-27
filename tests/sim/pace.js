@@ -75,7 +75,9 @@ const want=()=>{const L=[];const fi=FL.findIndex(f=>!s.floors[f.id]);const f=FL[
 function buy(){let did=0;const tg=target();for(const[a,i,c,it]of want()){if(a==='trip'||a==='ford'&&!tideLow())continue;
     /* покращення не з'їдають запас на головну ціль */
     if(a==='bld'&&((s.b[i]||0)>=1||tg&&(tg[0]==='ford'||tg[0]==='schooner'))&&tg&&tg[1]!==i&&Object.keys(c).some(k=>tg[2][k]&&s.r[k]-c[k]<tg[2][k]))continue;
-    if(afford(c,it||{})){A(a,i);did=1;if(a==='craft'){const rc=RC.find(x=>x.id===i);if(rc&&rc.out&&IT[rc.out]&&IT[rc.out].slot)A('equip',rc.out,1)}}}return did}
+    if(afford(c,it||{})){
+      if(a==='craft'&&(i==='winchRestore'||i==='lamp'&&holdDarkSeen()&&!legacyLampPlan())&&!atWorkshop())act('tab','work');
+      A(a,i);did=1;if(a==='craft'){const rc=RC.find(x=>x.id===i);if(rc&&rc.out&&IT[rc.out]&&IT[rc.out].slot)A('equip',rc.out,1)}}}return did}
 /* чим зайнятися руками: збирати те, чого бракує на найближчу ціль */
 function gatherFor(){if(s.tabs.shore&&!s.at&&!atShore())act('tab','shore');
   const L=want();let best=null,bv=1e9;for(const[a,i,c]of L){let need=0;for(const k in c)need+=Math.max(0,c[k]-s.r[k])/(k==='ember'?3:1);if(need>0&&need<bv){bv=need;best=c}}
@@ -111,6 +113,30 @@ function explore(){const ls=Object.keys(s.disc).filter(l=>LOC[l]);for(const l of
       const w0=s.c.wins||0,sig0=JSON.stringify([s.done,s.f,s.inv,s.disc]).length;A('la',x.id);dialogs();if(s.cb){fight();if((s.c.wins||0)>w0)s.done['win:'+x.id]=1}
       else if(JSON.stringify([s.done,s.f,s.inv,s.disc]).length===sig0)skipT[x.id]=T+900}
     if(s.at)A('leave','',P.travel);return 1}return 0}
+function martinRoute(){
+  if(!s.f.zinovii||s.f.rats||s.at||!s.f.deckSeen)return false;
+  if(winchTopicReady()){act('tab','home');A('winchTalk');return true}
+  if(holdOilReady()&&s.r.fish>=1){act('tab','home');A('holdOil');return true}
+  if(holdDarkSeen()){
+    const light=holdOwnedLight();if(!light)return false;
+    if(!holdLight())act('equip',light);
+    heal();if(s.h.hp<maxHP()*.7)return false;
+  }else if(s.localProgress.deck?.winchTaken&&!s.portableWinch.restored)return false;
+  if(s.tab!=='shore')act('tab','shore');
+  if(!localCurrent())A('zoneEnter','deck');
+  if(localCurrent()==='deck'){
+    const p=localState('deck');
+    if(!p.winchTaken&&!s.portableWinch.restored)A('zoneAct',p.winch?'deck:winchTaken':'deck:winch');
+    else if(!p.hatch)A('zoneAct','deck:hatch');
+    else if(!p.mount)A('zoneAct','deck:mount');
+    else if(!p.beamMoved)A('zoneAct',deckMounted()?'deck:pull':'deck:install');
+    else if(!p.openHatch)A('zoneAct','deck:openHatch');
+    else A('zoneEnter','hold');
+    return true;
+  }
+  if(localCurrent()==='hold'){A('zoneAct','hold:rats');if(s.cb)fight();return true}
+  return false;
+}
 function misc(){let d=0;
   if(typeof firstCrabWaiting==='function'&&firstCrabWaiting()&&!s.at){
     heal();
@@ -122,6 +148,7 @@ function misc(){let d=0;
   if(scanTarget()&&s.r.ember>=scanCost()){A('scan');d=1}
   for(const f in s.req||{}){if(afford(s.req[f].give)){A('freq',f);d=1}}
   if(s.tabs.trade)for(const it of SHOP){if((it.show&&!it.show())||s.bought&&s.bought[it.id])continue;const p=price(it.p);if(IT[it.id]&&has(it.id))continue;if(s.r.coin>=p*1.5){A('buy',it.id);s.bought=s.bought||{};s.bought[it.id]=1;d=1}}
+  if(martinRoute())return 1;
   if(s.shf&&(SHF[s.shf].npc||s.h.hp>=maxHP()*.7)){A('shfgo','',2);if(s.cb)fight();d=1}
   for(const k in RUNE)if(!(s.runes||{})[k]&&RUNE[k].ok()){A('rune',k,3);d=1}
   if(runesAll()&&!s.f.cache){A('cache','',5);d=1}

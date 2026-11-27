@@ -63,11 +63,11 @@ const famRs=u=>!!s.rs['a_'+FAM[u.t]];
 const pierceBonus=()=>(s.h.ft.crack?1:0)+(s.rs.weak?1:0)+(s.rs.a_stone?1:0);
 const lastStand=()=>s.h.ft.last&&s.h.hp<maxHP()/3?1.5:1;
 
-function startFight(encId,win){const E0=ENC[encId];
+function startFight(encId,win){if(win===MARTIN_RATS_WIN&&s.f.rats)return;const E0=ENC[encId];
   const mult=(E0.mult||1)*(E0.fixed?1:E0.boss?1+(FOEST[stageNo()]-1)*.4:FOEST[stageNo()]),sn=snap(),hpm=win==='raid'&&fuL('hall')>=3?0.85:1;const u=E0.e.map(([t,x,y,role,ex])=>{const T=EN[t];if(!T.obj&&!T.ally)s.seenE[t]=1;const v=mkUnit(t,x,y,mult*hpm,{elite:!E0.noElite&&Math.random()<eliteCh()});if(role)v.role=role;if(ex)Object.assign(v,ex);if(T.ally&&s.h.ft.leader){v.hp=v.max=Math.round(v.max*1.5)}return v});
   const foes=u.filter(x=>!EN[x.t].obj&&!EN[x.t].ally);
   s.cb={enc:encId,a:E0.a,map:ARENA[E0.a].slice(),round:0,fire:[],fx:[],fxt:0,hx:E0.h[0],hy:E0.h[1],u,ap:maxAP()+(s.h.ft.shadow?2:0),guard:0,sand:0,wrap:0,breath:0,sel:u.indexOf(foes[0]),win,boss:!!E0.boss,cds:{},traps:[],mode:'',mult,sn,wmg:{},
-    title:win==='raid'?'Набіг Мли':win==='crab1'?'Перша сутичка':win&&win.indexOf('S:')===0?SHF[win.slice(2)].n:(win&&win.indexOf('L:')===0?(()=>{const id=win.slice(2);return`${LOC[id.split('.')[0]].n}`})():'Бій'),
+    title:win==='raid'?'Набіг Мли':win==='crab1'?'Перша сутичка':win===MARTIN_RATS_WIN?MARTIN_RATS_NAME:win&&win.indexOf('S:')===0?SHF[win.slice(2)].n:(win&&win.indexOf('L:')===0?(()=>{const id=win.slice(2);return`${LOC[id.split('.')[0]].n}`})():'Бій'),
     log:[`${foes.filter(x=>!x.hid).map(x=>E(EN[x.t].n)).join(', ')} — бій починається!${s.h.ft.shadow?' Ти діяв першим: +2 ОД.':''}${E0.waves?' Схоже, вони тут не самі.':''}${E0.tide?' Вода прибуває.':''}${foes.some(x=>x.el)?' Серед них є ветерани.':''}`]};setGrid(s.cb);wolfJoin(s.cb);if((s.h.buf||{}).full>0){s.h.buf.full--;s.cb.ap++;s.cb.log.push('Ти ситий: +1 очко дії.')}
   if(E0.palis)s.cb.map=s.cb.map.map((r,y)=>r.split('').map((ch,x)=>E0.palis.some(q=>q[0]===x&&q[1]===y)&&ch==='.'?'+':ch).join(''));
   if(E0.traps)s.cb.traps=E0.traps.map(([x,y])=>({x,y}));if(E0.bell)s.cb.ap+=2;
@@ -253,7 +253,9 @@ function cAct(a,i){const c=s.cb;if(!c||c.over)return;if(c.eAnim){if(Date.now()<f
   else if(a==='c_net'&&c.ap>=1&&beltHas('net')){const u=selU();if(u&&!isObj(u)&&dist(c.hx,c.hy,u.x,u.y)<=3&&los(c,c.hx,c.hy,u.x,u.y)){c.ap-=1;s.inv.net--;u.pin=2;cbLog(`Сітка накриває ворога «${EN[u.t].n}»: 2 ходи не рухається й не ухиляється.`)}}
   else if(a==='c_smoke'&&c.ap>=1&&beltHas('smoke')){c.ap-=1;s.inv.smoke--;c.smoke=1;for(const v of c.u)v.aimed=0;cbLog('Густий дим огортає тебе: здалеку не влучать до твого наступного ходу.')}
   else if(a==='c_breath'&&s.h.ft.breath&&!c.breath){c.breath=1;const v=Math.round(maxHP()*.3);s.h.hp=Math.min(maxHP(),s.h.hp+v);cbLog(`Друге дихання: +${v} здоров’я.`)}
-  else if(a==='c_flee'&&!c.boss&&tileAt(c.a,c.hx,c.hy)==='E'){s.cb=null;s.at='';if(c.win==='raid'){for(const k of['wood','fish','prov'])s.r[k]*=0.85;s.dmgB=s.dmgB||{};for(const b of c.broken||[])s.dmgB[b]=1;raidEnd()}say('Ти виходиш із бою й повертаєшся до маяка.','fight');dirty=1;return}
+  else if(a==='c_flee'&&!c.boss&&tileAt(c.a,c.hx,c.hy)==='E'){s.cb=null;s.at='';if(c.win==='raid'){for(const k of['wood','fish','prov'])s.r[k]*=0.85;s.dmgB=s.dmgB||{};for(const b of c.broken||[])s.dmgB[b]=1;raidEnd()}if(c.win===MARTIN_RATS_WIN&&s.localZone==='hold'){
+    s.localZone='deck';say('Ти відступаєш до сходів і вибираєшся на палубу.','fight');save();
+  }else say('Ти виходиш із бою й повертаєшся до маяка.','fight');dirty=1;return}
   else if(a==='c_end'){endTurn();dirty=1;return}
   dirty=1;
   if(!surv()){cbEnd('lose');return}
@@ -335,9 +337,9 @@ function endTurn(){const c=s.cb;c.eAnim=1;c.sand=0;c.wrap=0;c.mode='';c.kfree=0;
   for(const k in c.cds)if(c.cds[k]>0&&c.cds[k]<99)c.cds[k]--;
   c.guard=0;c.smoke=0;c.ap=Math.max(1,maxAP()-(c.wrap?2:0))}
 let lastCb=null;
-function win(){const c=s.cb;lastCb=c;s.cb=null;s.c.wins=(s.c.wins||0)+1;if(c.u.some(v=>v.t==='wolfpet'&&v.hp>0))wtpAdd(1/3,'спільна перемога');say('Перемога! Усіх ворогів переможено.','fight');const q0=(s.dlg||[]).length;const m=finishWin(c.win);const bu=c.u.find(u=>EN[u.t].boss);if(bu)mom('boss',`Переможено: ${EN[bu.t].n}`,EN[bu.t].d,{t:'spr',id:bu.t},1);
+function win(persist=true){const c=s.cb;if(!c)return;lastCb=c;s.cb=null;s.c.wins=(s.c.wins||0)+1;if(c.u.some(v=>v.t==='wolfpet'&&v.hp>0))wtpAdd(1/3,'спільна перемога');say('Перемога! Усіх ворогів переможено.','fight');const q0=(s.dlg||[]).length;const m=finishWin(c.win);const bu=c.u.find(u=>EN[u.t].boss);if(bu)mom('boss',`Переможено: ${EN[bu.t].n}`,EN[bu.t].d,{t:'spr',id:bu.t},1);
   const g=c.sn?gainsOf(c.sn):[];for(const w in c.wmg||{})g.push(`Майстерність «${IT[w].n}»: +${c.wmg[w]} (рівень ${wmLv(w)})`);
-  const foe=c.u.find(u=>!isObj(u));s.dlg=s.dlg||[];s.dlg.splice(q0,0,{k:'fight',title:'Перемога',img:foe?{t:'spr',id:foe.t}:null,body:`<p>${m||'Усіх ворогів переможено.'}</p>`,gains:g})}
+  const foe=c.u.find(u=>!isObj(u));s.dlg=s.dlg||[];s.dlg.splice(q0,0,{k:'fight',title:'Перемога',img:foe?{t:'spr',id:foe.t}:null,body:`<p>${m||'Усіх ворогів переможено.'}</p>`,gains:g});if(persist&&c.win===MARTIN_RATS_WIN)save()}
 function finishWin(w){let m='';
   if(w==='crab1'){s.f.crab1=1;xp(15);unlock('hero');add('fish',2);m='Ти розламуєш панцир. З краба вийде непогана вечеря.';say(m,'story')}
   else if(w==='raid'){const L=s.h.lvl,k2=s.lure?2:1,c=lastCb||{};add('coin',5*L*k2);add('scrap',3*L*k2);xp(20*L*k2);if(s.lure){const x=['bomb','potion','net'][Math.floor(Math.random()*3)];giveI(x)}
@@ -346,12 +348,13 @@ function finishWin(w){let m='';
   else if(w&&w.indexOf('S:')===0){m=shfWin(w.slice(2));say(m,'fight')}
   else if(w&&w.indexOf('L:')===0){const id=w.slice(2),A=findA(id);trustAct(id);const dr=thrOn()?thrDrop(A.fight,A.once||ENC[A.fight].boss):0;if(dr)s.threat=Math.max(0,(s.threat||0)-dr);if(A.once)s.done[id]=1;m=A.win&&A.win();if(dr&&(s.threat||0)>=0)m=(m||'')+` <span class="m">Мла відступила від маяка на ${dr}.</span>`;say(m,'find');relicFor(A.fight)}
   dirty=1;return m}
-function lose(){const c=s.cb,lost=Math.floor(s.r.coin*0.2);s.r.coin-=lost;s.h.hp=Math.max(1,Math.round(maxHP()*0.3));s.cb=null;s.at='';
+function lose(persist=true){const c=s.cb,lost=Math.floor(s.r.coin*0.2);s.r.coin-=lost;s.h.hp=Math.max(1,Math.round(maxHP()*0.3));s.cb=null;s.at='';
+  if(c.win===MARTIN_RATS_WIN){s.localZone='';s.tab='home'}
   if(c.win==='crab1'){s.c.fish=0;unlock('hero')}
   if(c.win==='raid'){for(const k of['wood','fish','prov'])s.r[k]*=0.8;s.dmgB=s.dmgB||{};for(const b of c.broken||[])s.dmgB[b]=1;dmgRandom();raidEnd()}
-  const m=`Тебе здолали. Ти отямився біля вогнища${lost?` і недорахувався ${R('coin',lost)}`:''}.`;say(m,'fight');dlg({k:'fight',title:'Поразка',img:{t:'yard'},body:`<p>${m}</p>`,gains:[c.win==='crab1'?'Злови рибу та поїж на березі. До краба можна повернутися, коли будеш готовий.':'З’їж рибу чи провізію або скористайся лікувальним предметом.','Спробуй іншу зброю: кожна потрібна проти свого ворога.','Укриття, вміння, пояс і захисна стійка рятують життя.']});dirty=1}
+  const m=`Тебе здолали. Ти отямився біля вогнища${lost?` і недорахувався ${R('coin',lost)}`:''}.`;say(m,'fight');dlg({k:'fight',title:'Поразка',img:{t:'yard'},body:`<p>${m}</p>`,gains:[c.win==='crab1'?'Злови рибу та поїж на березі. До краба можна повернутися, коли будеш готовий.':'З’їж рибу чи провізію або скористайся лікувальним предметом.','Спробуй іншу зброю: кожна потрібна проти свого ворога.','Укриття, вміння, пояс і захисна стійка рятують життя.']});dirty=1;if(persist&&c.win===MARTIN_RATS_WIN)save()}
 function quickOk(encId){const E0=ENC[encId];return!!s.f.quick&&!E0.boss&&E0.e.filter(([t])=>!EN[t].obj).every(([t])=>s.kills[t]>0)}
-function quickFight(encId,win){const E0=ENC[encId];let hp=s.h.hp;
+function quickFight(encId,win){if(win===MARTIN_RATS_WIN&&s.f.rats)return;const E0=ENC[encId];let hp=s.h.hp;
   const units=E0.e.filter(([t])=>!EN[t].obj&&!EN[t].ally).map(([t])=>({T:EN[t],hp:EN[t].hp*DIFF_HP*(E0.mult||1)}));
   const avg=T=>{const o=T.p.filter(p=>['hit','cold','wrap','shoot','bolt','wave','spit','charge'].includes(p[0]));return o.length?o.reduce((a,p)=>a+p[1],0)/T.p.length:0};
   let g=0;

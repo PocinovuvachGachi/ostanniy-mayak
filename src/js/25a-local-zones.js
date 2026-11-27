@@ -9,14 +9,20 @@ const LOCAL_ZONES={
     objects:{
       hatch:{label:'Оглянути люк',
         text:p=>p.beamMoved?'Балка лежить збоку, а люк і досі зачинений.':'Ти відгортаєш обірвану линву. Поперек люка лежить важка балка. Від поштовху вона навіть не ворухнулася.',
-        ready:()=>!deckMounted(),x:131,y:68,art:seen=>deckHatchArt(seen)},
+        ready:p=>!deckMounted()&&!deckHatchFree(p),obsReady:p=>!p.openHatch,x:131,y:68,art:seen=>deckHatchArt(seen)},
+      openHatch:{label:'Відкрити люк',ready:p=>deckHatchFree(p)&&!p.openHatch,next:'dark',entry:'hold',
+        x:131,y:68,art:()=>deckHatchArt(true),
+        text:'Віко піддається. Сходи йдуть униз і губляться в темряві.',
+        run(p){p.openHatch=1;if(!holdOwnedLight())s.rcSeen={...s.rcSeen,lamp:1};say(this.text,'world')}},
+      dark:{label:'Оглянути темний прохід',ready:()=>holdDarkSeen()&&!holdLight(),obsReady:()=>!holdLight(),x:131,y:68,art:()=>deckOpenArt(),
+        text:'У темряві не видно нижніх сходинок.'},
       mount:{label:'Оглянути основу щогли',text:'Ти знімаєш пасмо водоростей. Залізна скоба проходить крізь основу щогли й міцно сидить у дереві.',
         ready:p=>!deckMounted()&&!deckCanInstall(p),next:'install',x:76,y:43,art:seen=>deckMountArt(seen)},
       install:{label:'Встановити лебідку',ready:deckCanInstall,next:'pull',x:76,y:43,art:()=>deckMountArt(true),
         run(){s.portableWinch.mountedAt=DECK_MOUNT;say('Лебідка сідає в скобу. Ти обводиш линву навколо балки.','world')}},
       detach:{label:'Зняти лебідку',ready:deckMounted,next:'install',x:76,y:43,art:()=>deckMountArt(true,true),
         run(){s.portableWinch.mountedAt=null;say('Ти звільняєш скобу й забираєш лебідку.','world')}},
-      pull:{label:'Відтягнути балку',ready:deckMounted,next:'hatch',x:131,y:68,art:()=>deckHatchArt(true),
+      pull:{label:'Відтягнути балку',ready:deckMounted,next:'openHatch',x:131,y:68,art:()=>deckHatchArt(true),
         run(p){p.beamMoved=1;s.portableWinch.mountedAt=null;say('Барабан провертається, і балка повзе вбік. Ти змотуєш линву й забираєш лебідку.','world')},
         fx(){deckHaulAt=Date.now()}},
       winch:{label:'Оглянути механізм',text:'Під кіркою солі проступає барабан корабельної лебідки. Руків’я погнуте, кілька зубців зламано.',
@@ -28,14 +34,30 @@ const LOCAL_ZONES={
       planks:{label:'Оглянути обшивку',text:'Під шаром солі видно товсті дошки й зігнуті залізні скоби. Цей корпус більший за човни, розбиті в прибої.',
         x:213,y:104,art:seen=>localPlanksArt(seen)}
     },
-    background:()=>localDeckBg(),entryArt:()=>localWreckArt(),entryX:237,entryY:16}
+    background:()=>localDeckBg(),entryArt:()=>localWreckArt(),entryX:237,entryY:16},
+  hold:{tab:'shore',at:'',parent:'deck',title:()=>s.f.zinovii?'Трюм «Мартина»':'Трюм уламка',
+    entry:'Спуститися в трюм',ready:martinHoldReady,entryArt:()=>deckOpenArt(),entryX:131,entryY:68,backLabel:'На палубу',
+    desc:()=>s.f.rats?'У трюмі тихо. Крізь дошки чути лише воду.':'Під важкими шпангоутами пахне мокрим деревом. У світлі біля бочок ворушаться пацюки.',
+    background:()=>martinHoldBg(),
+    objects:{
+      rats:{label:'Стати до бою з пацюками',ready:martinRatsReady,x:197,y:85,art:()=>holdRatsArt(),run:()=>startFight('rats',MARTIN_RATS_WIN)},
+      quickRats:{label:'Швидкий бій із пацюками',ready:()=>martinRatsReady()&&quickOk('rats'),run:()=>quickFight('rats',MARTIN_RATS_WIN)},
+      barrels:{label:'Оглянути бочки',x:204,y:77,art:seen=>holdBarrelArt(seen),ready:()=>!!s.f.rats,
+        text:'Обручі проїла сіль. На дні бочок осіла тільки волога потерть.'},
+      ribs:{label:'Оглянути шпангоут',x:104,y:32,art:seen=>holdRibArt(seen),
+        text:'Між кривим ребром і обшивкою застрягла нитка старої паклі. Вода ще не пройшла крізь шов.'}
+    }}
 };
 const localDef=id=>Object.prototype.hasOwnProperty.call(LOCAL_ZONES,id)?LOCAL_ZONES[id]:null;
 function localContext(id){const z=localDef(id);return !!(z&&s.tabs[z.tab]&&s.tab===z.tab&&(s.at||'')===z.at&&z.ready()&&(!z.parent||localContext(z.parent)))}
 const localCurrent=()=>localContext(s.localZone)?s.localZone:'';
 function localSanitize(){
-  if(typeof s.localZone!=='string'||!localCurrent())s.localZone='';
   if(!s.localProgress||typeof s.localProgress!=='object'||Array.isArray(s.localProgress))s.localProgress={};
+  if(typeof s.localZone!=='string'){s.localZone='';return}
+  if(!localCurrent()){
+    const parent=localDef(s.localZone)?.parent;
+    s.localZone=parent&&localContext(parent)?parent:'';
+  }
 }
 function localState(id){
   if(!localDef(id))return null;
@@ -70,12 +92,12 @@ function localAct(key){
 const DECK_MOUNT='deck:mount';
 let deckHaulAt=0;
 function deckMounted(){return s.portableWinch.mountedAt===DECK_MOUNT}
-function deckCanInstall(p){return s.portableWinch.restored&&!s.portableWinch.mountedAt&&p.mount&&p.hatch&&!p.beamMoved}
+function deckCanInstall(p){return s.portableWinch.restored&&!s.portableWinch.mountedAt&&p.mount&&p.hatch&&!deckHatchFree(p)}
 function portableWinchSanitize(){
   deckHaulAt=0;
   const w=s.portableWinch,p=s.localProgress.deck;
   const restored=w?.restored?1:0;
-  const mountedAt=restored&&w.mountedAt===DECK_MOUNT&&p?.mount&&p.hatch&&!p.beamMoved?DECK_MOUNT:null;
+  const mountedAt=restored&&w.mountedAt===DECK_MOUNT&&p?.mount&&p.hatch&&!deckHatchFree(p)?DECK_MOUNT:null;
   s.portableWinch={restored,discussed:w?.discussed?1:0,mountedAt};
 }
 const deckWinchTalkReady=()=>!!(s.f.zinovii&&s.localProgress.deck?.winchTaken);
@@ -99,6 +121,7 @@ function restoreWinch(){
   say('Ти випрямляєш руків’я й ставиш нові зубці. Барабан прокручується рівно.','find');
   save();
 }
+const localBackLabel=z=>z.backLabel||(z.parent?'Назад':'На берег');
 const localObservation=(o,p)=>typeof o.text==='function'?o.text(p):o.text;
 function localZoneTick(){
   if(!atShore()||s.f.deckSeen||!s.f.wreck||!s.f.rod||(s.c.scrap||0)<12||!localCanAct()||s.dlg.length||s.tutPending.some(tutReady)||!novCan())return;
@@ -110,11 +133,12 @@ function rLocalZone(){
   const id=localCurrent(),z=localDef(id);
   if(!z)return '';
   const p=localState(id);
-  let h='<section><h2>'+z.title()+'</h2><p>'+z.desc+'</p><div class="act">'+btn(z.parent?'Назад':'На берег','zoneBack',id,{cls:'toggle'})+'</div>';
+  const desc=typeof z.desc==='function'?z.desc():z.desc;
+  let h='<section><h2>'+z.title()+'</h2><p>'+desc+'</p><div class="act">'+btn(localBackLabel(z),'zoneBack',id,{cls:'toggle'})+'</div>';
   for(const [k,o] of Object.entries(z.objects||{})){
     const action=!o.ready||o.ready(p)?btn(o.label,'zoneAct',id+':'+k):'';
-    const observation=p[k]&&o.text?'<p class="m">'+localObservation(o,p)+'</p>':'';
+    const observation=p[k]&&o.text&&(!o.obsReady||o.obsReady(p))?'<p class="m">'+localObservation(o,p)+'</p>':'';
     if(action||observation)h+='<div class="tdet">'+action+observation+'</div>';
   }
-  return h+localEntryButtons()+'</section>';
+  return h+(id==='deck'?holdDeckHint(p):'')+localEntryButtons()+'</section>';
 }

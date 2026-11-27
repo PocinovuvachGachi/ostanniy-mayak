@@ -144,8 +144,8 @@ for(const rescueFirst of [false,true]){
   load();A(!deckHaulAt&&s.localProgress.deck.beamMoved&&JSON.stringify(s.inv)===inv&&!s.f.rats&&!localEntries().length,
     'reload відновлює кінцеву сцену без повторної анімації, винагород чи входу нижче');
   A(!rLocalZone().includes('важка балка')&&rLocalZone().includes('люк і досі зачинений'),'опис відповідає кінцевій сцені');
-  act('zoneBack','deck');s.shf='rats';act('shfgo','rats');save();load();
-  A(s.cb?.win==='S:rats'&&!s.f.rats,'старий активний бій лишається доступним і зберігається');
+  act('zoneBack','deck');s.shf='rats';act('shfgo','rats');
+  A(!s.cb&&!s.f.rats,'стара берегова дія не обходить люк');
 }
 const alreadyWon=oldSave(0,1,0,0);
 alreadyWon.f={rats:1,zinovii:1,tracks:1,deckSeen:1};alreadyWon.tabs.shore=1;alreadyWon.tab='shore';
@@ -153,6 +153,6 @@ alreadyWon.ratsT=123;alreadyWon.odd={logpage:1};alreadyWon.localProgress.deck={w
 importSave(alreadyWon);
 act('zoneEnter','deck');
 A(s.f.rats&&s.f.tracks&&s.ratsT===123&&s.odd.logpage&&!shfReady('rats')&&!rcVisible(recipe)&&!action('winchTaken'),'стару перемогу й механізм не дублюємо');
-action('hatch');action('mount');A(action('install')&&action('pull'),'мігрований механізм готовий до використання без покупки');
+A(s.portableWinch.restored&&!s.portableWinch.mountedAt&&action('openHatch'),'мігрований механізм лишається готовим, старий переможець має доступ до люка');
 console.log('fails',fails);
 `);
