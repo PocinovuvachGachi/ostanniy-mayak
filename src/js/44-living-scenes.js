@@ -18,7 +18,7 @@ function ob(k,a,i,spec,x,y,W,H,lab,tip,o={}){const[u,ol,w,h]=spec;if(!u)return''
   const body=`<span class="obw"><span class="obj ${o.idle||''}">${deco?'':`<img class="obo" src="${ol}" alt="">`}<img class="obi" src="${u}" alt="" style="${inn}">${gl}</span></span>`;
   const z=10+Math.round(o.z!=null?o.z:y+h);
   if(deco)return`<span class="ob deco${o.cls?' '+o.cls:''}${fr.c}" data-sk="${k}" data-sig="${hsh(u+box+(o.cls||'')+fr.c)}" style="${box};z-index:${z}${fr.st}" aria-hidden="true">${body}${o.inner||''}</span>`;
-  const core=`class="ob${fr.c}${pulse?' nw':''}${o.ok===false?' no':''}${o.cls?' '+o.cls:''}" data-a="${a}" data-i="${i||''}" data-k="${k}"${o.cd?` data-cd="${o.cd}" data-cs="${o.cs}"`:''} aria-label="${lab}" ${TA(tip||`<b>${lab}</b>`)}>${body}<span class="hsl">${lab}</span>${o.inner||''}`;
+  const core=`class="ob${fr.c}${pulse?' nw':''}${o.ok===false?' no':''}${o.cls?' '+o.cls:''}" data-a="${a}" data-i="${i||''}" data-k="${k}"${o.cd?` data-cd="${o.cd}" data-cs="${o.cs}"`:''} aria-label="${lab}"${o.dialog===undefined?'':' aria-haspopup="dialog" aria-expanded="'+o.dialog+'"'} ${TA(tip||`<b>${lab}</b>`)}>${body}<span class="hsl">${lab}</span>${o.inner||''}`;
   return`<button type="button" data-sk="${k}" data-sig="${hsh(core+box)}" style="${box};z-index:${z}${fr.st}${o.cd?`;--p:${pOf(o.cd).toFixed(3)}`:''}" ${core}</button>`}
 function innerAt(px,py,pw,ph,w,h,cls,extra){return`<i class="${cls}" style="left:${((px+OP)/(w+2*OP)*100).toFixed(2)}%;top:${((py+OP)/(h+2*OP)*100).toFixed(2)}%;width:${(pw/(w+2*OP)*100).toFixed(2)}%;height:${(ph/(h+2*OP)*100).toFixed(2)}%;${extra||''}" aria-hidden="true"></i>`}
 function smkIn(sx,sy,w,h){return[0,1,2].map(n=>`<i class="smk" style="left:${((sx+OP)/(w+2*OP)*100).toFixed(2)}%;top:${((sy+OP)/(h+2*OP)*100).toFixed(2)}%;width:${(3/(w+2*OP)*100).toFixed(2)}%;--o:${n}s" aria-hidden="true"></i>`).join('')}
@@ -82,6 +82,7 @@ function bpopHTML(){const id=popB;if(!id)return'';let nm,lvl,d,btns='',extra='';
   if(id==='sh:bite'&&s.bite)return `<div class="bpop" role="dialog" aria-label="${fishBiteLabel()}"><div class="bph"><b>${fishBiteLabel()}</b><button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div>${fishBiteControls()}<div class="act">${btn('Закинути знову','fishing',bitePlace(),{cd:'fishing',cs:3})}</div></div>`;
   if(id==='cl:shelf')return shelfPopHTML();
   if(id==='cl:wolf')return wolfPopHTML();
+  if(id===ZINOVII_CARD)return zinoviiPopHTML();
   if(id.startsWith('kt:'))return kitPopHTML(id);
   if(id.startsWith('hr:'))return heroPopHTML(id);
   if(id.startsWith('fk:')||id.startsWith('tr:'))return villagePopHTML(id);
@@ -100,6 +101,7 @@ function placePop(){try{let L=document.getElementById('popl');if(!popB||s.cb){if
   if(!L){L=document.createElement('div');L.id='popl';document.body.appendChild(L)}
   const el=document.querySelector(popB==='hearth'?'.scn [data-k="hearth"]':/^(fl|wk|st|mp|hr|fk|tr|lc|sh|cl|kt):/.test(popB)?`#stage .scn [data-k="${popB}"]`:`.scn [data-k="b:${popB}"],.scn [data-k^="b:${popB}"]`);if(!el){L.innerHTML='';return}
   const html=bpopHTML(),sg=hsh(html);if(L.dataset.sig!==sg){L.innerHTML=html;L.dataset.sig=sg}const c=L.firstElementChild;if(!c)return;
+  if(popB===ZINOVII_CARD)c.inert=!localCanAct();
   if(innerWidth<=560||(window.matchMedia&&matchMedia('(max-width:560px)').matches)){c.classList.add('sheet');return}c.classList.remove('sheet');
   const r=el.getBoundingClientRect(),cw=c.offsetWidth,ch=c.offsetHeight;let x=r.left+r.width/2+scrollX-cw/2;x=Math.max(8,Math.min(x,document.documentElement.clientWidth-cw-8));
   let y=r.top+scrollY-ch-8;if(r.top-ch-8<80)y=r.bottom+scrollY+8;c.style.left=x+'px';c.style.top=y+'px'}catch(e){}}
@@ -110,8 +112,9 @@ function homeHS(){const W=YW,H=YH;let h='';const st=yardSt2();
   const tk='tw3:'+[st.floors.work,st.floors.gallery,st.floors.study,st.floors.lantern,st.hearth,st.won].map(v=>v?1:0).join('');
   h+=ob('tower',s.tabs.tower?'tab':'','tower',obURL(tk,()=>towerObj3(st)),18,8,W,H,'Нагору, до поверхів','<b>Маяк</b><br>Сходи ведуть угору, до поверхів.',{pulse:1});
   if(s.f.won)h+=`<i class="lglow" data-sk="lglow" data-sig="1" style="${PCT(28,0,54,52,W,H)};z-index:5" aria-hidden="true"></i>`;
-  let pc=null;
+  const buildings=[];
   const bob=(id,key,bx,by,spec,lvl,ghost,n)=>{const B=BD.find(b=>b.id===id),dm=(s.dmgB||{})[id],[u,ol,w,hh]=spec,x=Math.round(bx-w/2),y=by-hh;let inner='';
+    buildings.push([x,y,w,hh]);
     if(!ghost&&BSMK3[id]&&!dm&&s.on[id]!==false){const[sx,sy]=topPx(key,()=>BLD3[id==='house'?'house':id](id==='house'?1:stageOf(lvl)));inner+=smkIn(sx,sy,w,hh)}
     if(upT[id]&&Date.now()-upT[id]<1600&&!ghost)inner+=`<i class="upfx" aria-hidden="true"><b>${lvl>1?'Рівень '+lvl:'Збудовано'}</b></i>`;
     if(dm)inner+=`<i class="dmgx" aria-hidden="true"></i>`;
@@ -131,7 +134,7 @@ function homeHS(){const W=YW,H=YH;let h='';const st=yardSt2();
     const fl=lit?innerAt(10,-22,18,27,hw,hh,'flm'+(n>=4?' big':''),`background-image:url(${flameURL()})`):'';
     h+=ob('hearth','bpop','hearth',sp,hx,hy,W,H,'Вогнище',`<b>Вогнище, рівень ${n}</b><br>Натисни, щоб підкинути дров чи пригасити.`,{inner:fl+(upT.hearth&&Date.now()-upT.hearth<1600?`<i class="upfx" aria-hidden="true"><b>Рівень ${n}</b></i>`:''),cls:popB==='hearth'?'sel':''})}
   if(s.tabs.shore)h+=ob('toshore','tab','shore',obURL('sign3',signObj3),196,196,W,H,'До берега','<b>Стежка до берега</b><br>Плавник, уламки й риба.',{pulse:1});
-  return h}
+  return h+zinoviiYardHS(buildings,W,H)}
 function shoreHS(){const W=SW,H=SH,S=(x,y,w,h)=>PCT(x,y,w,h,W,H);let h=fogs(8,22)+mlaLayer(6,62)+fxCanvas('sh',W,H);
   h+=ob('home','tab','home',obURL('door3',doorObj3),6,51,W,H,'До маяка','<b>Двері маяка</b><br>Назад, до вогнища.');
   if(s.f.hook){
@@ -161,7 +164,7 @@ function patchStage(html){const st=$('stage');if(!st)return;if(!st.querySelector
     const om={};for(const c of[...old.children])if(c.dataset&&c.dataset.sk)om[c.dataset.sk]=c;const used=new Set();
     for(const c of[...nw.children]){const k=c.dataset&&c.dataset.sk,o=k&&om[k];
       if(o&&o.dataset.sig===c.dataset.sig){if(k==='bg'){const nh=c.querySelector('[data-h]'),oh=o.querySelector('[data-h]');if(nh&&oh)oh.dataset.h=nh.dataset.h}used.add(o)}
-      else if(o&&c.classList.contains('hook-water')){
+      else if(o&&(c.classList.contains('hook-water')||k===ZINOVII_CARD)){
         for(const attr of c.attributes)if(o.getAttribute(attr.name)!==attr.value)o.setAttribute(attr.name,attr.value);
         if(o.innerHTML!==c.innerHTML)o.innerHTML=c.innerHTML;
         used.add(o);
@@ -177,7 +180,7 @@ const MATK=(k,a)=>{k=k||'';if(a==='blow'||a==='smith'||a==='smithhot'||k==='hear
   if(a==='fishing'||a==='flotmg'||a==='flot')return{k:'splash',n:12};if(a==='gather')return{k:'splash',n:6};if(a==='scrapw')return{k:'chip',n:12,also:'dust'};
   if(a==='bld'||a==='floor'||a==='flu')return{k:'dust',n:16};if(k.startsWith('b:')||k.startsWith('fl:'))return{k:'dust',n:5};return{k:'dust',n:4}};
 function gatherFx(el){if(!actOk)return;el.style.setProperty('--p',pOf('gather').toFixed(3));if(RM())return;const log=el.querySelector('.dlw');if(!log||!log.animate)return;for(const a of log.getAnimations())a.cancel();log.animate([{transform:'translate(0,0) rotate(0)',opacity:1},{transform:'translate(-30%,-75%) rotate(-8deg)',opacity:1,offset:.17},{transform:'translate(-58%,-130%) rotate(-13deg)',opacity:0,offset:.34},{transform:'translate(48%,42%) rotate(7deg)',opacity:0,offset:.35},{transform:'translate(12%,9%) rotate(2deg)',opacity:.9,offset:.77},{transform:'translate(0,0) rotate(0)',opacity:1}],{duration:900,easing:'ease-in-out'});}
-function pressFx(el,e){try{if(['hookWater','rakeSand'].includes(el.dataset.a)||!el.classList.contains('ob')&&!el.classList.contains('hs'))return;const gather=el.dataset.a==='gather';if(gather)gatherFx(el);else{el.classList.remove('press');void el.offsetWidth;el.classList.add('press');setTimeout(()=>el.classList.remove('press'),180)}
+function pressFx(el,e){try{if(el.dataset.sk===ZINOVII_CARD||['hookWater','rakeSand'].includes(el.dataset.a)||!el.classList.contains('ob')&&!el.classList.contains('hs'))return;const gather=el.dataset.a==='gather';if(gather)gatherFx(el);else{el.classList.remove('press');void el.offsetWidth;el.classList.add('press');setTimeout(()=>el.classList.remove('press'),180)}
   if(!actOk||RM()||!FX.cv)return;const scn=el.closest('.scn');if(!scn)return;const r=scn.getBoundingClientRect(),b=(gather?el.querySelector('.dlw')||el:el).getBoundingClientRect(),cx=!gather&&e&&e.clientX?e.clientX:b.left+b.width/2,cy=!gather&&e&&e.clientY?e.clientY:b.top+b.height/2,
     W=FX.W/SK,H=FX.H/SK,x=(cx-r.left)/r.width*W,y=(cy-r.top)/r.height*H,m=MATK(el.dataset.k,el.dataset.a);fxBurst(FX.sc,x,y,m.k,m.n);if(m.also)fxBurst(FX.sc,x,y,m.also,6);if(m.fl)fxFlash(FX.sc,x,y)}catch(er){}}
 

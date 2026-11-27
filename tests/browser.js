@@ -14,8 +14,8 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
 (async () => {
   const b = await chromium.launch();
   const errs = [];
-  const page = async (w, h) => {
-    const p = await b.newPage({ viewport: { width: w, height: h } });
+  const page = async (w, h, options={}) => {
+    const p = await b.newPage({ viewport: { width: w, height: h }, ...options });
     p.on('pageerror', e => errs.push(e.message));
     p.on('console', m => { if (m.type() === 'error' && !isNoise(m.text() + ' ' + m.location().url)) errs.push(m.text()); });
     p.on('requestfailed', () => {});
@@ -38,6 +38,136 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await p.close();
   }
   
+  // Зиновій у дворі й на кухні. На телефоні є також справжня touch-активація.
+  for(const width of [390,1280]){
+    const mobile=width===390,p=await page(width,900,{hasTouch:mobile});
+    await p.emulateMedia({reducedMotion:mobile?'reduce':'no-preference'});
+    const setup=()=>p.evaluate(()=>{
+      s=fresh();popB='';s.tab='home';s.f.looked=1;s.b.hearth=1;s.r.wood=100;
+      Object.assign(s.f,{gullrack:1,rod:1,deckSeen:1,barrel:1});
+      Object.assign(s.tabs,{shore:1,tower:1,chron:1});
+      s.lastNov=s.play;
+      s.bdSeen=Object.fromEntries(BD.map(b=>[b.id,1]));
+      s.rcSeen=Object.fromEntries(RC.map(r=>[r.id,1]));
+      s.bts=Object.fromEntries(CH.flatMap(ch=>ch.beats.map(beat=>[beat[0],1])));
+      s.chs=CH.map(ch=>ch.id);s.tutSeen=Object.fromEntries(Object.keys(TUT).map(id=>[id,1]));s.tutPending=[];s.dbgPh=GR='d';
+      render();
+    });
+    await setup();
+    const scene=p.locator('#stage .scn');
+    const npc=p.locator('#stage [data-sk="cl:zinovii"]');
+    const art=npc.locator('.zinovii-frames');
+    const popup=p.locator('#popl .zinovii-pop');
+    const close=popup.getByRole('button',{name:'Закрити картку Зиновія'});
+    const tab=id=>p.locator('#tabs [data-a="tab"][data-i="'+id+'"]');
+    const hits=async keys=>{
+      await scene.evaluate(el=>el.closest('.scw').scrollIntoView({block:'center',inline:'nearest'}));
+      for(const k of keys){
+        const target=scene.locator('[data-k="'+k+'"]');
+        if(await target.count()!==1)return false;
+        await target.scrollIntoViewIfNeeded();
+        if(!await target.evaluate(el=>{
+          const r=el.getBoundingClientRect();
+          return el.contains(document.elementFromPoint(r.left+r.width/2,r.top+r.height/2));
+        }))return false;
+      }
+      return true;
+    };
+    A(!await npc.count()&&!await p.locator('#main .zinovii-card').count(),'немає спрайта й картки до порятунку · '+width);
+    await p.evaluate(()=>{
+      act('tab','shore');s.shf='zinovii';act('shfgo','zinovii');
+      while(s.dlg.length)act('dlgok');
+      act('tab','home');render();save();
+    });
+    await npc.waitFor();await npc.scrollIntoViewIfNeeded();
+    A(await npc.getAttribute('aria-label')==='Зиновій'&&await npc.getAttribute('aria-haspopup')==='dialog'
+      &&await npc.getAttribute('aria-expanded')==='false'&&await art.evaluate(el=>el.classList.contains('rest'))
+      &&await p.locator('#main .zinovii-card').count()===1,'штатний порятунок показує відпочинок і картку · '+width);
+    A(await p.evaluate(()=>!s.tabs.kitchen&&!s.b.smoke),'відпочинок без коптильні й кухні · '+width);
+    A(await hits(['tower','hearth','toshore','cl:zinovii']),'ранні точки двору доступні · '+width);
+    A(await art.evaluate(el=>{
+      const animation=el.getAnimations()[0];
+      if(innerWidth<=390)return !animation;
+      if(!animation)return false;
+      animation.currentTime=0;const idle=getComputedStyle(el).backgroundPosition;
+      animation.currentTime=6700;const gesture=getComputedStyle(el).backgroundPosition;
+      return idle!==gesture;
+    }),'кадри змінюються дискретно і поважають зменшений рух · '+width);
+    await npc.focus();await p.keyboard.press('Enter');
+    A(await popup.count()===1&&await close.evaluate(e=>e===document.activeElement)&&await npc.getAttribute('aria-expanded')==='true',
+      'клавіатура відкриває картку й переносить фокус · '+width);
+    await p.keyboard.press('Escape');
+    A(!await popup.count()&&await npc.evaluate(e=>e===document.activeElement),'Escape повертає фокус до Зиновія · '+width);
+
+    await p.evaluate(()=>{
+      window.zinNode=document.querySelector('[data-sk="cl:zinovii"]');
+      s.b.smoke=1;
+      s.localProgress.deck={winchTaken:1};
+      render();
+    });
+    A(await art.evaluate(el=>el.classList.contains('smoke'))&&await npc.evaluate(el=>el===window.zinNode&&el===document.activeElement),
+      'зміна заняття оновлює той самий hotspot і зберігає фокус · '+width);
+    A(await hits(['b:smoke','hearth','cl:zinovii']),'активна коптильня має окрему точку · '+width);
+    await p.evaluate(()=>{s.dmgB.smoke=1;render()});
+    A(await art.evaluate(el=>el.classList.contains('rest')),'пошкоджена коптильня не показує роботу · '+width);
+    await p.evaluate(()=>{delete s.dmgB.smoke;s.on.smoke=false;render()});
+    A(await art.evaluate(el=>el.classList.contains('rest')),'вимкнена коптильня не показує роботу · '+width);
+    await p.evaluate(()=>{
+      s.on.smoke=true;
+      Object.assign(s.f,{craft1:1,bpTraps:1,boat:1,schooner:1});
+      for(const id of ['smoke','hearth','forge','house','kiln','garden','pot','apoth','cellar','coalpit','render','dummy','steel','glass'])s.b[id]=5;
+      Object.assign(s.rs,{render:1,tactics:1});
+      Object.assign(s.mst,{olesya:1,ustyna:1,kindrat:1,severyn:1});s.floors.work=1;s.floors.gallery=1;
+      render();
+    });
+    A(await hits(['hearth','cl:zinovii'])&&await npc.evaluate(el=>{
+      const hit=el.getBoundingClientRect();
+      return [...el.closest('.scn').querySelectorAll('button.ob')].every(b=>{
+        if(b===el)return true;
+        const r=b.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2;
+        return x<=hit.left||x>=hit.right||y<=hit.top||y>=hit.bottom;
+      });
+    }),'серед розбудованих будівель персонаж не перекриває інші центри · '+width);
+    if(mobile)await npc.tap();else await npc.click();
+    const advice=popup.locator('[data-a="winchTalk"]');
+    A(await advice.count()===1&&await p.locator('#main .zinovii-card [data-a="winchTalk"]').count()===1,
+      'порада доступна зі сцени й картки «Людей маяка» · '+width);
+    await advice.click();
+    const dlg=p.locator('#dlg .dlgbg:not(.fo) [data-a="dlgok"]');
+    await dlg.waitFor();
+    A(await popup.evaluate(el=>el.inert),'картка не перехоплює взаємодії діалогу · '+width);
+    await dlg.click();
+    A(!await advice.count()&&await close.evaluate(e=>e===document.activeElement),'порада підтверджується раз і фокус повертається · '+width);
+    await close.click();
+    A(await npc.evaluate(e=>e===document.activeElement),'кнопка закриття повертає фокус · '+width);
+
+    await p.evaluate(()=>{
+      Object.assign(s.localProgress.deck,{beamMoved:1,openHatch:1});
+      s.f.tracks=1;s.r.fish=3;s.r.oil=0;
+      Object.assign(s.on,{render:false,apoth:false,smoke:false});
+      s.lastNov=-100;kitTick();s.lastNov=s.play;s.tutPending=[];
+      while(s.dlg.length)act('dlgok');
+      render();save();
+    });
+    await tab('tower').click();
+    await p.locator('#main [data-a="tt"][data-i="kitchen"]').click();
+    await art.waitFor();
+    A(await art.evaluate(el=>el.classList.contains('kitchen'))&&await hits(['kt:pot','kt:table','kt:book','cl:zinovii']),
+      'після відкриття кухні є побутова поза та окремі точки казана, стола і книги · '+width);
+    if(mobile)await npc.tap();else await npc.click();
+    const oil=popup.locator('[data-a="holdOil"]');
+    await oil.click();
+    A(await p.evaluate(()=>s.r.oil===1&&s.r.fish===2)&&await popup.count()===1,'та сама допомога доступна в кухонній картці · '+width);
+    await p.reload();await npc.waitFor();
+    A(!await popup.count()&&await art.evaluate(el=>el.classList.contains('kitchen'))&&await p.evaluate(()=>s.portableWinch.discussed&&s.r.oil===1),
+      'після reload збереглися прогрес і сцена · '+width);
+    if(mobile)await npc.tap();else await npc.click();
+    await tab('shore').click();
+    A(!await popup.count()&&!await npc.count()&&await p.evaluate(()=>atShore()),'перехід на берег згортає картку · '+width);
+    A(await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'доступний горизонтальний розмір сторінки · '+width);
+    await p.close();
+  }
+
   // Ранні інструменти: доступні на березі, не у майстерні.
   {
     const p = await page(390, 844);

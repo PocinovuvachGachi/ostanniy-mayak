@@ -54,7 +54,7 @@ function navTalkButton(){
   return navTalkReady()?btn('Запитати Зиновія про позначки','navTalk'):'';
 }
 function navTalk(){
-  if(s.tab!=='home'||s.at||!localCanAct()||s.dlg.length||!navTalkReady())return;
+  if(!zinoviiInteractionHere()||s.at||!localCanAct()||s.dlg.length||!navTalkReady())return;
   dlg({k:'story',title:'Позначки на кільцях',img:{t:'face',id:'zinovii'},
     body:`<p>${P('Зиновій')} згадує засувку під палубою. ${Q('Такі самі знаки штурман ставив на дощечках для вахти. Якорем мітив стоянку, хвилею — воду, зіркою — нічний курс. А маяком — вогонь, до якого ми верталися')}.</p>`});
   s.localProgress.hold.navTalk=1;save();
