@@ -34,7 +34,10 @@ Object.assign(ICO,{
 });
 const OSET={shells:{n:'Мушлі відпливу',gain:()=>{s.h.pts=(s.h.pts||0)+1},gt:'+1 очко характеристик'}};
 function collFind(src){const L=Object.keys(OD).filter(k=>OD[k].src===src&&!s.odd[k]);if(!L.length)return false;const id=L[Math.floor(Math.random()*L.length)];odd(id);setCheck(id);return true}
-function setCheck(id){const st=OD[id]&&OD[id].set;if(!st||(s.oset||{})[st])return;const all=Object.keys(OD).filter(k=>OD[k].set===st);if(!all.every(k=>s.odd[k]))return;
+function setCheck(id){const st=OD[id]&&OD[id].set;if(!st||(s.oset||{})[st])return;
+  // Давній запис про виплату за «Мартина» дійсний і без позначки в oset.
+  if(st==='martin'&&s.f.martinSet){s.oset={...s.oset,martin:1};dirty=1;return}
+  const all=Object.keys(OD).filter(k=>OD[k].set===st);if(!all.every(k=>s.odd[k]))return;
   s.oset=s.oset||{};s.oset[st]=1;OSET[st].gain();dlg({k:'find',title:`Набір: ${OSET[st].n}`,img:{t:'icon',id:ODI[id]},body:`<p>Речі лягли на полицю поруч — і разом вони щось розповідають. Здається, ти став уважнішим до світу.</p>`,gains:[OSET[st].gt]});if(OSET[st].after)OSET[st].after()}
 // Придатна ручна дія дає одну спробу після сюжетних перевірок.
 const SHORE_FINDS={
@@ -68,8 +71,9 @@ function shoreFindTick(){
 }
 
 function readOddDocument(id){
-  if(!OD[id]?.doc||!s.odd[id]||s.oddRead[id])return;
-  s.oddRead[id]=1;dirty=1;
+  if(!OD[id]?.doc||!s.odd[id])return;
+  if(!s.oddRead[id]){s.oddRead[id]=1;dirty=1}
+  if(id==='logpage')setCheck(id);
 }
 const oddDocumentIds=()=>Object.keys(OD).filter(id=>OD[id].doc&&s.odd[id]&&s.oddRead[id]);
 
