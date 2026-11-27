@@ -129,7 +129,7 @@ function kitchenScene(){const W=RMW,H=RMH;let h=`<span data-sk="bg" data-sig="bg
   const tk=[s.r.fish>=1,s.r.fish>=10,s.r.fish>=25,s.r.prov>=1,s.r.herb>=1].map(Number).join('');
   h+=ob('kt:table','bpop','kt:table',obURL('ktt3:'+tk,kitTable3),168,136,W,H,'Стіл із припасами','<b>Стіл</b><br>Що є з припасів.',{});
   h+=ob('kt:book','bpop','kt:book',obURL('ktb3',kitBook3),232,32,W,H,'Книга рецептів',`<b>Книга рецептів</b><br>Записано ${Object.keys(s.rcp||{}).length===1?'один рецепт':'кілька рецептів'}.`,{pulse:s.rcpNew?1:0});
-  h+=ob('kt:zin','bpop','kt:zin',[faceSceneURL('zinovii'),faceSceneURL('zinovii'),32,32],350,150,W,H,'Зиновій','<b>Зиновій</b>',{cls:'lcp'});
+  if(zinoviiPresent())h+=zinoviiHS('kitchen',133,169,W,H);
   const L={fire:[{x:85,y:192,r:110,e:.7,c:FIRE,n:4}],win:[{x:318,y:60,r:120,e:.8,c:WARM,a:.4}]};
   return`<div class="scn rm wk" data-scn="kt" style="${scnD()}">${h}${fxCanvas('kt',W,H)}${lightLayers(W,H,L)}</div>`}
 function kitPopHTML(id){const head=(t)=>`<div class="bpop wide" role="dialog" aria-label="${t}"><div class="bph"><b>${t}</b><button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div>`;
@@ -137,7 +137,6 @@ function kitPopHTML(id){const head=(t)=>`<div class="bpop wide" role="dialog" ar
     <p class="hint">Біля казана: тримай кипіння рівним — вийде дві порції, а коли рівно до кінця — дві смачні. Звично — одна звичайна порція. Інгредієнти не пропадають.</p></div>`}
   if(id==='kt:table')return head('Стіл із припасами')+`<p class="m">Риба ${fmt(s.r.fish)}/${capOf('fish')}, провізія ${fmt(s.r.prov)}/${capOf('prov')}${s.seen.herb?`, трави ${fmt(s.r.herb)}`:''}.</p>${['flounder','cod','mussel'].filter(has).map(id=>`<p class="m">${pimg(icoURL(id),20,20,'','')} ${IT[id].n} ×${s.inv[id]}</p>`).join('')}<p class="m">Страви в торбі: ${Object.keys(IT).filter(k=>DISH.some(D=>k===D.id||k===D.id+'_t')&&has(k)).map(k=>`${IT[k].n} ×${s.inv[k]}`).join(', ')||'поки жодної'}.</p></div>`;
   if(id==='kt:book'){s.rcpNew=0;return head('Книга рецептів')+`<div class="rlist">${DISH.filter(D=>rcpKnown(D.id)).map(D=>`<div class="row"><span><b>${IT[D.id].n}</b> <span class="m">— навчив${D.who==='Зиновій'?'':'ла'} ${D.who}</span><br><span class="m">${D.how}</span></span></div>`).join('')}</div><p class="hint">Далі ще чисті сторінки. Люди знають більше страв, ніж ти думаєш.</p></div>`}
-  if(id==='kt:zin')return head('Зиновій')+`<p class="m">${Q(['Казан не любить поспіху. Підкидай тріски, коли вогонь стихає.','Голодний хранитель — поганий хранитель.','Ганна знає трави, Оксана — сіль. Питай людей, хранителю.','Не бери юшку в бій. Зігрієшся нею, коли повернешся.'][Math.floor(Date.now()/60000)%4])}</p><div class="act">${fishRecipeButtons()}</div></div>`;
   return''}
 function rKitchen(){return`<section><h2>Кухня</h2><p class="m">Казан, стіл і книга рецептів — натискай на них у кухні. Біля казана страви виходять кращими.</p><div class="act">${fishRecipeButtons()}</div></section>`}
 /* підвкладки «Маяка»: розріз, кухня, майстерня, кабінет */

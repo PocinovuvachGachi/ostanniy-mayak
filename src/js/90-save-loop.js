@@ -71,15 +71,23 @@ document.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse')return;co
   if(!el.closest('button')){showTip(el,e.clientX,e.clientY);setTimeout(hideTip,4000);return}
   clearTimeout(lpT);lpF=0;const x=e.clientX,y=e.clientY;lpT=setTimeout(()=>{lpF=1;showTip(el,x,y)},450)});
 document.addEventListener('pointerup',()=>clearTimeout(lpT));
-document.addEventListener('click',e=>{if(popB&&!e.target.closest('.bpop,[data-a="bpop"]')&&!(popB==='cl:shelf'&&e.target.closest('#dlg'))){popB='';dirty=1;if(!e.target.closest('[data-a]'))render()}},true);
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&popB){popB='';render()}});
+document.addEventListener('click',e=>{if(popB&&!e.target.closest('.bpop,[data-a="bpop"]')&&!((popB==='cl:shelf'||popB===ZINOVII_CARD)&&e.target.closest('#dlg'))){popB='';dirty=1;if(!e.target.closest('[data-a]'))render()}},true);
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&popB){
+  const zinovii=popB===ZINOVII_CARD;
+  if(zinovii&&!localCanAct())return;
+  popB='';render();if(zinovii)focusZinoviiCard(false);
+}});
 if(typeof addEventListener==='function')addEventListener('resize',()=>{if(popB)placePop()});
 document.addEventListener('toggle',e=>{const d=e.target;if(d&&d.isConnected&&d.classList.contains('shore-alist'))shoreListOpen=d.open?1:0;if(d&&d.classList&&d.classList.contains('ledg'))s.ldOpen=d.open?1:0;if(d&&d.classList&&d.classList.contains('sett'))ftOpen=d.open?1:0},true);
 document.addEventListener('click',e=>{if(lpF){lpF=0;e.preventDefault();e.stopImmediatePropagation();setTimeout(hideTip,2500)}},true);
 document.addEventListener('click',e=>{const el=e.target.closest('[data-a]');if(!el||el.disabled||el.getAttribute('aria-disabled')==='true')return;
   if(el.dataset.a!=='bpop'&&el.dataset.cd&&onCd(el.dataset.cd)&&(el.classList.contains('ob')||el.classList.contains('hs'))){nope(el);return}
+  const zinoviiToggle=el.dataset.a==='bpop'&&(el.dataset.i===ZINOVII_CARD||el.closest('.zinovii-pop')&&!el.dataset.i);
+  const zinoviiDialogue=popB===ZINOVII_CARD&&el.closest('#dlg');
   const isHs=el.classList.contains('hs')||el.classList.contains('ob'),r0=isHs?Object.assign({},s.r):null;if(isHs){s.hsU=s.hsU||{};if(!s.hsU[el.dataset.k]){s.hsU[el.dataset.k]=1;el.classList.remove('pulse')}}
-  act(el.dataset.a,el.dataset.i);if(isHs)hsPop(el,e,r0);if(isHs&&el.dataset.a==='gather'){if(dirty)render();const now=document.querySelector('.scn [data-sk="gather"]');if(now)pressFx(now,e)}else{if(isHs)pressFx(el,e);if(dirty)render()}save()});
+  act(el.dataset.a,el.dataset.i);if(isHs)hsPop(el,e,r0);if(isHs&&el.dataset.a==='gather'){if(dirty)render();const now=document.querySelector('.scn [data-sk="gather"]');if(now)pressFx(now,e)}else{if(isHs)pressFx(el,e);if(dirty)render()}
+  if(zinoviiToggle||zinoviiDialogue)focusZinoviiCard(popB===ZINOVII_CARD);
+  save()});
 document.addEventListener('keydown',e=>{
   if(e.key==='Enter'&&e.target.matches&&e.target.matches('input[data-rid]')){act('riddle',e.target.dataset.rid);render();save();return}
   if((e.key==='Enter'||e.key===' ')&&e.target.getAttribute&&e.target.getAttribute('role')==='button'&&e.target.dataset.a){e.preventDefault();act(e.target.dataset.a,e.target.dataset.i);render();save();return}

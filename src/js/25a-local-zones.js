@@ -125,7 +125,7 @@ function portableWinchSanitize(){
 const deckWinchTalkReady=()=>!!(s.f.zinovii&&s.localProgress.deck?.winchTaken);
 const winchTopicReady=()=>deckWinchTalkReady()&&!s.portableWinch.discussed&&!s.portableWinch.restored;
 function winchTalk(){
-  if(s.tab!=='home'||s.at||s.dlg.length||!localCanAct()||!winchTopicReady())return;
+  if(!zinoviiInteractionHere()||s.at||s.dlg.length||!localCanAct()||!winchTopicReady())return;
   dlg({k:'story',winchTalk:1,title:'Механізм із палуби',img:{t:'face',id:'zinovii'},
     body:`<p>${P('Зиновій')} крутить барабан і проводить пальцем по сколених зубцях. ${Q('Руків’я випростаємо. Зубці замінимо, а барабан іще послужить. На верстаку зробиш, покажу як')}.</p>`,
     btns:[['Запам’ятати пораду','dlgok']]});

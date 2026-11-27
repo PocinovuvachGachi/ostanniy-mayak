@@ -11,7 +11,7 @@ const holdOilNeeded=()=>rcCost(RC.find(r=>r.id==='lamp')).oil;
 const holdOilReady=()=>!!(holdDarkSeen()&&s.f.zinovii&&!holdOwnedLight()&&s.r.oil<holdOilNeeded());
 
 function holdOil(){
-  if(s.tab!=='home'||s.at||!localCanAct()||!holdOilReady()||s.r.fish<1)return;
+  if(!zinoviiInteractionHere()||s.at||!localCanAct()||!holdOilReady()||s.r.fish<1)return;
   pay({fish:1});add('oil',1);
   say(`${P('Зиновій')} зливає витоплений жир у шклянку. Від вогню тягне рибою.`,'world');
   save();

@@ -1087,3 +1087,23 @@ body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .
 
 .nav-reverse{border-top:1px solid var(--rule);padding-top:.55rem}
 @media (max-width:560px){#main [data-i^="hold:ring"],#main [data-i="hold:navTry"]{min-height:44px}}
+
+/* Зиновій у дворі й на кухні */
+.ob.zinovii-resident .obi{opacity:0}
+.zinovii-frames{position:absolute;pointer-events:none;image-rendering:pixelated;background-size:400% 100%;background-repeat:no-repeat;background-position:0 0}
+.zinovii-profile{gap:8px;align-items:center}
+.zinovii-profile img{width:48px;height:48px}
+.zinovii-topics{flex-wrap:wrap}
+.zinovii-topics>p{flex-basis:100%}
+@media (prefers-reduced-motion:no-preference){
+  .zinovii-frames{animation:zinovii-gesture 11s steps(1,end) infinite}
+  .zinovii-frames.smoke{animation-duration:8s}
+  .zinovii-frames.kitchen{animation-duration:9s}
+  .zinovii-resident:hover .zinovii-frames,.zinovii-resident:focus-visible .zinovii-frames,.zinovii-resident.sel .zinovii-frames{animation:none;background-position:100% 0}
+}
+.zinovii-resident:hover .obw,.zinovii-resident:focus-visible .obw{transform:none}
+@keyframes zinovii-gesture{
+  0%,78%,100%{background-position:0 0}
+  52%,72%{background-position:33.3333% 0}
+  60%{background-position:66.6667% 0}
+}

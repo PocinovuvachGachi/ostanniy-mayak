@@ -113,10 +113,12 @@ function rDefense(){let h=`<section><h2>Оборона маяка${ih(`Мла з
   for(const d of DEF){if(d.req&&!d.req())continue;const n=defL(d.id),mx=n>=d.max;
     h+=`<div class="row"><div><b>${d.n}</b>${n?`, рівень ${n}`:''}${d.tog&&n&&s.on[d.id]===false?' <span class="m">(погашено)</span>':''}<br><span class="m">${d.d(n)}</span></div><div class="act" style="flex:0 1 auto">${d.tog&&n?btn(s.on[d.id]===false?'Запалити':'Погасити','tog',d.id,{cls:'toggle'}):''}${mx?'<span class="done">найкраще</span>':btn(`${n?'Покращити':'Збудувати'} (${costTxt(defCost(d))})`,'def',d.id,{ok:()=>afford(defCost(d))})}</div></div>`}
   return h+`</section>`}
+const zinoviiInlineCard=()=>`<div class="card zinovii-card"><b class="npc">Зиновій</b>${zinoviiCardBody()}</div>`;
 function rPeople(){const cap=2*(s.b.house||0),pop=s.pop||0,ms=Object.keys(MST).filter(m=>s.mst[m]);
   let h=`<section><h2>Люди маяка</h2><p>Поселенців <b>${pop}</b> з ${cap} місць у хатах; вільних рук ${V(()=>Math.max(0,freeW()))}. Майстрів: ${ms.length}. Усі разом їдять ${fr(0.02*people())} провізії/с.</p>`;
   h+=`<p class="m">${VH(()=>s.r.prov<1&&people()?'<b class="foe">Комора порожня: люди голодні й працюють гірше.</b> ':'')}${pop<cap?(s.r.prov>=5?`Наступний поселенець прийде за ${V(()=>s.popT?Math.max(0,Math.ceil((s.popT-Date.now())/1000)):60)} с.`:'Поселенці не прийдуть, поки в коморі немає 5 провізії.'):'Щоб прийшли нові поселенці, збудуй ще хату.'} Вільні поселенці збирають плавник.</p>`;
-  if(ms.length)h+=`<div class="cards">${ms.map(m=>`<div class="card pcard">${pimg(faceURL(m),48,48,'',MST[m].n)}<div><b class="npc">${MST[m].n}</b><span class="role">${MST[m].role}</span><span class="m">${MST[m].d}</span>${m==='zinovii'?(winchTopicReady()?btn('Показати механізм Зиновію','winchTalk'):'')+holdOilHTML()+navTalkButton():''}</div></div>`).join('')}</div>`;
+  const cards=zinoviiPresent()&&!s.mst.zinovii?['zinovii',...ms]:ms;
+  if(cards.length)h+=`<div class="cards">${cards.map(m=>m==='zinovii'?zinoviiInlineCard():`<div class="card pcard">${pimg(faceURL(m),48,48,'',MST[m].n)}<div><b class="npc">${MST[m].n}</b><span class="role">${MST[m].role}</span><span class="m">${MST[m].d}</span></div></div>`).join('')}</div>`;
   return h+`</section>`}
 const scnD=()=>`--d:-${((Date.now()/1000)%30).toFixed(2)}s;--d2:-${((Date.now()/1000)%180).toFixed(2)}s`;
 function homeScene(){return`<div class="scn yd" data-scn="yd" style="${scnD()}"><span data-sk="bg" data-sig="bg" class="scbg">${VH(yardBgImg)}</span>${homeHS()}</div>`}
@@ -133,7 +135,8 @@ function rHome(){let h=`<div>`;
   h+=`<details class="alist"><summary>Усі дії списком</summary><div>${al}</div></details></section>`;
   if(thrOn())h+=rDefense();
   if(s.f.people)h+=rPeople();
-  if((!s.f.people||!s.mst.zinovii)&&navTalkReady())h+='<section><div class="act">'+navTalkButton()+'</div></section>';
+  else if(zinoviiPresent())h+=`<section><h2>Люди маяка</h2>${zinoviiInlineCard()}</section>`;
+  if(!zinoviiPresent()&&navTalkReady())h+='<section><div class="act">'+navTalkButton()+'</div></section>';
   const vis=BD.filter(b=>b.show());
   if(vis.length){h+=`<section class="ledger"><details class="ledg"${s.ldOpen?' open':''}><summary><span class="lgt">Книга обліку</span><span class="m"> · усі будівлі одним списком</span></summary><h2 class="sr">Господарство${ih(`Цехи автоматично бережуть резерв сировини. Дозволь витрачати резерв для окремого цеху або вимкни цех зовсім.${s.f.people?' Робітник додає будівлі пів рівня, а майстер у своїй будівлі подвоює все.':''}`)}</h2>`;
     for(const b of vis){const n=s.b[b.id]||0,w=(s.wk||{})[b.id]||0,mx=b.max&&n>=b.max;
@@ -557,12 +560,13 @@ function restoreTideFocus(el,root){
 }
 function render(){
   localSanitize();
+  if(popB===ZINOVII_CARD&&(!zinoviiCardContext()||s.cb||s.raid))popB='';
   tideRenderTime=Date.now();
   const tide=tideViewKey(),view=s.tab+'|'+(s.tab==='map'?s.at:'')+'|';
   paintingTide=!!tide&&!!paintedTide&&tide!==paintedTide&&lastView===view;
   const focused=document.activeElement;
   const action=focused?.dataset?.a;
-  const keepFocus=paintingTide||['mussels','hookWater','rakeSand','navLog'].includes(action)||action?.startsWith('zone')||action==='equip'&&localCurrent()==='deck'||focused?.closest?.('.shore-recovery');
+  const keepFocus=paintingTide||['mussels','hookWater','rakeSand','navLog'].includes(action)||action?.startsWith('zone')||action==='equip'&&localCurrent()==='deck'||focused?.closest?.('.shore-recovery,.zinovii-card,.zinovii-pop');
   const el=keepFocus?focused:null,root=el?.closest('#stage,#main,#popl,#tabs');
   paintedTide=tide;
   try{renderView();restoreTideFocus(el,root)}finally{tideRenderTime=null;paintingTide=false}

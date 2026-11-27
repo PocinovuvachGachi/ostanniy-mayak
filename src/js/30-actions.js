@@ -8,7 +8,7 @@ function act0(a,i){
   if(a==='dlgok'){const d=(s.dlg||[]).shift();readOddDocument(d?.odd);if(d?.winchTalk)confirmWinchTalk();dirty=1;return}
   if(a==='bellOpen'){s.bellHold=0;dirty=1;return}
   if(a==='bellDefer'){s.bellHold=1;dirty=1;return}
-  if(a==='bpop'){popB=popB===i?'':(i||'');if(popB==='cl:shelf')shelfSelected='';dirty=1;return}
+  if(a==='bpop'){if(i===ZINOVII_CARD&&popB!==i&&(!zinoviiCardContext()||!localCanAct()))return;popB=popB===i?'':(i||'');if(popB==='cl:shelf')shelfSelected='';dirty=1;return}
   if(a==='hsgo'||a==='hsbd'){hlT=(a==='hsbd'?'bd-':'sec-')+i;dirty=1;return}
   if(a==='novgo'){(s.dlg||[]).shift();if(!s.cb&&s.tabs.hero){s.localZone='';s.tab='hero';s.ht=i}dirty=1;return}
   if(a==='dlggo'){(s.dlg||[]).shift();if(!s.cb&&s.tabs[i]){s.localZone='';s.tab=i}dirty=1;return}
