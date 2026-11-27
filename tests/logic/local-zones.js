@@ -27,5 +27,46 @@ raw=JSON.stringify(old);load();
 A(s.localZone===''&&s.localProgress&&s.poolFindCyc===null&&s.c.scrap===12&&s.r.scrap===17&&s.odd.seaglass&&s.shoreFindMiss.gather===10,
   'старе збереження зберігає розбори, ресурси, колекцію і серію невдач');
 localZoneTick();act('zoneEnter','deck');A(localCurrent()==='deck','старий гравець відкриває палубу зі збереженим лічильником');
+// Палуба зберігає огляди окремо від одноразового підбору в обох порядках порятунку.
+for(const rescueFirst of [false,true]){
+  s=fresh();s.tab='shore';s.tabs.shore=1;
+  Object.assign(s.f,{looked:1,wreck:1,rod:1,deckSeen:1,tideSeen:1});
+  s.c.scrap=12;s.b.winch=2;
+  s.localProgress.deck={visited:1,planks:1}; // Збереження P4.5.1.
+  s.dbgTide=rescueFirst?'low':'high';s.tideEpoch=Date.now();
+  const rescueZinovii=()=>{
+    s.shf='zinovii';act('shfgo','zinovii');
+    while(s.dlg.length)act('dlgok');
+  };
+  if(rescueFirst)rescueZinovii();
+  A(!deckWinchTalkReady(),'саме знайомство ще не відкриває тему механізму');
+  act('zoneEnter','deck');save();load();
+  A(localCurrent()==='deck'&&s.localProgress.deck.planks&&rLocalZone().includes('шаром солі'),'старий огляд лишився після появи нових об’єктів');
+  A(rLocalZone().includes(rescueFirst?'Палуба «Мартина»':'Палуба уламка'),'назва відповідає знайомству');
+  A(!/трюм|пацюк|рецепт|Зиновій|секрет/.test(rLocalZone()),'перша сцена не має майбутніх сюжетних зачіпок');
+  A(!localAct('deck:winchTaken')&&!localAct('wreck:winch'),'не можна забрати до огляду чи за чужим ID');
+  s.dlg=[{k:'story',title:'Відкладена подія'}];
+  A(!localAct('deck:winch'),'відкритий сюжетний діалог зберігає пріоритет');
+  s.bellHold=1;
+  A(localAct('deck:hatch')&&localAct('deck:mount')&&localAct('deck:winch'),'огляди працюють з відкладеним дзвінком');
+  A(s.dlg.length===1&&s.dlg[0].title==='Відкладена подія'&&!deckWinchTalkReady(),'огляд не забирає предмет і не змінює чергу');
+  save();load();
+  A(s.localProgress.deck.hatch&&s.localProgress.deck.mount&&s.localProgress.deck.winch
+    &&rLocalZone().includes('deck:winchTaken'),'reload зберігає всі огляди й доступ до підбору');
+  const goods=()=>JSON.stringify([s.r,s.inv,s.odd,s.h.xp,s.h.xpb,s.b.winch]);
+  const before=goods();
+  A(localAct('deck:winchTaken')&&!localAct('deck:winchTaken')&&!localAct('deck:winch'),'механізм забирається рівно раз');
+  A(goods()===before&&s.dlg.length===1,'підбір не видає ресурсів, XP, колекції чи діалогу');
+  save();load();act('zoneBack','deck');
+  s.dbgTide=s.dbgTide==='low'?'high':'low';act('zoneEnter','deck');
+  A(s.localProgress.deck.winchTaken&&!rLocalZone().includes('data-i="deck:winchTaken"')&&rLocalZone().includes('порожніми отворами'),
+    'підбір і опис порожньої основи переживають reload та зміну води');
+  A(deckWinchTalkReady()===rescueFirst,'готовність теми залежить від обох збережених фактів');
+  act('zoneBack','deck');while(s.dlg.length)act('dlgok');
+  if(!rescueFirst)rescueZinovii();
+  A(deckWinchTalkReady()&&!s.dlg.length,'після другого факту готова умова без нового діалогу');
+  const scrap=s.r.scrap;produce(10);
+  A(Math.abs(s.r.scrap-scrap-6)<1e-9&&s.b.winch===2,'стара лебідка продовжує давати 0,3 брухту/с за рівень');
+}
 console.log('fails',fails);
 `);
