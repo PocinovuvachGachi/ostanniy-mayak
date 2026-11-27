@@ -60,7 +60,10 @@ function act0(a,i){
   case 'wlesson':wLesson();break;
   case 'three':threeLights();break;
   case 'cache':cacheOpen();break;
-  case 'shelfInspect':if(popB==='cl:shelf'&&(!i||OD[i]&&s.odd[i]))shelfSelected=i;break;
+  case 'shelfInspect':if(popB==='cl:shelf'&&(!i||OD[i]&&s.odd[i])){
+    shelfSelected=i;
+    if(i==='logpage'&&s.oddRead[i])setCheck(i);
+  }break;
   case 'shelfRead':if(popB==='cl:shelf')readOddDocument(i);break;
   case 'shelfGive':if(popB==='cl:shelf'&&s.odd[i]){
     const gift=OD[i]?.gift;

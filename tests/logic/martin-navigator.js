@@ -87,6 +87,26 @@ for(const stage of [2,3,4,5]){
   A(navDoorOpen()&&localEnter('navigator')&&localAct('navigator:table'),'повернення на етапі '+stage);
 }
 
+for(const legacy of ['newlyRecovered','readReverse','alreadyRead','oldAward']){
+  oldWin({page:legacy==='alreadyRead'||legacy==='oldAward'});
+  Object.assign(s.odd,{mbell:1,mladle:1});
+  if(legacy==='oldAward')s.f.martinSet=1;
+  const beforeTalent=s.h.fp,beforeXp=totXP();
+  hold();action('navDoor');
+  A(s.h.fp===beforeTalent&&totXP()===beforeXp,'відновлення сторінки саме не видає досвід чи талант');
+  if(legacy==='readReverse')turnPage();
+  else{
+    act('tab','tower');popB='cl:shelf';act('shelfInspect','logpage');
+    if(!s.oddRead.logpage)act('shelfRead','logpage');
+  }
+  A(s.f.martinSet&&s.oset?.martin&&s.h.fp===beforeTalent+Number(legacy!=='oldAward'),
+    'звичайна винагорода повного набору · '+legacy);
+  drain();save();load();
+  popB='cl:shelf';act('shelfInspect','logpage');readOddDocument('logpage');drain();
+  A(s.f.martinSet&&s.oset?.martin&&s.h.fp===beforeTalent+Number(legacy!=='oldAward')&&totXP()===beforeXp,
+    'повний старий набір завершується один раз у чинній взаємодії · '+legacy);
+}
+
 oldWin();hold();action('navDoor');act('tab','tower');
 popB='cl:shelf';shelfSelected='logpage';
 A(shelfPopHTML().includes('data-a="navLog"'),'полиця пропонує зворот уже прочитаної сторінки');

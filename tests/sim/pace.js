@@ -4,15 +4,20 @@
    Друкує, на якій хвилині що відкрилося, і шукає провали (довго нічого нового) та ривки (забагато одразу).
 
    node tests/sim/pace.js [профіль] [хвилин]     профілі: active (за замовчуванням), casual
-   SIMJSON=1 — додатково вивести JSON для подальшого аналізу. */
+   SIMJSON=1 — додатково вивести JSON для подальшого аналізу.
+   SIMMARTIN=manual|mixed — маршрут до броду; SIMSTORM=1 — продовжити до штормового ліхтаря.
+   SIMZERO=1 — контрольний запуск без запасу олії перед відкриттям темного трюму. */
 const prof = process.argv[2] || 'active', LIMIT = +(process.argv[3] || 600);
 require('../harness.js')(`(()=>{NOGAP=0;
 const PROF=${JSON.stringify(prof)},LIMIT=${LIMIT};
+const MARTIN=${JSON.stringify(process.env.SIMMARTIN||'')},STORM=${!!process.env.SIMSTORM},ZERO=${!!process.env.SIMZERO};
 const P=PROF==='casual'?{click:2.5,act:5,read:12,fightStep:4,travel:25,think:180,idle:20}:{click:1.1,act:3,read:7,fightStep:3,travel:15,think:120,idle:10};
 let T=0,acts=0;const meals={fish:0,prov:0},tried={};const ev=[],seen=new Set();
 /* час іде: годинник, виробництво, перевірки — як у головному циклі */
 function wait(sec,present=true){while(sec>0){const d=Math.min(5,sec);__adv(d*1000);s.t+=d;produce(d);if(present)s.lastAct=Date.now();checks();sec-=d;T+=d;scan();spTick()}}
 function A(a,i,cost){acts++;act(a,i);wait(cost==null?P.act:cost)}
+const audit=[],mat=()=>Object.fromEntries(['wood','scrap','oil','fish','iron','coin'].map(k=>[k,Number(s.r[k].toFixed(3))]));
+const rec=(id,data={})=>{if(MARTIN)audit.push({id,t:+mins(),...data})};
 const mins=()=>(T/60).toFixed(1);
 /* SIMSPOIL=1: шукає в показаному тексті назви місць, людей і громад, яких гравець ще не знає (#39) */
 const SPN=[[/Причал/,()=>KN('village')],[/«Чайк/,()=>KN('chaika')],[/Вересов/,()=>KN('cliffs')],[/Затока Мулу|Затоці Мулу|Затоку Мулу/,()=>KN('bay')],[/Мовчун/,()=>FAC.silent.known()],[/Гнат/,()=>KN('gnat')],
@@ -27,7 +32,9 @@ if(SPOIL){const _say=say;say=(m,t)=>{spQ.push([m,'say']);return _say(m,t)};const
 let spT=0;function spTick(){if(!SPOIL)return;while(spQ.length>4){const[m,w]=spQ.shift();spCheck(m,w)}
   if(T-spT>=120){spT=T;while(spQ.length){const[m,w]=spQ.shift();spCheck(m,w)}if(s.at&&LOC[s.at])for(const S of LOC[s.at].spots)if(!S.show||S.show())spHeard(S.n+' '+(typeof S.d==='function'?S.d():S.d||''));if(!s.cb){const t0=s.tab;for(const t in s.tabs){s.tab=t;render();for(const k in els)if(k==='main'||k==='stage'||k==='top')spCheck(els[k].innerHTML,'вкладка '+t)}s.tab=t0}}}
 /* що вважаємо відкриттям */
-function mark(k,label,major){if(seen.has(k))return;seen.add(k);ev.push({t:T,k,label,major})}
+function mark(k,label,major){if(seen.has(k))return;seen.add(k);ev.push({t:T,k,label,major});
+  if(MARTIN&&['f:wreck','f:deckSeen','f:zinovii','f:rats','rune:b','ford:poles','ford:steps','ford:rope','f:tracks','tab:kitchen','f:drown1','f:horpyna','floor:gallery','f:fordSeen','f:siege1','f:fordDone','it:storm','vis:village'].includes(k))rec(k,{mat:mat()});
+}
 function scan(){for(const t in s.tabs)mark('tab:'+t,'вкладка «'+(TABS.find(x=>x[0]===t)||[t,SUBT[t]||t])[1]+'»',1);
   for(const f in s.floors)if(s.floors[f])mark('floor:'+f,'поверх: '+((FL.find(x=>x.id===f)||{}).n||f),1);
   if(s.b.hearth)mark('b:hearth','вогнище',1);for(const b of BD)if(s.b[b.id])mark('b:'+b.id,'будівля: '+b.n,1);
@@ -43,7 +50,7 @@ function scan(){for(const t in s.tabs)mark('tab:'+t,'вкладка «'+(TABS.fi
   if(s.vq&&s.vq.t)for(const k in s.vq.t)mark('vq:'+k,'прохання: '+k,1);if(s.c&&s.c.vg)mark('vg:'+s.c.vg,'справа на Причалі №'+s.c.vg,1);if(s.f.reefmap)mark('reefmap','карта рифів',1);if(s.met.levko)mark('rot:'+rotRank(),'Причал: '+RW[rotRank()],1);if(has('key'))mark('key','ключ Ганни',1);for(const k in s.odd)mark('odd:'+k,'дивина: '+OD[k].n,1);for(const k in s.runes||{})mark('rune:'+k,'камінь з написом',1);for(const k in s.ford||{})mark('ford:'+k,'брід: '+k,1);
   mark('lvl:'+s.h.lvl,'рівень героя '+s.h.lvl,0);
   for(const[n,ok]of[['I',()=>s.f.fordDone],['II',()=>has('key')||s.floors.study],['III',()=>s.f.ostap],['IV',()=>s.f.schooner],['V',()=>s.f.won2]])if(!PROG[n]&&ok())PROG[n]=progSnap();
-  for(const k of ['hookPlan','hook','rodPlan','rod','dryPlan','dryRack','dryHung','dryMade','wreck','people','boat','schooner','won','siege1','ostap','chest','crypt','stones','fordSeen','fordDone','gullrack','rats','drown1','zinovii','horpyna','cache','tracks','seal','signal','martinSet','reunion','herbsDone','rsiege','curMet','goatDone','three','lightPlan'])if(s.f[k])mark('f:'+k,'подія: '+k,1)}
+  for(const k of ['hookPlan','hook','rodPlan','rod','dryPlan','dryRack','dryHung','dryMade','wreck','deckSeen','people','boat','schooner','won','siege1','ostap','chest','crypt','stones','fordSeen','fordDone','gullrack','rats','drown1','zinovii','horpyna','cache','tracks','seal','signal','martinSet','reunion','herbsDone','rsiege','curMet','goatDone','three','lightPlan'])if(s.f[k])mark('f:'+k,'подія: '+k,1)}
 const PROG={},A0=Object.values(s.h.a).reduce((a,b)=>a+b,0);
 function progSnap(){const at=Object.values(s.h.a).reduce((a,b)=>a+b,0)-A0+(s.h.pts||0),sk=Object.values(s.h.k).reduce((a,b)=>a+b,0)+(s.h.sp||0),tl=Object.keys(s.h.ft).filter(k=>s.h.ft[k]).length+(s.h.fp||0);let xt=s.h.xp;for(let l=1;l<s.h.lvl;l++)xt+=need(l);return{t:T,lvl:s.h.lvl,at,sk,tl,xt:Math.round(xt)}}
 /* діалоги: читаємо й тиснемо першу кнопку */
@@ -51,8 +58,20 @@ function dialogs(){let g=0;while((s.dlg||[]).length&&g++<30){const d=s.dlg[0];if
   if(d.bgsel){act('bg',Object.keys(BGS)[0]);continue}
   const prep=d.crabw&&s.h.hp<maxHP()*.8&&d.btns?.find(b=>b[1]==='crabPrepare');
   const b=prep||d.btns?.[0];if(b){acts++;act(b[1],b[2]);if(s.cb)fight();continue}act('dlgok')}}
-let fightActs=0;const _act=act;act=(a,i)=>{if(s.cb)fightActs++;const result=_act(a,i);scan();return result};
-function fight(){if(${!!process.env.SIMSNAP}&&s.cb)console.log('SNAP '+JSON.stringify({t:T,enc:s.cb.enc,s}));fightActs=0;botFight(800);wait(fightActs*P.fightStep+10);mark('fight:'+(s.c.wins||0),'перемог у боях: '+(s.c.wins||0),0)}
+let fightActs=0;const _act=act;act=(a,i)=>{
+  if(s.cb)fightActs++;
+  const tracked=MARTIN&&(a==='holdOil'||a==='buy'&&['glass','oil'].includes(i)||a==='craft'&&['winchRestore','lamp','storm'].includes(i));
+  const before=tracked&&mat();
+  const result=_act(a,i);scan();
+  if(before){
+    const after=mat();
+    if(Object.keys(before).some(k=>before[k]!==after[k]))rec(i?a+':'+i:a,{before,after});
+  }
+  return result;
+};
+function fight(){if(${!!process.env.SIMSNAP}&&s.cb)console.log('SNAP '+JSON.stringify({t:T,enc:s.cb.enc,s}));const enc=s.cb?.enc,hp=s.h.hp,max=maxHP(),weapon=s.eq.weapon,w0=s.c.wins||0;fightActs=0;botFight(800);
+  rec('fight:'+enc,{won:(s.c.wins||0)>w0,hp,max,end:s.h.hp,weapon,actions:fightActs});
+  wait(fightActs*P.fightStep+10);mark('fight:'+(s.c.wins||0),'перемог у боях: '+(s.c.wins||0),0)}
 /* герой: очки характеристик, умінь, таланти; спорядження */
 function hero(){let g=0;while(s.h.pts>0&&g++<20){const k=Object.keys(s.h.a).sort((a,b)=>s.h.a[a]-s.h.a[b])[0];A('attr',k,1)}
   g=0;while(s.h.sp>0&&g++<20){const k=Object.keys(s.h.k).filter(k=>s.h.k[k]<skillCap()).sort((a,b)=>s.h.k[a]-s.h.k[b])[0];if(!k)break;A('skill',k,1)}
@@ -66,7 +85,7 @@ const want=()=>{const L=[];const fi=FL.findIndex(f=>!s.floors[f.id]);const f=FL[
   if(s.f.dryRack&&!dryBusy()&&!s.f.dryHung)L.unshift(['dryload','',{fish:DRYF}]);
   if(dryReady()&&drySpace())L.unshift(['drytake','',{}]);
   if((s.b.hearth||0)<8)L.push(['bld','hearth',bCost(HEARTH)]);
-  for(const b of BD)if(b.show()&&!(b.max&&(s.b[b.id]||0)>=b.max)&&(s.b[b.id]||0)<6)L.push(['bld',b.id,bCost(b)]);
+  for(const b of BD)if((MARTIN!=='manual'||!['boom','pot'].includes(b.id))&&b.show()&&!(b.max&&(s.b[b.id]||0)>=b.max)&&(s.b[b.id]||0)<6)L.push(['bld',b.id,bCost(b)]);
   if(s.b.shipyard&&!s.f.schooner)L.unshift(['schooner','',SCHOONER]);
   if(s.f.fordSeen&&!s.f.fordDone){const P=fordReady();if(P)L.unshift(['ford',P.id,P.c])}
   /* провізія на походи: якщо є куди плисти, а нема з чим */
@@ -80,6 +99,7 @@ function buy(){let did=0;const tg=target();for(const[a,i,c,it]of want()){if(a===
       A(a,i);did=1;if(a==='craft'){const rc=RC.find(x=>x.id===i);if(rc&&rc.out&&IT[rc.out]&&IT[rc.out].slot)A('equip',rc.out,1)}}}return did}
 /* чим зайнятися руками: збирати те, чого бракує на найближчу ціль */
 function gatherFor(){if(s.tabs.shore&&!s.at&&!atShore())act('tab','shore');
+  if(MARTIN&&s.h.hp<maxHP()*.8&&s.r.fish<1&&s.r.prov<1&&s.f.rod&&!onCd('fishing')){A('fishing','',P.click);return 1}
   const L=want();let best=null,bv=1e9;for(const[a,i,c]of L){let need=0;for(const k in c)need+=Math.max(0,c[k]-s.r[k])/(k==='ember'?3:1);if(need>0&&need<bv){bv=need;best=c}}
   /* цікавість: нову дію гравець пробує кілька разів, навіть якщо вона ще не потрібна */
   if(tideLow()&&!onCd('pool')&&(tried.pool||0)<30){tried.pool=(tried.pool||0)+1;A('pool','',P.click);return 1}
@@ -130,12 +150,32 @@ function martinRoute(){
     else if(!p.hatch)A('zoneAct','deck:hatch');
     else if(!p.mount)A('zoneAct','deck:mount');
     else if(!p.beamMoved)A('zoneAct',deckMounted()?'deck:pull':'deck:install');
-    else if(!p.openHatch)A('zoneAct','deck:openHatch');
-    else A('zoneEnter','hold');
+    else if(!p.openHatch){
+      if(MARTIN&&ZERO){rec('fixture:zero-oil',{previous:s.r.oil});s.r.oil=0}
+      A('zoneAct','deck:openHatch');
+    }else A('zoneEnter','hold');
     return true;
   }
   if(localCurrent()==='hold'){A('zoneAct','hold:rats');if(s.cb)fight();return true}
   return false;
+}
+// Продовження того самого проходження після першого візиту на Причал.
+function navigatorRoute(){
+  if(s.at)A('leave','',P.travel);
+  dialogs();
+  act('equip','storm');act('tab','shore');
+  A('zoneEnter','deck');A('zoneEnter','hold');A('zoneAct','hold:navDoor');
+  dialogs();act('tab','journal');act('jt','documents');A('navLog');
+  dialogs();act('tab','home');A('navTalk');dialogs();
+  act('tab','shore');A('zoneEnter','deck');A('zoneEnter','hold');A('zoneAct','hold:navMarks');
+  A('zoneAct','hold:navTry');wait(P.think);dialogs();
+  for(const [i,target] of NAV_SOLUTION.entries()){
+    for(let n=0;n<4&&navRings(localState('hold'))[i]!==target;n++)A('zoneAct','hold:ring'+(i+1));
+  }
+  A('zoneAct','hold:navTry');A('zoneEnter','navigator');A('zoneAct','navigator:navCache');dialogs();
+  A('zoneAct','navigator:navCache');
+  rec('navigator',{zone:localCurrent(),hint:!!localState('hold').navTalk,reverse:!!localState('hold').navLog,
+    opened:navDoorOpen(),sextant:s.inv.sextant||0,note:s.odd.navnote||0});
 }
 function misc(){let d=0;
   if(typeof firstCrabWaiting==='function'&&firstCrabWaiting()&&!s.at){
@@ -147,9 +187,26 @@ function misc(){let d=0;
   if(s.tabs.kitchen&&s.h.hp<maxHP()*.6)for(const D of DISH)if(rcpKnown(D.id)&&afford(D.c)&&(s.r.fish>20)){A('cookp',D.id,1);d=1;break}
   if(scanTarget()&&s.r.ember>=scanCost()){A('scan');d=1}
   for(const f in s.req||{}){if(afford(s.req[f].give)){A('freq',f);d=1}}
-  if(s.tabs.trade)for(const it of SHOP){if((it.show&&!it.show())||s.bought&&s.bought[it.id])continue;const p=price(it.p);if(IT[it.id]&&has(it.id))continue;if(s.r.coin>=p*1.5){A('buy',it.id);s.bought=s.bought||{};s.bought[it.id]=1;d=1}}
+  if(s.tabs.trade)for(const it of SHOP){if((it.show&&!it.show())||s.bought&&s.bought[it.id])continue;const p=price(it.p);if(IT[it.id]&&has(it.id))continue;if(s.r.coin>=p*(MARTIN&&it.id==='glass'?1:1.5)){A('buy',it.id);s.bought=s.bought||{};s.bought[it.id]=1;d=1}}
+  if(MARTIN==='manual'&&s.shf==='zinovii'&&!s.localProgress.deck?.winchTaken){
+    if(s.tab!=='shore')act('tab','shore');
+    if(!s.f.deckSeen){
+      if(s.c.scrap<12&&!onCd('scrapw'))A('scrapw','',P.click);
+      else wait(P.idle);
+      return 1;
+    }
+    if(!localCurrent())A('zoneEnter','deck');
+    if(localCurrent()==='deck'){
+      A('zoneAct',s.localProgress.deck.winch?'deck:winchTaken':'deck:winch');
+      if(s.localProgress.deck.winchTaken){rec('pickup-before-rescue');A('zoneBack','deck')}
+    }
+    return 1;
+  }
   if(martinRoute())return 1;
-  if(s.shf&&(SHF[s.shf].npc||s.h.hp>=maxHP()*.7)){A('shfgo','',2);if(s.cb)fight();d=1}
+  if(!s.at&&shfVisible()&&(SHF[s.shf].npc||s.h.hp>=maxHP()*.7)){
+    if(!atShore())act('tab','shore');
+    A('shfgo',shfActionId(s.shf),2);if(s.cb)fight();d=1;
+  }
   for(const k in RUNE)if(!(s.runes||{})[k]&&RUNE[k].ok()){A('rune',k,3);d=1}
   if(runesAll()&&!s.f.cache){A('cache','',5);d=1}
   if(s.flot){A('flot',1);d=1}if(s.bite){A('bigfish','',8);d=1}if(s.hot){A('smithhot','',8);d=1}
@@ -184,6 +241,7 @@ while(T<LIMIT*60){looks();dialogs();if(s.cb)fight();hero();repairProduction();bu
   if(!did){if(s.h.hp<maxHP()*.8)heal();wait(P.idle)}
   if(${!!process.env.SIMLOG}&&Math.floor(T/600)!==Math.floor((T-P.idle)/600)){const L=want().map(([a,i,c,it])=>a+':'+i+'['+Object.keys(c).filter(k=>s.r[k]<c[k]).map(k=>k+' '+Math.floor(s.r[k])+'/'+c[k]).join(',')+']').filter(x=>!x.endsWith('[]'));const fl=flow(1,1);
     console.log('LOG',mins(),'хв | rates',Object.keys(fl).filter(k=>Math.abs(fl[k])>.01).map(k=>k+' '+fl[k].toFixed(2)).join(' '),'| b',JSON.stringify(s.b),'| on',JSON.stringify(s.on),'| ціль',JSON.stringify(target()),'| хоче',L.slice(0,4).join(' '),'| lens',has('lens'),'wick',has('wick'),'beacon',!!s.rs.beacon,'craft',st('craft'),'skills',JSON.stringify(s.h.k),'sp',s.h.sp,'lvl',s.h.lvl)}
+  if(MARTIN&&s.f.fordDone&&(!STORM||has('storm'))){if(STORM)navigatorRoute();break}
   if(s.f.heartDone||s.chs.length>=10&&s.f.won&&!LOC.heart.spots.some(S=>locTodo('heart').length))if(s.chs.length>=10)break}
 scan();
 /* звіт */
@@ -199,5 +257,6 @@ const bursts=[];for(let i=0;i<maj.length;i++){const w=maj.filter(e=>e.t>=maj[i].
 console.log('\\nРивки (6+ відкриттів за 2 хв):');for(const[t,l]of bursts)console.log('  ',(t/60).toFixed(1),'хв:',l.join('; '));
 console.log('\\nДе застряг: розділів',s.chs.length,'вкладки',Object.keys(s.tabs).join(','),'поверхи',Object.keys(s.floors).filter(f=>s.floors[f]).join(','),'місця',Object.keys(s.disc).join(','));
 console.log('Ресурси:',RES.filter(k=>s.seen[k]).map(k=>k+' '+Math.floor(s.r[k])).join(', '));
+if(MARTIN)console.log('MARTIN '+JSON.stringify({route:MARTIN,audit,mat:mat(),foods:meals,buildings:s.b,shore:s.shf,light:s.eq.light,hp:s.h.hp,provisions:s.r.prov,counts:s.c,visits:s.visited,level:s.h.lvl}));
 if(${!!process.env.SIMJSON})console.log(JSON.stringify(ev));
 })();`);
