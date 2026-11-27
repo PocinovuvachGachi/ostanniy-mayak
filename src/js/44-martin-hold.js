@@ -95,5 +95,5 @@ function martinHoldScenery(){
     ?{x:97,y:78,r:230,e:.54,c:[192,216,209],a:.8,n:4}
     :{x:104,y:91,r:146,e:.62,c:WARM,a:.76,n:4};
   h+=lightLayers(W,H,{fire:storm?[]:[glow],win:storm?[glow]:[]});
-  return h;
+  return h+navigatorHoldScenery(localState('hold'));
 }

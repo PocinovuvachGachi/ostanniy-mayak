@@ -70,6 +70,8 @@ function act0(a,i){
   }break;
   case 'martinLadle':martinLadleTalk(i==='find');break;
   case 'martinLog':martinLogTalk(i==='find');break;
+  case 'navLog':navLog();break;
+  case 'navTalk':navTalk();break;
   case 'winchTalk':winchTalk();break;
   case 'holdOil':holdOil();break;
   case 'scrapw':if(F.wreck&&!onCd('scrapw')){

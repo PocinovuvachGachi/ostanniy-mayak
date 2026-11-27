@@ -116,7 +116,7 @@ function rDefense(){let h=`<section><h2>Оборона маяка${ih(`Мла з
 function rPeople(){const cap=2*(s.b.house||0),pop=s.pop||0,ms=Object.keys(MST).filter(m=>s.mst[m]);
   let h=`<section><h2>Люди маяка</h2><p>Поселенців <b>${pop}</b> з ${cap} місць у хатах; вільних рук ${V(()=>Math.max(0,freeW()))}. Майстрів: ${ms.length}. Усі разом їдять ${fr(0.02*people())} провізії/с.</p>`;
   h+=`<p class="m">${VH(()=>s.r.prov<1&&people()?'<b class="foe">Комора порожня: люди голодні й працюють гірше.</b> ':'')}${pop<cap?(s.r.prov>=5?`Наступний поселенець прийде за ${V(()=>s.popT?Math.max(0,Math.ceil((s.popT-Date.now())/1000)):60)} с.`:'Поселенці не прийдуть, поки в коморі немає 5 провізії.'):'Щоб прийшли нові поселенці, збудуй ще хату.'} Вільні поселенці збирають плавник.</p>`;
-  if(ms.length)h+=`<div class="cards">${ms.map(m=>`<div class="card pcard">${pimg(faceURL(m),48,48,'',MST[m].n)}<div><b class="npc">${MST[m].n}</b><span class="role">${MST[m].role}</span><span class="m">${MST[m].d}</span>${m==='zinovii'?(winchTopicReady()?btn('Показати механізм Зиновію','winchTalk'):'')+holdOilHTML():''}</div></div>`).join('')}</div>`;
+  if(ms.length)h+=`<div class="cards">${ms.map(m=>`<div class="card pcard">${pimg(faceURL(m),48,48,'',MST[m].n)}<div><b class="npc">${MST[m].n}</b><span class="role">${MST[m].role}</span><span class="m">${MST[m].d}</span>${m==='zinovii'?(winchTopicReady()?btn('Показати механізм Зиновію','winchTalk'):'')+holdOilHTML()+navTalkButton():''}</div></div>`).join('')}</div>`;
   return h+`</section>`}
 const scnD=()=>`--d:-${((Date.now()/1000)%30).toFixed(2)}s;--d2:-${((Date.now()/1000)%180).toFixed(2)}s`;
 function homeScene(){return`<div class="scn yd" data-scn="yd" style="${scnD()}"><span data-sk="bg" data-sig="bg" class="scbg">${VH(yardBgImg)}</span>${homeHS()}</div>`}
@@ -133,6 +133,7 @@ function rHome(){let h=`<div>`;
   h+=`<details class="alist"><summary>Усі дії списком</summary><div>${al}</div></details></section>`;
   if(thrOn())h+=rDefense();
   if(s.f.people)h+=rPeople();
+  if((!s.f.people||!s.mst.zinovii)&&navTalkReady())h+='<section><div class="act">'+navTalkButton()+'</div></section>';
   const vis=BD.filter(b=>b.show());
   if(vis.length){h+=`<section class="ledger"><details class="ledg"${s.ldOpen?' open':''}><summary><span class="lgt">Книга обліку</span><span class="m"> · усі будівлі одним списком</span></summary><h2 class="sr">Господарство${ih(`Цехи автоматично бережуть резерв сировини. Дозволь витрачати резерв для окремого цеху або вимкни цех зовсім.${s.f.people?' Робітник додає будівлі пів рівня, а майстер у своїй будівлі подвоює все.':''}`)}</h2>`;
     for(const b of vis){const n=s.b[b.id]||0,w=(s.wk||{})[b.id]||0,mx=b.max&&n>=b.max;
@@ -342,11 +343,11 @@ function rMapList(){const u=0;
 
   if(scanTarget())h+=`<div class="row"><div><b>Далекогляд</b><br><span class="m">Пробити млу й знайти нове місце.</span></div>${btn(`Оглянути обрій (${R('ember',fmt(scanCost()))})`,'scan','',{ok:()=>s.r.ember>=scanCost()})}</div>`;
   h+=`<div class="row"><div><b>Сигнальне вогнище</b><br><span class="m">Великий вогонь на оглядовій кличе кораблі, що минають шхери. Вони скидають вантаж. Раз на дві хвилини.</span></div>${btn(`Запалити (${R('ember',fmt(sigCost()))})`,'signal','',{ok:()=>s.r.ember>=sigCost(),cd:'signal',cs:120})}</div>`;
-  h+=`</section><section><h2>Відомі місця</h2>${s.f.boat?`<p class="m">Вихід у море коштує ${R('prov',SEAFOOD)}${s.f.schooner?`, похід на шхуні — ${R('prov',SEAFOOD*2)}`:''}.</p>`:''}<div class="lcards">`;
+  h+=`</section><section><h2>Відомі місця</h2><div class="lcards">`;
   for(const id in LOC)if(s.disc[id]){const L=LOC[id],[ok,why]=canGo(id);
     const sk=(s.seenK||{}).map||{},newA=tabKeys('map').some(k=>k.indexOf('a:'+id+'.')===0&&!sk[k]);
     const tags=[s.visited[id]?'<span class="chip">відвідано</span>':'<span class="chip new">нове</span>',s.visited[id]&&newA?'<span class="chip new">нові справи</span>':'',L.sea===2?'<span class="chip">шхуна</span>':L.sea?'<span class="chip">море</span>':'',L.dark?'<span class="chip">темрява</span>':''].join('');
-    h+=`<div class="lcard">${pimg(sceneURL(LSC(id)),192,80,'thumb')}<div class="lbody"><b class="pl">${L.n}</b><div class="chips">${tags}</div><span class="m">${id==='fort'?V(()=>canGo(id)[1]||L.d):why||L.d}</span>${btn('Вирушити','go',id,{ok:()=>canGo(id)[0]})}</div></div>`}
+    h+=`<div class="lcard">${pimg(sceneURL(LSC(id)),192,80,'thumb')}<div class="lbody"><b class="pl">${L.n}</b><div class="chips">${tags}</div><span class="m">${id==='fort'?V(()=>canGo(id)[1]||L.d):why||L.d}</span>${L.sea&&s.f.boat?`<p class="m">${seaPlanText(L)}</p>`:''}${btn('Вирушити','go',id,{ok:()=>canGo(id)[0]})}</div></div>`}
   return h+`</div></section>`}
 function rBells(){let h=BELLS.map((b,i)=>`<div class="act">${btn(b[0],'bell',i)}<span class="m">${b[1]}</span></div>`).join('');
   h+=`<p class="m">Пролунало: ${s.bell.length?s.bell.map(i=>BELLS[i][0].split(' ')[0].toLowerCase()).join(', '):'поки тиша'}.</p>`;
@@ -396,7 +397,7 @@ function rJournal(){const documents=oddDocumentIds(),kills=Object.values(s.kills
   if(s.jt==='foes')h+=`<div class="cards">${Object.keys(EN).filter(k=>s.seenE[k]&&!EN[k].obj&&!EN[k].ally).map(k=>{const e=EN[k];return`<div class="card"><div class="pcard">${pimg(sprURL(k),64,64,'',e.n)}<div><b class="foe">${e.n}</b><span class="m">${e.d}</span></div></div>
     <div class="stats"><span>здоров’я<b>${e.hp}</b></span><span>броня<b>${e.arm}</b></span><span>ухилення<b>${e.eva}%</b></span><span>хід<b>${e.mv}${e.fly?' лет':''}${e.swim?' вода':''}</b></span></div>
     <div>${e.p.map(x=>`<span class="habit">${x[2].toLowerCase()}${x[1]&&x[0]!=='heal'?' '+x[1]:''}</span>`).join('')}</div><p class="m" style="margin:6px 0 0">Переможено: ${s.kills[k]||0}</p></div>`}).join('')}</div>`;
-  if(s.jt==='documents')h+=`<div class="notes">${documents.map(id=>`<article class="note"><h3>${OD[id].n}</h3><p>${OD[id].d}</p></article>`).join('')}</div>`;
+  if(s.jt==='documents')h+=`<div class="notes">${documents.map(id=>`<article class="note"><h3>${OD[id].n}</h3><p>${OD[id].d}</p>${id==='logpage'?navLogHTML():''}</article>`).join('')}</div>`;
   if(s.jt==='gloss')h+=`<p class="m ink">Старі морські слова, які трапляються в записах. У тексті вони підкреслені пунктиром: наведи курсор або торкнися, щоб побачити пояснення.</p><dl class="gloss">${GLOS.filter(g=>(s.glSeen||{})[g[0]]).map(g=>`<dt><b>${g[1]}</b></dt><dd class="ink">${g[2].charAt(0).toUpperCase()+g[2].slice(1)}</dd>`).join('')}</dl>`;
   if(s.jt==='help')h+='<p class="m">Пояснення вже відкритих механік.</p>'+tutListHTML();
   if(s.jt==='log')h+=`<ul class="logl">${s.log.slice(0,40).map(x=>{x=logOf(x);return`<li><span class="tag t-${x.t}">${TAGN[x.t]}</span><span class="ev-text">${x.m}</span><time>${ago(x.at)}</time></li>`}).join('')}</ul>`;
@@ -527,6 +528,7 @@ function restoreTideFocus(el,root){
   if(!root||el.isConnected||document.activeElement!==document.body)return;
   const match=el.tagName==='SUMMARY'?root.querySelector('summary'):[...root.querySelectorAll('[data-a]')].find(b=>!b.disabled&&
     (el.dataset.sk?b.dataset.sk===el.dataset.sk:b.dataset.a===el.dataset.a&&b.dataset.i===el.dataset.i));
+  if(el.dataset.a==='navLog'){root.querySelector('.nav-reverse')?.focus();return}
   if(el.dataset.a==='zoneEnter'){
     root.querySelector('[data-a="zoneBack"]')?.focus();
     return;
@@ -560,7 +562,7 @@ function render(){
   paintingTide=!!tide&&!!paintedTide&&tide!==paintedTide&&lastView===view;
   const focused=document.activeElement;
   const action=focused?.dataset?.a;
-  const keepFocus=paintingTide||['mussels','hookWater','rakeSand'].includes(action)||action?.startsWith('zone')||action==='equip'&&localCurrent()==='deck'||focused?.closest?.('.shore-recovery');
+  const keepFocus=paintingTide||['mussels','hookWater','rakeSand','navLog'].includes(action)||action?.startsWith('zone')||action==='equip'&&localCurrent()==='deck'||focused?.closest?.('.shore-recovery');
   const el=keepFocus?focused:null,root=el?.closest('#stage,#main,#popl,#tabs');
   paintedTide=tide;
   try{renderView();restoreTideFocus(el,root)}finally{tideRenderTime=null;paintingTide=false}
