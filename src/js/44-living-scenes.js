@@ -63,6 +63,16 @@ function fishBiteControls(){
     : 'Підтягни волосінь, щоб побачити, що на гачку.';
   return `<p class="m">${detail}</p><div class="act">${btn('Витягнути улов','bigfish','',{cls:'main',ok:fishBonusFits})}${btn('Відпустити','fishRelease','',{cls:'toggle'})}</div>`;
 }
+function potTransferHTML(){
+  const {grantedLevels,legacyCrew}=s.potTransfer;
+  if(!grantedLevels)return '';
+  return `<div class="pot-transfer"><p class="m">Перенесені рівні: ${grantedLevels}. Вони дають брухт, а ціна покращення залежить від куплених рівнів.</p>`+
+    (legacyCrew?`<p class="m">Працівників зі старої лебідки: ${legacyCrew}. Вони зберігають свій виробіток, доки працюють тут.</p>`:'')+
+    Object.entries(POT_PART_NAMES).map(([part,name])=>{
+      const c=potPartRepairCost(part);
+      return c?`<div class="act"><span class="foe">${name} пошкоджена.</span>${btn(`Полагодити (${costTxt(c)})`,'repairPotPart',part,{ok:()=>afford(c)})}</div>`:'';
+    }).join('')+'</div>';
+}
 function bpopHTML(){const id=popB;if(!id)return'';let nm,lvl,d,btns='',extra='';
   if(id.startsWith('fl:'))return flPopHTML(id.slice(3));
   if(id.startsWith('wk:')||id.startsWith('st:'))return roomPopHTML(id);
@@ -79,7 +89,8 @@ function bpopHTML(){const id=popB;if(!id)return'';let nm,lvl,d,btns='',extra='';
     btns=`${btn('Підкинути дров','bld','hearth',{ok:()=>afford(c),cls:'main'})}<span class="ccs">${costChips(c)}</span>${btn(s.on.hearth===false?'Розпалити':'Пригасити','tog','hearth',{cls:'toggle'})}${reserveButton('hearth')}`;extra+=`<p class="m">${reserveText('hearth')}</p>`}
   else{const b=BD.find(x=>x.id===id);if(!b)return'';const n=s.b[id]||0,w=(s.wk||{})[id]||0,mx=b.max&&n>=b.max,dm=(s.dmgB||{})[id];nm=b.n;lvl=n;d=typeof b.d==='function'?b.d():b.d||'';
     if(dm){const rc=repCost(b);extra+=`<p class="foe">Мла зламала будівлю. Поки її не полагодиш, вона не працює.</p>`;btns+=`${btn('Полагодити','repair',id,{ok:()=>afford(rc),cls:'main'})}<span class="ccs">${costChips(rc)}</span>`}
-    else{if(s.f.people&&n&&WKB.includes(id))extra+=`<div class="bpw">${mstOf(id)?'<span class="chip">майстер ×2</span> ':''}робітники <b>${w}</b> з ${n} ${btn('−','wk-',id,{cls:'toggle',ok:w>0,lab:'Зняти робітника'})}${btn('+','wk+',id,{cls:'toggle',ok:()=>freeW()>0&&w<n,lab:'Додати робітника'})}</div>`;
+    else{if(id==='pot')extra+=potTransferHTML();
+      if(s.f.people&&n&&WKB.includes(id))extra+=`<div class="bpw">${mstOf(id)?'<span class="chip">майстер ×2</span> ':''}робітники <b>${w}</b> з ${n} ${btn('−','wk-',id,{cls:'toggle',ok:w>0,lab:'Зняти робітника'})}${btn('+','wk+',id,{cls:'toggle',ok:()=>freeW()>0&&w<n,lab:'Додати робітника'})}</div>`;
       if(b.conv&&n){btns+=btn(s.on[id]===false?'Увімкнути':'Вимкнути','tog',id,{cls:'toggle'})+reserveButton(id);if(reserveInputs(id).length)extra+=`<p class="m">${reserveText(id)}</p>`}
       btns+=mx?'<span class="done">збудовано</span>':`${btn(n?'Покращити':'Збудувати','bld',id,{ok:()=>afford(bCost(b)),cls:'main'})}<span class="ccs">${costChips(bCost(b))}</span>`;
       if(n&&n<5&&!b.max)extra+=`<p class="hand bph2">${n<3?'Ще трохи роботи — і будівля помітно розростеться.':'Ще кілька рівнів — і вона стане справжньою окрасою двору.'}</p>`}}
@@ -104,7 +115,7 @@ function homeHS(){const W=YW,H=YH;let h='';const st=yardSt2();
     if(!ghost&&BSMK3[id]&&!dm&&s.on[id]!==false){const[sx,sy]=topPx(key,()=>BLD3[id==='house'?'house':id](id==='house'?1:stageOf(lvl)));inner+=smkIn(sx,sy,w,hh)}
     if(upT[id]&&Date.now()-upT[id]<1600&&!ghost)inner+=`<i class="upfx" aria-hidden="true"><b>${lvl>1?'Рівень '+lvl:'Збудовано'}</b></i>`;
     if(dm)inner+=`<i class="dmgx" aria-hidden="true"></i>`;
-    return ob(n?'b:'+id+n:'b:'+id,'bpop',id,spec,x,y,W,H,ghost?`${B.n}: збудувати`:B.n,`<b>${B.n}</b>${ghost?'<br>Тут можна збудувати.':`, рівень ${lvl}${dm?'<br><span class="foe">пошкоджено</span>':''}`}`,{pulse:1,cls:(ghost?'ghost':'')+(dm?' dmg':'')+(popB===id?' sel':''),idle:['boom','traps','pot'].includes(id)?'i-bob':id==='winch'?'i-sway':'',inner})};
+    return ob(n?'b:'+id+n:'b:'+id,'bpop',id,spec,x,y,W,H,ghost?`${B.n}: збудувати`:B.n,`<b>${B.n}</b>${ghost?'<br>Тут можна збудувати.':`, рівень ${lvl}${dm?'<br><span class="foe">пошкоджено</span>':''}`}`,{pulse:1,cls:(ghost?'ghost':'')+(dm?' dmg':'')+(popB===id?' sel':''),idle:['boom','traps','pot'].includes(id)?'i-bob':'',inner})};
   const vis=BD.filter(b=>b.show());
   for(const B of vis){const id=B.id,lvl=s.b[id]||0;
     if(id==='house'){const nH=Math.max(1,Math.min(4,lvl));for(let k=0;k<nH;k++){const sp=obURL('h3:house',()=>BLD3.house(1));h+=bob('house','house',HOUSES[k][0],HOUSES[k][1],sp,lvl,!lvl,k)}continue}

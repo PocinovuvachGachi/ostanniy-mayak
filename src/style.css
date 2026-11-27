@@ -1061,3 +1061,23 @@ body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .
 @keyframes mussel-reach{0%{transform:translate(-40%,-70%);opacity:0}40%,52%{transform:translate(0,0);opacity:1}100%{transform:translate(-45%,-80%);opacity:0}}
 @keyframes mussel-lift{0%,40%{opacity:0}48%{transform:translate(0,0);opacity:1}85%,100%{transform:translate(-70%,-100%);opacity:0}}
 @media (prefers-reduced-motion:reduce){.mussel-hand{display:none}.mussel-lift{animation:none;transform:translate(-20%,-45%)}}
+
+
+/* Палуба: линва від скоби до балки, збережена кінцева позиція. */
+.deck-prop{position:absolute;pointer-events:none;image-rendering:pixelated}
+.deck-hauling{animation:deck-haul var(--haul-duration) ease-in-out var(--haul-age) both}
+.deck-unreeve{animation:deck-unreeve var(--haul-duration) linear var(--haul-age) both}
+@keyframes deck-haul{
+  0%,14%{transform:translate(26.87%,-106.45%)}
+  28%{transform:translate(24%,-93%)}
+  49%{transform:translate(17%,-64%)}
+  64%{transform:translate(12%,-49%)}
+  82%,100%{transform:translate(0,0)}
+}
+@keyframes deck-unreeve{0%,61%{opacity:1}86%,100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){
+  .deck-hauling{animation:none}
+  .deck-unreeve{display:none}
+}
+.pot-transfer{margin-block:.45rem}
+.pot-transfer p{margin:.2rem 0}

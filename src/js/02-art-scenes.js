@@ -33,8 +33,6 @@ const BLD3={
     :g===2?merge([[dome(26,28,['t','v','w']),0,0],[barrels(2),28,20]])
     :merge([[dome(30,32,['t','v','w']),0,0],[dome(22,24,['t','v','w']),32,8],[barrels(3),-22,24],[hutStone(6,26,2,{}),26,0]]),
   dummy:g=>g===1?dummyS():g===2?merge([[dummyS(),0,0],[weaponRack(),18,8]]):merge([[dummyS(),0,0],[dummyS(),16,2],[weaponRack(),34,8],[target(),52,6],[fence(70),-4,26]]),
-  winch:g=>{const s=g===1?1:g===2?1.3:1.6,W=Math.round(34*s),H=Math.round(30*s),b=pbuf(W+10,H+8);prect(b,2,H-8,W-6,5,'W');prect(b,2,H-8,W-6,1,'Y');
-    for(let i=0;i<W*0.45;i++){pset(b,6+i,H-8-i*1.3,'X');pset(b,7+i,H-8-i*1.3,'W')}const tx=Math.round(6+W*0.45),ty=Math.round(H-8-W*0.45*1.3);pline(b,tx,ty,W,ty+8,'X');pline(b,W,ty+8,W,H+2,'H');prect(b,W-3,H+2,7,4,g>2?'X':'G');if(g>2)prect(b,W-3,H+2,7,1,'Y');prect(b,4,H-12,7,5,'F');pset(b,6,H-11,'H');if(g>1)blitTo(b,crate(8),12,H-16);return b},
   boom:g=>{const n=g===1?3:g===2?5:7,b=pbuf(n*14,12);for(let i=0;i<n;i++){const x=i*14;prect(b,x,5,12,5,'X');prect(b,x,5,12,1,'Y');prect(b,x,9,12,1,'V');prect(b,x,5,1,5,'O');if(i)prect(b,x-2,7,2,1,'H');if(g>2&&i%2===0){prect(b,x+4,1,3,4,'j');prect(b,x+4,1,3,1,'u')}}return b},
   traps:g=>{const n=g===1?2:g===2?4:6,b=pbuf(n*13,16);for(let i=0;i<n;i++){const x=i*13+2,y=(i%2)*5;prect(b,x,y+3,6,6,'j');prect(b,x,y+3,6,2,'u');pset(b,x+2,y,'X');pset(b,x+2,y+1,'X');pset(b,x+2,y+2,'X');pline(b,x+6,y+6,x+12,y+9,'H')}return b},
   pot:g=>{const n=g===1?2:g===2?4:6,b=pbuf(n*10,13);for(let i=0;i<n;i++){const x=i*10,y=(i%2)*3;prect(b,x,y+2,9,8,'z');for(let k=1;k<9;k+=2)prect(b,x+k,y+3,1,6,'H');prect(b,x,y+2,9,1,'G');prect(b,x+3,y,3,2,'X')}return b},
@@ -54,7 +52,7 @@ const BLD3={
     if(g>2){prect(b,62,0,2,22,'X');pline(b,62,1,50,8,'X');pline(b,50,8,50,16,'H');prect(b,48,16,5,3,'X')}return b},
   house:g=>hut(26,13,10,{wall:['V','W','X'],roof:['t','v','w'],door:1,dw:5,dh:8,win:[18],lit:1,chim:1,chimX:5})};
 /* bottom-center anchors on the 432x240 yard */
-const BANC={forge:[174,146],smoke:[232,154],kiln:[270,158],dummy:[150,186],winch:[318,152],boom:[402,186],traps:[410,236],pot:[322,224],render:[204,186],steel:[290,142],coalpit:[262,196],glass:[334,172],apoth:[240,222],garden:[100,236],sandpit:[296,224],shipyard:[364,186]};
+const BANC={forge:[174,146],smoke:[232,154],kiln:[270,158],dummy:[150,186],boom:[402,186],traps:[410,236],pot:[322,224],render:[204,186],steel:[290,142],coalpit:[262,196],glass:[334,172],apoth:[240,222],garden:[100,236],sandpit:[296,224],shipyard:[364,186]};
 const HOUSES=[[20,186],[46,164],[16,232],[60,218]];
 const BSMK3={forge:'chim',smoke:'chim',kiln:'top',steel:'chim',coalpit:'top',house:'chim',render:'top'};
 /* Люди біля вогнища: стоять чи сидять обличчям до вогню; бік до вогню підсвічений жаром */

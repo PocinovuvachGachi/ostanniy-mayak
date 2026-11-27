@@ -76,12 +76,6 @@ function deckHatchArt(seen){
   }
   ppoly(b,[[42,17],[47,16],[48,20],[43,21]],seen?'q':'a');
   pline(b,43,18,46,17,'0');
-  ppoly(b,[[1,16],[53,4],[65,9],[65,17],[13,30],[2,27]],'8');
-  polyFill(b,[[1,15],[54,2],[65,9],[12,23]],(x,y)=>pset(b,x,y,
-    woodC(EXX,EXY,DECK_WOOD,.62+(y<9?.1:0),43)));
-  ppoly(b,[[12,23],[65,9],[65,15],[12,29]],'c');
-  ppoly(b,[[1,15],[12,23],[12,29],[1,23]],'d');
-  pline(b,3,15,52,3,'b');pline(b,15,23,62,11,'e');
   if(seen){
     pline(b,7,35,16,41,'n');pline(b,16,41,22,39,'e');pline(b,21,39,24,41,'d');
   }else{
@@ -90,7 +84,30 @@ function deckHatchArt(seen){
   }
   return b;
 }
-function deckMountArt(seen){
+function deckBeamArt(){
+  const b=pbuf(67,31);
+  ppoly(b,[[1,16],[53,4],[65,9],[65,17],[13,30],[2,27]],'8');
+  polyFill(b,[[1,15],[54,2],[65,9],[12,23]],(x,y)=>pset(b,x,y,
+    woodC(EXX,EXY,DECK_WOOD,.62+(y<9?.1:0),43)));
+  ppoly(b,[[12,23],[65,9],[65,15],[12,29]],'c');
+  ppoly(b,[[1,15],[12,23],[12,29],[1,23]],'d');
+  pline(b,3,15,52,3,'b');pline(b,15,23,62,11,'e');
+  return b;
+}
+function deckRopeArt(){
+  const b=pbuf(64,32);
+  pline(b,0,2,57,25,'8');pline(b,1,1,57,24,'d');
+  pline(b,56,25,61,20,'e');pline(b,61,20,63,23,'c');
+  return b;
+}
+function deckWinchFootArt(){
+  const b=pbuf(56,40);
+  ppoly(b,[[5,31],[27,29],[52,26],[52,35],[36,39],[7,39]],'8');
+  ppoly(b,[[8,29],[45,25],[50,30],[48,33],[10,37]],'d');
+  pline(b,11,34,48,28,'e');
+  return b;
+}
+function deckMountArt(seen,installed=false){
   const b=pbuf(48,48);
   ppoly(b,[[1,36],[23,30],[46,36],[38,45],[10,46]],'8');
   ppoly(b,[[3,34],[23,29],[43,34],[36,42],[9,43]],'c');
@@ -109,13 +126,18 @@ function deckMountArt(seen){
       pline(b,x,y,x+6,y+6,'k');pline(b,x+1,y,x+6,y+4,'l');
     }
   }
+  if(installed){
+    ppoly(b,[[24,23],[39,20],[47,28],[44,40],[22,42]],'8');
+    ppoly(b,[[25,26],[41,23],[44,33],[40,37],[24,38]],'p');
+    for(let x=27;x<39;x+=3)pline(b,x,25,x+3,35,x%2?'e':'c');
+    ppoly(b,[[39,24],[45,24],[47,28],[46,34],[42,36],[38,32],[37,27]],'9');
+    pline(b,42,29,46,19,'q');pline(b,45,19,47,18,'c');
+    pset(b,42,29,'a');
+  }
   return b;
 }
 function deckWinchArt(seen){
-  const b=pbuf(56,40);
-  ppoly(b,[[5,31],[27,29],[52,26],[52,35],[36,39],[7,39]],'8');
-  ppoly(b,[[8,29],[45,25],[50,30],[48,33],[10,37]],'d');
-  pline(b,11,34,48,28,'e');
+  const b=deckWinchFootArt();
   for(const x of [11,37]){
     ppoly(b,[[x,11],[x+5,9],[x+10,29],[x,32]],'9');
     pline(b,x+2,13,x+2,28,'p');pset(b,x+3,26,'q');
@@ -161,16 +183,30 @@ function localEntryHS(W,H){
     return ob('zone:enter:'+id,'zoneEnter',id,obURL('zone:entry:'+id,()=>HI(z.entryArt)()),z.entryX,z.entryY,W,H,z.entry,'<b>'+z.entry+'</b>',{pulse:1});
   }).join('');
 }
+const DECK_HAUL_MS=950;
+function deckScenery(p){
+  const moving=deckHaulAt&&Date.now()-deckHaulAt<DECK_HAUL_MS;
+  const beamPosition=p.beamMoved?[113,101]:[131,68];
+  const age=moving?Date.now()-deckHaulAt:0;
+  const anim=moving?'--haul-age:-'+age+'ms;--haul-duration:'+DECK_HAUL_MS+'ms;':'';
+  const layer=(key,art,x,y,w,h,cls='',z=125)=>`<img class="deck-prop ${cls}" data-sk="${key}" data-sig="${cls||key}" src="${pxURL(key,()=>HI(art)())}" style="${anim}${PCT(x,y,w,h,LZW,LZH)};z-index:${z}" alt="" aria-hidden="true">`;
+  let h=layer('deck-beam',deckBeamArt,...beamPosition,67,31,p.beamMoved?(moving?'deck-hauling':'deck-shifted'):'');
+  if(deckMounted()||moving)h+=layer('deck-rope',deckRopeArt,118,66,64,32,moving?'deck-unreeve':'',122);
+  if(moving)h+=layer('deck-working',()=>deckMountArt(true,true),76,43,48,48,'deck-unreeve',103);
+  if(p.winchTaken||s.portableWinch.restored)h+=layer('deck-empty-foot',deckWinchFootArt,219,48,56,40,'',91);
+  return h;
+}
 function localZoneScene(){
   const id=localCurrent(),z=localDef(id);
   if(!z)return '';
   const W=LZW,H=LZH,p=localState(id);
   let h='<span data-sk="bg" data-sig="bg" class="scbg">'+VH(()=>pimg(pxURL('zone:bg:'+id,()=>HI(z.background)()),960,450,'scene',z.title()))+'</span>';
+  if(id==='deck')h+=deckScenery(p);
   h+=ob('zone:back:'+id,'zoneBack',id,obURL('zone:exit',()=>HI(localExitArt)()),26,96,W,H,z.parent?'Назад':'На берег','<b>Вихід</b>');
   for(const [k,o] of Object.entries(z.objects||{})){
     if(o.ready&&!o.ready(p)||!o.art)continue;
     const seen=!!p[k],art=obURL('zone:obj:'+id+':'+k+':'+Number(seen),()=>HI(o.art)(seen));
-    const tip='<b>'+o.label+'</b>'+(seen&&o.text?'<br>'+o.text:'');
+    const tip='<b>'+o.label+'</b>'+(seen&&o.text?'<br>'+localObservation(o,p):'');
     h+=ob('zone:'+id+':'+k,'zoneAct',id+':'+k,art,o.x,o.y,W,H,o.label,tip);
   }
   h+=localEntryHS(W,H);

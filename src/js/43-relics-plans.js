@@ -5,7 +5,7 @@ function costChips(c={},it={}){const o=[];for(const k in c){const no=(s.r[k]||0)
   return o.join('')}
 function relicFor(enc,quiet){const r=RELE[enc];if(!r)return;s.rel=s.rel||{};if(s.rel[r])return;s.rel[r]=1;const[w,ti]=RELW[r];if(wF(w)>ti)return;giveI(r);if(quiet)return;
   dlg({k:'find',title:`Знахідка: ${IT[r].n}`,img:{t:'icon',id:r},body:`<p>${IT[r].d}</p><p class="hand">${relHint(r)}</p>`})}
-const BIC={pot:'scrap',boom:'wood',traps:'fish',smoke:'food',forge:'iron',kiln:'tar',render:'oil',winch:'scrap',shelves:'lore',dummy:'a_guard',house:'a_end',garden:'herb',apoth:'med',coalpit:'coal',steel:'steel',sandpit:'sand',glass:'gls',shipyard:'wood'};
+const BIC={pot:'scrap',boom:'wood',traps:'fish',smoke:'food',forge:'iron',kiln:'tar',render:'oil',shelves:'lore',dummy:'a_guard',house:'a_end',garden:'herb',apoth:'med',coalpit:'coal',steel:'steel',sandpit:'sand',glass:'gls',shipyard:'wood'};
 const BSRC={pot:'Хвилі виносять на берег уламки. Якщо поставити в прибої пастку, вони самі заноситимуть у неї цвяхи й скоби.',
   boom:'Течія проносить плавник повз берег, далі, ніж дістане багор. Загорожа з кілків його затримає.',
   traps:'Тепер ти знаєш, як сплести ятері. Риба сама в них запливатиме.',
@@ -13,7 +13,6 @@ const BSRC={pot:'Хвилі виносять на берег уламки. Як�
   forge:'Біля майстерні знайшлося місце для горна. Там можна кувати залізо.',
   kiln:'З оглядової видно сосни на скелях. Із живиці виходить смола.',
   render:'Ти знаєш, як топити жир. Для цього потрібна окрема піч.',
-  winch:'Лебідкою можна витягати з уламків важкий метал, який руками не зрушиш.',
   shelves:'Книжок більшає. Їм потрібні полиці, а записам — лад.',
   dummy:'Прийоми краще перевірити на опудалі, ніж на живому ворогові.',
   house:'До маяка приходять люди. Їм треба десь жити.',
