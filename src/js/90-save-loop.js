@@ -3,6 +3,7 @@ function save(){s.ts=Date.now();try{localStorage.setItem(KEY,JSON.stringify(s))}
 function load(){try{const raw=localStorage.getItem(KEY);if(!raw)return;const d=JSON.parse(raw),f=fresh();
   for(const k in d){if(f[k]&&typeof f[k]==='object'&&!Array.isArray(f[k])&&d[k]&&typeof d[k]==='object'&&!Array.isArray(d[k]))f[k]=Object.assign(f[k],d[k]);else f[k]=d[k]}
   s=f;if(s.cb&&!s.cb.u)s.cb=null;localSanitize();
+  const migratedSand=rakeSandMigrate();
   const olderHealing=d.healingV!==1;
   if(olderHealing){
     s.healingV=1;s.belt=(s.belt||[]).filter(beltItem);
@@ -51,7 +52,7 @@ function load(){try{const raw=localStorage.getItem(KEY);if(!raw)return;const d=J
   const now=Date.now(),off=clamp((now-(s.ts||now))/1000,0,7200);
   if(off>5){for(let i=0;i<20;i++)produce(off/20,false);if(off>60)say(`Поки тебе не було, вогнище горіло ${Math.round(off/60)} хв.`,'world')}
   const healed=!d.cb&&healingTick(off),migrated=migrateWarm(now);
-  if(olderHealing||healed||migrated||off>5)save();
+  if(migratedSand||olderHealing||healed||migrated||off>5)save();
   }catch(e){s=fresh()}}
 
 let tipEl=null,lpT=0,lpF=0;

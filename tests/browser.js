@@ -491,6 +491,9 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     A(lowHit&&await p.locator('.scn [data-a="pool"]').count()===1,'на відпливі ящик і калюжі доступні окремо');
     A(await p.evaluate(()=>!rcVisible(RC.find(rc=>rc.id==='hookUp'))),'креслення приховано до спроби');
     await water.click();
+    A(await pull.locator('.hook-tool').evaluate(e=>getComputedStyle(e).animationName)==='hook-bend'
+      &&await pull.locator('.hook-grit').count()===1&&!await pull.locator('.hook-cargo').count(),
+      'простий багор прогинається у піску, вантаж лишається на місці');
     await p.locator('#dlg h2',{hasText:'Жердина прогинається'}).waitFor();
     await p.click('#dlg [data-a="dlgok"]');
     await p.reload();
@@ -554,7 +557,7 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     A(await spot.getAttribute('aria-label')==='Оглянути сухий пісок'&&await unobstructed(),'суха ділянка на високій воді має власну зону');
     await spot.focus();await p.keyboard.press('Enter');
     A(await sweep.locator('.rake-tool').evaluate(e=>getComputedStyle(e).animationName)==='rake-tool'
-      &&await sweep.locator('.rake-metal').evaluate(e=>getComputedStyle(e).animationName)==='rake-metal','рух граблів і поява металу зі сцени клавіатурою');
+      &&await sweep.locator('.rake-reward').evaluate(e=>getComputedStyle(e).animationName)==='rake-reward','рух граблів і поява металу зі сцени клавіатурою');
     await p.click('#tabs [data-i="home"]');
     A(!await sweep.count()&&await p.evaluate(()=>JSON.parse(localStorage.getItem(KEY)).rakeSand.searched===1),'вихід під час анімації зберігає нагороду');
 
@@ -562,7 +565,7 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await p.evaluate(()=>{s.dbgTide='low';s.rakeSand.wait=0});
     await spot.waitFor();
     A(await spot.getAttribute('aria-label')==='Оглянути вологий пісок'&&await unobstructed(),'волога ділянка окремо від рун, броду, багра, калюж, сушарні й бою');
-    const record=await p.evaluate(()=>JSON.stringify(s.rakeSand.pending));
+    const record=await p.evaluate(()=>JSON.stringify(s.rakeSand.wet));
     await list.locator('summary').click();
     const listSpot=list.locator('[data-a="rakeSand"]');
     A(await listSpot.isVisible(),'та сама волога ділянка є в списку');
@@ -570,16 +573,124 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await spot.waitFor({state:'detached'});
     A(!await listSpot.count(),'приплив прибирає дію і зі списку');
     await p.reload();
-    A(await p.evaluate(saved=>JSON.stringify(s.rakeSand.pending)===saved,record)&&!await spot.count(),'волога ділянка чекає після reload');
+    A(await p.evaluate(saved=>JSON.stringify(s.rakeSand.wet)===saved,record)&&!await spot.count(),'волога ділянка чекає після reload');
     await p.evaluate(()=>{s.dbgTide='low';});
     await spot.waitFor();
     await p.emulateMedia({reducedMotion:'reduce'});
     if(!await list.evaluate(el=>el.open))await list.locator('summary').click();
     await listSpot.click();
-    A(await sweep.locator('.rake-metal').evaluate(e=>getComputedStyle(e).animationName==='none'&&getComputedStyle(e).opacity==='1'),
+    A(await sweep.locator('.rake-reward').evaluate(e=>getComputedStyle(e).animationName==='none'&&getComputedStyle(e).opacity==='1'),
       'у reduced motion дію зі списку видно статично');
     A(await p.evaluate(()=>s.rakeSand.searched===2&&s.hookWater.pending?.kind==='heavy'&&document.documentElement.scrollWidth<=390),
       'пошук не забирає вантаж багра та не розширює сторінку');
+    await p.close();
+  }
+
+  // Обидві ділянки, рух вантажу та решта берегових точок на 390 px.
+  {
+    const p=await page(390,844);
+    await p.evaluate(()=>{
+      Math.random=()=>.99;
+      s.tab='shore';s.tabs.shore=1;
+      Object.assign(s.f,{looked:1,tideSeen:1,crab1:1,rod:1,rodUp:1,fordSeen:1,wreck:1,hook:1,rats:1,dryRack:1,boat:1,deckSeen:1});
+      s.b.hearth=1;s.c.gather=24;s.r.wood=25;s.r.fish=5;
+      s.ship={until:Date.now()+180000,offers:[],done:[]};
+      giveI('rake');
+      Object.assign(s.rakeSand,{lastId:5,searched:3,actions:3,dry:{id:5,kind:'dry',reward:{wood:3}},
+        wet:{id:4,kind:'wet',odd:'seaglass',reward:{scrap:2}},wetDeferred:true});
+      s.hookWater.pending={id:1,kind:'plank',reward:{wood:4}};
+      s.shf='tracks';s.shfCyc=null;
+      s.bts=Object.fromEntries(CH.flatMap(ch=>ch.beats.map(beat=>[beat[0],1])));s.chs=CH.map(ch=>ch.id);s.tabs.chron=1;
+      s.bdSeen=Object.fromEntries(BD.map(b=>[b.id,1]));s.rcSeen=Object.fromEntries(RC.map(rc=>[rc.id,1]));
+      s.dlg=[];s.tutPending=[];s.lastNov=s.play;s.lastAct=Date.now();s.tutSeen.tide=1;
+      window.setSea=t=>{s.tideEpoch=Date.now()-t*1000};setSea(120);
+      render();
+    });
+    const stage=p.locator('.scn.sh'),hook=stage.locator('[data-a="hookWater"]'),entry=stage.locator('[data-a="zoneEnter"][data-i="deck"]');
+    const dry=stage.locator('[data-k="sand:5"]'),wet=stage.locator('[data-k="sand:4"]');
+    const list=p.locator('.shore-alist');
+    await list.locator('summary').click();
+    const changes=[];
+    for(const [phase,time] of [['high',120],['ebb',580],['low',620],['flood',880]]){
+      await p.evaluate(t=>setSea(t),time);
+      await stage.and(p.locator(`[data-tide="${phase}"]`)).waitFor();
+      await hook.evaluate(e=>Promise.all(e.getAnimations().filter(a=>a.transitionProperty==='top').map(a=>a.finished.catch(()=>{}))));
+      const layout=await stage.evaluate(e=>{
+        const all=[...e.querySelectorAll('button[data-a]')],focusedX=e.parentElement.scrollLeft;
+        const ok=all.every(b=>{
+          b.scrollIntoView({block:'nearest',inline:'center'});
+          const r=b.getBoundingClientRect(),ownsCenter=b.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));
+          if(!['rakeSand','hookWater','mussels','zoneEnter'].includes(b.dataset.a))return ownsCenter;
+          return ownsCenter&&all.every(other=>{
+            if(other===b)return true;
+            const q=other.getBoundingClientRect();
+            return Math.min(r.right,q.right)-Math.max(r.left,q.left)<=1||Math.min(r.bottom,q.bottom)-Math.max(r.top,q.top)<=1;
+          });
+        });
+        e.parentElement.scrollLeft=focusedX;
+        return ok;
+      });
+      A(layout&&await entry.count()===1&&await dry.count()===1&&await wet.count()===Number(phase==='low'),'окремі зони дій усіма фазами · '+phase);
+      changes.push(await hook.evaluate(e=>[parseFloat(e.style.top),e.querySelector('.obi').src,e.dataset.i]));
+      if(phase==='high')await hook.evaluate(e=>{window.firstHook=e;e.focus({preventScroll:true})});
+      if(phase==='low'){
+        A(await hook.evaluate(e=>e===firstHook&&e===document.activeElement&&getComputedStyle(e.querySelector('.obi')).animationName==='none'),
+          'той самий сфокусований вантаж уже не гойдається на відпливі');
+        A(await stage.locator('button[data-a="mussels"],button[data-a="pool"],button[data-a="rune"],button[data-a="fishing"],button[data-a="shfgo"],button[data-k="sh:ford"]').count()>=7,
+          'мідії, калюжі, руни, дві вудки, сюжет і брід лишаються у сцені');
+      }
+    }
+    await p.evaluate(()=>{setSea(620);s.shf='poolcrab';s.shfCyc=0});
+    await stage.locator('[data-k="shf:poolcrab"]').waitFor();
+    A(await stage.locator('[data-a="pool"]').evaluate(e=>{
+      e.scrollIntoView({block:'nearest',inline:'center'});
+      const r=e.getBoundingClientRect(),crab=e.parentElement.querySelector('[data-k="shf:poolcrab"]').getBoundingClientRect();
+      return e.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2))&&r.bottom<=crab.top;
+    }),'калюжа та краби мають окремі точки на відпливі');
+    A(await stage.evaluate(e=>{
+      s.f.horpyna=1;s.f.reunion=1;s.ship={until:Date.now()+180000,offers:[],done:[]};
+      return ['rats','seal','sealgift','myronvisit'].every(id=>{
+        s.f.seal=id==='sealgift';s.sealCyc=-1;s.shf=id;s.shfCyc=SHF[id].lowWater?0:null;
+        render();
+        if(!e.querySelector('[data-k="shf:'+id+'"]'))return false;
+        return [...e.querySelectorAll('button[data-a]')].every(b=>{
+          b.scrollIntoView({block:'nearest',inline:'center'});
+          const r=b.getBoundingClientRect();
+          return b.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));
+        });
+      });
+    }),'пацюки, тюлень і Мирон мають власні точки поруч із рештою дій');
+    A(changes.every(v=>v[2]==='1')&&changes[0][0]>changes[1][0]&&changes[1][0]>changes[2][0]&&changes[3][0]>changes[2][0]
+      &&changes[0][1]!==changes[2][1],'той самий ID рухається і змінює спрайт за водою');
+    await p.emulateMedia({reducedMotion:'reduce'});
+    await p.evaluate(()=>setSea(620));await wet.waitFor();
+    await entry.scrollIntoViewIfNeeded();await entry.click();
+    const deck=p.locator('#stage [data-scn="zone-deck"]');
+    const back=deck.locator('[data-a="zoneBack"]');
+    await deck.waitFor();
+    A(await back.evaluate(e=>e===document.activeElement)&&await stage.count()===0,'палуба приймає фокус і ховає берегові дії');
+    const planks=deck.locator('[data-a="zoneAct"][data-i="deck:planks"]');
+    await planks.focus();await p.keyboard.press('Enter');
+    await p.evaluate(()=>{setSea(120);save()});
+    await p.reload();await deck.waitFor();
+    A(await p.evaluate(()=>s.localProgress.deck.planks&&s.rakeSand.dry?.id===5&&s.rakeSand.wet?.id===4&&s.hookWater.pending?.id===1),
+      'reload на палубі лишає огляд і незавершені берегові об’єкти');
+    await back.focus();await p.keyboard.press('Enter');await entry.waitFor();
+    A(await entry.evaluate(e=>e===document.activeElement)&&!await wet.count()&&!await stage.locator('[data-a="mussels"]').count()
+      &&await hook.count()===1,'вихід повертає фокус і враховує теперішній приплив');
+    await p.evaluate(()=>{s.tideEpoch=Date.now()-620000});await wet.waitFor();
+    A(await stage.locator('[data-a="mussels"]').count()===1&&await stage.locator('[data-a="fishing"]').count()===2,
+      'на відпливі мідії та обидві вудки доступні після повернення');
+    if(!await list.evaluate(e=>e.open))await list.locator('summary').click();
+    await dry.focus();await p.keyboard.press('Enter');
+    const wood=stage.locator('[data-sk="sand-sweep:5"] .rake-reward');
+    A(await wood.evaluate(e=>e.getAttribute('src')===icoURL('wood')&&getComputedStyle(e).animationName==='none')
+      &&await wet.evaluate(e=>e===document.activeElement),'плавник має власний спрайт, фокус переходить до другої ділянки');
+    await list.locator('[data-a="rakeSand"][data-i="4"]').click();
+    const glass=stage.locator('[data-sk="sand-sweep:4"] .rake-reward');
+    A(await glass.evaluate(e=>e.getAttribute('src')===icoURL(ODI.seaglass))&&await p.evaluate(()=>s.odd.seaglass&&s.oddNew===1&&!s.dlg.length)
+      &&await list.locator('summary').evaluate(e=>e===document.activeElement),'знахідка зі списку потрапляє на полицю, зберігає фокус і власний спрайт');
+    A(await p.evaluate(()=>document.documentElement.scrollWidth<=390),'одночасні точки й список не розширюють сторінку');
     await p.close();
   }
 
@@ -594,7 +705,7 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
       s.bdSeen=Object.fromEntries(BD.map(b=>[b.id,1]));
       s.rcSeen=Object.fromEntries(RC.filter(rc=>rc.id!=='rodUp').map(rc=>[rc.id,1]));
       s.hookWater.pending={id:3,kind:'heavy',reward:{wood:4,scrap:3}};
-      giveI('rake');s.rakeSand.pending={id:1,kind:'wet',scrap:2};
+      giveI('rake');s.rakeSand.lastId=1;s.rakeSand.wet={id:1,kind:'wet',reward:{scrap:2}};
       render();
     });
     const stage=p.locator('.scn.sh');
@@ -706,7 +817,7 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
       s.chs=CH.map(ch=>ch.id);s.lastNov=s.play;s.dlg=[];s.tutPending=[];
       s.bdSeen=Object.fromEntries(BD.map(b=>[b.id,1]));s.rcSeen=Object.fromEntries(RC.map(rc=>[rc.id,1]));
       s.hookWater.pending={id:3,kind:'heavy',reward:{wood:4,scrap:3}};
-      giveI('rake');s.rakeSand.pending={id:1,kind:'wet',scrap:2};
+      giveI('rake');s.rakeSand.lastId=1;s.rakeSand.wet={id:1,kind:'wet',reward:{scrap:2}};
       s.bite={kind:'fish',place:'deep',amount:2};s.f.fishBiteSeen=1;s.tutSeen.fishBite=1;
       s.tutSeen.tide=1;setSea(120);render();
     });
@@ -756,7 +867,7 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
       &&!await list.locator('[data-a="pool"]').count()&&!await list.locator('[data-a="rakeSand"]').count(),
       'чотири фони і синхронне закриття берегових дій');
     A(await part.isDisabled()&&(await ford.innerText()).includes('Камінь зараз під водою')
-      &&await p.evaluate(sec=>!s.ford?.poles&&s.cd.pool===sec&&s.rakeSand.pending.id===1,sec),
+      &&await p.evaluate(sec=>!s.ford?.poles&&s.cd.pool===sec&&s.rakeSand.wet.id===1,sec),
       'відкрита картка змінюється, стара кнопка не витрачає ресурс, cooldown і ділянка збережені');
     A(await ford.locator('.bpx').evaluate(e=>e===document.activeElement),'фокус переходить до закриття картки, коли її дія стає недоступною');
     await p.emulateMedia({reducedMotion:'reduce'});
@@ -792,7 +903,7 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
       s.tutSeen.fishBite=1;s.f.fishBiteSeen=1;
       s.hookWater.pending={id:3,kind:'heavy',reward:{wood:4,scrap:3}};
       s.bite={kind:'species',species:'cod',place:'deep'};
-      giveI('rake');s.rakeSand.pending={id:1,kind:'wet',scrap:2};
+      giveI('rake');s.rakeSand.lastId=1;s.rakeSand.wet={id:1,kind:'wet',reward:{scrap:2}};
       s.bts=Object.fromEntries(CH.flatMap(ch=>ch.beats.map(beat=>[beat[0],1])));s.chs=CH.map(ch=>ch.id);s.tabs.chron=1;
       s.bdSeen=Object.fromEntries(BD.map(b=>[b.id,1]));s.rcSeen=Object.fromEntries(RC.map(rc=>[rc.id,1]));
       s.lastNov=s.play;s.dlg=[];s.tutPending=[];s.tideEpoch=Date.now()-120000;s.lastAct=Date.now();render();
@@ -837,7 +948,7 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
       'збір зі списку дає статичну реакцію у reduced motion');
     await atLow(3);
     await stone.and(p.locator('[data-i="3"]')).click();
-    A(await p.evaluate(()=>s.inv.mussel===2&&s.bite.species==='cod'&&s.hookWater.pending.id===3&&s.rakeSand.pending.id===1&&document.documentElement.scrollWidth<=390),
+    A(await p.evaluate(()=>s.inv.mussel===2&&s.bite.species==='cod'&&s.hookWater.pending.id===3&&s.rakeSand.wet.id===1&&document.documentElement.scrollWidth<=390),
       'накопичення, відсутність горизонтального скролу та три незалежні взаємодії');
     await p.evaluate(()=>{s.tabs.hero=1;s.h.bg='old';s.tab='hero';s.nv.bag=1;s.ht='bag';render()});
     A(await p.locator('#main [data-a="use"][data-i="mussel"]').isVisible(),'інгредієнт відображається у чинній торбі');

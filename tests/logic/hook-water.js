@@ -41,24 +41,26 @@ s.floors.gallery=1;s.flot={k:'barrel',until:Date.now()+180000};
 take(1);
 A(!hookWaterVisible()&&JSON.stringify(ring())===first,'старий прибій має пріоритет, ранній запис лишається');
 act('flot');A(hookWaterVisible()?.kind==='plank'&&s.r.oil>0,'старий вантаж дає чинну винагороду');
+s.f.tideSeen=1;s.dbgTide='high';
 const beforeC=JSON.stringify(s.c),beforeWood=s.r.wood;
 Math.random=()=>0;
 take(1);take(1);
 A(!ring()&&s.hookWater.pulls===1&&s.r.wood===beforeWood+3&&JSON.stringify(s.c)===beforeC&&!MG,'один платіж ресурсів без лічильників звичних дій і мінігри');
-A(tutKnown('hookWater')&&s.hookWater.wait===60,'після першого разу є довідник і відлік активного берега');
+A(tutKnown('hookWater')&&s.hookWater.wait===76,'після першого разу є довідник і відлік активного берега');
 const waiting=JSON.parse(raw);waiting.ts-=3600_000;raw=JSON.stringify(waiting);load();tick(3600);
-A(s.hookWater.wait===60&&!ring(),'офлайн і довгий такт не накопичують час або предмети');
-act('tab','home');wait(60);A(s.hookWater.wait===60,'поза берегом час не йде');
-act('tab','shore');Math.random=()=>.3;wait(59);
+A(s.hookWater.wait===76&&!ring(),'офлайн і довгий такт не накопичують час або предмети');
+act('tab','home');wait(60);A(s.hookWater.wait===76,'поза берегом час не йде');
+act('tab','shore');Math.random=()=>.3;wait(75);
 A(!ring()&&s.hookWater.wait===1,'раніше від збереженої затримки нового предмета немає');
 tick(1);A(ring()?.kind==='tackle'&&ring().reward.scrap===1,'другий предмет отримує інший тип і пробну нагороду');
 take(1);A(ring()?.id===2,'застаріле натискання не може зібрати інший предмет');take(2);
-A(!ring()&&s.hookWater.wait===78&&s.hookWater.pulls===2,'винагорода вдруге й новий збережений інтервал');
-wait(78);
+A(!ring()&&s.hookWater.wait===96&&s.hookWater.pulls===2,'винагорода вдруге й новий збережений інтервал');
+wait(96);
 const heavy=JSON.stringify(ring());
 A(ring()?.kind==='heavy'&&!s.f.hookLimitSeen&&!rcVisible(recipe),'важкий ящик після двох підтягувань; креслення приховане');
 take(3);take(3);
-A(s.f.hookLimitSeen&&s.dlg.length===1&&JSON.stringify(ring())===heavy,'простий багор один раз показує обмеження, не пересуваючи ящик');
+A(s.f.hookLimitSeen&&s.dlg.length===1&&hookPullFx.blocked&&JSON.stringify(ring())===heavy,'простий багор один раз показує обмеження, не пересуваючи ящик');
+A(JSON.parse(raw).dlg.some(d=>d.hookLimit),'пояснення записано до закінчення анімації');
 drain();
 save();load();A(JSON.stringify(ring())===heavy&&!rcVisible(recipe),'ящик і спостереження пережили завантаження без майстерні');
 s.r.wood=30;s.r.scrap=10;act('craft','hookUp');A(!s.f.hookUp&&s.r.wood===30,'обмеження лишається без майстерні');
@@ -77,6 +79,40 @@ gather();A(s.r.wood===24,'після підсилення базовий бон�
 
 save();const legacy=JSON.parse(raw);delete legacy.hookWater;raw=JSON.stringify(legacy);load();
 A(s.f.hook&&s.hookWater.gathers===0&&!ring(),'старе збереження без даних багра має безпечні значення');
+// Усі типи вантажу на кожній фазі та на межах робочого відпливу.
+s=fresh();s.tab='shore';s.tabs.shore=1;s.f.hook=1;
+A(hookWaterConditions('plank','high')==='neutral','до відкриття припливів лишається чинний інтервал');
+s.f.tideSeen=1;s.f.hookUp=1;
+for(const kind of [...HOOK_LIGHT,'heavy']){
+  const payout=HOOK_FLOAT[kind].reward(),tackle=kind==='tackle';
+  for(const [phase,t] of [['high',120],['ebb',580],['low',620],['flood',880]]){
+    s.tideEpoch=Date.now()-t*1000;
+    const effort=phase==='high'?(tackle?'hard':'easy'):phase==='low'?(tackle?'easy':'hard'):'neutral';
+    const [min,max]=effort==='easy'?(tackle?[60,90]:[76,90]):effort==='hard'?(tackle?[90,109]:[104,120]):[60,120];
+    A(tideStage()===phase&&hookWaterConditions(kind)===effort,kind+' '+phase+' має правильне зусилля');
+    Math.random=()=>.999;A(hookWaterWait(kind,effort)===max,kind+' '+phase+' має відповідну верхню межу');
+    Math.random=()=>0;
+    const id=s.hookWater.pulls+1;
+    s.hookWater.pending={id,kind,reward:payout};const before={...s.r};
+    take(id);
+    A(s.hookWater.wait===min&&!ring()&&hookPullFx.effort===effort&&hookPullFx.up&&
+      Object.entries(payout).every(([k,n])=>s.r[k]===before[k]+n),kind+' '+phase+' зберігає нагороду й одразу вибирає інтервал');
+    const wait=s.hookWater.wait;
+    s.tideEpoch=Date.now();save();load();
+    A(s.hookWater.wait===wait,kind+' '+phase+' не перекидає очікування після припливу і reload');
+  }
+}
+A(hookWaterY(120)>hookWaterY(580)&&hookWaterY(580)>hookWaterY(620)&&hookWaterY(620)<hookWaterY(880),'вантаж слідує за береговою лінією');
+s.f.hookUp=0;s.f.hookLimitSeen=0;const stable={id:s.hookWater.pulls+1,kind:'heavy',reward:{wood:4,scrap:3}};
+s.hookWater.pending=stable;
+for(const [i,t] of [120,580,620,880].entries()){
+  s.tideEpoch=Date.now()-t*1000;
+  const before={...s.r},wait=s.hookWater.wait;
+  hookPullFx=null;take(stable.id);
+  A(hookPullFx?.blocked&&ring()===stable&&s.hookWater.wait===wait&&JSON.stringify(s.r)===JSON.stringify(before),'простий багор не рухає важкий вантаж у фазі '+i);
+  A(s.dlg.length===(i?0:1),'пояснення прогину з’являється лише раз');
+  drain();
+}
 Math.random=random;
 console.log('fails',fails)
 `);

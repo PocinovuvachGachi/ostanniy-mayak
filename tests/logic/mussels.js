@@ -17,13 +17,13 @@ A(!has('mussel')&&s.musselCyc===null,'тільки на березі, поза �
 s.f.rod=1;s.f.rodUp=1;s.f.hook=1;giveI('rake');
 s.bite={kind:'species',species:'cod',place:'deep'};
 s.hookWater.pending={id:3,kind:'heavy',reward:{wood:4,scrap:3}};
-s.rakeSand.pending={id:1,kind:'wet',scrap:2};
-const pending=JSON.stringify([s.bite,s.hookWater.pending,s.rakeSand.pending]);
+s.rakeSand.lastId=1;s.rakeSand.wet={id:1,kind:'wet',reward:{scrap:2}};
+const pending=JSON.stringify([s.bite,s.hookWater.pending,s.rakeSand.wet]);
 const xp=s.h.xpb||0,fish=s.r.fish,oldOD=Object.keys(s.odd).length;
 pick();pick();
 A(s.inv.mussel===1&&s.musselCyc===0&&s.f.musselGathered&&tutKnown('mussels'),'одна порція нульового циклу й окремий урок');
 A(JSON.parse(raw).inv.mussel===1&&beltHas('mussel')&&!RES.includes('mussel'),'порцію одразу збережено, чинний пояс і торба');
-A((s.h.xpb||0)===xp&&s.r.fish===fish&&Object.keys(s.odd).length===oldOD&&JSON.stringify([s.bite,s.hookWater.pending,s.rakeSand.pending])===pending,
+A((s.h.xpb||0)===xp&&s.r.fish===fish&&Object.keys(s.odd).length===oldOD&&JSON.stringify([s.bite,s.hookWater.pending,s.rakeSand.wet])===pending,
   'збір не видає XP, звичайної риби чи знахідок і не чіпає три незавершені дії');
 s.h.hp=5;act('use','mussel');pick();save();load();pick();
 A(s.h.hp===11&&!has('mussel')&&s.f.musselGathered&&musselCycle()===null,'6 HP, споживання й reload не повертають порцію в цьому циклі');

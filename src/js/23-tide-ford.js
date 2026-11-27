@@ -31,6 +31,7 @@ function tideLv(t=tidePhase()){
   return clamp(Math.min(t-TIDE_EBB_START,TIDE-t)/TIDE_EDGE,0,1);
 }
 const tideLow=(t=tidePhase())=>s.dbgTide?s.dbgTide==='low':tideKnown()&&t>=TIDE_WORK_START&&t<TIDE_WORK_END;
+const shoreTideLevel=t=>tideLow(t)?1:Math.min(.75,Math.round(tideLv(t)*4)/4);
 function tideLeft(t=tidePhase()){
   if(s.dbgTide)return s.dbgTide==='low'?TIDE_WORK_END-TIDE_WORK_START:TIDE_WORK_START;
   if(tideLow(t))return Math.max(0,TIDE_WORK_END-t);

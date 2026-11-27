@@ -42,7 +42,7 @@ const SHORE_FINDS={
   scrapw:{items:{oldhook:.018},ready:()=>s.f.rod&&s.c.fish>=6&&s.c.scrap>=18,step:.001,max:.055},
   pool:{items:{amberbit:.035},ready:()=>s.f.tideSeen&&s.c.pool>=18&&poolFindReady(),step:.002,max:.065}
 };
-// Одна дивина, знайдена власноруч у калюжах, за морський цикл. Дарунки Бурштина окремі.
+// Калюжі й вологий пісок ділять одну ручну колекційну знахідку за морський цикл. Дарунки Бурштина окремі.
 const poolFindReady=()=>tideLow()&&(s.poolFindCyc==null||tideCyc()>s.poolFindCyc);
 function markPoolFind(){s.poolFindCyc=tideCyc();save()}
 let shoreFindPending=null;

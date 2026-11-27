@@ -146,7 +146,7 @@ function rHome(){let h=`<div>`;
     h+=`</section>`}
   return h+`</div>`}
 function shoreImg(){
-  const time=tidePhase(),phase=tideStage(time),level=tideLow(time)?1:Math.min(.75,Math.round(tideLv(time)*4)/4);
+  const time=tidePhase(),phase=tideStage(time),level=shoreTideLevel(time);
   const sig=[phase,level,s.f.fordSeen?1:0,FORD.map(p=>s.ford?.[p.id]?1:0).join(''),Math.min(12,Math.ceil(s.r.wood/12)),s.seen.scrap?Math.min(6,Math.ceil(s.r.scrap/10)):0,s.seen.fish&&s.r.fish>=1?Math.min(5,Math.ceil(s.r.fish/8)):0,Math.min(3,s.b.pot||0),GR].join(':');
   return pimgA('s3:'+sig,()=>shoreBg3({ph:GR,phase,tide:level,fordSeen:s.f.fordSeen,ford:s.ford,wood:s.r.wood,scrapSeen:s.seen.scrap,scrap:s.r.scrap,fishSeen:s.seen.fish,fish:s.r.fish,pot:s.b.pot}),864,360,'scene','Берег',21,WATER3);
 }
@@ -171,9 +171,8 @@ function rShore(){let h=`<section><h2>Берег під маяком</h2><p>Мо
   if(event)al+=`<div class="act">${btn(SHF[event].n,'shfgo',shfActionId(event))}</div>`;
   al+=`<div class="act">${btn('До маяка','tab','home',{cls:'toggle'})}</div>`;
   const floating=hookWaterVisible();
-  const hookCard=floating?`<div class="act">${btn(hookWaterLabel(floating),'hookWater',String(floating.id))}</div>`:'';
-  const sand=rakeSandVisible();
-  const sandCard=sand?`<div class="act">${btn(RAKE_SPOTS[sand.kind].name,'rakeSand',String(sand.id))}</div>`:'';
+  const hookCard=floating?`<div class="act">${btn(hookWaterLabel(floating),'hookWater',String(floating.id))} <span class="m">${hookWaterHint(floating)}</span></div>`:'';
+  const sandCard=rakeSandVisible().map(spot=>`<div class="act">${btn(RAKE_SPOTS[spot.kind].name,'rakeSand',String(spot.id))}</div>`).join('');
   const catchCard=s.f.rod&&s.bite?`<div class="tdet"><b>${fishBiteLabel()}</b>${s.f.rodUp?`<p class="m">${FISH_SPOTS[bitePlace()].name}</p>`:''}${fishBiteControls()}</div>`:'';
   h+=`<details class="alist shore-alist"${shoreListOpen?' open':''}><summary>Усі дії списком</summary><div>${catchCard}${hookCard}${sandCard}${al}</div></details>`;
   if(s.flot){const FN={crate:'Ящик',barrel:'Бочка',cargo:'Розкиданий вантаж',bottle:'Пляшка з запискою',survivor:'Людина на уламку щогли'};h+=`<div class="tdet" id="sec-flot"><b>На березі: ${FN[s.flot.k]}</b>${fresh9('fl:'+s.flot.until)}<p class="m">Прибій щось викинув. Хвилі заберуть його за ${V(()=>s.flot?Math.max(0,Math.ceil((s.flot.until-Date.now())/1000)):0)} с.</p>${btn('Оглянути','flot','',{cls:'main'})}</div>`}
@@ -520,7 +519,7 @@ let paintedTide='',paintingTide=false;
 function tideViewKey(){
   if(s.cb)return '';
   const t=tidePhase(),low=Number(tideLow(t));
-  if(atShore())return `shore:${tideStage(t)}:${low?String(tideCyc()):'high'}`;
+  if(atShore())return `shore:${tideStage(t)}:${low?String(tideCyc()):'high'}:${hookWaterVisible()?shoreTideLevel(t):''}`;
   if(s.tab==='map'&&(['bay','shoal'].includes(s.at)||!s.at&&(s.disc.bay||s.disc.fort)))return `map:${s.at}:${low}`;
   return '';
 }
@@ -538,7 +537,8 @@ function restoreTideFocus(el,root){
     (closed?.querySelector('summary')||entry)?.focus();
     return;
   }
-  const fallback=root.id==='popl'?root.querySelector('.bpx'):root.id==='stage'?root.querySelector('[data-k="gather"]'):root.querySelector('summary');
+  const nextRake=el.dataset.a==='rakeSand'?root.querySelector('[data-a="rakeSand"]'):null;
+  const fallback=nextRake||(root.id==='popl'?root.querySelector('.bpx'):root.id==='stage'?root.querySelector('[data-k="gather"]'):root.querySelector('summary'));
   (match||fallback)?.focus({preventScroll:true});
 }
 function render(){
@@ -547,7 +547,8 @@ function render(){
   const tide=tideViewKey(),view=s.tab+'|'+(s.tab==='map'?s.at:'')+'|';
   paintingTide=!!tide&&!!paintedTide&&tide!==paintedTide&&lastView===view;
   const focused=document.activeElement;
-  const keepFocus=paintingTide||focused?.dataset?.a==='mussels'||focused?.dataset?.a?.startsWith('zone')||focused?.closest?.('.shore-recovery');
+  const action=focused?.dataset?.a;
+  const keepFocus=paintingTide||['mussels','hookWater','rakeSand'].includes(action)||action?.startsWith('zone')||focused?.closest?.('.shore-recovery');
   const el=keepFocus?focused:null,root=el?.closest('#stage,#main,#popl,#tabs');
   paintedTide=tide;
   try{renderView();restoreTideFocus(el,root)}finally{tideRenderTime=null;paintingTide=false}
@@ -592,7 +593,7 @@ function dlgImg(m){if(!m)return'';if(m.t==='scene')return sceneImg(m.id);if(m.t=
   const u=m.t==='ob'?obURL(m.k,globalThis[m.f])[0]:m.t==='face'?faceURL(m.id):m.t==='icon'?icoURL(m.id):m.t==='wico'?wIco(m.id):m.t==='spr'?sprURL(m.id):m.t==='hero'?heroURL(s.eq):'';return u?`<div class="dlgface">${pimg(u,96,96,'')}</div>`:''}
 let lastDlg='';
 const ROM=n=>['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'][n-1]||n;
-function rDlg(){const q=s.dlg||[];if(!q.length)s.bellHold=0;const d=s.bellHold&&q[0]&&q[0].k!=='fight'?null:q[0],el=$('dlg');if(!d){if(lastDlg){lastDlg='';const bg=!RM()&&el.querySelector&&el.querySelector('.dlgbg');if(bg){bg.classList.add('fo');setTimeout(()=>{if(!lastDlg)el.innerHTML=''},230)}else el.innerHTML=''}return}
+function rDlg(){const q=s.dlg||[];if(!q.length)s.bellHold=0;const d=s.bellHold&&q[0]&&q[0].k!=='fight'?null:q[0],el=$('dlg');if(!d||d.hookLimit&&atShore()&&hookPullFx?.blocked&&Date.now()<hookPullFx.until){if(lastDlg){lastDlg='';const bg=!RM()&&el.querySelector&&el.querySelector('.dlgbg');if(bg){bg.classList.add('fo');setTimeout(()=>{if(!lastDlg)el.innerHTML=''},230)}else el.innerHTML=''}return}
   const key=d.title+'|'+String(d.body||'').length+'|'+(d.btns||[]).length+'|'+(s.dlg.length>1);if(key===lastDlg){try{const q=el.querySelector('.dlgq');if(q)q.textContent=s.dlg.length>1?`Ще подій у черзі: ${s.dlg.length-1}`:''}catch(e){}return}const fi=!lastDlg&&!RM();lastDlg=key;sfx(d.chap||d.k==='lvl'?'chime':d.k==='fight'?'horn':'page');
   if(d.chap){el.innerHTML=`<div class="dlgbg chapbg${fi?' fi':''}"><div class="dlgbox chap" role="dialog" aria-modal="true" aria-labelledby="dlgt"><div class="chapno">Розділ ${ROM(d.no)} завершено</div><h2 id="dlgt">${d.sub}</h2><div class="orn" aria-hidden="true">✦ ✦ ✦</div>${dlgImg(d.img)}<div class="dlgbody">${d.body||''}</div><div class="act"><button type="button" class="main" data-a="dlgok" data-i="">Гортати далі</button>${s.dlg.length>1?'<button type="button" class="toggle" data-a="bellDefer" data-i="">Відкласти решту</button>':''}</div><p class="more dlgq">${s.dlg.length>1?`Ще подій у черзі: ${s.dlg.length-1}`:''}</p></div></div>`;
     glossify(el);try{const b=el.querySelector&&el.querySelector('button');if(b)b.focus()}catch(e){}return}
