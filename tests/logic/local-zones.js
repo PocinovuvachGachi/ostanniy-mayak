@@ -31,7 +31,7 @@ localZoneTick();act('zoneEnter','deck');A(localCurrent()==='deck','старий 
 for(const rescueFirst of [false,true]){
   s=fresh();s.tab='shore';s.tabs.shore=1;
   Object.assign(s.f,{looked:1,wreck:1,rod:1,deckSeen:1,tideSeen:1});
-  s.c.scrap=12;s.b.winch=2;
+  s.c.scrap=12;
   s.localProgress.deck={visited:1,planks:1}; // Збереження P4.5.1.
   s.dbgTide=rescueFirst?'low':'high';s.tideEpoch=Date.now();
   const rescueZinovii=()=>{
@@ -53,7 +53,7 @@ for(const rescueFirst of [false,true]){
   save();load();
   A(s.localProgress.deck.hatch&&s.localProgress.deck.mount&&s.localProgress.deck.winch
     &&rLocalZone().includes('deck:winchTaken'),'reload зберігає всі огляди й доступ до підбору');
-  const goods=()=>JSON.stringify([s.r,s.inv,s.odd,s.h.xp,s.h.xpb,s.b.winch]);
+  const goods=()=>JSON.stringify([s.r,s.inv,s.odd,s.h.xp,s.h.xpb,s.portableWinch]);
   const before=goods();
   A(localAct('deck:winchTaken')&&!localAct('deck:winchTaken')&&!localAct('deck:winch'),'механізм забирається рівно раз');
   A(goods()===before&&s.dlg.length===1,'підбір не видає ресурсів, XP, колекції чи діалогу');
@@ -62,11 +62,10 @@ for(const rescueFirst of [false,true]){
   A(s.localProgress.deck.winchTaken&&!rLocalZone().includes('data-i="deck:winchTaken"')&&rLocalZone().includes('порожніми отворами'),
     'підбір і опис порожньої основи переживають reload та зміну води');
   A(deckWinchTalkReady()===rescueFirst,'готовність теми залежить від обох збережених фактів');
+  A(rLocalZone().includes('Зиновій міг би впізнати')===rescueFirst,'підказка про розмову згадує лише відомого Зиновія');
   act('zoneBack','deck');while(s.dlg.length)act('dlgok');
   if(!rescueFirst)rescueZinovii();
   A(deckWinchTalkReady()&&!s.dlg.length,'після другого факту готова умова без нового діалогу');
-  const scrap=s.r.scrap;produce(10);
-  A(Math.abs(s.r.scrap-scrap-6)<1e-9&&s.b.winch===2,'стара лебідка продовжує давати 0,3 брухту/с за рівень');
 }
 console.log('fails',fails);
 `);

@@ -88,8 +88,9 @@ function xp(n){if(!n)return;n*=XPST[stageNo()];if(s.h.ft.curious)n*=1.1;if(fuL('
   if(last&&last.lvup){last.title=`Новий рівень: ${s.h.lvl}`;last.gains=g}else dlg({k:'lvl',lvup:1,title:`Новий рівень: ${s.h.lvl}`,img:{t:'hero'},body:s.nv.grow?'<p>Ти став сильнішим. Розподіли очки у вкладці «Герой → Розвиток».</p>':'<p>Ти став сильнішим і витривалішим. Тіло пригадує, як воно колись рухалося.</p>',gains:g})}}
 
 /* economy */
-function repCost(b){const n=Math.max(0,(s.b[b.id]||1)-1),c={},m=0.5*Math.max(0.5,1-0.05*st('craft'));for(const k in b.base)c[k]=Math.max(1,Math.ceil(b.base[k]*Math.pow(b.mult,n)*m));return c}
-function bCost(b){const n=s.b[b.id]||0,c={};for(const k in b.base)c[k]=Math.ceil(b.base[k]*Math.pow(b.mult,n));if(b.id==='hearth'&&n>=3)c.scrap=Math.ceil(4*Math.pow(1.6,n-3));return c}
+function repairCost(b,level){const n=Math.max(0,level-1),c={},m=0.5*Math.max(0.5,1-0.05*st('craft'));for(const k in b.base)c[k]=Math.max(1,Math.ceil(b.base[k]*Math.pow(b.mult,n)*m));return c}
+const repCost=b=>b.id==='pot'?potRepairCost(b):repairCost(b,s.b[b.id]||0);
+function bCost(b){const n=b.id==='pot'?potPaidLevel():s.b[b.id]||0,c={};for(const k in b.base)c[k]=Math.ceil(b.base[k]*Math.pow(b.mult,n));if(b.id==='hearth'&&n>=3)c.scrap=Math.ceil(4*Math.pow(1.6,n-3));return c}
 function rcCost(rc){const m=(s.h.ft.smith?0.75:1)*(fuL('work')>=1?0.85:1);if(m===1)return rc.c;const c={};for(const k in rc.c)c[k]=Math.ceil(rc.c[k]*m);return c}
 const scanCost=()=>28*Math.pow(2,s.scans);
 // Причал — перша мета; далі корчмар підказує, де шукати уламки. Скелі відкривають люди.
@@ -114,7 +115,7 @@ function flow(dt,dry){const L=s.b,d={};for(const k of RES)d[k]=0;const av=k=>s.r
   const eat=0.02*people()*dt;let fed=1;if(eat>0){fed=Math.min(1,Math.max(0,av('prov'))/eat);d.prov-=eat*fed;fed=0.5+0.5*fed}
   const E=id=>eff(id,fed),idle=Math.max(0,freeW());
   d.wood+=((L.hearth?0.15:0)+E('boom')*0.3*(s.rs.currents?2:1)*wolf()+0.1*idle*fed)*dt;
-  d.scrap+=(E('pot')*0.15+E('winch')*0.3)*dt;
+  d.scrap+=potRate(fed)*dt;
   d.fish+=E('traps')*0.25*wolf()*dt;
   d.herb+=E('garden')*0.12*dt;
   d.sand+=E('sandpit')*0.3*(s.rs.a_shark?1.25:1)*dt;

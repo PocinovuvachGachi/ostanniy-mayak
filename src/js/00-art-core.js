@@ -91,6 +91,7 @@ cloak:['....2222....','...222222...','...22mm22...','..22222222..','..22222222..
 bracers:['............','.jjjj..jjjj.','.jiij..jiij.','.jjjj..jjjj.','.jiij..jiij.','.jjjj..jjjj.','.jiij..jiij.','.jjjj..jjjj.','.iiii..iiii.','............','............','............'],
 jacket:['............','..dd....dd..','.dddd..dddd.','dddddeeddddd','dd.dddddd.dd','dd.dddcdd.dd','dd.dddddd.dd','...dddcdd...','...dddddd...','...dddcdd...','...dddddd...','............'],
 mail:['............','..pp....pp..','.pppp..pppp.','pqpqpqpqpqpq','pp.qpqpqp.pp','pp.pqpqpq.pp','pp.qpqpqp.pp','...pqpqpq...','...qpqpqp...','...pqpqpq...','...pppppp...','............'],
+winchRestore:['............','.......qq...','...pp...p...','..p99p.p....','..qXWWq.....','..pYWXpp....','..pWWXpp....','..p99p.p....','...pp..p....','..ccccccc...','............','............'],
 lamp:['............','......g.....','.....ghg....','.....gfg....','......f.....','....9999....','...9aaaa9...','..9aaaaaa9..','..99999999..','...999999...','............','............'],
 storm:['.....99.....','....9..9....','...999999...','...9.gg.9...','...9ghhg9...','...9ghhg9...','...9gffg9...','...9.ff.9...','...999999...','....9999....','............','............'],
 shell:['............','....7777....','...766667...','..76555667..','..7653.567..','..765..567..','..76555567..','..766666677.','...7777777..','.......77...','............','............'],
@@ -401,7 +402,6 @@ function compoundBuf(st){const W=144,H=80,b=pbuf(W,H);
   if(lv('pot'))for(let i=0;i<Math.min(4,lv('pot'));i++)cage(b,100+i*7,72+(i%2));
   if(lv('boom'))for(let i=0;i<Math.min(5,lv('boom'));i++){prect(b,112+i*6,64,5,2,'d');pset(b,112+i*6,64,'e');if(i)pset(b,111+i*6,65,'9')}
   if(lv('traps'))for(let i=0;i<Math.min(5,lv('traps'));i++){const x=114+i*6,y=70+(i%2)*4;prect(b,x,y,2,2,'j');pset(b,x,y,'7');pset(b,x+1,y+2,'4')}
-  if(lv('winch')){prect(b,126,56,14,3,'c');pline(b,128,56,134,46,'p');pline(b,134,46,138,52,'p');pset(b,138,53,'q');pset(b,138,54,'9')}
   /* people & new crafts */
   for(let i=0;i<Math.min(3,lv('house'));i++){const x=2+i*11,y=70;prect(b,x,y,9,7,'d');prect(b,x,y+3,9,1,'c');ppoly(b,[[x-1,y],[x+4,y-5],[x+10,y]],'8');prect(b,x+3,y+3,3,4,'1');pset(b,x+7,y+2,'g')}
   for(let i=0;i<Math.min(6,st.pop||0);i++){const x=8+i*6,y=78-(i%2);pset(b,x,y-2,'n');pset(b,x,y-1,['c','3','l','2','d','4'][i]);pset(b,x,y,'1')}

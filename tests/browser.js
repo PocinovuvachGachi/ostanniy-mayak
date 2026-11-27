@@ -167,6 +167,95 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await entry.click();
     A(!await item('winchTaken').count()&&await p.evaluate(()=>s.localProgress.deck.winchTaken&&s.localProgress.deck.planks),
       'за повної води механізм не повертається, старий огляд лишається · '+width);
+    await back.click();
+    await p.evaluate(()=>{
+      s.f.gullrack=1;s.shf='zinovii';act('shfgo','zinovii');
+      while(s.dlg.length)act('dlgok');
+      s.floors.work=1;s.tabs.tower=1;s.tabs.work=1;s.r.wood=40;s.r.scrap=25;
+      render();save();
+    });
+    const tab=id=>p.locator('#tabs [data-a="tab"][data-i="'+id+'"]');
+    await tab('home').click();
+    const topic=p.locator('#main [data-a="winchTalk"]');
+    await topic.focus();await p.keyboard.press('Enter');
+    A(await p.locator('#dlg').innerText().then(t=>t.includes('Механізм із палуби')),'тема доступна до кухні · '+width);
+    await p.reload();
+    await p.locator('#dlg [data-a="dlgok"]').click();
+    await tab('tower').click();
+    await p.locator('#main [data-a="tt"][data-i="work"]').click();
+    const craft=p.locator('#main [data-a="craft"][data-i="winchRestore"]');
+    A(await craft.innerText()==='Відновити лебідку','дія відновлення на верстаку · '+width);
+    await craft.click();await craft.waitFor({state:'detached'});
+    await tab('shore').click();await entry.click();
+    const install=width===390?item('install'):inList('install');
+    const pull=width===390?item('pull'):inList('pull');
+    const detach=width===390?inList('detach'):item('detach');
+    const hatch=width===390?item('hatch'):inList('hatch');
+    const beam=deck.locator('[data-sk="deck-beam"]');
+    const beamBefore=await beam.getAttribute('style');
+    await install.focus();await p.keyboard.press('Enter');
+    A(await pull.evaluate(e=>e===document.activeElement)&&await checkPoints(deck)
+      &&await deck.locator('[data-sk="deck-rope"]').count()===1,'фокус, натягнута линва та точки після монтажу · '+width);
+    await p.reload();await deck.waitFor();
+    A(await deck.locator('[data-sk="deck-rope"]').count()===1&&await p.evaluate(()=>s.portableWinch.mountedAt==='deck:mount'),
+      'монтаж збережено після reload · '+width);
+    await detach.click();await install.waitFor();
+    A(!await deck.locator('[data-sk="deck-rope"]').count(),'демонтаж прибирає линву · '+width);
+    await install.click();
+    await pull.focus();await p.keyboard.press('Enter');
+    A(await hatch.evaluate(e=>e===document.activeElement)&&await beam.getAttribute('style')!==beamBefore,
+      'балка змінила місце, фокус на огляді · '+width);
+    A(await beam.evaluate(e=>getComputedStyle(e).animationName)===(width===390?'none':'deck-haul'),
+      'підтягування поважає режим зменшеного руху · '+width);
+    A(await p.evaluate(()=>{
+      const d=JSON.parse(localStorage.getItem(KEY));
+      return d.localProgress.deck.beamMoved&&d.portableWinch.restored&&!d.portableWinch.mountedAt&&!d.f.rats;
+    }),'кінцевий стан записаний ще під час анімації · '+width);
+    await p.reload();await deck.waitFor();
+    A(!await pull.count()&&!await install.count()&&!await deck.locator('[data-sk="deck-rope"]').count()
+      &&await beam.evaluate(e=>getComputedStyle(e).animationName==='none')&&await checkPoints(deck)
+      &&await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'reload зберігає балку й доступність сцени · '+width);
+    A(await p.locator('#main').innerText().then(t=>t.includes('люк і досі зачинений')),'люк лишається зачиненим · '+width);
+    await p.close();
+  }
+
+  // Старий файл завантажується через штатний імпорт і зберігається повторно.
+  {
+    const p=await page(390,844);
+    const url=new global.URL(URL);url.searchParams.set('debug','1');
+    await p.goto(url.href);
+    const debug=p.locator('#dbg');
+    await debug.locator('summary').click();
+    const legacy=await p.evaluate(()=>{
+      const d=fresh();
+      delete d.winchMigrationV;delete d.potTransfer;delete d.portableWinch;
+      d.b={hearth:1,pot:2,winch:2};d.wk={pot:1,winch:2};d.pop=4;
+      d.dmgB={winch:1};d.f={looked:1,people:1};d.tabs.chron=1;d.r.wood=100;d.r.scrap=40;d.ldOpen=1;
+      d.bts=Object.fromEntries(CH.flatMap(ch=>ch.beats.map(beat=>[beat[0],1])));d.chs=CH.map(ch=>ch.id);
+      return JSON.stringify(d);
+    });
+    const input=debug.locator('#dbgSave');
+    await input.fill(legacy);
+    await debug.locator('#dbgIn').click();
+    const row=p.locator('#bd-pot');
+    await row.waitFor();
+    A(await row.innerText().then(t=>t.includes('рівень 6')&&t.includes('Перенесені рівні: 4')
+      &&t.includes('Працівників зі старої лебідки: 2')&&t.includes('Перенесена частина пошкоджена')),
+      'книга обліку показує перенесені рівні, бригаду й окремий ремонт');
+    const spot=p.locator('#stage [data-a="bpop"][data-i="pot"]');
+    await spot.click();
+    const popup=p.locator('#popl .bpop');
+    A(await popup.innerText().then(t=>t.includes('Перенесена частина пошкоджена')),'картка пастки показує успадкований ремонт');
+    await popup.locator('[data-a="repairPotPart"][data-i="winch"]').click();
+    A(!await popup.locator('[data-a="repairPotPart"]').count()&&await p.evaluate(()=>s.portableWinch.restored&&s.b.pot===6),
+      'ремонт працює з мобільної картки');
+    await popup.locator('.bpx').click();
+    await debug.locator('summary').click();
+    await debug.locator('#dbgOut').click();
+    await Promise.all([p.waitForEvent('load'),debug.locator('#dbgIn').click()]);
+    await row.waitFor();
+    A(await p.evaluate(()=>s.b.pot===6&&s.wk.pot===3&&s.winchMigrationV===1&&!s.dmgB.pot&&s.portableWinch.restored)
+      &&!await row.locator('[data-a="repairPotPart"]').count(),'експорт й імпорт не повторюють компенсацію чи поломку');
     await p.close();
   }
 

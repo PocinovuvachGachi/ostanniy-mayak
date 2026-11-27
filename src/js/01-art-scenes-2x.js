@@ -103,7 +103,6 @@ const BOBJ={
   smoke:()=>hut(24,12,9,{wall:['V','W','X'],roof:['V','W','X'],door:1,dw:4,dh:7,chim:1,chimX:4,win:[16]}),
   kiln:()=>{const b=pbuf(20,22);polyFill(b,[[1,22],[2,10],[6,4],[14,4],[18,10],[19,22]],(x,y)=>pset(b,x,y,(y%3===0||(x+(y>>1))%4===0)?'t':x<9?'w':'v'));prect(b,7,15,6,7,'x');prect(b,8,17,4,5,'K');prect(b,9,19,2,3,'I');prect(b,8,0,4,5,'F');return b},
   dummy:()=>{const b=pbuf(14,24);prect(b,6,6,2,18,'W');prect(b,6,6,1,18,'X');prect(b,1,10,12,2,'X');prect(b,1,10,12,1,'Y');prect(b,4,0,6,6,'N');prect(b,4,0,6,1,'O');pset(b,5,2,'x');pset(b,8,2,'x');prect(b,3,12,8,6,'M');prect(b,3,12,1,6,'N');return b},
-  winch:()=>{const b=pbuf(30,28);prect(b,2,20,24,4,'W');prect(b,2,20,24,1,'Y');for(let i=0;i<12;i++){pset(b,6+i,20-i*1.4,'X');pset(b,7+i,20-i*1.4,'W')}pline(b,18,3,26,10,'X');pline(b,26,10,26,24,'H');prect(b,24,24,5,3,'G');prect(b,4,16,6,5,'F');pset(b,6,17,'H');return b},
   boom:()=>{const b=pbuf(60,10);for(let i=0;i<5;i++){const x=i*12;prect(b,x,4,10,4,'X');prect(b,x,4,10,1,'Y');prect(b,x,7,10,1,'V');prect(b,x,4,1,4,'O');if(i)prect(b,x-2,5,2,1,'H')}return b},
   traps:()=>{const b=pbuf(60,14);for(let i=0;i<5;i++){const x=i*12+2,y=(i%2)*4;prect(b,x,y+2,5,5,'j');prect(b,x,y+2,5,2,'u');pset(b,x+2,y,'X');pset(b,x+2,y+1,'X');pline(b,x+5,y+5,x+11,y+7,'H')}return b},
   pot:()=>{const b=pbuf(28,12);for(let i=0;i<3;i++){const x=i*9,y=(i%2)*2;prect(b,x,y+2,8,7,'z');for(let k=1;k<8;k+=2)prect(b,x+k,y+3,1,5,'H');prect(b,x,y+2,8,1,'G');prect(b,x+3,y,2,2,'X')}return b},
@@ -116,7 +115,7 @@ const BOBJ={
   sandpit:()=>{const b=pbuf(28,10);for(let i=0;i<3;i++)polyFill(b,[[i*9,10],[i*9+4,3],[i*9+9,10]],(x,y)=>pset(b,x,y,x<i*9+4?'O':'N'));pline(b,24,0,20,9,'X');prect(b,18,8,4,2,'H');return b},
   shipyard:()=>{const b=pbuf(44,20);prect(b,0,16,44,3,'W');prect(b,0,16,44,1,'Y');for(let i=0;i<7;i++){const x=4+i*6;pline(b,x,16,x-3,4+(i%2)*2,'X');pline(b,x+1,16,x-2,4+(i%2)*2,'Y')}prect(b,0,6,40,1,'W');return b},
   house:()=>hut(22,11,9,{wall:['V','W','X'],roof:['t','v','w'],door:1,dw:4,dh:7,win:[15],lit:1,chim:1,chimX:4})};
-const BPOS2={forge:[104,82],smoke:[138,90],kiln:[164,94],dummy:[92,106],winch:[200,84],boom:[226,124],traps:[230,140],pot:[198,146],render:[122,118],steel:[184,80],coalpit:[154,120],glass:[214,104],apoth:[150,134],garden:[0,150],sandpit:[176,140],shipyard:[240,100],house:[0,116]};
+const BPOS2={forge:[104,82],smoke:[138,90],kiln:[164,94],dummy:[92,106],boom:[226,124],traps:[230,140],pot:[198,146],render:[122,118],steel:[184,80],coalpit:[154,120],glass:[214,104],apoth:[150,134],garden:[0,150],sandpit:[176,140],shipyard:[240,100],house:[0,116]};
 const BSMK={forge:[22,1],smoke:[4,1],kiln:[9,0],steel:[17,0],coalpit:[11,0],house:[4,1]};
 /* fog strip 96x24 */
 function fogBuf(seed){const b=pbuf(96,24);const R=rng(seed);for(let k=0;k<7;k++){const cx=Math.floor(R()*96),cy=6+Math.floor(R()*12),rx=10+Math.floor(R()*16),ry=3+Math.floor(R()*4);
