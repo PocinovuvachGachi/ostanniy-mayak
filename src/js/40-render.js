@@ -528,7 +528,17 @@ function restoreTideFocus(el,root){
   if(!root||el.isConnected||document.activeElement!==document.body)return;
   const match=el.tagName==='SUMMARY'?root.querySelector('summary'):[...root.querySelectorAll('[data-a]')].find(b=>!b.disabled&&
     (el.dataset.sk?b.dataset.sk===el.dataset.sk:b.dataset.a===el.dataset.a&&b.dataset.i===el.dataset.i));
-  const fallback=root.id==='popl'?root.querySelector('.bpx'):root.id==='stage'?(root.querySelector('[data-a="zoneBack"],[data-a="zoneEnter"]')||root.querySelector('[data-k="gather"]')):(root.querySelector('[data-a="zoneBack"],[data-a="zoneEnter"]')||root.querySelector('summary'));
+  if(el.dataset.a==='zoneEnter'){
+    root.querySelector('[data-a="zoneBack"]')?.focus();
+    return;
+  }
+  if(el.dataset.a==='zoneBack'){
+    const entry=[...root.querySelectorAll('[data-a="zoneEnter"]')].find(b=>b.dataset.i===el.dataset.i);
+    const closed=entry?.closest('details:not([open])');
+    (closed?.querySelector('summary')||entry)?.focus();
+    return;
+  }
+  const fallback=root.id==='popl'?root.querySelector('.bpx'):root.id==='stage'?root.querySelector('[data-k="gather"]'):root.querySelector('summary');
   (match||fallback)?.focus({preventScroll:true});
 }
 function render(){

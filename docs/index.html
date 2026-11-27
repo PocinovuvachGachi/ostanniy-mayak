@@ -4427,7 +4427,9 @@ const poolFindReady=()=>tideLow()&&(s.poolFindCyc==null||tideCyc()>s.poolFindCyc
 function markPoolFind(){s.poolFindCyc=tideCyc();save()}
 let shoreFindPending=null;
 function queueShoreFind(source){
-  if(SHORE_FINDS[source]&&atShore()&&!s.dlg.length&&!s.tutPending.some(tutReady))shoreFindPending={source,log:s.log[0]};
+  if(SHORE_FINDS[source]&&atShore()&&!s.dlg.length&&!s.tutPending.some(tutReady)){
+    shoreFindPending={source,log:s.log[0],cycle:source==='pool'?tideCyc():null};
+  }
 }
 function shoreFindTick(){
   const pending=shoreFindPending;
@@ -4435,6 +4437,7 @@ function shoreFindTick(){
   if(!pending||!atShore()||s.cb||s.raid||s.dlg.length||s.tutPending.some(tutReady))return;
   if(s.log[0]!==pending.log&&['story','find','fight'].includes(s.log[0]?.t))return;
   const source=pending.source,cfg=SHORE_FINDS[source];
+  if(source==='pool'&&pending.cycle!==tideCyc())return;
   const id=Object.keys(cfg.items).find(k=>!s.odd[k]);
   if(!id||!cfg.ready(id))return;
   const base=cfg.items[id],misses=s.shoreFindMiss[source]||0;
@@ -4504,7 +4507,7 @@ const LOCAL_ZONES={
     entry:'Піднятися на палубу',ready:()=>!!s.f.deckSeen,
     desc:'Між камінням лежить більший корпус. Палуба нахилена до води; дошки скриплять під ногами.',
     objects:{planks:{label:'Оглянути обшивку',text:'Під шаром солі видно товсті дошки й зігнуті залізні скоби. Цей корпус більший за човни, розбиті в прибої.',x:177,y:88,art:()=>localPlanksArt()}},
-    background:()=>localDeckBg(),entryArt:()=>localWreckArt(),entryX:270,entryY:16}
+    background:()=>localDeckBg(),entryArt:()=>localWreckArt(),entryX:237,entryY:16}
 };
 const localDef=id=>Object.prototype.hasOwnProperty.call(LOCAL_ZONES,id)?LOCAL_ZONES[id]:null;
 function localContext(id){const z=localDef(id);return !!(z&&s.tabs[z.tab]&&s.tab===z.tab&&(s.at||'')===z.at&&z.ready()&&(!z.parent||localContext(z.parent)))}
@@ -4519,7 +4522,7 @@ function localState(id){
   if(!p||typeof p!=='object'||Array.isArray(p))s.localProgress[id]={};
   return s.localProgress[id];
 }
-const localCanAct=()=>!s.cb&&!s.raid&&!s.dlg.length;
+const localCanAct=()=>!s.cb&&!s.raid&&!MG&&(!s.dlg.length||s.bellHold&&s.dlg[0].k!=='fight');
 const localEntries=()=>Object.keys(LOCAL_ZONES).filter(id=>localContext(id)&&(LOCAL_ZONES[id].parent||'')===localCurrent());
 function localSwitch(id){s.localZone=id;popB='';dirty=1;save()}
 function localEnter(id){
@@ -4541,7 +4544,7 @@ function localAct(key){
   return true;
 }
 function localZoneTick(){
-  if(!atShore()||s.f.deckSeen||!s.f.wreck||!s.f.rod||(s.c.scrap||0)<12||!localCanAct()||s.tutPending.some(tutReady)||!novCan())return;
+  if(!atShore()||s.f.deckSeen||!s.f.wreck||!s.f.rod||(s.c.scrap||0)<12||!localCanAct()||s.dlg.length||s.tutPending.some(tutReady)||!novCan())return;
   s.f.deckSeen=1;novMark();say('За розбитим човном проступає великий корпус. До нахиленої палуби можна дістатися між каменями.','world');dirty=1;save();
 }
 const localViewSuffix=()=>localCurrent()?'|zone:'+localCurrent():'';
@@ -6054,7 +6057,17 @@ function restoreTideFocus(el,root){
   if(!root||el.isConnected||document.activeElement!==document.body)return;
   const match=el.tagName==='SUMMARY'?root.querySelector('summary'):[...root.querySelectorAll('[data-a]')].find(b=>!b.disabled&&
     (el.dataset.sk?b.dataset.sk===el.dataset.sk:b.dataset.a===el.dataset.a&&b.dataset.i===el.dataset.i));
-  const fallback=root.id==='popl'?root.querySelector('.bpx'):root.id==='stage'?(root.querySelector('[data-a="zoneBack"],[data-a="zoneEnter"]')||root.querySelector('[data-k="gather"]')):(root.querySelector('[data-a="zoneBack"],[data-a="zoneEnter"]')||root.querySelector('summary'));
+  if(el.dataset.a==='zoneEnter'){
+    root.querySelector('[data-a="zoneBack"]')?.focus();
+    return;
+  }
+  if(el.dataset.a==='zoneBack'){
+    const entry=[...root.querySelectorAll('[data-a="zoneEnter"]')].find(b=>b.dataset.i===el.dataset.i);
+    const closed=entry?.closest('details:not([open])');
+    (closed?.querySelector('summary')||entry)?.focus();
+    return;
+  }
+  const fallback=root.id==='popl'?root.querySelector('.bpx'):root.id==='stage'?root.querySelector('[data-k="gather"]'):root.querySelector('summary');
   (match||fallback)?.focus({preventScroll:true});
 }
 function render(){
@@ -6619,60 +6632,6 @@ function flPopHTML(id){const nm=FLN[id],built=floorBuilt(id),U2=FLU[id]||[],tr=f
     const tb=FLTAB[id];if(tb&&s.tabs[tb]&&tb!=='home')bt+=btn('Зайти','tab',tb,{cls:'toggle'})}
   const lp=id==='lantern'?lanternPart():'';
   return`<div class="bpop${lp?' wide':''}" role="dialog" aria-label="${nm}"><div class="bph"><b>${nm}</b><span class="bplv">${built?(tr?'облаштовано: '+tr:'відновлено'):'у руїнах'}</span><button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div><p class="m">${FLD[id]}</p>${lp}${ex}<div class="act">${bt}</div></div>`}
-
-/* Процедурний піксельний інтер'єр/палуба. Всі кнопки сцени й списку використовують один handler. */
-const LZW=320,LZH=150;
-function localWreckArt(){
-  const b=pbuf(43,24);
-  polyFill(b,[[0,7],[10,10],[38,6],[42,1],[40,15],[32,22],[10,21]],(x,y)=>pset(b,x,y,y<10?'Y':y<16?'W':'V'));
-  for(let y=12;y<20;y+=3)pline(b,9,y,35,y-2,'X');
-  prect(b,17,0,3,11,'X');prect(b,16,0,1,8,'Y');
-  return b;
-}
-function localDeckBg(){
-  const b=pbuf(LZW,LZH);
-  rampV(b,0,0,LZW,LZH,['T','S','R','Q']);
-  for(let y=8;y<150;y+=13)pline(b,0,y,319,y+2,'T');
-  polyFill(b,[[12,78],[47,18],[263,15],[310,65],[272,138],[50,141]],(x,y)=>pset(b,x,y,y%13<2?'X':((Math.floor(y/13)+Math.floor(x/45))%2?'W':'Y')));
-  for(let y=27;y<136;y+=13)for(let x=64+(y%4)*5;x<265;x+=51)pline(b,x,y,x,y+10,'V');
-  pline(b,12,78,47,18,'V');pline(b,47,18,263,15,'Y');pline(b,263,15,310,65,'V');pline(b,310,65,272,138,'V');pline(b,272,138,50,141,'V');pline(b,50,141,12,78,'V');
-  prect(b,88,24,5,42,'X');prect(b,88,24,2,42,'Y');
-  pline(b,27,77,60,24,'Y');pline(b,277,26,298,66,'Y');
-  for(let x=58;x<270;x+=24){prect(b,x,21,3,5,'V');prect(b,x,130,3,8,'V')}
-  return b;
-}
-function localPlanksArt(){
-  const b=pbuf(42,22);
-  polyFill(b,[[0,9],[35,1],[40,7],[4,16]],(x,y)=>pset(b,x,y,'Y'));
-  polyFill(b,[[4,17],[38,10],[41,15],[9,21]],(x,y)=>pset(b,x,y,'W'));
-  for(const [x,y] of [[8,10],[29,6],[12,17],[34,14]])prect(b,x,y,2,2,'G');
-  return b;
-}
-function localExitArt(){
-  const b=pbuf(38,24);
-  for(let n=0;n<5;n++){prect(b,n*3,2+n*4,26,4,'W');prect(b,n*3,2+n*4,26,1,'Y')}
-  return b;
-}
-function localEntryHS(W,H){
-  return localEntries().map(id=>{
-    const z=localDef(id);
-    if(!z.entryArt)return '';
-    return ob('zone:enter:'+id,'zoneEnter',id,obURL('zone:entry:'+id,()=>HI(z.entryArt)()),z.entryX,z.entryY,W,H,z.entry,'<b>'+z.entry+'</b>',{pulse:1});
-  }).join('');
-}
-function localZoneScene(){
-  const id=localCurrent(),z=localDef(id);
-  if(!z)return '';
-  const W=LZW,H=LZH;
-  let h='<span data-sk="bg" data-sig="bg" class="scbg">'+VH(()=>pimg(pxURL('zone:bg:'+id,()=>HI(z.background)()),960,450,'scene',z.title()))+'</span>';
-  h+=ob('zone:back:'+id,'zoneBack',id,obURL('zone:exit',()=>HI(localExitArt)()),26,96,W,H,z.parent?'Назад':'На берег','<b>Вихід</b>');
-  for(const [k,o] of Object.entries(z.objects||{})){
-    if(o.ready&&!o.ready()||!o.art)continue;
-    h+=ob('zone:'+id+':'+k,'zoneAct',id+':'+k,obURL('zone:obj:'+id+':'+k,()=>HI(o.art)()),o.x,o.y,W,H,o.label,'<b>'+o.label+'</b>');
-  }
-  h+=localEntryHS(W,H);
-  return '<div class="scn" data-scn="zone-'+id+'" style="'+scnD()+'">'+h+'</div>';
-}
 /* ============ МІСЦЕ НА МАПІ: сцена локації ============
    Кожна локація — власне тло 432×240 (1,5×), складене з деталей (`lk*`): небо, море, земля, хати, башти, скелі.
    Місця локації (spots) — ліхтарі на кілках або портрет людини на дошці; картка `lc:<місце>` з описом і діями.
@@ -6866,6 +6825,60 @@ const LKX={
 const LKF={village:{sm:[[71,95]],wv:[[0,250,184],[250,432,214]]},chaika:{wv:[[0,150,184],[300,432,198]]},bay:{wv:[[0,432,()=>lowTide()?176:204]]},reef:{wv:[[60,400,192]],sp:[[80,196],[380,206]]},
   fort:{sm:[[60,150],[180,150]],wv:[[0,110,212]]},spit:{sm:[[357,100]],wv:[[0,432,192]]},shipisle:{wv:[[0,140,200]]},monastery:{wv:[[0,432,190]]},guardians:{wv:[[0,80,210],[380,432,206]]},
   cape:{sm:[[216,104]],wv:[[340,432,208]]},bog:{ff:1},cave:{dr:[[140,60],[230,48],[300,70]]},mine:{dr:[[180,56],[320,60]]},warehouse:{sm:[[200,64]]},heart:{},shoal:{wv:[[0,432,168]]},cliffs:{wv:[[300,432,200]]}};
+
+/* Процедурний піксельний інтер'єр/палуба. Всі кнопки сцени й списку використовують один handler. */
+const LZW=320,LZH=150;
+function localWreckArt(){
+  const b=pbuf(43,24);
+  polyFill(b,[[0,7],[10,10],[38,6],[42,1],[40,15],[32,22],[10,21]],(x,y)=>pset(b,x,y,y<10?'Y':y<16?'W':'V'));
+  for(let y=12;y<20;y+=3)pline(b,9,y,35,y-2,'X');
+  prect(b,17,0,3,11,'X');prect(b,16,0,1,8,'Y');
+  return b;
+}
+function localDeckBg(){
+  const b=pbuf(LZW,LZH);
+  rampV(b,0,0,LZW,LZH,['T','S','R','Q']);
+  for(let y=8;y<150;y+=13)pline(b,0,y,319,y+2,'T');
+  polyFill(b,[[12,78],[47,18],[263,15],[310,65],[272,138],[50,141]],(x,y)=>pset(b,x,y,y%13<2?'X':((Math.floor(y/13)+Math.floor(x/45))%2?'W':'Y')));
+  for(let y=27;y<136;y+=13)for(let x=64+(y%4)*5;x<265;x+=51)pline(b,x,y,x,y+10,'V');
+  pline(b,12,78,47,18,'V');pline(b,47,18,263,15,'Y');pline(b,263,15,310,65,'V');pline(b,310,65,272,138,'V');pline(b,272,138,50,141,'V');pline(b,50,141,12,78,'V');
+  prect(b,88,24,5,42,'X');prect(b,88,24,2,42,'Y');
+  pline(b,27,77,60,24,'Y');pline(b,277,26,298,66,'Y');
+  for(let x=58;x<270;x+=24){prect(b,x,21,3,5,'V');prect(b,x,130,3,8,'V')}
+  return b;
+}
+function localPlanksArt(){
+  const b=pbuf(42,22);
+  polyFill(b,[[0,9],[35,1],[40,7],[4,16]],(x,y)=>pset(b,x,y,'Y'));
+  polyFill(b,[[4,17],[38,10],[41,15],[9,21]],(x,y)=>pset(b,x,y,'W'));
+  for(const [x,y] of [[8,10],[29,6],[12,17],[34,14]])prect(b,x,y,2,2,'G');
+  return b;
+}
+function localExitArt(){
+  const b=pbuf(38,24);
+  for(let n=0;n<5;n++){prect(b,n*3,2+n*4,26,4,'W');prect(b,n*3,2+n*4,26,1,'Y')}
+  return b;
+}
+function localEntryHS(W,H){
+  return localEntries().map(id=>{
+    const z=localDef(id);
+    if(!z.entryArt)return '';
+    return ob('zone:enter:'+id,'zoneEnter',id,obURL('zone:entry:'+id,()=>HI(z.entryArt)()),z.entryX,z.entryY,W,H,z.entry,'<b>'+z.entry+'</b>',{pulse:1});
+  }).join('');
+}
+function localZoneScene(){
+  const id=localCurrent(),z=localDef(id);
+  if(!z)return '';
+  const W=LZW,H=LZH;
+  let h='<span data-sk="bg" data-sig="bg" class="scbg">'+VH(()=>pimg(pxURL('zone:bg:'+id,()=>HI(z.background)()),960,450,'scene',z.title()))+'</span>';
+  h+=ob('zone:back:'+id,'zoneBack',id,obURL('zone:exit',()=>HI(localExitArt)()),26,96,W,H,z.parent?'Назад':'На берег','<b>Вихід</b>');
+  for(const [k,o] of Object.entries(z.objects||{})){
+    if(o.ready&&!o.ready()||!o.art)continue;
+    h+=ob('zone:'+id+':'+k,'zoneAct',id+':'+k,obURL('zone:obj:'+id+':'+k,()=>HI(o.art)()),o.x,o.y,W,H,o.label,'<b>'+o.label+'</b>');
+  }
+  h+=localEntryHS(W,H);
+  return '<div class="scn" data-scn="zone-'+id+'" style="'+scnD()+'">'+h+'</div>';
+}
 /* ============ МАПА: морська карта на пергаменті ============
    Стара піксельна мапа (mapBuf, 160×108) — маска суші й деталей; поверх неї малюємо карту чорнилом:
    пергамент, штрихування моря, обведені береги, обмілини, румби, троянда вітрів. Нерозвідане ховається під вугільним туманом.

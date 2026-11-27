@@ -56,26 +56,41 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await p.emulateMedia({ reducedMotion: 'reduce' });
     await p.evaluate(() => {
       s.tabs.shore=1;s.tab='shore';s.b.hearth=1;s.f.looked=1;s.f.wreck=1;s.f.rod=1;
-      s.f.crab1=1;s.f.tideSeen=1;s.tideEpoch=Date.now();s.f.fishBiteSeen=1;s.c.scrap=11;
-      s.dlg=[];s.tutPending=[];s.lastNov=-100;render();
+      s.f.crab1=1;s.f.tideSeen=1;s.tideEpoch=Date.now();s.f.fishBiteSeen=1;s.c.scrap=11;s.f.hookPlan=1;s.f.rodPlan=1;
+      s.dlg=[];s.tutPending=[];s.lastNov=-100;
+      s.bdSeen=Object.fromEntries(BD.map(b=>[b.id,1]));s.rcSeen=Object.fromEntries(RC.map(rc=>[rc.id,1]));
+      render();
     });
     A(await p.locator('#stage [data-a="zoneEnter"]').count()===0,'палуба ще прихована');
-    await p.evaluate(()=>{s.c.scrap=12;localZoneTick();render()});
+    await p.locator('#stage [data-a="scrapw"]').click();
     const entry=p.locator('#stage [data-a="zoneEnter"][data-i="deck"]');
-    await entry.waitFor();await entry.scrollIntoViewIfNeeded();await entry.click();
-    A(await p.locator('#stage [data-scn="zone-deck"]').count()===1,'вхід зі сцени');
+    await entry.waitFor();await entry.scrollIntoViewIfNeeded();
+    A(await entry.evaluate(e=>{
+      const a=e.getBoundingClientRect(),b=e.closest('.scn').getBoundingClientRect();
+      return s.c.scrap===12&&a.left>=b.left&&a.right<=b.right&&e.contains(document.elementFromPoint(a.x+a.width/2,a.y+a.height/2));
+    }),'дванадцятий розбір відкриває повністю доступну точку входу');
+    await entry.click();
+    const stageBack=p.locator('#stage [data-a="zoneBack"]');
+    A(await p.locator('#stage [data-scn="zone-deck"]').count()===1&&await stageBack.evaluate(e=>e===document.activeElement),'вхід зі сцени та фокус на виході');
     A(await p.locator('#stage [data-a="gather"]').count()===0,'зовнішні дії не дублюються всередині');
+    A(await p.locator('#main h2').innerText()==='Палуба уламка','ім’я судна приховане до знайомства із Зиновієм');
     const inspect=p.locator('#stage [data-a="zoneAct"][data-i="deck:planks"]');
-    await inspect.scrollIntoViewIfNeeded();await inspect.focus();await inspect.press('Enter');
+    await inspect.scrollIntoViewIfNeeded();await inspect.focus();await p.keyboard.press('Enter');
     A(await p.evaluate(()=>!!s.localProgress.deck.planks),'огляд з клавіатури');
     await p.reload();
     A(await p.locator('#stage [data-scn="zone-deck"]').count()===1&&await p.evaluate(()=>s.localProgress.deck.planks),'сцена та огляд після reload');
     A(await p.evaluate(()=>document.documentElement.scrollWidth<=390),'локальна сцена вміщається на телефоні');
-    await p.locator('#main [data-a="zoneBack"]').click();
-    A(await p.evaluate(()=>atShore()&&s.localProgress.deck.planks),'вихід списком без втрати прогресу');
-    await p.locator('#main .shore-alist summary').click();
+    const listBack=p.locator('#main [data-a="zoneBack"]'),summary=p.locator('#main .shore-alist summary');
+    await listBack.focus();await p.keyboard.press('Enter');
+    A(await p.evaluate(()=>atShore()&&s.localProgress.deck.planks)&&await summary.evaluate(e=>e===document.activeElement),'після виходу фокус на згорнутому списку');
+    await summary.click();
     await p.locator('#main [data-a="zoneEnter"][data-i="deck"]').click();
     A(await p.evaluate(()=>localCurrent()==='deck'&&s.localProgress.deck.planks),'повернення списком');
+    await stageBack.focus();await p.keyboard.press('Enter');
+    A(await entry.evaluate(e=>e===document.activeElement),'після виходу зі сцени фокус повертається до входу');
+    await p.evaluate(()=>{s.f.zinovii=1});
+    await p.keyboard.press('Enter');
+    A(await p.locator('#main h2').innerText()==='Палуба «Мартина»','назва доступна після знайомства');
     await p.close();
   }
 

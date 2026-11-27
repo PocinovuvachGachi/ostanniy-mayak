@@ -7,7 +7,7 @@ const LOCAL_ZONES={
     entry:'Піднятися на палубу',ready:()=>!!s.f.deckSeen,
     desc:'Між камінням лежить більший корпус. Палуба нахилена до води; дошки скриплять під ногами.',
     objects:{planks:{label:'Оглянути обшивку',text:'Під шаром солі видно товсті дошки й зігнуті залізні скоби. Цей корпус більший за човни, розбиті в прибої.',x:177,y:88,art:()=>localPlanksArt()}},
-    background:()=>localDeckBg(),entryArt:()=>localWreckArt(),entryX:270,entryY:16}
+    background:()=>localDeckBg(),entryArt:()=>localWreckArt(),entryX:237,entryY:16}
 };
 const localDef=id=>Object.prototype.hasOwnProperty.call(LOCAL_ZONES,id)?LOCAL_ZONES[id]:null;
 function localContext(id){const z=localDef(id);return !!(z&&s.tabs[z.tab]&&s.tab===z.tab&&(s.at||'')===z.at&&z.ready()&&(!z.parent||localContext(z.parent)))}
@@ -22,7 +22,7 @@ function localState(id){
   if(!p||typeof p!=='object'||Array.isArray(p))s.localProgress[id]={};
   return s.localProgress[id];
 }
-const localCanAct=()=>!s.cb&&!s.raid&&!s.dlg.length;
+const localCanAct=()=>!s.cb&&!s.raid&&!MG&&(!s.dlg.length||s.bellHold&&s.dlg[0].k!=='fight');
 const localEntries=()=>Object.keys(LOCAL_ZONES).filter(id=>localContext(id)&&(LOCAL_ZONES[id].parent||'')===localCurrent());
 function localSwitch(id){s.localZone=id;popB='';dirty=1;save()}
 function localEnter(id){
@@ -44,7 +44,7 @@ function localAct(key){
   return true;
 }
 function localZoneTick(){
-  if(!atShore()||s.f.deckSeen||!s.f.wreck||!s.f.rod||(s.c.scrap||0)<12||!localCanAct()||s.tutPending.some(tutReady)||!novCan())return;
+  if(!atShore()||s.f.deckSeen||!s.f.wreck||!s.f.rod||(s.c.scrap||0)<12||!localCanAct()||s.dlg.length||s.tutPending.some(tutReady)||!novCan())return;
   s.f.deckSeen=1;novMark();say('За розбитим човном проступає великий корпус. До нахиленої палуби можна дістатися між каменями.','world');dirty=1;save();
 }
 const localViewSuffix=()=>localCurrent()?'|zone:'+localCurrent():'';

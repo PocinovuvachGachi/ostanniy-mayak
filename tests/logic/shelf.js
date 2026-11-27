@@ -68,6 +68,11 @@ while(s.c.pool<17){harvest('pool');drain()}
 pools(3);harvest('pool');
 A(s.odd.amberbit&&onCd('pool'),'після освоєння калюж і наступного циклу може трапитися бурштин');
 drain();
+delete s.odd.amberbit;pools(4);s.cd.pool=0;act('pool');
+pools(5);shoreFindTick();
+A(!s.odd.amberbit&&s.poolFindCyc===3,'стара спроба в калюжах не видає знахідку після пропущеного циклу');
+harvest('pool');drain();
+A(s.odd.amberbit&&s.poolFindCyc===5,'перша дія нового відпливу використовує свій слот');
 s.dlg=[];s.f.horpyna=0;s.shf='horpyna';act('shfgo');drain();
 openShelf();act('shelfGive','seaglass');inspect('woodhorse');
 const giftXP=s.h.xpb||0;act('shelfGive','woodhorse');act('shelfGive','woodhorse');

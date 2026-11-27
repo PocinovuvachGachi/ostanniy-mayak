@@ -47,7 +47,9 @@ const poolFindReady=()=>tideLow()&&(s.poolFindCyc==null||tideCyc()>s.poolFindCyc
 function markPoolFind(){s.poolFindCyc=tideCyc();save()}
 let shoreFindPending=null;
 function queueShoreFind(source){
-  if(SHORE_FINDS[source]&&atShore()&&!s.dlg.length&&!s.tutPending.some(tutReady))shoreFindPending={source,log:s.log[0]};
+  if(SHORE_FINDS[source]&&atShore()&&!s.dlg.length&&!s.tutPending.some(tutReady)){
+    shoreFindPending={source,log:s.log[0],cycle:source==='pool'?tideCyc():null};
+  }
 }
 function shoreFindTick(){
   const pending=shoreFindPending;
@@ -55,6 +57,7 @@ function shoreFindTick(){
   if(!pending||!atShore()||s.cb||s.raid||s.dlg.length||s.tutPending.some(tutReady))return;
   if(s.log[0]!==pending.log&&['story','find','fight'].includes(s.log[0]?.t))return;
   const source=pending.source,cfg=SHORE_FINDS[source];
+  if(source==='pool'&&pending.cycle!==tideCyc())return;
   const id=Object.keys(cfg.items).find(k=>!s.odd[k]);
   if(!id||!cfg.ready(id))return;
   const base=cfg.items[id],misses=s.shoreFindMiss[source]||0;
