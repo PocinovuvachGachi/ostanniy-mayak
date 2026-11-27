@@ -592,8 +592,9 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await p.evaluate(()=>{
       Math.random=()=>.99;
       s.tab='shore';s.tabs.shore=1;
-      Object.assign(s.f,{looked:1,tideSeen:1,crab1:1,rod:1,rodUp:1,fordSeen:1,wreck:1,hook:1,rats:1,dryRack:1,boat:1});
-      s.b.hearth=1;s.c.gather=19;s.r.wood=25;s.r.fish=5;
+      Object.assign(s.f,{looked:1,tideSeen:1,crab1:1,rod:1,rodUp:1,fordSeen:1,wreck:1,hook:1,rats:1,dryRack:1,boat:1,deckSeen:1});
+      s.b.hearth=1;s.c.gather=24;s.r.wood=25;s.r.fish=5;
+      s.ship={until:Date.now()+180000,offers:[],done:[]};
       giveI('rake');
       Object.assign(s.rakeSand,{lastId:5,searched:3,actions:3,dry:{id:5,kind:'dry',reward:{wood:3}},
         wet:{id:4,kind:'wet',odd:'seaglass',reward:{scrap:2}},wetDeferred:true});
@@ -605,7 +606,7 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
       window.setSea=t=>{s.tideEpoch=Date.now()-t*1000};setSea(120);
       render();
     });
-    const stage=p.locator('.scn.sh'),hook=stage.locator('[data-a="hookWater"]');
+    const stage=p.locator('.scn.sh'),hook=stage.locator('[data-a="hookWater"]'),entry=stage.locator('[data-a="zoneEnter"][data-i="deck"]');
     const dry=stage.locator('[data-k="sand:5"]'),wet=stage.locator('[data-k="sand:4"]');
     const list=p.locator('.shore-alist');
     await list.locator('summary').click();
@@ -619,7 +620,7 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
         const ok=all.every(b=>{
           b.scrollIntoView({block:'nearest',inline:'center'});
           const r=b.getBoundingClientRect(),ownsCenter=b.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));
-          if(!['rakeSand','hookWater','mussels'].includes(b.dataset.a))return ownsCenter;
+          if(!['rakeSand','hookWater','mussels','zoneEnter'].includes(b.dataset.a))return ownsCenter;
           return ownsCenter&&all.every(other=>{
             if(other===b)return true;
             const q=other.getBoundingClientRect();
@@ -629,7 +630,7 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
         e.parentElement.scrollLeft=focusedX;
         return ok;
       });
-      A(layout&&await dry.count()===1&&await wet.count()===Number(phase==='low'),'окремі зони дій усіма фазами · '+phase);
+      A(layout&&await entry.count()===1&&await dry.count()===1&&await wet.count()===Number(phase==='low'),'окремі зони дій усіма фазами · '+phase);
       changes.push(await hook.evaluate(e=>[parseFloat(e.style.top),e.querySelector('.obi').src,e.dataset.i]));
       if(phase==='high')await hook.evaluate(e=>{window.firstHook=e;e.focus({preventScroll:true})});
       if(phase==='low'){
@@ -663,6 +664,24 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
       &&changes[0][1]!==changes[2][1],'той самий ID рухається і змінює спрайт за водою');
     await p.emulateMedia({reducedMotion:'reduce'});
     await p.evaluate(()=>setSea(620));await wet.waitFor();
+    await entry.scrollIntoViewIfNeeded();await entry.click();
+    const deck=p.locator('#stage [data-scn="zone-deck"]');
+    const back=deck.locator('[data-a="zoneBack"]');
+    await deck.waitFor();
+    A(await back.evaluate(e=>e===document.activeElement)&&await stage.count()===0,'палуба приймає фокус і ховає берегові дії');
+    const planks=deck.locator('[data-a="zoneAct"][data-i="deck:planks"]');
+    await planks.focus();await p.keyboard.press('Enter');
+    await p.evaluate(()=>{setSea(120);save()});
+    await p.reload();await deck.waitFor();
+    A(await p.evaluate(()=>s.localProgress.deck.planks&&s.rakeSand.dry?.id===5&&s.rakeSand.wet?.id===4&&s.hookWater.pending?.id===1),
+      'reload на палубі лишає огляд і незавершені берегові об’єкти');
+    await back.focus();await p.keyboard.press('Enter');await entry.waitFor();
+    A(await entry.evaluate(e=>e===document.activeElement)&&!await wet.count()&&!await stage.locator('[data-a="mussels"]').count()
+      &&await hook.count()===1,'вихід повертає фокус і враховує теперішній приплив');
+    await p.evaluate(()=>{s.tideEpoch=Date.now()-620000});await wet.waitFor();
+    A(await stage.locator('[data-a="mussels"]').count()===1&&await stage.locator('[data-a="fishing"]').count()===2,
+      'на відпливі мідії та обидві вудки доступні після повернення');
+    if(!await list.evaluate(e=>e.open))await list.locator('summary').click();
     await dry.focus();await p.keyboard.press('Enter');
     const wood=stage.locator('[data-sk="sand-sweep:5"] .rake-reward');
     A(await wood.evaluate(e=>e.getAttribute('src')===icoURL('wood')&&getComputedStyle(e).animationName==='none')

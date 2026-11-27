@@ -90,5 +90,34 @@ A(!s.runes?.b&&!s.c.pool&&!fordN()&&s.rakeSand.wet?.id===1&&hookWaterVisible(),'
 A(!rShore().includes('Оглянути калюжі')&&!rShore().includes('Оглянути камінь на відпливі')&&!rakeSandVisible().length,'той самий поріг у сцені й списку');
 goTo(600,1);act('rune','b');act('pool');act('ford','poles');act('rakeSand','1');
 A(s.runes.b&&s.c.pool===1&&fordN()===1&&!s.rakeSand.wet&&hookWaterVisible(),'доступ повертається на наступному відпливі');
+// Спільна міграція: збереження P4.5.1 з однією старою ділянкою під час огляду палуби.
+shore();s.tideEpoch=now;
+Object.assign(s.f,{deckSeen:1,rod:1,rodUp:1,hook:1,tideSeen:1,crab1:1,fishBiteSeen:1});
+giveI('rake');
+s.bite={kind:'species',species:'cod',place:'deep'};
+s.hookWater={gathers:3,pulls:1,wait:0,pending:{id:2,kind:'bottle',reward:{scrap:2}}};
+s.localZone='deck';s.localProgress.deck={visited:1,planks:1};
+s.poolFindCyc=0;s.musselCyc=0;s.h.hp=10;
+goTo(620);save();
+const from118=JSON.parse(raw);
+from118.rakeSand={actions:3,searched:5,wait:0,pending:{id:6,kind:'wet',scrap:2}};
+raw=JSON.stringify(from118);
+goTo(120,4);load();
+A(localCurrent()==='deck'&&s.localProgress.deck.planks&&s.rakeSand.lastId===6&&s.rakeSand.wet.reward.scrap===2
+  &&s.poolFindCyc===0&&s.musselCyc===0&&s.h.hp===10,'обидві міграції працюють разом, офлайн не лікує і не видає берегові нагороди');
+goTo(630,4);
+const untouched=JSON.stringify([s.bite,s.rakeSand,s.hookWater,s.r]);
+act('mussels','4');act('hookWater','2');act('rakeSand','6');act('fishing','deep');act('pool');
+hookWaterTick(1);rakeSandTick(1);
+A(JSON.stringify([s.bite,s.rakeSand,s.hookWater,s.r])===untouched&&!has('mussel'),'застарілі берегові дії й генератори не працюють на палубі');
+act('zoneBack','deck');
+A(atShore()&&hookWaterVisible()?.id===2&&rakeSandVisible()[0]?.id===6&&musselCycle()===4,'доступ відновлюється за поточною водою');
+act('mussels','0');act('mussels','4');act('mussels','4');
+act('rakeSand','6');act('hookWater','2');
+A(s.inv.mussel===1&&s.musselCyc===4&&s.poolFindCyc===0&&s.r.scrap===4&&s.bite.species==='cod',
+  'мідії, два інструменти та особливе клювання мають незалежні нагороди й лічильники');
+act('use','mussel');
+A(s.h.hp===16&&!has('mussel')&&s.localProgress.deck.planks,'відновлення від мідій і огляд палуби збережено');
+
 console.log('fails',fails)
 })()`);

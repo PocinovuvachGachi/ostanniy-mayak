@@ -5,6 +5,7 @@ const RAKE_SPOTS={
   wet:{name:'Оглянути вологий пісок',hint:'Між мокрим піском і камінням щось зачепилося.'}
 };
 const RAKE_WEIGHTS={dry:[.75,.95,1],wet:[.60,.80,.90]};
+const RAKE_FINDS={amberbit:'pool',seaglass:'gather'};
 const rakeSandWait=()=>RAKE_WAIT_MIN+Math.round(Math.random()*RAKE_WAIT_SPAN);
 function rakeSandMigrate(){
   const sand=s.rakeSand;
@@ -29,9 +30,12 @@ function rakeSandRoll(kind,first){
   if(roll<metal)return scrap();
   if(roll<wood)return s.seen.wood?{reward:{wood:1+rnd(3)}}:scrap();
   if(roll<coin)return s.tabs.trade?{reward:{coin:1+rnd(2)}}:scrap();
-  const finds=[['amberbit','pool'],['seaglass','gather']]
-    .filter(([id,source])=>!s.odd[id]&&SHORE_FINDS[source].ready(id));
-  return finds.length?{...scrap(),odd:finds[rnd(finds.length)][0]}:scrap();
+  if(!poolFindReady())return scrap();
+  const finds=Object.entries(RAKE_FINDS).filter(([id,source])=>!s.odd[id]&&SHORE_FINDS[source].ready(id));
+  if(!finds.length)return scrap();
+  const [id,source]=finds[rnd(finds.length)];
+  // Додатковий пошук використовує базовий шанс знахідки, без бонусу за невдачі ручного джерела.
+  return Math.random()<SHORE_FINDS[source].items[id]?{...scrap(),odd:id}:scrap();
 }
 function rakeSandTick(dt,anotherEvent=false){
   // Пропускаємо довгі кроки годинника після сну або фонової вкладки.
@@ -55,6 +59,10 @@ function rakeSandSearch(id){
   const spot=rakeSandVisible().find(o=>String(o.id)===String(id));
   if(!spot||s.cb||s.raid||s.dlg.length)return;
   const sand=s.rakeSand,find=spot.odd&&!s.odd[spot.odd]?spot.odd:null;
+  if(find&&!poolFindReady()){
+    say('У мокрому піску щось тримається міцно. Спробуй знову, коли вода відступить наступного разу.','info');
+    return;
+  }
   sand[spot.kind]=null;sand.searched++;sand.wait=rakeSandWait();
   if(find)odd(find,'Граблі відкрили знахідку під піском.',{popup:false});
   else{
@@ -62,6 +70,6 @@ function rakeSandSearch(id){
     say(`Під піском знайшлося: ${costTxt(spot.reward)}.`,'find');
   }
   if(sand.searched===1)tutRemember('rakeSand');
-  dirty=1;save();
+  dirty=1;if(find)markPoolFind();else save();
   rakeSandStart(spot,find?ODI[find]:Object.keys(spot.reward)[0]);sfx('rakeSand');
 }
