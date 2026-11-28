@@ -145,29 +145,55 @@ function kitPot3(q){const b=pbuf(86,84);prect(b,6,0,3,40,'D');prect(b,76,0,3,40,
   hiRect(b,16,24,54,44,(i,j,x,y)=>{const u=((x-43)/27)**2+((y-48)/20)**2;if(u>1)return'';if(y<31)return x<20||x>66?'D':(hh2(i>>1,j>>1)<.3?'u':'7');return u>.85?'x':x<36?'F':x<52?'E':'D'});
   prect(b,14,28,58,4,'D');prect(b,14,28,58,1,'F');
   for(let k=0;k<9;k++){const x=18+k*6,h=6+(k*7)%8;prect(b,x,84-h-4,3,h,k%2?'K':'J');pset(b,x+1,84-h-5,'I')}prect(b,10,78,66,6,'V');return b}
-function kitTable3(){const b=pbuf(150,64);prect(b,0,16,150,6,'Y');prect(b,0,21,150,2,'X');prect(b,6,23,7,41,'W');prect(b,137,23,7,41,'W');prect(b,12,46,126,4,'X');
+function kitTable3(equipped=false,ready=0){const b=pbuf(150,64);prect(b,0,16,150,6,'Y');prect(b,0,21,150,2,'X');prect(b,6,23,7,41,'W');prect(b,137,23,7,41,'W');prect(b,12,46,126,4,'X');
   const fish=(x,y)=>{hiRect(b,x,y,18,6,(i,j,px,py)=>((px-x-8)/8)**2+((py-y-3)/2.6)**2<=1?(py<y+2.5?'6':'5'):'');polyFill(b,[[x+16,y+3],[x+20,y],[x+20,y+6]],(px,py)=>pset(b,px,py,'5'));pset(b,x+3,y+2,'x')};
   if(s.r.fish>=1)fish(10,9);if(s.r.fish>=10)fish(16,4);if(s.r.fish>=25)fish(34,8);
   if(s.r.prov>=1){prect(b,62,6,22,10,'W');prect(b,62,6,22,2,'X');prect(b,64,4,18,2,'d')}
   if(s.r.herb>=1)for(let i=0;i<5;i++)pline(b,96+i*3,15,99+i*3,5,i%2?'k':'l');
-  prect(b,118,8,24,8,'X');prect(b,120,6,20,2,'Y');pset(b,128,10,'G');pline(b,126,12,138,4,'G');return b}
+  prect(b,118,8,24,8,'X');prect(b,120,6,20,2,'Y');pset(b,128,10,'G');pline(b,126,12,138,4,'G');
+  if(equipped){
+    prect(b,0,17,150,5,'X');prect(b,0,17,150,1,'O');
+    for(const x of [8,137]){prect(b,x,22,6,18,'Y');prect(b,x,26,5,2,'G')}
+    prect(b,20,33,51,4,'X');prect(b,22,32,43,1,'Y');prect(b,24,24,10,8,'N');prect(b,39,27,13,5,'d');
+    for(let n=0;n<ready;n++){
+      const x=58+n*19;
+      prect(b,x,9,13,2,'G');prect(b,x+1,11,11,3,'d');prect(b,x+3,14,7,2,'W');prect(b,x+3,9,7,1,'J');
+    }
+  }
+  return b
+}
 function kitBook3(){const b=pbuf(34,26);prect(b,0,18,34,8,'X');prect(b,0,18,34,1,'Y');polyFill(b,[[2,18],[16,10],[17,18]],(x,y)=>pset(b,x,y,'O'));polyFill(b,[[17,18],[18,10],[32,18]],(x,y)=>pset(b,x,y,'N'));pline(b,17,10,17,18,'b');for(let i=0;i<3;i++){pline(b,6,16-i*2,14,12-i*2,'a');pline(b,20,12-i*2+1,29,16-i*2,'a')}return b}
 for(const f of['kitPot3','kitTable3','kitBook3'])globalThis[f]=HI(globalThis[f]);
+const kitOrderPot3=HI(function(lit){
+  const b=pbuf(46,60);
+  prect(b,3,35,39,8,'E');prect(b,6,35,33,2,'G');prect(b,8,42,4,14,'D');prect(b,32,42,4,14,'D');
+  prect(b,8,49,28,3,'E');prect(b,13,45,19,5,lit?'J':'c');pset(b,22,45,lit?'I':'E');
+  for(const x of [6,39]){prect(b,x,4,3,32,'W');prect(b,x,4,1,32,'Y')}
+  pline(b,7,4,40,4,'X');pline(b,23,4,23,16,'F');pline(b,14,24,23,15,'G');pline(b,23,15,33,24,'G');
+  hiRect(b,8,22,31,15,(i,j,x,y)=>((x-23)/15)**2+((y-26)/10)**2<1?(y<25?'d':x<21?'e':'W'):'');
+  prect(b,8,23,31,2,'X');prect(b,10,23,26,1,'g');prect(b,14,28,3,4,'Y');prect(b,20,34,11,2,'V');
+  return b
+});
 function kitchenScene(){const W=RMW,H=RMH;let h=`<span data-sk="bg" data-sig="bg" class="scbg">${VH(()=>pimg(pxURL('kit3:'+GR,kitRoom3),864,480,'scene','Кухня'))}</span>`;
   h+=ob('kt:pot','bpop','kt:pot',obURL('ktp3',kitPot3),42,116,W,H,'Казан','<b>Казан</b><br>Тут вариться все, що знаєш.',{pulse:(s.c.cook||0)?0:1});
   const tk=[s.r.fish>=1,s.r.fish>=10,s.r.fish>=25,s.r.prov>=1,s.r.herb>=1].map(Number).join('');
-  h+=ob('kt:table','bpop','kt:table',obURL('ktt3:'+tk,kitTable3),168,136,W,H,'Стіл із припасами','<b>Стіл</b><br>Що є з припасів.',{});
+  const equipped=!!s.f.kitchenEquipped,ready=s.kitchenOrder?.ready||0,cooking=!!s.kitchenOrder?.until;
+  h+=ob('kt:table','bpop','kt:table',obURL('ktt3:'+tk+':'+Number(equipped)+':'+ready,()=>kitTable3(equipped,ready)),168,136,W,H,
+    'Стіл із припасами',ready?'<b>Стіл</b><br>Тут чекають готові порції.':'<b>Стіл</b><br>Що є з припасів.',{pulse:ready,always:ready});
+  if(equipped)h+=ob('kt:order','kitchenOrderView','',obURL('ktp-order:'+Number(cooking),()=>kitOrderPot3(cooking)),365,143,W,H,
+    'Малий казан','<b>Малий казан</b><br>Робоче місце Зиновія.',{inner:cooking?smkIn(20,21,46,60):''});
   h+=ob('kt:book','bpop','kt:book',obURL('ktb3',kitBook3),232,32,W,H,'Книга рецептів',`<b>Книга рецептів</b><br>Записано ${Object.keys(s.rcp||{}).length===1?'один рецепт':'кілька рецептів'}.`,{pulse:s.rcpNew?1:0});
-  if(zinoviiPresent())h+=zinoviiHS('kitchen',133,169,W,H);
+  if(zinoviiPresent())h+=cooking?zinoviiHS('order',327,169,W,H):zinoviiHS('kitchen',133,169,W,H);
   const L={fire:[{x:85,y:192,r:110,e:.7,c:FIRE,n:4}],win:[{x:318,y:60,r:120,e:.8,c:WARM,a:.4}]};
+  if(cooking)L.fire.push({x:388,y:194,r:57,e:.65,c:FIRE,n:2});
   return`<div class="scn rm wk" data-scn="kt" style="${scnD()}">${h}${fxCanvas('kt',W,H)}${lightLayers(W,H,L)}</div>`}
 function kitPopHTML(id){const head=(t)=>`<div class="bpop wide" role="dialog" aria-label="${t}"><div class="bph"><b>${t}</b><button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div>`;
   if(id==='kt:pot'){const L=DISH.filter(D=>rcpKnown(D.id));return head('Казан')+`<div class="rlist">${L.map(D=>`<div class="row"><span><b>${IT[D.id].n}</b><br><span class="m">${IT[D.id].d}</span></span><span class="ccs">${costTxt(D.c,D.it)}</span>${D.ingredient?btn('Приготувати','cookp',D.id,{ok:()=>dishOk(D)}):btn('Варити біля казана','cook',D.id,{ok:()=>dishOk(D)})+btn('Звично','cookp',D.id,{ok:()=>dishOk(D)})}${D.prov?`<span class="m">${V(()=>s.r.prov+D.prov>capOf('prov')?'Потрібне місце для провізії.':'')}</span>`:''}</div>`).join('')}</div>
     <p class="hint">Біля казана: тримай кипіння рівним — вийде дві порції, а коли рівно до кінця — дві смачні. Звично — одна звичайна порція. Інгредієнти не пропадають.</p></div>`}
-  if(id==='kt:table')return head('Стіл із припасами')+`<p class="m">Риба ${fmt(s.r.fish)}/${capOf('fish')}, провізія ${fmt(s.r.prov)}/${capOf('prov')}${s.seen.herb?`, трави ${fmt(s.r.herb)}`:''}.</p>${['flounder','cod','mussel'].filter(has).map(id=>`<p class="m">${pimg(icoURL(id),20,20,'','')} ${IT[id].n} ×${s.inv[id]}</p>`).join('')}<p class="m">Страви в торбі: ${Object.keys(IT).filter(k=>DISH.some(D=>k===D.id||k===D.id+'_t')&&has(k)).map(k=>`${IT[k].n} ×${s.inv[k]}`).join(', ')||'поки жодної'}.</p></div>`;
+  if(id==='kt:table')return head('Стіл із припасами')+`<p class="m">Риба ${fmt(s.r.fish)}/${capOf('fish')}, провізія ${fmt(s.r.prov)}/${capOf('prov')}${s.seen.herb?`, трави ${fmt(s.r.herb)}`:''}.</p>${['flounder','cod','mussel'].filter(has).map(id=>`<p class="m">${pimg(icoURL(id),20,20,'','')} ${IT[id].n} ×${s.inv[id]}</p>`).join('')}<p class="m">Страви в торбі: ${Object.keys(IT).filter(k=>DISH.some(D=>k===D.id||k===D.id+'_t')&&has(k)).map(k=>`${IT[k].n} ×${s.inv[k]}`).join(', ')||'поки жодної'}.</p>${kitchenOrderProgress()}</div>`;
   if(id==='kt:book'){s.rcpNew=0;return head('Книга рецептів')+`<div class="rlist">${DISH.filter(D=>rcpKnown(D.id)).map(D=>`<div class="row"><span><b>${IT[D.id].n}</b> <span class="m">— навчив${D.who==='Зиновій'?'':'ла'} ${D.who}</span><br><span class="m">${D.how}</span></span></div>`).join('')}</div><p class="hint">Далі ще чисті сторінки. Люди знають більше страв, ніж ти думаєш.</p></div>`}
   return''}
-function rKitchen(){return`<section><h2>Кухня</h2><p class="m">Казан, стіл і книга рецептів — натискай на них у кухні. Біля казана страви виходять кращими.</p><div class="act">${fishRecipeButtons()}</div></section>`}
+function rKitchen(){return`<section><h2>Кухня</h2><p class="m">Казан, стіл і книга рецептів — натискай на них у кухні. Біля казана страви виходять кращими.</p><div class="act">${fishRecipeButtons()}${kitchenSetupControls()}</div></section>`+kitchenOrderPanel()}
 /* підвкладки «Маяка»: розріз, кухня, майстерня, кабінет */
 const ttCur=()=>{const t=s.tt||'cut';return t==='cut'||s.tabs[t]?t:'cut'};
 function ttGo(i){s.tt=i;delete s.newTab[i];if(s.ttNew&&typeof s.ttNew==='object')delete s.ttNew[i];snap9(i==='cut'?'tower':i)}

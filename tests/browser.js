@@ -204,6 +204,85 @@ const isNoise = t => /ERR_TUNNEL|ERR_NAME_NOT_RESOLVED|ERR_INTERNET_DISCONNECTED
     await p.close();
   }
 
+  // Оснащення й одне замовлення Зиновію. Форма, сцена, стіл та reload.
+  for(const width of [390,1280]){
+    const p=await page(width,900,{hasTouch:width===390});
+    await p.emulateMedia({reducedMotion:width===390?'reduce':'no-preference'});
+    await p.evaluate(()=>{
+      s=fresh();s.lastAct=Date.now();popB='';s.f.looked=1;s.f.zinovii=1;s.f.people=1;s.mst.zinovii=1;
+      s.b.hearth=1;s.r.fish=30;s.r.wood=60;s.r.scrap=30;s.c.cook=2;s.rcp={ash:1,soup:1};
+      Object.assign(s.tabs,{tower:1,kitchen:1,shore:1,chron:1});s.tab='tower';s.tt='kitchen';
+      s.f.tracks=1;s.f.barrel=1;s.lastNov=-100;s.dbgPh=GR='d';
+      s.bts=Object.fromEntries(CH.flatMap(ch=>ch.beats.map(beat=>[beat[0],1])));
+      s.chs=CH.map(ch=>ch.id);
+      s.tutSeen=Object.fromEntries(Object.keys(TUT).filter(k=>k!=='kitchenOrder').map(k=>[k,1]));
+      s.bdSeen=Object.fromEntries(BD.map(b=>[b.id,1]));s.rcSeen=Object.fromEntries(RC.map(r=>[r.id,1]));
+      render();save();
+    });
+    const stage=p.locator('#stage .scn');
+    const table=stage.locator('[data-k="kt:table"]');
+    const mainPot=stage.locator('[data-k="kt:pot"]');
+    const smallPot=stage.locator('[data-k="kt:order"]');
+    const npc=stage.locator('[data-k="cl:zinovii"]');
+    const pane=p.locator('#kitchen-orders');
+    const tableArt=()=>table.locator('.obi').getAttribute('src');
+    const baseArt=await tableArt();
+    A(!await smallPot.count()&&!await pane.count()&&!await p.locator('button[data-a="kitchenSetupTalk"]').count(),
+      'до третього приготування тема та обладнання приховані · '+width);
+    await mainPot.click();
+    await p.locator('#popl [data-a="cookp"][data-i="ash"]').click();
+    await p.locator('#popl [data-a="bpop"][data-i=""]').click();
+    await npc.click();
+    await p.locator('#popl [data-a="kitchenSetupTalk"]').click();
+    const dlg=p.locator('#dlg .dlgbg:not(.fo) [data-a="dlgok"]');
+    await dlg.click();
+    await p.locator('#popl [data-a="kitchenSetup"]').click();
+    A(await smallPot.count()===1&&await pane.count()===1&&baseArt!==await tableArt()
+      &&await p.evaluate(()=>s.r.scrap===22&&s.c.cook===3),'після розмови й оплати видно стіл і новий казан · '+width);
+    await p.locator('#popl [data-a="bpop"][data-i=""]').click();
+    if(width===390)await smallPot.tap();else{await smallPot.focus();await p.keyboard.press('Enter')}
+    A(await pane.evaluate(e=>e===document.activeElement),'малий казан веде до форми й переносить фокус · '+width);
+    await pane.getByLabel('Страва').selectOption('soup');
+    await pane.getByLabel('Порцій').focus();
+    await pane.getByLabel('Порцій').selectOption('3');
+    A(await pane.getByLabel('Порцій').evaluate(e=>e===document.activeElement)&&
+      (await pane.innerText()).includes('90 с'),'вибір трьох порцій зберігає фокус та час · '+width);
+    await pane.getByRole('button',{name:'Доручити Зиновію'}).click();
+    await p.locator('#dlg .k-tutorial h2',{hasText:'Замовлення Зиновію'}).waitFor();
+    await dlg.click();
+    A(await pane.getByRole('status').innerText()==='Зиновій готує порцію.'
+      &&await p.evaluate(()=>s.r.fish===24&&s.kitchenOrder.left===2&&!s.inv.soup),
+      'перше замовлення списує тільки першу порцію й дає окремий урок · '+width);
+    await npc.locator('.zinovii-frames.order').waitFor();
+    A(await npc.locator('.zinovii-frames.order').evaluate(el=>getComputedStyle(el).animationName)
+      ===(width===390?'none':'zinovii-gesture'),'приготування має власну позу й режим руху · '+width);
+    for(const obj of [smallPot,npc,mainPot,table]){
+      await obj.evaluate(el=>el.scrollIntoView({block:'center',inline:'nearest'}));
+      A(await obj.evaluate(el=>{
+        const r=el.getBoundingClientRect();
+        return el.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));
+      }),'точка обладнання доступна · '+width);
+    }
+    const beforeReady=await tableArt();
+    await p.evaluate(()=>{
+      const d=JSON.parse(localStorage.getItem(KEY));d.kitchenOrder.until=Date.now()-1000;
+      localStorage.setItem(KEY,JSON.stringify(d));
+    });
+    await p.reload();
+    await table.waitFor();
+    A(await p.evaluate(()=>s.kitchenOrder.ready===1&&s.kitchenOrder.left===2&&!s.kitchenOrder.until&&s.r.fish===24)
+      &&beforeReady!==await tableArt(),'офлайн завершує тільки оплачену порцію, стіл показує миску · '+width);
+    await table.click();
+    const collect=p.locator('#popl [data-a="kitchenOrderCollect"]');
+    await collect.click();
+    A(await p.evaluate(()=>s.inv.soup===1&&!s.inv.soup_t&&!s.kitchenOrder.ready),'стіл видає готову звичайну порцію один раз · '+width);
+    await p.locator('#popl [data-a="bpop"][data-i=""]').click();
+    await pane.locator('[data-a="kitchenOrderCancel"]').click();
+    A(await p.evaluate(()=>!s.kitchenOrder||s.kitchenOrder.left===0)
+      &&await p.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'решту скасовано, немає горизонтального переповнення · '+width);
+    await p.close();
+  }
+
   // Ранні інструменти: доступні на березі, не у майстерні.
   {
     const p = await page(390, 844);
