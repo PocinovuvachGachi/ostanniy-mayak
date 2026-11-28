@@ -158,7 +158,7 @@ function checks(shoreDt=0){const F=s.f,oldFlot=s.flot,oldShf=s.shf;tutTick(false
   if(s.tabs.hero&&!s.h.bg&&(s.nv||{}).grow)offerBg();
   // Спершу сюжетно потрібні відкриття, далі знайомство з системами.
   novTick(true);shoreTick();dryTick();shfTick();beamTick();folkTick();wolfTick();kitTick();rsiegeTick();curTick();stage3Tick();
-  novPlanTick(true);novTick(false);novPlanTick(false);
+  novPlanTick(true);novTick(false);novPlanTick(false);kitchenPlanTick();kitchenOrderTick();
   if(!s.tabs.chron&&s.chs.length&&!s.cb&&!(s.dlg||[]).some(d=>d.chap)&&novCan())unlock('chron');
   raidCheck();tutTick();shoreFindTick();
   const newHook=hookWaterTick(shoreDt);

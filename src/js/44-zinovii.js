@@ -45,7 +45,8 @@ function zinoviiCardBody(){
   const knowledge=(winchTopicReady()?btn('Показати механізм Зиновію','winchTalk'):'')+navTalkButton()+earlySoupButton()+fishRecipeButtons();
   const topics=zinoviiTopicGroup('Розмова',btn('Поговорити','zinoviiTalk'))+
     zinoviiTopicGroup('Знання',knowledge)+zinoviiTopicGroup('Знахідки',zinoviiFindButtons())+
-    zinoviiTopicGroup('Допомога',holdOilHTML());
+    zinoviiTopicGroup('Допомога',holdOilHTML()+kitchenSetupControls()+
+      (canUseKitchenOrders()?btn('Замовлення на кухні','kitchenOrderView'):''));
   return `<div class="pcard zinovii-profile">${pimg(faceURL('zinovii'),48,48,'','')}<div><span class="role">${role}</span><span class="m">${description}</span></div></div>`+
     topics;
 }
@@ -79,13 +80,15 @@ function drawZinovii(pose,frame){
   pset(b,15+x,11+head,'W');pset(b,19+x,11+head,'W');
 
   const handY=look?21:pose==='rest'?[22,18,15][frame]:[22,20,18][frame];
-  const handX=look?20:pose==='kitchen'?[23,26,25][frame]:23;
+  const handX=look?20:pose==='order'?[23,25,24][frame]:pose==='kitchen'?[23,26,25][frame]:23;
   pline(b,8,16,7,20,'4');pline(b,7,20,11,23,'5');prect(b,10,22,3,2,'m');
   pline(b,21,16,22,20,'3');pline(b,22,20,handX-1,handY,'5');prect(b,handX-1,handY,3,2,'m');
   if(pose==='rest'){
     prect(b,handX+1,handY-3,4,4,'d');prect(b,handX+1,handY-3,4,1,'Y');pset(b,handX+5,handY-2,'X');
   }else if(pose==='smoke'){
     pline(b,handX+1,handY-2,handX+4,handY+3,'X');pline(b,handX+2,handY-3,handX+5,handY+2,'Y');
+  }else if(pose==='order'){
+    pline(b,handX,handY,29,handY-6,'Y');pset(b,29,handY-7,'O');
   }else{
     polyFill(b,[[handX-2,handY-2],[handX+2,handY-1],[handX+3,handY+4],[handX-1,handY+3]],(i,j)=>pset(b,i,j,i<handX?'O':'N'));
   }
@@ -100,7 +103,8 @@ const zinoviiStrip=HI(pose=>{
 const ZINOVII_ACTIVITY={
   rest:'Зиновій гріє руки об кухоль.',
   smoke:'Зиновій перебирає тріски для коптильні.',
-  kitchen:'Зиновій витирає руки полотном біля столу.'
+  kitchen:'Зиновій витирає руки полотном біля столу.',
+  order:'Зиновій помішує страву в малому казані.'
 };
 function zinoviiHS(pose,x,y,W,H){
   const spec=obURL('zinovii:'+pose,()=>zinoviiFrame(pose,0));

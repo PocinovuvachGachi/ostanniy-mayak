@@ -55,9 +55,11 @@ function load(){try{const raw=localStorage.getItem(KEY);if(!raw)return;const d=J
   if(s.cb&&s.cb.over){const k=s.cb.over;s.cb.over=0;if(k==='lose')lose(false);else win(false)}
   if(d.wup&&!d.wf){for(const k in d.wup)if(d.wup[k]>=1&&WF[k])s.wf[k]=1}delete s.wup;
   if(s.cb&&s.cb.win==='raid')s.cb=null;s.raid=0;s.log=s.log.map(logOf);if(s.eq.ranged===undefined)s.eq.ranged='';
+  loadKitchenOrder();
   const now=Date.now(),off=clamp((now-(s.ts||now))/1000,0,7200);
   if(off>5){for(let i=0;i<20;i++)produce(off/20,false);if(off>60)say(`Поки тебе не було, вогнище горіло ${Math.round(off/60)} хв.`,'world')}
   const healed=!d.cb&&healingTick(off),migrated=migrateWarm(now);
+  kitchenOrderTick(false);
   if(migratedHold||resolvedRats||migratedWinch||migratedSand||olderHealing||healed||migrated||off>5)save();
   }catch(e){s=fresh()}}
 
@@ -87,7 +89,20 @@ document.addEventListener('click',e=>{const el=e.target.closest('[data-a]');if(!
   const isHs=el.classList.contains('hs')||el.classList.contains('ob'),r0=isHs?Object.assign({},s.r):null;if(isHs){s.hsU=s.hsU||{};if(!s.hsU[el.dataset.k]){s.hsU[el.dataset.k]=1;el.classList.remove('pulse')}}
   act(el.dataset.a,el.dataset.i);if(isHs)hsPop(el,e,r0);if(isHs&&el.dataset.a==='gather'){if(dirty)render();const now=document.querySelector('.scn [data-sk="gather"]');if(now)pressFx(now,e)}else{if(isHs)pressFx(el,e);if(dirty)render()}
   if(zinoviiToggle||zinoviiDialogue)focusZinoviiCard(popB===ZINOVII_CARD);
+  if(el.dataset.a==='kitchenOrderView')document.getElementById('kitchen-orders')?.focus({preventScroll:true});
   save()});
+document.addEventListener('change',e=>{
+  const form=e.target.closest('.kitchen-order-form');
+  if(form&&readKitchenOrderForm(form))render();
+});
+document.addEventListener('submit',e=>{
+  const form=e.target.closest('.kitchen-order-form');
+  if(!form)return;
+  e.preventDefault();
+  if(!readKitchenOrderForm(form))return;
+  act('kitchenOrder',kitchenOrderDraft.dish+':'+kitchenOrderDraft.count);
+  render();document.getElementById('kitchen-orders')?.focus({preventScroll:true});
+});
 document.addEventListener('keydown',e=>{
   if(e.key==='Enter'&&e.target.matches&&e.target.matches('input[data-rid]')){act('riddle',e.target.dataset.rid);render();save();return}
   if((e.key==='Enter'||e.key===' ')&&e.target.getAttribute&&e.target.getAttribute('role')==='button'&&e.target.dataset.a){e.preventDefault();act(e.target.dataset.a,e.target.dataset.i);render();save();return}

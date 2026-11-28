@@ -1134,6 +1134,14 @@ body.th-home #main section.jr .npc{color:#7a2e5a}body.th-home #main section.jr .
 .early-cooking{margin:.6rem 0}
 .early-cooking .row{flex-wrap:wrap}
 @media (max-width:560px){.early-cooking button{min-height:44px}}
+
+.kitchen-order-form{display:flex;flex-wrap:wrap;align-items:end;gap:8px 12px}
+.kitchen-order-form label{display:grid;gap:4px}
+.kitchen-order-form label:first-child{min-width:0;flex:0 1 auto}
+.kitchen-order-form select{max-width:100%;min-height:36px;padding:4px 8px;background:var(--panel);color:var(--ink);border:1px solid var(--rule);font:inherit}
+.kitchen-order-form p{flex-basis:100%;margin:2px 0}
+#kitchen-orders:focus-visible{outline:2px solid var(--lamp)}
+@media (prefers-reduced-motion:no-preference){.zinovii-frames.order{animation-duration:4.8s}}
 </style>
 </head>
 <body>
@@ -3483,7 +3491,7 @@ const SUBT={kitchen:'Кухня',work:'Майстерня',study:'Кабінет
 
 /* ============ STATE ============ */
 function fresh(){return{
-  healingV:1,winchMigrationV:1,potTransfer:{grantedLevels:0,legacyCrew:0,inheritedDamage:{}},portableWinch:{discussed:0,restored:0,mountedAt:null},r:Object.fromEntries(RES.map(k=>[k,0])),play:0,tideEpoch:null,reserveFree:{},novUsed:{},novLast:'',tutSeen:{},tutPending:[],eraT:[0],nv:{},nvU:{},mom:[{t:0,k:'start',n:'Пробудження',d:'Ти прокидаєшся в темряві з єдиною жариною в долонях.',img:null,mj:1,e:0}],on:{},fac:{rot:0,cape:0,sails:0,silent:-50},req:{},reqT:{},threat:0,def:{},dmgB:{},glSeen:{},fu:{},exp:[],beam:0,wf:{},mst:{},pop:0,popT:0,wk:{},bog:0,bogFail:0,ht:'gear',sig:0,pack:[],belt:[],wm:{},wup:{},dlg:[],raid:0,raidT:0,
+  kitchenOrder:null,healingV:1,winchMigrationV:1,potTransfer:{grantedLevels:0,legacyCrew:0,inheritedDamage:{}},portableWinch:{discussed:0,restored:0,mountedAt:null},r:Object.fromEntries(RES.map(k=>[k,0])),play:0,tideEpoch:null,reserveFree:{},novUsed:{},novLast:'',tutSeen:{},tutPending:[],eraT:[0],nv:{},nvU:{},mom:[{t:0,k:'start',n:'Пробудження',d:'Ти прокидаєшся в темряві з єдиною жариною в долонях.',img:null,mj:1,e:0}],on:{},fac:{rot:0,cape:0,sails:0,silent:-50},req:{},reqT:{},threat:0,def:{},dmgB:{},glSeen:{},fu:{},exp:[],beam:0,wf:{},mst:{},pop:0,popT:0,wk:{},bog:0,bogFail:0,ht:'gear',sig:0,pack:[],belt:[],wm:{},wup:{},dlg:[],raid:0,raidT:0,
   tot:{ember:0,wood:0,scrap:0,fish:0},
   seen:{ember:1},tabs:{home:1},tab:'home',newTab:{},
   f:{},fishSpecies:{},hookWater:{gathers:0,pulls:0,wait:0,pending:null},rakeSand:{actions:0,searched:0,lastId:0,wait:0,dry:null,wet:null,wetDeferred:false},shfCyc:null,shfDeferred:{},musselCyc:null,c:{gather:0,fish:0,wins:0},cd:{},b:{},floors:{},rs:{},
@@ -3656,7 +3664,7 @@ function checks(shoreDt=0){const F=s.f,oldFlot=s.flot,oldShf=s.shf;tutTick(false
   if(s.tabs.hero&&!s.h.bg&&(s.nv||{}).grow)offerBg();
   // Спершу сюжетно потрібні відкриття, далі знайомство з системами.
   novTick(true);shoreTick();dryTick();shfTick();beamTick();folkTick();wolfTick();kitTick();rsiegeTick();curTick();stage3Tick();
-  novPlanTick(true);novTick(false);novPlanTick(false);
+  novPlanTick(true);novTick(false);novPlanTick(false);kitchenPlanTick();kitchenOrderTick();
   if(!s.tabs.chron&&s.chs.length&&!s.cb&&!(s.dlg||[]).some(d=>d.chap)&&novCan())unlock('chron');
   raidCheck();tutTick();shoreFindTick();
   const newHook=hookWaterTick(shoreDt);
@@ -5654,35 +5662,217 @@ function kitPot3(q){const b=pbuf(86,84);prect(b,6,0,3,40,'D');prect(b,76,0,3,40,
   hiRect(b,16,24,54,44,(i,j,x,y)=>{const u=((x-43)/27)**2+((y-48)/20)**2;if(u>1)return'';if(y<31)return x<20||x>66?'D':(hh2(i>>1,j>>1)<.3?'u':'7');return u>.85?'x':x<36?'F':x<52?'E':'D'});
   prect(b,14,28,58,4,'D');prect(b,14,28,58,1,'F');
   for(let k=0;k<9;k++){const x=18+k*6,h=6+(k*7)%8;prect(b,x,84-h-4,3,h,k%2?'K':'J');pset(b,x+1,84-h-5,'I')}prect(b,10,78,66,6,'V');return b}
-function kitTable3(){const b=pbuf(150,64);prect(b,0,16,150,6,'Y');prect(b,0,21,150,2,'X');prect(b,6,23,7,41,'W');prect(b,137,23,7,41,'W');prect(b,12,46,126,4,'X');
+function kitTable3(equipped=false,ready=0){const b=pbuf(150,64);prect(b,0,16,150,6,'Y');prect(b,0,21,150,2,'X');prect(b,6,23,7,41,'W');prect(b,137,23,7,41,'W');prect(b,12,46,126,4,'X');
   const fish=(x,y)=>{hiRect(b,x,y,18,6,(i,j,px,py)=>((px-x-8)/8)**2+((py-y-3)/2.6)**2<=1?(py<y+2.5?'6':'5'):'');polyFill(b,[[x+16,y+3],[x+20,y],[x+20,y+6]],(px,py)=>pset(b,px,py,'5'));pset(b,x+3,y+2,'x')};
   if(s.r.fish>=1)fish(10,9);if(s.r.fish>=10)fish(16,4);if(s.r.fish>=25)fish(34,8);
   if(s.r.prov>=1){prect(b,62,6,22,10,'W');prect(b,62,6,22,2,'X');prect(b,64,4,18,2,'d')}
   if(s.r.herb>=1)for(let i=0;i<5;i++)pline(b,96+i*3,15,99+i*3,5,i%2?'k':'l');
-  prect(b,118,8,24,8,'X');prect(b,120,6,20,2,'Y');pset(b,128,10,'G');pline(b,126,12,138,4,'G');return b}
+  prect(b,118,8,24,8,'X');prect(b,120,6,20,2,'Y');pset(b,128,10,'G');pline(b,126,12,138,4,'G');
+  if(equipped){
+    prect(b,0,17,150,5,'X');prect(b,0,17,150,1,'O');
+    for(const x of [8,137]){prect(b,x,22,6,18,'Y');prect(b,x,26,5,2,'G')}
+    prect(b,20,33,51,4,'X');prect(b,22,32,43,1,'Y');prect(b,24,24,10,8,'N');prect(b,39,27,13,5,'d');
+    for(let n=0;n<ready;n++){
+      const x=58+n*19;
+      prect(b,x,9,13,2,'G');prect(b,x+1,11,11,3,'d');prect(b,x+3,14,7,2,'W');prect(b,x+3,9,7,1,'J');
+    }
+  }
+  return b
+}
 function kitBook3(){const b=pbuf(34,26);prect(b,0,18,34,8,'X');prect(b,0,18,34,1,'Y');polyFill(b,[[2,18],[16,10],[17,18]],(x,y)=>pset(b,x,y,'O'));polyFill(b,[[17,18],[18,10],[32,18]],(x,y)=>pset(b,x,y,'N'));pline(b,17,10,17,18,'b');for(let i=0;i<3;i++){pline(b,6,16-i*2,14,12-i*2,'a');pline(b,20,12-i*2+1,29,16-i*2,'a')}return b}
 for(const f of['kitPot3','kitTable3','kitBook3'])globalThis[f]=HI(globalThis[f]);
+const kitOrderPot3=HI(function(lit){
+  const b=pbuf(46,60);
+  prect(b,3,35,39,8,'E');prect(b,6,35,33,2,'G');prect(b,8,42,4,14,'D');prect(b,32,42,4,14,'D');
+  prect(b,8,49,28,3,'E');prect(b,13,45,19,5,lit?'J':'c');pset(b,22,45,lit?'I':'E');
+  for(const x of [6,39]){prect(b,x,4,3,32,'W');prect(b,x,4,1,32,'Y')}
+  pline(b,7,4,40,4,'X');pline(b,23,4,23,16,'F');pline(b,14,24,23,15,'G');pline(b,23,15,33,24,'G');
+  hiRect(b,8,22,31,15,(i,j,x,y)=>((x-23)/15)**2+((y-26)/10)**2<1?(y<25?'d':x<21?'e':'W'):'');
+  prect(b,8,23,31,2,'X');prect(b,10,23,26,1,'g');prect(b,14,28,3,4,'Y');prect(b,20,34,11,2,'V');
+  return b
+});
 function kitchenScene(){const W=RMW,H=RMH;let h=`<span data-sk="bg" data-sig="bg" class="scbg">${VH(()=>pimg(pxURL('kit3:'+GR,kitRoom3),864,480,'scene','Кухня'))}</span>`;
   h+=ob('kt:pot','bpop','kt:pot',obURL('ktp3',kitPot3),42,116,W,H,'Казан','<b>Казан</b><br>Тут вариться все, що знаєш.',{pulse:(s.c.cook||0)?0:1});
   const tk=[s.r.fish>=1,s.r.fish>=10,s.r.fish>=25,s.r.prov>=1,s.r.herb>=1].map(Number).join('');
-  h+=ob('kt:table','bpop','kt:table',obURL('ktt3:'+tk,kitTable3),168,136,W,H,'Стіл із припасами','<b>Стіл</b><br>Що є з припасів.',{});
+  const equipped=!!s.f.kitchenEquipped,ready=s.kitchenOrder?.ready||0,cooking=!!s.kitchenOrder?.until;
+  h+=ob('kt:table','bpop','kt:table',obURL('ktt3:'+tk+':'+Number(equipped)+':'+ready,()=>kitTable3(equipped,ready)),168,136,W,H,
+    'Стіл із припасами',ready?'<b>Стіл</b><br>Тут чекають готові порції.':'<b>Стіл</b><br>Що є з припасів.',{pulse:ready,always:ready});
+  if(equipped)h+=ob('kt:order','kitchenOrderView','',obURL('ktp-order:'+Number(cooking),()=>kitOrderPot3(cooking)),365,143,W,H,
+    'Малий казан','<b>Малий казан</b><br>Робоче місце Зиновія.',{inner:cooking?smkIn(20,21,46,60):''});
   h+=ob('kt:book','bpop','kt:book',obURL('ktb3',kitBook3),232,32,W,H,'Книга рецептів',`<b>Книга рецептів</b><br>Записано ${Object.keys(s.rcp||{}).length===1?'один рецепт':'кілька рецептів'}.`,{pulse:s.rcpNew?1:0});
-  if(zinoviiPresent())h+=zinoviiHS('kitchen',133,169,W,H);
+  if(zinoviiPresent())h+=cooking?zinoviiHS('order',327,169,W,H):zinoviiHS('kitchen',133,169,W,H);
   const L={fire:[{x:85,y:192,r:110,e:.7,c:FIRE,n:4}],win:[{x:318,y:60,r:120,e:.8,c:WARM,a:.4}]};
+  if(cooking)L.fire.push({x:388,y:194,r:57,e:.65,c:FIRE,n:2});
   return`<div class="scn rm wk" data-scn="kt" style="${scnD()}">${h}${fxCanvas('kt',W,H)}${lightLayers(W,H,L)}</div>`}
 function kitPopHTML(id){const head=(t)=>`<div class="bpop wide" role="dialog" aria-label="${t}"><div class="bph"><b>${t}</b><button type="button" class="bpx" data-a="bpop" data-i="" aria-label="Закрити">✕</button></div>`;
   if(id==='kt:pot'){const L=DISH.filter(D=>rcpKnown(D.id));return head('Казан')+`<div class="rlist">${L.map(D=>`<div class="row"><span><b>${IT[D.id].n}</b><br><span class="m">${IT[D.id].d}</span></span><span class="ccs">${costTxt(D.c,D.it)}</span>${D.ingredient?btn('Приготувати','cookp',D.id,{ok:()=>dishOk(D)}):btn('Варити біля казана','cook',D.id,{ok:()=>dishOk(D)})+btn('Звично','cookp',D.id,{ok:()=>dishOk(D)})}${D.prov?`<span class="m">${V(()=>s.r.prov+D.prov>capOf('prov')?'Потрібне місце для провізії.':'')}</span>`:''}</div>`).join('')}</div>
     <p class="hint">Біля казана: тримай кипіння рівним — вийде дві порції, а коли рівно до кінця — дві смачні. Звично — одна звичайна порція. Інгредієнти не пропадають.</p></div>`}
-  if(id==='kt:table')return head('Стіл із припасами')+`<p class="m">Риба ${fmt(s.r.fish)}/${capOf('fish')}, провізія ${fmt(s.r.prov)}/${capOf('prov')}${s.seen.herb?`, трави ${fmt(s.r.herb)}`:''}.</p>${['flounder','cod','mussel'].filter(has).map(id=>`<p class="m">${pimg(icoURL(id),20,20,'','')} ${IT[id].n} ×${s.inv[id]}</p>`).join('')}<p class="m">Страви в торбі: ${Object.keys(IT).filter(k=>DISH.some(D=>k===D.id||k===D.id+'_t')&&has(k)).map(k=>`${IT[k].n} ×${s.inv[k]}`).join(', ')||'поки жодної'}.</p></div>`;
+  if(id==='kt:table')return head('Стіл із припасами')+`<p class="m">Риба ${fmt(s.r.fish)}/${capOf('fish')}, провізія ${fmt(s.r.prov)}/${capOf('prov')}${s.seen.herb?`, трави ${fmt(s.r.herb)}`:''}.</p>${['flounder','cod','mussel'].filter(has).map(id=>`<p class="m">${pimg(icoURL(id),20,20,'','')} ${IT[id].n} ×${s.inv[id]}</p>`).join('')}<p class="m">Страви в торбі: ${Object.keys(IT).filter(k=>DISH.some(D=>k===D.id||k===D.id+'_t')&&has(k)).map(k=>`${IT[k].n} ×${s.inv[k]}`).join(', ')||'поки жодної'}.</p>${kitchenOrderProgress()}</div>`;
   if(id==='kt:book'){s.rcpNew=0;return head('Книга рецептів')+`<div class="rlist">${DISH.filter(D=>rcpKnown(D.id)).map(D=>`<div class="row"><span><b>${IT[D.id].n}</b> <span class="m">— навчив${D.who==='Зиновій'?'':'ла'} ${D.who}</span><br><span class="m">${D.how}</span></span></div>`).join('')}</div><p class="hint">Далі ще чисті сторінки. Люди знають більше страв, ніж ти думаєш.</p></div>`}
   return''}
-function rKitchen(){return`<section><h2>Кухня</h2><p class="m">Казан, стіл і книга рецептів — натискай на них у кухні. Біля казана страви виходять кращими.</p><div class="act">${fishRecipeButtons()}</div></section>`}
+function rKitchen(){return`<section><h2>Кухня</h2><p class="m">Казан, стіл і книга рецептів — натискай на них у кухні. Біля казана страви виходять кращими.</p><div class="act">${fishRecipeButtons()}${kitchenSetupControls()}</div></section>`+kitchenOrderPanel()}
 /* підвкладки «Маяка»: розріз, кухня, майстерня, кабінет */
 const ttCur=()=>{const t=s.tt||'cut';return t==='cut'||s.tabs[t]?t:'cut'};
 function ttGo(i){s.tt=i;delete s.newTab[i];if(s.ttNew&&typeof s.ttNew==='object')delete s.ttNew[i];snap9(i==='cut'?'tower':i)}
 function ttBar(){const L=[['cut','Маяк','ember'],['kitchen','Кухня','soup'],['work','Майстерня','rake'],['study','Кабінет','lore']].filter(x=>x[0]==='cut'||s.tabs[x[0]]);if(L.length<2)return'';
   const nw=typeof s.ttNew==='object'&&s.ttNew?s.ttNew:{},cur=ttCur();
   return`<div class="sub2" role="tablist">${L.map(x=>btn(`${pimg(icoURL(x[2]),18,18)}${x[1]}${nw[x[0]]?'<span class="dot"></span>':''}`,'tt',x[0],{cls:cur===x[0]?'on':''})).join('')}</div>`}
+/* Облаштування кухні й одне разове замовлення. Рецепти та інвентар спільні з ручним готуванням. */
+const KITCHEN_SETUP_COST={wood:24,scrap:8}, KITCHEN_ORDER_SECONDS=30, KITCHEN_ORDER_MAX=3;
+const KITCHEN_ORDER_RECIPES=['ash','soup'];
+const canUseKitchenOrders=()=>s.f.kitchenEquipped&&s.tabs.kitchen&&zinoviiPresent();
+const kitchenProjectHere=()=>s.tabs.kitchen&&zinoviiCardContext()&&localCanAct()&&!s.dlg.length;
+
+function kitchenPlanTick(){
+  if(s.f.kitchenPlan||s.f.kitchenEquipped||!kitchenProjectHere()||!rcpKnown('soup')||(s.c.cook||0)<3||!novCan())return;
+  s.f.kitchenPlan=1;novMark('kitchenSetup');dirty=1;
+}
+
+function kitchenSetupTalk(){
+  if(!kitchenProjectHere()||!s.f.kitchenPlan||s.f.kitchenAdvice||s.f.kitchenEquipped)return;
+  s.f.kitchenAdvice=1;
+  dlg({k:'story',title:'Місце біля столу',img:{t:'face',id:'zinovii'},
+    body:`<p>${P('Зиновій')} притримує хиткий край стола. ${Q('Якби підперти ось тут і поставити малий казан збоку, ми б мали місце працювати вдвох. Принесеш дощок і скоб?')}</p>`});
+  save();
+}
+
+function kitchenSetup(){
+  if(!kitchenProjectHere()||!s.f.kitchenAdvice||s.f.kitchenEquipped||!afford(KITCHEN_SETUP_COST))return;
+  pay(KITCHEN_SETUP_COST);
+  s.f.kitchenEquipped=1;
+  novUse('kitchenSetup');
+  say('Зиновій проводить долонею по рівному столу й чіпляє малий казан на нову скобу.','world');
+  save();
+}
+
+function kitchenSetupControls(){
+  if(!s.tabs.kitchen||!s.f.kitchenPlan||s.f.kitchenEquipped)return '';
+  if(!s.f.kitchenAdvice)return btn('Обговорити робоче місце','kitchenSetupTalk');
+  return btn('Облаштувати кухню','kitchenSetup','',{ok:()=>afford(KITCHEN_SETUP_COST)})+
+    '<span class="ccs">'+costTxt(KITCHEN_SETUP_COST)+'</span>';
+}
+
+const kitchenOrderRecipe=id=>KITCHEN_ORDER_RECIPES.includes(id)?DISH.find(d=>d.id===id):undefined;
+const orderDish=id=>{const D=kitchenOrderRecipe(id);return D&&rcpKnown(id)?D:undefined};
+const orderHere=()=>canUseKitchenOrders()&&atFishKitchen()&&localCanAct()&&!s.dlg.length;
+const orderMissing=D=>Object.keys(D.c).filter(k=>reserveAvailable('kitchenOrder',k,s.r[k])<D.c[k]);
+// Після завантаження перша дія гравця знімає паузу на неоплачені порції.
+let orderResumeRequired=false;
+const ordersCanStart=()=>!document.hidden&&!orderResumeRequired;
+
+function loadKitchenOrder(){
+  orderResumeRequired=!!s.kitchenOrder;
+  const o=s.kitchenOrder;
+  if(!o)return;
+  const until=Number.isFinite(o.until)&&o.until>0?o.until:0;
+  if(!kitchenOrderRecipe(o.id)||!Number.isInteger(o.left)||!Number.isInteger(o.ready)||o.left<0||o.ready<0||
+    o.left+o.ready+Number(!!until)>KITCHEN_ORDER_MAX||!(o.left||o.ready||until)){
+    s.kitchenOrder=null;
+    return;
+  }
+  s.kitchenOrder={id:o.id,left:o.left,ready:o.ready,until};
+}
+
+function kitchenOrderTick(allowStart=true){
+  const o=s.kitchenOrder;
+  if(!o)return false;
+  const now=Date.now();
+  let changed=false;
+  if(o.until&&now>=o.until){
+    o.until=0;
+    o.ready++;
+    changed=true;
+  }
+  if(!o.until&&o.left&&allowStart&&ordersCanStart()){
+    const D=orderDish(o.id);
+    if(canUseKitchenOrders()&&D&&dishOk(D)&&!orderMissing(D).length){
+      pay(D.c,D.it);
+      o.left--;
+      o.until=now+KITCHEN_ORDER_SECONDS*1000;
+      changed=true;
+    }
+  }
+  if(changed){dirty=1;save()}
+  return changed;
+}
+
+function startKitchenOrder(value){
+  if(!orderHere()||s.kitchenOrder||typeof value!=='string')return;
+  const [id,count]=value.split(':');
+  if(!orderDish(id)||!['1','2','3'].includes(count)||value!==id+':'+count)return;
+  s.kitchenOrder={id,left:Number(count),ready:0,until:0};
+  s.f.kitchenOrderSeen=1;
+  tutOffer('kitchenOrder');
+  if(!kitchenOrderTick()){dirty=1;save()}
+}
+
+function cancelKitchenOrder(){
+  const o=s.kitchenOrder;
+  if(!orderHere()||!o?.left)return;
+  o.left=0;
+  if(!o.until&&!o.ready)s.kitchenOrder=null;
+  dirty=1;save();
+}
+
+function collectKitchenOrder(){
+  const o=s.kitchenOrder;
+  if(!orderHere()||!o?.ready)return;
+  const ready=o.ready;o.ready=0;
+  if(!o.left&&!o.until)s.kitchenOrder=null;
+  giveI(o.id,ready);
+  save();
+}
+
+function kitchenOrderView(){
+  if(!canUseKitchenOrders()||!kitchenProjectHere())return;
+  act0('tab','kitchen');
+  hlT='kitchen-orders';dirty=1;
+}
+
+let kitchenOrderDraft={dish:'ash',count:1};
+function readKitchenOrderForm(form){
+  const {dish,count}=Object.fromEntries(new FormData(form));
+  if(!orderDish(dish)||!['1','2','3'].includes(count))return false;
+  kitchenOrderDraft={dish,count:Number(count)};
+  return true;
+}
+
+function kitchenOrderStatus(o){
+  if(o.until)return 'Зиновій готує порцію.';
+  if(!o.left)return 'Замовлення готове. Порції чекають на столі.';
+  if(!ordersCanStart())return 'Решта порцій почнеться після повернення до гри.';
+  const D=orderDish(o.id);
+  if(!D)return 'Замовлення чекає на відомий рецепт.';
+  const missing=orderMissing(D);
+  return missing.length?'Потрібно понад резерв: '+missing.map(k=>RN[k].toLowerCase()).join(', ')+'.':'Наступна порція чекає на початок.';
+}
+
+function kitchenOrderProgress(){
+  const o=s.kitchenOrder;
+  if(!o)return '';
+  const D=kitchenOrderRecipe(o.id);
+  return `<p><b>${IT[D.id].n}</b> · звичайна якість</p>
+    <p class="m">За порцію · ${costTxt(D.c)} · ${KITCHEN_ORDER_SECONDS} с</p>
+    <p role="status">${V(()=>kitchenOrderStatus(o))}</p>
+    <p class="m">${o.until?'<span aria-label="Секунд до готовності">'+V(()=>Math.max(0,Math.ceil((o.until-Date.now())/1000)))+' с</span> · ':''}На столі: ${o.ready} · Ще не розпочато: ${o.left}</p>
+    <div class="act">${o.ready?btn('Забрати зі столу','kitchenOrderCollect'):''}${o.left?btn('Скасувати решту','kitchenOrderCancel'):''}</div>`;
+}
+
+function kitchenOrderPanel(){
+  if(!canUseKitchenOrders())return '';
+  if(s.kitchenOrder)return `<section id="kitchen-orders" tabindex="-1"><h2>Замовлення Зиновію</h2>${kitchenOrderProgress()}</section>`;
+  const dishes=KITCHEN_ORDER_RECIPES.map(orderDish).filter(Boolean);
+  if(!dishes.length)return '';
+  const D=orderDish(kitchenOrderDraft.dish)||dishes[0],count=kitchenOrderDraft.count;
+  const total=Object.fromEntries(Object.entries(D.c).map(([k,v])=>[k,v*count]));
+  return `<section id="kitchen-orders" tabindex="-1"><h2>Замовлення Зиновію</h2>
+    <form class="kitchen-order-form">
+      <label>Страва<select name="dish">${dishes.map(d=>`<option value="${d.id}"${D===d?' selected':''}>${IT[d.id].n}</option>`).join('')}</select></label>
+      <label>Порцій<select name="count">${[1,2,3].map(n=>`<option${n===count?' selected':''}>${n}</option>`).join('')}</select></label>
+      <p class="m">Звичайна якість · ${costTxt(total)} · ${count*KITCHEN_ORDER_SECONDS} с</p>
+      <button type="submit">Доручити Зиновію</button>
+    </form></section>`;
+}
 /* ============ ЕТАП II, КРОКИ 5–7: ОБЛОГА ПРИЧАЛУ, ТИМІШ-ПОСИЛЬНИЙ, КЛЮЧ ============
    Коли Причал уже вважає тебе сусідом, а печера контрабандистів позаду, Мла йде на селище: там тепер теж світло й гомін.
    Бій-захист: рибалки поруч, утопленики ламають хати, туманні вовки кидаються на людей, згодом із води лізуть ще.
@@ -5932,6 +6122,12 @@ function act0(a,i){
   case 'use':useHealingItem(i);break;
   case 'eatfull':eatFull();break;
   case 'fishRecipe':learnFishRecipe(i);break;
+  case 'kitchenSetupTalk':kitchenSetupTalk();break;
+  case 'kitchenSetup':kitchenSetup();break;
+  case 'kitchenOrderView':kitchenOrderView();break;
+  case 'kitchenOrder':startKitchenOrder(i);break;
+  case 'kitchenOrderCancel':cancelKitchenOrder();break;
+  case 'kitchenOrderCollect':collectKitchenOrder();break;
   case 'cook':cook(i);break;
   case 'cookp':cook(i,'plain');break;
   case 'curt':if(CUR.includes(i)){s.cur=s.cur||{on:{},t:0,gain:0};s.cur.on[i]=!s.cur.on[i]}break;
@@ -6007,7 +6203,7 @@ function rcVisible(rc){if(rc.id==='rod')return false;
 const MLA_A={smith:0.15,gather:0.08,scrapw:0.15,fishing:0.2,blow:0.05,bld:1.5,floor:2,craft:1,wup:1.5,schooner:2,exp:0.8};
 let paidN=0;
 let actOk=1;
-function act(a,i){s.lastAct=Date.now();const w=MLA_A[a],fx=SFXA[a];actOk=1;if(!w&&!fx){act0(a,i);return}const cd0=s.cd[a],p0=paidN,ap0=s.cb?s.cb.ap:null;act0(a,i);
+function act(a,i){orderResumeRequired=false;s.lastAct=Date.now();const w=MLA_A[a],fx=SFXA[a];actOk=1;if(!w&&!fx){act0(a,i);return}const cd0=s.cd[a],p0=paidN,ap0=s.cb?s.cb.ap:null;act0(a,i);
   actOk=s.cd[a]!==cd0||paidN!==p0||(s.cb&&ap0!==null&&s.cb.ap!==ap0)?1:0;if(actOk){if(w)mlaAdd(w);if(fx)sfx(fx)}}
 /* ============ RENDER ============ */
 function tabKeys(t){const k=[];
@@ -6543,6 +6739,11 @@ function restoreTideFocus(el,root){
   if(!root||el.isConnected||document.activeElement!==document.body)return;
   const match=el.tagName==='SUMMARY'?root.querySelector('summary'):[...root.querySelectorAll('[data-a]')].find(b=>!b.disabled&&
     (el.dataset.sk?b.dataset.sk===el.dataset.sk:b.dataset.a===el.dataset.a&&b.dataset.i===el.dataset.i));
+  if(el.closest('#kitchen-orders')){
+    const panel=root.querySelector('#kitchen-orders');
+    (match||(el.tagName==='SELECT'?panel?.querySelector('select[name="'+el.name+'"]'):null)||panel)?.focus({preventScroll:true});
+    return;
+  }
   if(el.dataset.a==='navLog'){root.querySelector('.nav-reverse')?.focus();return}
   if(el.dataset.a==='zoneEnter'){
     root.querySelector('[data-a="zoneBack"]')?.focus();
@@ -6578,7 +6779,7 @@ function render(){
   paintingTide=!!tide&&!!paintedTide&&tide!==paintedTide&&lastView===view;
   const focused=document.activeElement;
   const action=focused?.dataset?.a;
-  const keepFocus=paintingTide||['mussels','hookWater','rakeSand','navLog','cookp','earlySoupLearn'].includes(action)||action?.startsWith('zone')||action==='equip'&&localCurrent()==='deck'||focused?.closest?.('.shore-recovery,.zinovii-card,.zinovii-pop');
+  const keepFocus=paintingTide||['mussels','hookWater','rakeSand','navLog','cookp','earlySoupLearn'].includes(action)||action?.startsWith('zone')||action==='equip'&&localCurrent()==='deck'||focused?.closest?.('.shore-recovery,.zinovii-card,.zinovii-pop,#kitchen-orders,[data-a^="kitchenOrder"]');
   const el=keepFocus?focused:null,root=el?.closest('#stage,#main,#popl,#tabs');
   paintedTide=tide;
   try{renderView();restoreTideFocus(el,root)}finally{tideRenderTime=null;paintingTide=false}
@@ -8481,7 +8682,8 @@ function zinoviiCardBody(){
   const knowledge=(winchTopicReady()?btn('Показати механізм Зиновію','winchTalk'):'')+navTalkButton()+earlySoupButton()+fishRecipeButtons();
   const topics=zinoviiTopicGroup('Розмова',btn('Поговорити','zinoviiTalk'))+
     zinoviiTopicGroup('Знання',knowledge)+zinoviiTopicGroup('Знахідки',zinoviiFindButtons())+
-    zinoviiTopicGroup('Допомога',holdOilHTML());
+    zinoviiTopicGroup('Допомога',holdOilHTML()+kitchenSetupControls()+
+      (canUseKitchenOrders()?btn('Замовлення на кухні','kitchenOrderView'):''));
   return `<div class="pcard zinovii-profile">${pimg(faceURL('zinovii'),48,48,'','')}<div><span class="role">${role}</span><span class="m">${description}</span></div></div>`+
     topics;
 }
@@ -8515,13 +8717,15 @@ function drawZinovii(pose,frame){
   pset(b,15+x,11+head,'W');pset(b,19+x,11+head,'W');
 
   const handY=look?21:pose==='rest'?[22,18,15][frame]:[22,20,18][frame];
-  const handX=look?20:pose==='kitchen'?[23,26,25][frame]:23;
+  const handX=look?20:pose==='order'?[23,25,24][frame]:pose==='kitchen'?[23,26,25][frame]:23;
   pline(b,8,16,7,20,'4');pline(b,7,20,11,23,'5');prect(b,10,22,3,2,'m');
   pline(b,21,16,22,20,'3');pline(b,22,20,handX-1,handY,'5');prect(b,handX-1,handY,3,2,'m');
   if(pose==='rest'){
     prect(b,handX+1,handY-3,4,4,'d');prect(b,handX+1,handY-3,4,1,'Y');pset(b,handX+5,handY-2,'X');
   }else if(pose==='smoke'){
     pline(b,handX+1,handY-2,handX+4,handY+3,'X');pline(b,handX+2,handY-3,handX+5,handY+2,'Y');
+  }else if(pose==='order'){
+    pline(b,handX,handY,29,handY-6,'Y');pset(b,29,handY-7,'O');
   }else{
     polyFill(b,[[handX-2,handY-2],[handX+2,handY-1],[handX+3,handY+4],[handX-1,handY+3]],(i,j)=>pset(b,i,j,i<handX?'O':'N'));
   }
@@ -8536,7 +8740,8 @@ const zinoviiStrip=HI(pose=>{
 const ZINOVII_ACTIVITY={
   rest:'Зиновій гріє руки об кухоль.',
   smoke:'Зиновій перебирає тріски для коптильні.',
-  kitchen:'Зиновій витирає руки полотном біля столу.'
+  kitchen:'Зиновій витирає руки полотном біля столу.',
+  order:'Зиновій помішує страву в малому казані.'
 };
 function zinoviiHS(pose,x,y,W,H){
   const spec=obURL('zinovii:'+pose,()=>zinoviiFrame(pose,0));
@@ -8801,6 +9006,7 @@ const TUT={
   combat:{n:'Перший бій',ready:()=>s.f.crabWarn||s.f.crab1||s.cb,body:'<div class="tut-diagram" aria-hidden="true"><span class="tut-cell player">Ти<i></i></span><span class="tut-cell step">→</span><span class="tut-cell enemy">Ворог<i></i></span></div><p>Натискай на клітинку, щоб пересуватися, або обирай ворога для удару. Рух і атаки витрачають очки дії.</p><p>Зелені та червоні смужки під постатями показують здоров’я. Позначка над ворогом — його намір. Враховуй напрямок удару й відстань.</p><p>Коли завершиш дії, натисни «Кінець ходу»: вороги виконають свої дії, а твої очки відновляться.</p>'},
   hero:{n:'Спорядження героя',ready:()=>s.tabs.hero,body:'<p>У вкладці «Герой» переглядай здоров’я і спорядження. Натискай на предмети, щоб побачити їхні властивості або спорядити їх.</p><p>Риба й провізія відновлюють здоров’я поза боєм. Мідії, ліки та миттєві лікувальні страви можна використати з пояса в бою. Юшка відновлює сили поступово під час інших справ поза боєм.</p>'},
   kitchen:{n:'Кухня',ready:()=>s.tabs.kitchen,body:'<p>Відкрий кухню у вкладці «Маяк». Вибери відомий рецепт, перевір інгредієнти та приготуй їжу.</p><p>Картка покаже, коли й як діє страва. Юшка відновлює сили поступово поза боєм, а деякі страви додають очко дії на початку бою.</p>'},
+  kitchenOrder:{n:'Замовлення Зиновію',ready:()=>s.f.kitchenOrderSeen,body:'<p>Зиновій готує по одній порції. Інгредієнти списуються на початку роботи понад запас у резерві. Якщо бракує сировини, замовлення чекає.</p><p>Можеш скасувати порції, які ще не почалися. Коли залишиш гру, Зиновій завершить уже оплачену порцію. Готові страви забери зі столу в кухні.</p>'},
   ford:{n:'Облаштування броду',ready:()=>s.f.fordSeen,body:'<p>На березі натисни на брід. Картка показує вже виконані роботи і наступну доступну дію.</p><p>Будувати можна лише на відпливі. Перевір ресурси та час до повернення води.</p>'},
   people:{n:'Поселенці',ready:()=>s.pop>0,body:'<p>Поселенців можна призначати на роботу через картки будівель у господарстві. Кожен додає до виробництва половину рівня будівлі; вільні працівники збирають плавник.</p><p>Усі мешканці споживають провізію, а голодні працюють удвічі гірше. Стеж за запасами їжі.</p>'},
   hookWater:{n:'Предмети на воді',ready:()=>s.hookWater.pulls>0,body:'<p>Натисни на предмет на воді або обери його в списку дій. Хранитель підтягне його багром. Якщо відійдеш, предмет дочекається повернення.</p>'},
@@ -8821,6 +9027,7 @@ function tutTick(shoreLesson=true){
   if(noGap()||s.cb||s.raid||s.bellHold||away()||(s.dlg||[]).length)return;
   const id=(s.tutPending||[]).find(k=>tutReady(k)&&(k!=='tide'||!s.f.tideIntro||atShore())
     &&(k!=='fishBite'||(shoreLesson&&atShore()&&s.lastAct>fishLessonLoadedAt))
+    &&(k!=='kitchenOrder'||atFishKitchen())
     &&(k!=='mussels'||(atShore()&&!musselFxActive())));
   if(!id)return;
   tutRemember(id);dlg(tutDialog(id));
@@ -8888,9 +9095,11 @@ function load(){try{const raw=localStorage.getItem(KEY);if(!raw)return;const d=J
   if(s.cb&&s.cb.over){const k=s.cb.over;s.cb.over=0;if(k==='lose')lose(false);else win(false)}
   if(d.wup&&!d.wf){for(const k in d.wup)if(d.wup[k]>=1&&WF[k])s.wf[k]=1}delete s.wup;
   if(s.cb&&s.cb.win==='raid')s.cb=null;s.raid=0;s.log=s.log.map(logOf);if(s.eq.ranged===undefined)s.eq.ranged='';
+  loadKitchenOrder();
   const now=Date.now(),off=clamp((now-(s.ts||now))/1000,0,7200);
   if(off>5){for(let i=0;i<20;i++)produce(off/20,false);if(off>60)say(`Поки тебе не було, вогнище горіло ${Math.round(off/60)} хв.`,'world')}
   const healed=!d.cb&&healingTick(off),migrated=migrateWarm(now);
+  kitchenOrderTick(false);
   if(migratedHold||resolvedRats||migratedWinch||migratedSand||olderHealing||healed||migrated||off>5)save();
   }catch(e){s=fresh()}}
 
@@ -8920,7 +9129,20 @@ document.addEventListener('click',e=>{const el=e.target.closest('[data-a]');if(!
   const isHs=el.classList.contains('hs')||el.classList.contains('ob'),r0=isHs?Object.assign({},s.r):null;if(isHs){s.hsU=s.hsU||{};if(!s.hsU[el.dataset.k]){s.hsU[el.dataset.k]=1;el.classList.remove('pulse')}}
   act(el.dataset.a,el.dataset.i);if(isHs)hsPop(el,e,r0);if(isHs&&el.dataset.a==='gather'){if(dirty)render();const now=document.querySelector('.scn [data-sk="gather"]');if(now)pressFx(now,e)}else{if(isHs)pressFx(el,e);if(dirty)render()}
   if(zinoviiToggle||zinoviiDialogue)focusZinoviiCard(popB===ZINOVII_CARD);
+  if(el.dataset.a==='kitchenOrderView')document.getElementById('kitchen-orders')?.focus({preventScroll:true});
   save()});
+document.addEventListener('change',e=>{
+  const form=e.target.closest('.kitchen-order-form');
+  if(form&&readKitchenOrderForm(form))render();
+});
+document.addEventListener('submit',e=>{
+  const form=e.target.closest('.kitchen-order-form');
+  if(!form)return;
+  e.preventDefault();
+  if(!readKitchenOrderForm(form))return;
+  act('kitchenOrder',kitchenOrderDraft.dish+':'+kitchenOrderDraft.count);
+  render();document.getElementById('kitchen-orders')?.focus({preventScroll:true});
+});
 document.addEventListener('keydown',e=>{
   if(e.key==='Enter'&&e.target.matches&&e.target.matches('input[data-rid]')){act('riddle',e.target.dataset.rid);render();save();return}
   if((e.key==='Enter'||e.key===' ')&&e.target.getAttribute&&e.target.getAttribute('role')==='button'&&e.target.dataset.a){e.preventDefault();act(e.target.dataset.a,e.target.dataset.i);render();save();return}

@@ -532,6 +532,11 @@ function restoreTideFocus(el,root){
   if(!root||el.isConnected||document.activeElement!==document.body)return;
   const match=el.tagName==='SUMMARY'?root.querySelector('summary'):[...root.querySelectorAll('[data-a]')].find(b=>!b.disabled&&
     (el.dataset.sk?b.dataset.sk===el.dataset.sk:b.dataset.a===el.dataset.a&&b.dataset.i===el.dataset.i));
+  if(el.closest('#kitchen-orders')){
+    const panel=root.querySelector('#kitchen-orders');
+    (match||(el.tagName==='SELECT'?panel?.querySelector('select[name="'+el.name+'"]'):null)||panel)?.focus({preventScroll:true});
+    return;
+  }
   if(el.dataset.a==='navLog'){root.querySelector('.nav-reverse')?.focus();return}
   if(el.dataset.a==='zoneEnter'){
     root.querySelector('[data-a="zoneBack"]')?.focus();
@@ -567,7 +572,7 @@ function render(){
   paintingTide=!!tide&&!!paintedTide&&tide!==paintedTide&&lastView===view;
   const focused=document.activeElement;
   const action=focused?.dataset?.a;
-  const keepFocus=paintingTide||['mussels','hookWater','rakeSand','navLog','cookp','earlySoupLearn'].includes(action)||action?.startsWith('zone')||action==='equip'&&localCurrent()==='deck'||focused?.closest?.('.shore-recovery,.zinovii-card,.zinovii-pop');
+  const keepFocus=paintingTide||['mussels','hookWater','rakeSand','navLog','cookp','earlySoupLearn'].includes(action)||action?.startsWith('zone')||action==='equip'&&localCurrent()==='deck'||focused?.closest?.('.shore-recovery,.zinovii-card,.zinovii-pop,#kitchen-orders,[data-a^="kitchenOrder"]');
   const el=keepFocus?focused:null,root=el?.closest('#stage,#main,#popl,#tabs');
   paintedTide=tide;
   try{renderView();restoreTideFocus(el,root)}finally{tideRenderTime=null;paintingTide=false}
